@@ -21,9 +21,9 @@ public sealed class PacketLog(ILogger logger)
 
     public void SentGame(GamePacket packet) => WriteGame(Outbound, packet);
 
-    public void Unhandled(Connector connector, GamePacket packet) =>
-        logger.LogInformation("No handler for {Packet}, {Operation} on {Connector}, {Size} bytes",
-            NameOfMessage(packet.MessageId), packet.MessageId, connector, packet.Payload.Length);
+    public void Unhandled(eNetEventServerType serverType, GamePacket packet) =>
+        logger.LogInformation("No handler for {Packet}, {Operation} on {ServerType}, {Size} bytes",
+            NameOfMessage(packet.MsgID), packet.MsgID, serverType, packet.PkgData.Length);
 
     private void Write(string direction, GcpHead head)
     {
@@ -41,11 +41,11 @@ public sealed class PacketLog(ILogger logger)
     {
         logger.LogDebug(
             "{Source}    |   {Direction}   | {Packet}, {Operation}/0x{Hex:X4}\t| {Size} bytes, uid {Uid}",
-            GameSource, direction, NameOfMessage(packet.MessageId), packet.MessageId, packet.MessageId, packet.Payload.Length, packet.Uid);
+            GameSource, direction, NameOfMessage(packet.MsgID), packet.MsgID, packet.MsgID, packet.PkgData.Length, packet.Uid);
     }
 
-    private static string NameOfMessage(int messageId) =>
-        Enum.IsDefined((PB_ENUM_CS_MSGID_DEF)messageId) ? ((PB_ENUM_CS_MSGID_DEF)messageId).ToString() : "Unknown";
+    private static string NameOfMessage(int msgID) =>
+        Enum.IsDefined((PB_ENUM_CS_MSGID_DEF)msgID) ? ((PB_ENUM_CS_MSGID_DEF)msgID).ToString() : "Unknown";
 
     private static string NameOf(ushort command) =>
         Enum.IsDefined((GcpCommand)command) ? ((GcpCommand)command).ToString() : "Unknown";

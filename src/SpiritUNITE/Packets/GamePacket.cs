@@ -3,26 +3,26 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets;
 
-public sealed record GamePacket(int MessageId, ulong Uid, int ClientSequence, byte[] Payload)
+public sealed record GamePacket(int MsgID, ulong Uid, int ClientSeq, byte[] PkgData)
 {
-    private const int MessageIdField = 1;
+    private const int MsgIDField = 1;
     private const int UidField = 2;
-    private const int ServerSequenceField = 4;
-    private const int ClientSequenceField = 5;
+    private const int SvrPkgSeqField = 4;
+    private const int ClientSeqField = 5;
 
-    public static GamePacket Create(PB_ENUM_CS_MSGID_DEF messageId, IMessage message) =>
-        new((int)messageId, 0, 0, message.ToByteArray());
+    public static GamePacket Create(PB_ENUM_CS_MSGID_DEF msgID, IMessage message) =>
+        new((int)msgID, 0, 0, message.ToByteArray());
 
-    public GamePacket Reply(PB_ENUM_CS_MSGID_DEF messageId, IMessage message) =>
-        new((int)messageId, Uid, ClientSequence, message.ToByteArray());
+    public GamePacket Reply(PB_ENUM_CS_MSGID_DEF msgID, IMessage message) =>
+        new((int)msgID, Uid, ClientSeq, message.ToByteArray());
 
     public static GamePacket Parse(ReadOnlyMemory<byte> data)
     {
         try
         {
             var input = new CodedInputStream(data.ToArray());
-            var (messageId, uid, clientSequence) = ParseHead(input.ReadBytes());
-            return new GamePacket(messageId, uid, clientSequence, ParseBody(input.ReadBytes(), messageId));
+            var (msgID, uid, clientSeq) = ParseHead(input.ReadBytes());
+            return new GamePacket(msgID, uid, clientSeq, ParseBody(input.ReadBytes(), msgID));
         }
         catch (InvalidProtocolBufferException exception)
         {
@@ -30,33 +30,33 @@ public sealed record GamePacket(int MessageId, ulong Uid, int ClientSequence, by
         }
     }
 
-    public byte[] ToByteArray(int serverSequence)
+    public byte[] ToByteArray(int svrPkgSeq)
     {
         using var buffer = new MemoryStream();
         using var output = new CodedOutputStream(buffer, leaveOpen: true);
-        output.WriteBytes(BuildHead(serverSequence));
+        output.WriteBytes(BuildHead(svrPkgSeq));
         output.WriteBytes(BuildBody());
         output.Flush();
         return buffer.ToArray();
     }
 
-    private static (int MessageId, ulong Uid, int ClientSequence) ParseHead(ByteString head)
+    private static (int MsgID, ulong Uid, int ClientSeq) ParseHead(ByteString head)
     {
         var input = head.CreateCodedInput();
-        var (messageId, uid, clientSequence) = (0, 0UL, 0);
+        var (msgID, uid, clientSeq) = (0, 0UL, 0);
 
         for (var tag = input.ReadTag(); tag != 0; tag = input.ReadTag())
         {
             switch (WireFormat.GetTagFieldNumber(tag))
             {
-                case MessageIdField:
-                    messageId = input.ReadInt32();
+                case MsgIDField:
+                    msgID = input.ReadInt32();
                     break;
                 case UidField:
                     uid = input.ReadUInt64();
                     break;
-                case ClientSequenceField:
-                    clientSequence = input.ReadInt32();
+                case ClientSeqField:
+                    clientSeq = input.ReadInt32();
                     break;
                 default:
                     input.SkipLastField();
@@ -64,16 +64,16 @@ public sealed record GamePacket(int MessageId, ulong Uid, int ClientSequence, by
             }
         }
 
-        return (messageId, uid, clientSequence);
+        return (msgID, uid, clientSeq);
     }
 
-    private static byte[] ParseBody(ByteString body, int messageId)
+    private static byte[] ParseBody(ByteString body, int msgID)
     {
         var input = body.CreateCodedInput();
 
         for (var tag = input.ReadTag(); tag != 0; tag = input.ReadTag())
         {
-            if (WireFormat.GetTagFieldNumber(tag) == messageId)
+            if (WireFormat.GetTagFieldNumber(tag) == msgID)
             {
                 return input.ReadBytes().ToByteArray();
             }
@@ -84,18 +84,18 @@ public sealed record GamePacket(int MessageId, ulong Uid, int ClientSequence, by
         return [];
     }
 
-    private ByteString BuildHead(int serverSequence)
+    private ByteString BuildHead(int svrPkgSeq)
     {
         using var buffer = new MemoryStream();
         using var output = new CodedOutputStream(buffer, leaveOpen: true);
-        output.WriteTag(MessageIdField, WireFormat.WireType.Varint);
-        output.WriteInt32(MessageId);
+        output.WriteTag(MsgIDField, WireFormat.WireType.Varint);
+        output.WriteInt32(MsgID);
         output.WriteTag(UidField, WireFormat.WireType.Varint);
         output.WriteUInt64(Uid);
-        output.WriteTag(ServerSequenceField, WireFormat.WireType.Varint);
-        output.WriteInt32(serverSequence);
-        output.WriteTag(ClientSequenceField, WireFormat.WireType.Varint);
-        output.WriteInt32(ClientSequence);
+        output.WriteTag(SvrPkgSeqField, WireFormat.WireType.Varint);
+        output.WriteInt32(svrPkgSeq);
+        output.WriteTag(ClientSeqField, WireFormat.WireType.Varint);
+        output.WriteInt32(ClientSeq);
         output.Flush();
         return ByteString.CopyFrom(buffer.ToArray());
     }
@@ -104,8 +104,8 @@ public sealed record GamePacket(int MessageId, ulong Uid, int ClientSequence, by
     {
         using var buffer = new MemoryStream();
         using var output = new CodedOutputStream(buffer, leaveOpen: true);
-        output.WriteTag(MessageId, WireFormat.WireType.LengthDelimited);
-        output.WriteBytes(ByteString.CopyFrom(Payload));
+        output.WriteTag(MsgID, WireFormat.WireType.LengthDelimited);
+        output.WriteBytes(ByteString.CopyFrom(PkgData));
         output.Flush();
         return ByteString.CopyFrom(buffer.ToArray());
     }

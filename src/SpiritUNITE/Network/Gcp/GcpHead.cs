@@ -6,10 +6,19 @@ public enum GcpCommand : ushort
 {
     Syn = 0x1001,
     Ack = 0x1002,
-    AuthRequest = 0x2001,
-    AuthResponse = 0x2002,
+    AuthReq = 0x2001,
+    AuthRsp = 0x2002,
     Data = 0x4013,
     Bingo = 0x6002,
+}
+
+public enum KeyMaking : byte
+{
+    None = 0,
+    Auth = 1,
+    Server = 2,
+    RawDH = 3,
+    EncDH = 4,
 }
 
 public sealed class GcpProtocolException(string message) : Exception(message);

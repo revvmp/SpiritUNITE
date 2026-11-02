@@ -7,7 +7,7 @@ using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Handlers;
 using SpiritUNITE.Servers.Dir;
 using SpiritUNITE.Servers.Lobby;
-using SpiritUNITE.Game.Accounts;
+using SpiritUNITE.Game.Role;
 using SpiritUNITE.Logging;
 
 const string FileTemplate = "{Timestamp:HH:mm:ss.fff} [{Level:u5}] {Message:lj}{NewLine}{Exception}";
@@ -42,7 +42,7 @@ builder.Services.AddOptions<LobbyAddressOptions>()
 
 builder.Services.AddSingleton(services => PacketDispatcher.Discover(typeof(DirHandlers).Assembly, services));
 builder.Services.AddSingleton(TimeProvider.System);
-builder.Services.AddSingleton<AccountStore>();
+builder.Services.AddSingleton<RoleInfoStore>();
 builder.Services.AddHostedService<DirServer>();
 builder.Services.AddHostedService<LobbyServer>();
 

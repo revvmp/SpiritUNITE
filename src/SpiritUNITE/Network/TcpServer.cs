@@ -8,7 +8,7 @@ using SpiritUNITE.Packets;
 namespace SpiritUNITE.Network;
 
 public abstract class TcpServer(
-    Connector connector,
+    eNetEventServerType serverType,
     int port,
     IOptions<TcpServerOptions> options,
     PacketDispatcher dispatcher,
@@ -24,7 +24,7 @@ public abstract class TcpServer(
     public override Task StartAsync(CancellationToken cancellationToken)
     {
         listener.Start();
-        logger.LogInformation("{Connector} listening on {EndPoint}", connector, listener.LocalEndpoint);
+        logger.LogInformation("{ServerType} listening on {EndPoint}", serverType, listener.LocalEndpoint);
         return base.StartAsync(cancellationToken);
     }
 
@@ -64,7 +64,7 @@ public abstract class TcpServer(
         }
 
         var idleTimeout = TimeSpan.FromSeconds(settings.IdleTimeoutSeconds);
-        _ = ServeAsync(new Connection(client, idleTimeout, connector, BuildGreeting(), dispatcher, connectionLogger), stoppingToken);
+        _ = ServeAsync(new Connection(client, idleTimeout, serverType, BuildGreeting(), dispatcher, connectionLogger), stoppingToken);
     }
 
     private async Task ServeAsync(Connection connection, CancellationToken stoppingToken)

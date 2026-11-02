@@ -1,21 +1,21 @@
 using Microsoft.Extensions.Logging;
-using SpiritUNITE.Game.Accounts;
+using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers;
 
-public sealed class LoginHandlers(AccountStore accounts, TimeProvider clock, ILogger<LoginHandlers> logger)
+public sealed class LoginHandlers(RoleInfoStore roles, TimeProvider clock, ILogger<LoginHandlers> logger)
 {
     private const int StartingLevel = 1;
     private const int LoginSucceeded = 1;
 
-    [PacketHandler(Connector.Lobby, PB_ENUM_CS_MSGID_DEF.PbCsidAcntLoginReq)]
-    public GamePacket[] Login(GamePacket request)
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidAcntLoginReq)]
+    public GamePacket[] OnAcntLoginReq(GamePacket request)
     {
-        var login = pbCSAcntLoginReq.Parser.ParseFrom(request.Payload);
+        var login = pbCSAcntLoginReq.Parser.ParseFrom(request.PkgData);
         var uid = ResolveUid(request.Uid, login.PlayerName);
-        var account = accounts.GetOrCreate(uid);
-        logger.LogInformation("Login from uid {Uid} as {Name}", uid, account.Name);
+        var role = roles.GetOrCreate(uid);
+        logger.LogInformation("Login from uid {Uid} as {Name}", uid, role.InGameUsrName);
 
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
         var response = new pbSCAcntLoginRsp
@@ -24,10 +24,10 @@ public sealed class LoginHandlers(AccountStore accounts, TimeProvider clock, ILo
             IsSucc = LoginSucceeded,
             GameAcntUid = uid,
             Level = StartingLevel,
-            Name = account.Name,
-            Gender = account.Gender,
-            RoleAvatarInfo = account.Avatar,
-            NewbieState = account.BuildNewbieState(),
+            Name = role.InGameUsrName,
+            Gender = role.Gender,
+            RoleAvatarInfo = role.RoleAvatarInfo,
+            NewbieState = role.BuildNewbieState(),
             ServerGameTimeStamp = now,
             ServerRealTimeStamp = now,
         };
@@ -40,16 +40,16 @@ public sealed class LoginHandlers(AccountStore accounts, TimeProvider clock, ILo
         ];
     }
 
-    private static ulong ResolveUid(ulong headUid, string platformAccount)
+    private static ulong ResolveUid(ulong headUid, string platformOpenId)
     {
         if (headUid != 0)
         {
             return headUid;
         }
 
-        if (ulong.TryParse(platformAccount, out var accountUid) && accountUid != 0)
+        if (ulong.TryParse(platformOpenId, out var gameAcntUid) && gameAcntUid != 0)
         {
-            return accountUid;
+            return gameAcntUid;
         }
 
         throw new InvalidDataException("Login has no usable account id");

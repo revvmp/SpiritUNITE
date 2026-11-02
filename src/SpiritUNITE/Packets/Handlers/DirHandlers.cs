@@ -9,8 +9,8 @@ public sealed class DirHandlers(IOptions<LobbyAddressOptions> lobbyAddress, ILog
 {
     private const int ServerId = 1;
 
-    [PacketHandler(Connector.Dir, PB_ENUM_CS_MSGID_DEF.PbCsidGameSvrAddrReq)]
-    public GamePacket[] SendLobbyAddress(GamePacket request)
+    [PacketHandler(eNetEventServerType.DirServer, PB_ENUM_CS_MSGID_DEF.PbCsidGameSvrAddrReq)]
+    public GamePacket[] OnGameSvrAddrReq(GamePacket request)
     {
         logger.LogInformation("Sending Lobby address {Host}:{Port} to uid {Uid}",
             lobbyAddress.Value.Host, lobbyAddress.Value.Port, request.Uid);

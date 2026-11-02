@@ -6,7 +6,7 @@ using SpiritUNITE.Packets;
 namespace SpiritUNITE.Network.Gcp;
 
 public sealed class GcpSession(
-    Connector connector,
+    eNetEventServerType serverType,
     GamePacket[] greeting,
     PacketDispatcher dispatcher,
     ILogger logger) : IDisposable
@@ -17,8 +17,8 @@ public sealed class GcpSession(
     private GcpCipher? cipher;
     private GcpSessionState state = GcpSessionState.AwaitingSyn;
     private uint nextSequence;
-    private int nextGameSequence = 1;
-    private ulong accountUid;
+    private int nextSvrPkgSeq = 1;
+    private ulong gameAcntUid;
 
     private enum GcpSessionState
     {
@@ -34,7 +34,7 @@ public sealed class GcpSession(
         return (state, (GcpCommand)head.Command) switch
         {
             (GcpSessionState.AwaitingSyn, GcpCommand.Syn) => AcceptSyn(head, packet),
-            (GcpSessionState.AwaitingAuth, GcpCommand.AuthRequest) => AcceptAuth(head, packet),
+            (GcpSessionState.AwaitingAuth, GcpCommand.AuthReq) => AcceptAuth(head, packet),
             (GcpSessionState.Established, GcpCommand.Data) => AcceptData(head, packet),
             (GcpSessionState.Established, _) => IgnoreEstablishedPacket(head),
             _ => throw new GcpProtocolException($"Command 0x{head.Command:X4} is not valid in state {state}"),
@@ -46,7 +46,7 @@ public sealed class GcpSession(
     private byte[][] AcceptSyn(GcpHead head, ReadOnlyMemory<byte> packet)
     {
         var section = packet[GcpHead.Size..(int)head.HeadLength];
-        if (section.IsEmpty || section.Span[0] != GcpMessages.ServerKeyMaking)
+        if (section.IsEmpty || section.Span[0] != (byte)KeyMaking.Server)
         {
             throw new GcpProtocolException("SYN does not request a server generated key");
         }
@@ -61,23 +61,23 @@ public sealed class GcpSession(
     private byte[][] AcceptAuth(GcpHead head, ReadOnlyMemory<byte> packet)
     {
         var body = cipher!.Decrypt(packet.Span[(int)head.HeadLength..]);
-        var request = GcpMessages.ParseAuthRequest(body, head.HeaderVersion);
-        logger.LogInformation("GCP auth type {AuthType}, token {TokenLength} bytes, start data {StartDataLength} bytes",
-            request.AuthType, request.TokenLength, request.StartData.Length);
-        LogStartData(request.StartData.Span);
+        var request = GcpMessages.ParseAuthReq(body, head.HeaderVersion);
+        logger.LogInformation("GCP auth type {AuthType}, token {TokenLength} bytes, trans data {TransDataLength} bytes",
+            request.AuthType, request.TokenLength, request.TransData.Length);
+        LogTransData(request.TransData.Span);
 
         state = GcpSessionState.Established;
         List<byte[]> replies =
         [
-            BuildPacket(head, GcpCommand.AuthResponse, [], GcpMessages.BuildEmptyAuthResponse(head.HeaderVersion)),
+            BuildPacket(head, GcpCommand.AuthRsp, [], GcpMessages.BuildEmptyAuthRsp(head.HeaderVersion)),
             BuildPacket(head, GcpCommand.Bingo, [], GcpMessages.BuildEmptyBingo(head.HeaderVersion)),
         ];
 
         replies.AddRange(greeting.Select(packet => BuildGamePacket(head, packet)));
 
-        if (!request.StartData.IsEmpty)
+        if (!request.TransData.IsEmpty)
         {
-            replies.AddRange(DispatchGamePacket(head, request.StartData));
+            replies.AddRange(DispatchGamePacket(head, request.TransData));
         }
 
         return [.. replies];
@@ -91,24 +91,24 @@ public sealed class GcpSession(
 
     private byte[][] DispatchGamePacket(GcpHead head, ReadOnlyMemory<byte> data)
     {
-        var request = ParseGamePacket(data) with { Uid = accountUid };
+        var request = ParseGamePacket(data) with { Uid = gameAcntUid };
         packetLog.ReceivedGame(request);
 
         try
         {
-            if (dispatcher.TryDispatch(connector, request, out var replies))
+            if (dispatcher.TryDispatch(serverType, request, out var replies))
             {
-                accountUid = replies.FirstOrDefault(reply => reply.Uid != 0)?.Uid ?? accountUid;
+                gameAcntUid = replies.FirstOrDefault(reply => reply.Uid != 0)?.Uid ?? gameAcntUid;
                 return [.. replies.Select(reply => BuildGamePacket(head, reply))];
             }
         }
         catch (Exception exception) when (exception is InvalidProtocolBufferException or InvalidDataException)
         {
-            throw new GcpProtocolException($"Message {request.MessageId} was rejected: {exception.Message}");
+            throw new GcpProtocolException($"Message {request.MsgID} was rejected: {exception.Message}");
         }
 
-        packetLog.Unhandled(connector, request);
-        return connector == Connector.Lobby && DefaultReplies.TryBuild(request) is { } defaultReply
+        packetLog.Unhandled(serverType, request);
+        return serverType == eNetEventServerType.LobbyServer && DefaultReplies.TryBuild(request) is { } defaultReply
             ? [BuildGamePacket(head, defaultReply)]
             : [];
     }
@@ -116,7 +116,7 @@ public sealed class GcpSession(
     private byte[] BuildGamePacket(GcpHead head, GamePacket packet)
     {
         packetLog.SentGame(packet);
-        return BuildPacket(head, GcpCommand.Data, GcpMessages.BuildDataSection(head.PackingVersion), packet.ToByteArray(nextGameSequence++));
+        return BuildPacket(head, GcpCommand.Data, GcpMessages.BuildDataSection(head.PackingVersion), packet.ToByteArray(nextSvrPkgSeq++));
     }
 
     private static GamePacket ParseGamePacket(ReadOnlyMemory<byte> data)
@@ -137,10 +137,10 @@ public sealed class GcpSession(
         return [];
     }
 
-    private void LogStartData(ReadOnlySpan<byte> startData)
+    private void LogTransData(ReadOnlySpan<byte> transData)
     {
-        var loggedBytes = startData[..Math.Min(startData.Length, MaxLoggedBytes)];
-        logger.LogDebug("Start data begins {Hex}", Convert.ToHexString(loggedBytes));
+        var loggedBytes = transData[..Math.Min(transData.Length, MaxLoggedBytes)];
+        logger.LogDebug("Trans data begins {Hex}", Convert.ToHexString(loggedBytes));
     }
 
     private byte[] BuildPacket(GcpHead request, GcpCommand command, ReadOnlySpan<byte> section, ReadOnlySpan<byte> body)

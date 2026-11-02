@@ -12,7 +12,7 @@ public sealed class LobbyServer(
     PacketDispatcher dispatcher,
     ILogger<TcpServer> logger,
     ILogger<Connection> connectionLogger)
-    : TcpServer(Connector.Lobby, lobbyAddress.Value.Port, options, dispatcher, logger, connectionLogger)
+    : TcpServer(eNetEventServerType.LobbyServer, lobbyAddress.Value.Port, options, dispatcher, logger, connectionLogger)
 {
     protected override GamePacket[] BuildGreeting() =>
         [GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidLoginNowNtf, new pbSCLoginNowNtf())];

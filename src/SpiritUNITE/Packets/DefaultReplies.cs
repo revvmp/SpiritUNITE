@@ -13,7 +13,7 @@ public static class DefaultReplies
 
     public static GamePacket? TryBuild(GamePacket request)
     {
-        var requestName = ((PB_ENUM_CS_MSGID_DEF)request.MessageId).ToString();
+        var requestName = ((PB_ENUM_CS_MSGID_DEF)request.MsgID).ToString();
         if (!requestName.StartsWith(RequestPrefix) || !requestName.EndsWith(RequestSuffix))
         {
             return null;

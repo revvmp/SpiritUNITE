@@ -10,4 +10,4 @@ public sealed class DirServer(
     PacketDispatcher dispatcher,
     ILogger<TcpServer> logger,
     ILogger<Connection> connectionLogger)
-    : TcpServer(Connector.Dir, options.Value.Port, options, dispatcher, logger, connectionLogger);
+    : TcpServer(eNetEventServerType.DirServer, options.Value.Port, options, dispatcher, logger, connectionLogger);
