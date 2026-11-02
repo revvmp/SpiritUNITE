@@ -1,10 +1,15 @@
 using System.Security.Cryptography;
+using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using SpiritUNITE.Packets;
 
 namespace SpiritUNITE.Network.Gcp;
 
-public sealed class GcpSession(PacketDispatcher dispatcher, ILogger logger) : IDisposable
+public sealed class GcpSession(
+    Connector connector,
+    GamePacket[] greeting,
+    PacketDispatcher dispatcher,
+    ILogger logger) : IDisposable
 {
     private const int MaxLoggedBytes = 64;
 
@@ -66,6 +71,8 @@ public sealed class GcpSession(PacketDispatcher dispatcher, ILogger logger) : ID
             BuildPacket(head, GcpCommand.Bingo, [], GcpMessages.BuildEmptyBingo(head.HeaderVersion)),
         ];
 
+        replies.AddRange(greeting.Select(packet => BuildGamePacket(head, packet)));
+
         if (!request.StartData.IsEmpty)
         {
             replies.AddRange(DispatchGamePacket(head, request.StartData));
@@ -85,19 +92,26 @@ public sealed class GcpSession(PacketDispatcher dispatcher, ILogger logger) : ID
         var request = ParseGamePacket(data);
         packetLog.ReceivedGame(request);
 
-        if (!dispatcher.TryDispatch(Connector.Dir, request, out var reply))
+        try
         {
-            logger.LogInformation("No handler for message {MessageId}", request.MessageId);
-            return [];
+            if (dispatcher.TryDispatch(connector, request, out var replies))
+            {
+                return [.. replies.Select(reply => BuildGamePacket(head, reply))];
+            }
+        }
+        catch (InvalidProtocolBufferException exception)
+        {
+            throw new GcpProtocolException($"Message {request.MessageId} is not valid protobuf: {exception.Message}");
         }
 
-        if (reply is null)
-        {
-            return [];
-        }
+        logger.LogInformation("No handler for message {MessageId} on {Connector}", request.MessageId, connector);
+        return [];
+    }
 
-        packetLog.SentGame(reply);
-        return [BuildPacket(head, GcpCommand.Data, GcpMessages.BuildDataSection(head.PackingVersion), reply.ToByteArray())];
+    private byte[] BuildGamePacket(GcpHead head, GamePacket packet)
+    {
+        packetLog.SentGame(packet);
+        return BuildPacket(head, GcpCommand.Data, GcpMessages.BuildDataSection(head.PackingVersion), packet.ToByteArray());
     }
 
     private static GamePacket ParseGamePacket(ReadOnlyMemory<byte> data)

@@ -8,6 +8,8 @@ namespace SpiritUNITE.Network;
 public sealed class Connection(
     TcpClient client,
     TimeSpan idleTimeout,
+    Connector connector,
+    GamePacket[] greeting,
     PacketDispatcher dispatcher,
     ILogger<Connection> logger)
 {
@@ -16,7 +18,7 @@ public sealed class Connection(
     public async Task RunAsync(CancellationToken stoppingToken)
     {
         using (client)
-        using (var session = new GcpSession(dispatcher, logger))
+        using (var session = new GcpSession(connector, greeting, dispatcher, logger))
         {
             var remoteEndPoint = client.Client.RemoteEndPoint;
             logger.LogInformation("Connected {RemoteEndPoint}", remoteEndPoint);

@@ -7,7 +7,9 @@ using SpiritUNITE.Packets;
 
 namespace SpiritUNITE.Network;
 
-public sealed class TcpServer(
+public abstract class TcpServer(
+    Connector connector,
+    int port,
     IOptions<TcpServerOptions> options,
     PacketDispatcher dispatcher,
     ILogger<TcpServer> logger,
@@ -15,14 +17,14 @@ public sealed class TcpServer(
 {
     private readonly TcpListener listener = new(
         IPAddress.Parse(options.Value.BindAddress),
-        options.Value.Port);
+        port);
 
     private int activeConnections;
 
     public override Task StartAsync(CancellationToken cancellationToken)
     {
         listener.Start();
-        logger.LogInformation("Listening on {EndPoint}", listener.LocalEndpoint);
+        logger.LogInformation("{Connector} listening on {EndPoint}", connector, listener.LocalEndpoint);
         return base.StartAsync(cancellationToken);
     }
 
@@ -48,6 +50,8 @@ public sealed class TcpServer(
         }
     }
 
+    protected virtual GamePacket[] BuildGreeting() => [];
+
     private void Accept(TcpClient client, TcpServerOptions settings, CancellationToken stoppingToken)
     {
         if (Interlocked.Increment(ref activeConnections) > settings.MaxConnections)
@@ -60,7 +64,7 @@ public sealed class TcpServer(
         }
 
         var idleTimeout = TimeSpan.FromSeconds(settings.IdleTimeoutSeconds);
-        _ = ServeAsync(new Connection(client, idleTimeout, dispatcher, connectionLogger), stoppingToken);
+        _ = ServeAsync(new Connection(client, idleTimeout, connector, BuildGreeting(), dispatcher, connectionLogger), stoppingToken);
     }
 
     private async Task ServeAsync(Connection connection, CancellationToken stoppingToken)

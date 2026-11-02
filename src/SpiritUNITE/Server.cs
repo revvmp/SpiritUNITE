@@ -5,6 +5,8 @@ using Serilog.Events;
 using SpiritUNITE.Network;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Handlers;
+using SpiritUNITE.Servers.Dir;
+using SpiritUNITE.Servers.Lobby;
 using SpiritUNITE.Logging;
 
 var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
@@ -29,6 +31,8 @@ builder.Services.AddOptions<LobbyAddressOptions>()
     .ValidateOnStart();
 
 builder.Services.AddSingleton(services => PacketDispatcher.Discover(typeof(DirHandlers).Assembly, services));
-builder.Services.AddHostedService<TcpServer>();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddHostedService<DirServer>();
+builder.Services.AddHostedService<LobbyServer>();
 
 await builder.Build().RunAsync();

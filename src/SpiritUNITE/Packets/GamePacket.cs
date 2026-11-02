@@ -1,4 +1,5 @@
 using Google.Protobuf;
+using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets;
 
@@ -7,6 +8,12 @@ public sealed record GamePacket(int MessageId, ulong Uid, int ClientSequence, by
     private const int MessageIdField = 1;
     private const int UidField = 2;
     private const int ClientSequenceField = 5;
+
+    public static GamePacket Create(PB_ENUM_CS_MSGID_DEF messageId, IMessage message) =>
+        new((int)messageId, 0, 0, message.ToByteArray());
+
+    public GamePacket Reply(PB_ENUM_CS_MSGID_DEF messageId, IMessage message) =>
+        new((int)messageId, Uid, ClientSequence, message.ToByteArray());
 
     public static GamePacket Parse(ReadOnlyMemory<byte> data)
     {

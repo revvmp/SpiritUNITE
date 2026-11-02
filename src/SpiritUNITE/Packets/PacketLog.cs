@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SpiritUNITE.Network.Gcp;
+using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets;
 
@@ -35,9 +36,12 @@ public sealed class PacketLog(ILogger logger)
     private void WriteGame(string direction, GamePacket packet)
     {
         logger.LogDebug(
-            "{Source}    |   {Direction}   | Message, {Operation}/0x{Hex:X4}\t| {Size} bytes, uid {Uid}",
-            GameSource, direction, packet.MessageId, packet.MessageId, packet.Payload.Length, packet.Uid);
+            "{Source}    |   {Direction}   | {Packet}, {Operation}/0x{Hex:X4}\t| {Size} bytes, uid {Uid}",
+            GameSource, direction, NameOfMessage(packet.MessageId), packet.MessageId, packet.MessageId, packet.Payload.Length, packet.Uid);
     }
+
+    private static string NameOfMessage(int messageId) =>
+        Enum.IsDefined((PB_ENUM_CS_MSGID_DEF)messageId) ? ((PB_ENUM_CS_MSGID_DEF)messageId).ToString() : "Unknown";
 
     private static string NameOf(ushort command) =>
         Enum.IsDefined((GcpCommand)command) ? ((GcpCommand)command).ToString() : "Unknown";

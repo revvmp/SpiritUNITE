@@ -1,32 +1,34 @@
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
+using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets;
 
 public enum Connector
 {
     Dir,
+    Lobby,
 }
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-public sealed class PacketHandlerAttribute(Connector connector, int messageId) : Attribute
+public sealed class PacketHandlerAttribute(Connector connector, PB_ENUM_CS_MSGID_DEF messageId) : Attribute
 {
     public Connector Connector { get; } = connector;
-    public int MessageId { get; } = messageId;
+    public int MessageId { get; } = (int)messageId;
 }
 
 public sealed class PacketDispatcher
 {
-    private readonly Dictionary<(Connector, int), Func<GamePacket, GamePacket?>> handlers;
+    private readonly Dictionary<(Connector, int), Func<GamePacket, GamePacket[]>> handlers;
 
-    private PacketDispatcher(Dictionary<(Connector, int), Func<GamePacket, GamePacket?>> handlers)
+    private PacketDispatcher(Dictionary<(Connector, int), Func<GamePacket, GamePacket[]>> handlers)
     {
         this.handlers = handlers;
     }
 
     public static PacketDispatcher Discover(Assembly assembly, IServiceProvider services)
     {
-        var handlers = new Dictionary<(Connector, int), Func<GamePacket, GamePacket?>>();
+        var handlers = new Dictionary<(Connector, int), Func<GamePacket, GamePacket[]>>();
 
         foreach (var type in assembly.GetTypes())
         {
@@ -48,32 +50,32 @@ public sealed class PacketDispatcher
         return new PacketDispatcher(handlers);
     }
 
-    public bool TryDispatch(Connector connector, GamePacket request, out GamePacket? reply)
+    public bool TryDispatch(Connector connector, GamePacket request, out GamePacket[] replies)
     {
-        reply = null;
+        replies = [];
         if (!handlers.TryGetValue((connector, request.MessageId), out var handler))
         {
             return false;
         }
 
-        reply = handler(request);
+        replies = handler(request);
         return true;
     }
 
     private static void Register(
-        Dictionary<(Connector, int), Func<GamePacket, GamePacket?>> handlers,
+        Dictionary<(Connector, int), Func<GamePacket, GamePacket[]>> handlers,
         MethodInfo method,
         object instance)
     {
-        if (method.ReturnType != typeof(GamePacket)
+        if (method.ReturnType != typeof(GamePacket[])
             || method.GetParameters() is not [{ ParameterType: var parameterType }]
             || parameterType != typeof(GamePacket))
         {
             throw new InvalidOperationException(
-                $"Handler {method.DeclaringType?.Name}.{method.Name} must take and return a GamePacket");
+                $"Handler {method.DeclaringType?.Name}.{method.Name} must take a GamePacket and return a GamePacket array");
         }
 
-        var handler = method.CreateDelegate<Func<GamePacket, GamePacket?>>(instance);
+        var handler = method.CreateDelegate<Func<GamePacket, GamePacket[]>>(instance);
         foreach (var attribute in method.GetCustomAttributes<PacketHandlerAttribute>())
         {
             if (!handlers.TryAdd((attribute.Connector, attribute.MessageId), handler))

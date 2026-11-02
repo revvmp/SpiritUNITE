@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace SpiritUNITE.Packets.Handlers;
+namespace SpiritUNITE.Servers.Lobby;
 
 public sealed class LobbyAddressOptions
 {
