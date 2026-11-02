@@ -23,6 +23,9 @@ public static class GcpMessages
     private const int MaxTokenLength = 4096;
     private const int MaxStartDataLength = 256;
     private const int AuthRequestStartDataVersion = 11;
+    private const int DataRouteMinimumVersion = 9;
+    private const int DataMergeCountMinimumVersion = 10;
+    private const int ClientDataSequenceSize = 4;
 
     public static byte[] BuildAckSection(ReadOnlySpan<byte> sessionKey, int packingVersion)
     {
@@ -44,6 +47,24 @@ public static class GcpMessages
         size += headerVersion >= BingoSettingsMinimumVersion ? BingoSettingsSize : 0;
         size += headerVersion == BingoExtendedVersion ? BingoExtendedSize : 0;
         return new byte[size];
+    }
+
+    public static byte[] BuildDataSection(int packingVersion)
+    {
+        var size = 1;
+        size += packingVersion >= DataRouteMinimumVersion ? 2 : 0;
+        size += packingVersion >= DataMergeCountMinimumVersion ? 1 : 0;
+        return new byte[size];
+    }
+
+    public static ReadOnlyMemory<byte> ReadClientData(ReadOnlyMemory<byte> decryptedBody)
+    {
+        if (decryptedBody.Length < ClientDataSequenceSize)
+        {
+            throw new GcpProtocolException("Data packet is too short");
+        }
+
+        return decryptedBody[ClientDataSequenceSize..];
     }
 
     public static GcpAuthRequest ParseAuthRequest(ReadOnlyMemory<byte> body, int headerVersion)

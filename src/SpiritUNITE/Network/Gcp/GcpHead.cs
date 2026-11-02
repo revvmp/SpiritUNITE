@@ -8,6 +8,7 @@ public enum GcpCommand : ushort
     Ack = 0x1002,
     AuthRequest = 0x2001,
     AuthResponse = 0x2002,
+    Data = 0x4013,
     Bingo = 0x6002,
 }
 

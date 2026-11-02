@@ -1,8 +1,5 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/SpiritUNITE.Database/SpiritUNITE.Database.csproj" />
-    <Project Path="src/SpiritUNITE.Game/SpiritUNITE.Game.csproj" />
-    <Project Path="src/SpiritUNITE.Network/SpiritUNITE.Network.csproj" />
-    <Project Path="src/SpiritUNITE.Server/SpiritUNITE.Server.csproj" />
+    <Project Path="src/SpiritUNITE/SpiritUNITE.csproj" />
   </Folder>
 </Solution>

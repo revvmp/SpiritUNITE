@@ -1,9 +1,10 @@
 using System.Security.Cryptography;
 using Microsoft.Extensions.Logging;
+using SpiritUNITE.Protocol;
 
 namespace SpiritUNITE.Network.Gcp;
 
-public sealed class GcpSession(ILogger logger) : IDisposable
+public sealed class GcpSession(PacketDispatcher dispatcher, ILogger logger) : IDisposable
 {
     private const int MaxLoggedBytes = 64;
 
@@ -27,6 +28,7 @@ public sealed class GcpSession(ILogger logger) : IDisposable
         {
             (GcpSessionState.AwaitingSyn, GcpCommand.Syn) => AcceptSyn(head, packet),
             (GcpSessionState.AwaitingAuth, GcpCommand.AuthRequest) => AcceptAuth(head, packet),
+            (GcpSessionState.Established, GcpCommand.Data) => AcceptData(head, packet),
             (GcpSessionState.Established, _) => IgnoreEstablishedPacket(head),
             _ => throw new GcpProtocolException($"Command 0x{head.Command:X4} is not valid in state {state}"),
         };
@@ -58,11 +60,56 @@ public sealed class GcpSession(ILogger logger) : IDisposable
         LogStartData(request.StartData.Span);
 
         state = GcpSessionState.Established;
-        return
+        List<byte[]> replies =
         [
             BuildPacket(head, GcpCommand.AuthResponse, [], GcpMessages.BuildEmptyAuthResponse(head.HeaderVersion)),
             BuildPacket(head, GcpCommand.Bingo, [], GcpMessages.BuildEmptyBingo(head.HeaderVersion)),
         ];
+
+        if (!request.StartData.IsEmpty)
+        {
+            replies.AddRange(DispatchGamePacket(head, request.StartData));
+        }
+
+        return [.. replies];
+    }
+
+    private byte[][] AcceptData(GcpHead head, ReadOnlyMemory<byte> packet)
+    {
+        var body = cipher!.Decrypt(packet.Span[(int)head.HeadLength..]);
+        return DispatchGamePacket(head, GcpMessages.ReadClientData(body));
+    }
+
+    private byte[][] DispatchGamePacket(GcpHead head, ReadOnlyMemory<byte> data)
+    {
+        var request = ParseGamePacket(data);
+        packetLog.ReceivedGame(request);
+
+        if (!dispatcher.TryDispatch(Connector.Dir, request, out var reply))
+        {
+            logger.LogInformation("No handler for message {MessageId}", request.MessageId);
+            return [];
+        }
+
+        if (reply is null)
+        {
+            return [];
+        }
+
+        packetLog.SentGame(reply);
+        return [BuildPacket(head, GcpCommand.Data, GcpMessages.BuildDataSection(head.PackingVersion), reply.ToByteArray())];
+    }
+
+    private static GamePacket ParseGamePacket(ReadOnlyMemory<byte> data)
+    {
+        try
+        {
+            return GamePacket.Parse(data);
+        }
+        catch (InvalidDataException exception)
+        {
+            throw new GcpProtocolException(exception.Message);
+        }
     }
 
     private byte[][] IgnoreEstablishedPacket(GcpHead head)

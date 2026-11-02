@@ -3,11 +3,13 @@ using System.Net.Sockets;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SpiritUNITE.Protocol;
 
 namespace SpiritUNITE.Network;
 
 public sealed class TcpServer(
     IOptions<TcpServerOptions> options,
+    PacketDispatcher dispatcher,
     ILogger<TcpServer> logger,
     ILogger<Connection> connectionLogger) : BackgroundService
 {
@@ -58,7 +60,7 @@ public sealed class TcpServer(
         }
 
         var idleTimeout = TimeSpan.FromSeconds(settings.IdleTimeoutSeconds);
-        _ = ServeAsync(new Connection(client, idleTimeout, connectionLogger), stoppingToken);
+        _ = ServeAsync(new Connection(client, idleTimeout, dispatcher, connectionLogger), stoppingToken);
     }
 
     private async Task ServeAsync(Connection connection, CancellationToken stoppingToken)

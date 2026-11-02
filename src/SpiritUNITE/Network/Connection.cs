@@ -1,17 +1,22 @@
 using System.Net.Sockets;
 using Microsoft.Extensions.Logging;
 using SpiritUNITE.Network.Gcp;
+using SpiritUNITE.Protocol;
 
 namespace SpiritUNITE.Network;
 
-public sealed class Connection(TcpClient client, TimeSpan idleTimeout, ILogger<Connection> logger)
+public sealed class Connection(
+    TcpClient client,
+    TimeSpan idleTimeout,
+    PacketDispatcher dispatcher,
+    ILogger<Connection> logger)
 {
     private const int MaxLoggedBytes = 64;
 
     public async Task RunAsync(CancellationToken stoppingToken)
     {
         using (client)
-        using (var session = new GcpSession(logger))
+        using (var session = new GcpSession(dispatcher, logger))
         {
             var remoteEndPoint = client.Client.RemoteEndPoint;
             logger.LogInformation("Connected {RemoteEndPoint}", remoteEndPoint);

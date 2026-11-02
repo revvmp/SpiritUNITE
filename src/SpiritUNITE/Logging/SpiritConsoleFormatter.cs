@@ -2,7 +2,7 @@ using Serilog.Events;
 using Serilog.Formatting;
 using SpiritUNITE.Network;
 
-namespace SpiritUNITE.Server.Logging;
+namespace SpiritUNITE.Logging;
 
 public sealed class SpiritConsoleFormatter : ITextFormatter
 {
@@ -50,8 +50,8 @@ public sealed class SpiritConsoleFormatter : ITextFormatter
     {
         LogEventLevel.Verbose => "TRACE",
         LogEventLevel.Debug => "DEBUG",
-        LogEventLevel.Information => "INFO ",
-        LogEventLevel.Warning => "WARN ",
+        LogEventLevel.Information => "INFO",
+        LogEventLevel.Warning => "WARN",
         LogEventLevel.Error => "ERROR",
         _ => "FATAL",
     };
