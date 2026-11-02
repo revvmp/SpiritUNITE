@@ -17,7 +17,7 @@ var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
 builder.Services.AddSerilog(logger => logger
     .MinimumLevel.Debug()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-    .WriteTo.Console(outputTemplate: ConsoleTemplate, theme: AnsiConsoleTheme.Code));
+    .WriteTo.Async(sink => sink.Console(outputTemplate: ConsoleTemplate, theme: AnsiConsoleTheme.Code)));
 
 builder.Services.AddOptions<TcpServerOptions>()
     .BindConfiguration(TcpServerOptions.SectionName)

@@ -7,7 +7,7 @@ public sealed class TcpServerOptions
     public const string SectionName = "TcpServer";
 
     public string BindAddress { get; init; } = "127.0.0.1";
-    public int Port { get; init; } = 7777;
+    public int Port { get; init; } = 10001;
     public int MaxConnections { get; init; } = 100;
     public int IdleTimeoutSeconds { get; init; } = 60;
 
