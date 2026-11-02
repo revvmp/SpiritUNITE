@@ -1,11 +1,11 @@
 using Microsoft.Extensions.Logging;
+using SpiritUNITE.Game.Accounts;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers;
 
-public sealed class LoginHandlers(TimeProvider clock, ILogger<LoginHandlers> logger)
+public sealed class LoginHandlers(AccountStore accounts, TimeProvider clock, ILogger<LoginHandlers> logger)
 {
-    private const int MaxPlayerNameLength = 32;
     private const int StartingLevel = 1;
     private const int LoginSucceeded = 1;
 
@@ -13,38 +13,45 @@ public sealed class LoginHandlers(TimeProvider clock, ILogger<LoginHandlers> log
     public GamePacket[] Login(GamePacket request)
     {
         var login = pbCSAcntLoginReq.Parser.ParseFrom(request.Payload);
-        var name = SanitizedName(login.PlayerName, request.Uid);
-        logger.LogInformation("Login from uid {Uid} as {Name}, client version {Version}",
-            request.Uid, name, login.CltAppVersion);
+        var uid = ResolveUid(request.Uid, login.PlayerName);
+        var account = accounts.GetOrCreate(uid);
+        logger.LogInformation("Login from uid {Uid} as {Name}", uid, account.Name);
 
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
         var response = new pbSCAcntLoginRsp
         {
             ResultInfo = new pbResultInfo(),
             IsSucc = LoginSucceeded,
-            GameAcntUid = request.Uid,
+            GameAcntUid = uid,
             Level = StartingLevel,
-            Name = name,
-            NewbieState = new pbCOMDT_NEWBIE_STATE_INFO(),
+            Name = account.Name,
+            Gender = account.Gender,
+            RoleAvatarInfo = account.Avatar,
+            NewbieState = account.BuildNewbieState(),
             ServerGameTimeStamp = now,
             ServerRealTimeStamp = now,
         };
 
+        var session = request with { Uid = uid };
         return
         [
-            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAcntLoginRsp, response),
-            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidLoginFinishNtf, new pbSCLoginFinishNtf()),
+            session.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAcntLoginRsp, response),
+            session.Reply(PB_ENUM_CS_MSGID_DEF.PbScidLoginFinishNtf, new pbSCLoginFinishNtf()),
         ];
     }
 
-    private static string SanitizedName(string requestedName, ulong uid)
+    private static ulong ResolveUid(ulong headUid, string platformAccount)
     {
-        var trimmed = requestedName.Trim();
-        if (trimmed.Length == 0 || trimmed.Length > MaxPlayerNameLength || trimmed.Any(char.IsControl))
+        if (headUid != 0)
         {
-            return $"Player{uid}";
+            return headUid;
         }
 
-        return trimmed;
+        if (ulong.TryParse(platformAccount, out var accountUid) && accountUid != 0)
+        {
+            return accountUid;
+        }
+
+        throw new InvalidDataException("Login has no usable account id");
     }
 }

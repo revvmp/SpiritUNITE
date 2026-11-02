@@ -21,6 +21,10 @@ public sealed class PacketLog(ILogger logger)
 
     public void SentGame(GamePacket packet) => WriteGame(Outbound, packet);
 
+    public void Unhandled(Connector connector, GamePacket packet) =>
+        logger.LogInformation("No handler for {Packet}, {Operation} on {Connector}, {Size} bytes",
+            NameOfMessage(packet.MessageId), packet.MessageId, connector, packet.Payload.Length);
+
     private void Write(string direction, GcpHead head)
     {
         if (!logger.IsEnabled(LogLevel.Debug))

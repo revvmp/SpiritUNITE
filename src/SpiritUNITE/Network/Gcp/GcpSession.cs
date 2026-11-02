@@ -17,6 +17,8 @@ public sealed class GcpSession(
     private GcpCipher? cipher;
     private GcpSessionState state = GcpSessionState.AwaitingSyn;
     private uint nextSequence;
+    private int nextGameSequence = 1;
+    private ulong accountUid;
 
     private enum GcpSessionState
     {
@@ -89,29 +91,32 @@ public sealed class GcpSession(
 
     private byte[][] DispatchGamePacket(GcpHead head, ReadOnlyMemory<byte> data)
     {
-        var request = ParseGamePacket(data);
+        var request = ParseGamePacket(data) with { Uid = accountUid };
         packetLog.ReceivedGame(request);
 
         try
         {
             if (dispatcher.TryDispatch(connector, request, out var replies))
             {
+                accountUid = replies.FirstOrDefault(reply => reply.Uid != 0)?.Uid ?? accountUid;
                 return [.. replies.Select(reply => BuildGamePacket(head, reply))];
             }
         }
-        catch (InvalidProtocolBufferException exception)
+        catch (Exception exception) when (exception is InvalidProtocolBufferException or InvalidDataException)
         {
-            throw new GcpProtocolException($"Message {request.MessageId} is not valid protobuf: {exception.Message}");
+            throw new GcpProtocolException($"Message {request.MessageId} was rejected: {exception.Message}");
         }
 
-        logger.LogInformation("No handler for message {MessageId} on {Connector}", request.MessageId, connector);
-        return [];
+        packetLog.Unhandled(connector, request);
+        return connector == Connector.Lobby && DefaultReplies.TryBuild(request) is { } defaultReply
+            ? [BuildGamePacket(head, defaultReply)]
+            : [];
     }
 
     private byte[] BuildGamePacket(GcpHead head, GamePacket packet)
     {
         packetLog.SentGame(packet);
-        return BuildPacket(head, GcpCommand.Data, GcpMessages.BuildDataSection(head.PackingVersion), packet.ToByteArray());
+        return BuildPacket(head, GcpCommand.Data, GcpMessages.BuildDataSection(head.PackingVersion), packet.ToByteArray(nextGameSequence++));
     }
 
     private static GamePacket ParseGamePacket(ReadOnlyMemory<byte> data)

@@ -7,7 +7,11 @@ using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Handlers;
 using SpiritUNITE.Servers.Dir;
 using SpiritUNITE.Servers.Lobby;
+using SpiritUNITE.Game.Accounts;
 using SpiritUNITE.Logging;
+
+const string FileTemplate = "{Timestamp:HH:mm:ss.fff} [{Level:u5}] {Message:lj}{NewLine}{Exception}";
+const int RetainedLogFiles = 7;
 
 var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
 {
@@ -18,7 +22,13 @@ var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
 builder.Services.AddSerilog(logger => logger
     .MinimumLevel.Debug()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-    .WriteTo.Async(sink => sink.Console(new SpiritConsoleFormatter())));
+    .WriteTo.Async(sink => sink.Console(new SpiritConsoleFormatter()))
+    .WriteTo.Async(sink => sink.File(
+        Path.Combine(AppContext.BaseDirectory, "logs", "spiritunite-.log"),
+        outputTemplate: FileTemplate,
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: RetainedLogFiles,
+        shared: true)));
 
 builder.Services.AddOptions<TcpServerOptions>()
     .BindConfiguration(TcpServerOptions.SectionName)
@@ -32,6 +42,7 @@ builder.Services.AddOptions<LobbyAddressOptions>()
 
 builder.Services.AddSingleton(services => PacketDispatcher.Discover(typeof(DirHandlers).Assembly, services));
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<AccountStore>();
 builder.Services.AddHostedService<DirServer>();
 builder.Services.AddHostedService<LobbyServer>();
 

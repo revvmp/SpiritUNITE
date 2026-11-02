@@ -7,6 +7,7 @@ public sealed record GamePacket(int MessageId, ulong Uid, int ClientSequence, by
 {
     private const int MessageIdField = 1;
     private const int UidField = 2;
+    private const int ServerSequenceField = 4;
     private const int ClientSequenceField = 5;
 
     public static GamePacket Create(PB_ENUM_CS_MSGID_DEF messageId, IMessage message) =>
@@ -29,11 +30,11 @@ public sealed record GamePacket(int MessageId, ulong Uid, int ClientSequence, by
         }
     }
 
-    public byte[] ToByteArray()
+    public byte[] ToByteArray(int serverSequence)
     {
         using var buffer = new MemoryStream();
         using var output = new CodedOutputStream(buffer, leaveOpen: true);
-        output.WriteBytes(BuildHead());
+        output.WriteBytes(BuildHead(serverSequence));
         output.WriteBytes(BuildBody());
         output.Flush();
         return buffer.ToArray();
@@ -83,7 +84,7 @@ public sealed record GamePacket(int MessageId, ulong Uid, int ClientSequence, by
         return [];
     }
 
-    private ByteString BuildHead()
+    private ByteString BuildHead(int serverSequence)
     {
         using var buffer = new MemoryStream();
         using var output = new CodedOutputStream(buffer, leaveOpen: true);
@@ -91,6 +92,8 @@ public sealed record GamePacket(int MessageId, ulong Uid, int ClientSequence, by
         output.WriteInt32(MessageId);
         output.WriteTag(UidField, WireFormat.WireType.Varint);
         output.WriteUInt64(Uid);
+        output.WriteTag(ServerSequenceField, WireFormat.WireType.Varint);
+        output.WriteInt32(serverSequence);
         output.WriteTag(ClientSequenceField, WireFormat.WireType.Varint);
         output.WriteInt32(ClientSequence);
         output.Flush();
