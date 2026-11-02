@@ -3,7 +3,7 @@ using System.Net.Sockets;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SpiritUNITE.Protocol;
+using SpiritUNITE.Packets;
 
 namespace SpiritUNITE.Network;
 

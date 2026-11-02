@@ -1,8 +1,7 @@
 using Microsoft.Extensions.Logging;
 using SpiritUNITE.Network.Gcp;
-using SpiritUNITE.Protocol;
 
-namespace SpiritUNITE.Network;
+namespace SpiritUNITE.Packets;
 
 public sealed class PacketLog(ILogger logger)
 {

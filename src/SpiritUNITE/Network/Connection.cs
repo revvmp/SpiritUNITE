@@ -1,7 +1,7 @@
 using System.Net.Sockets;
 using Microsoft.Extensions.Logging;
 using SpiritUNITE.Network.Gcp;
-using SpiritUNITE.Protocol;
+using SpiritUNITE.Packets;
 
 namespace SpiritUNITE.Network;
 

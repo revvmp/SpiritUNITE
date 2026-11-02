@@ -1,6 +1,6 @@
 using Serilog.Events;
 using Serilog.Formatting;
-using SpiritUNITE.Network;
+using SpiritUNITE.Packets;
 
 namespace SpiritUNITE.Logging;
 

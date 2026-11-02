@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using Microsoft.Extensions.Logging;
-using SpiritUNITE.Protocol;
+using SpiritUNITE.Packets;
 
 namespace SpiritUNITE.Network.Gcp;
 

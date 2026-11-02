@@ -1,6 +1,6 @@
 using Google.Protobuf;
 
-namespace SpiritUNITE.Protocol;
+namespace SpiritUNITE.Packets;
 
 public sealed record GamePacket(int MessageId, ulong Uid, int ClientSequence, byte[] Payload)
 {

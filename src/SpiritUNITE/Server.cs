@@ -3,8 +3,8 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
 using SpiritUNITE.Network;
-using SpiritUNITE.Protocol;
-using SpiritUNITE.Handlers;
+using SpiritUNITE.Packets;
+using SpiritUNITE.Packets.Handlers;
 using SpiritUNITE.Logging;
 
 var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings

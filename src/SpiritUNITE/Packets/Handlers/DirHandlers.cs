@@ -1,9 +1,8 @@
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SpiritUNITE.Protocol;
 
-namespace SpiritUNITE.Handlers;
+namespace SpiritUNITE.Packets.Handlers;
 
 public sealed class DirHandlers(IOptions<LobbyAddressOptions> lobbyAddress, ILogger<DirHandlers> logger)
 {

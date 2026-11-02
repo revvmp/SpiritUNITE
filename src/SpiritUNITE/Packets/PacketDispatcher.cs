@@ -1,7 +1,7 @@
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace SpiritUNITE.Protocol;
+namespace SpiritUNITE.Packets;
 
 public enum Connector
 {
