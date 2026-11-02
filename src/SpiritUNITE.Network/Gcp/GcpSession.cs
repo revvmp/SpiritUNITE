@@ -7,6 +7,7 @@ public sealed class GcpSession(ILogger logger) : IDisposable
 {
     private const int MaxLoggedBytes = 64;
 
+    private readonly PacketLog packetLog = new(logger);
     private GcpCipher? cipher;
     private GcpSessionState state = GcpSessionState.AwaitingSyn;
     private uint nextSequence;
@@ -20,8 +21,7 @@ public sealed class GcpSession(ILogger logger) : IDisposable
 
     public IReadOnlyList<byte[]> Handle(GcpHead head, ReadOnlyMemory<byte> packet)
     {
-        logger.LogDebug("RECV command 0x{Command:X4} seq {Sequence} head {HeadLength} body {BodyLength}",
-            head.Command, head.Sequence, head.HeadLength, head.BodyLength);
+        packetLog.Received(head);
 
         return (state, (GcpCommand)head.Command) switch
         {
@@ -93,8 +93,7 @@ public sealed class GcpSession(ILogger logger) : IDisposable
         head.WriteTo(packet);
         section.CopyTo(packet.AsSpan(GcpHead.Size));
         body.CopyTo(packet.AsSpan(headLength));
-        logger.LogDebug("SEND {Command} seq {Sequence} head {HeadLength} body {BodyLength}",
-            command, head.Sequence, head.HeadLength, head.BodyLength);
+        packetLog.Sent(head);
         return packet;
     }
 }

@@ -2,11 +2,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
-using Serilog.Sinks.SystemConsole.Themes;
 using SpiritUNITE.Network;
-
-const string ConsoleTemplate =
-    "{Timestamp:HH:mm:ss.fff} {Level:u3} {SourceContext:l} {Message:lj}{NewLine}{Exception}";
+using SpiritUNITE.Server.Logging;
 
 var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
 {
@@ -17,7 +14,7 @@ var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
 builder.Services.AddSerilog(logger => logger
     .MinimumLevel.Debug()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-    .WriteTo.Async(sink => sink.Console(outputTemplate: ConsoleTemplate, theme: AnsiConsoleTheme.Code)));
+    .WriteTo.Async(sink => sink.Console(new SpiritConsoleFormatter())));
 
 builder.Services.AddOptions<TcpServerOptions>()
     .BindConfiguration(TcpServerOptions.SectionName)
