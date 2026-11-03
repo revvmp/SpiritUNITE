@@ -2,6 +2,35 @@ CREATE DATABASE IF NOT EXISTS spiritunite CHARACTER SET utf8mb4 COLLATE utf8mb4_
 
 USE spiritunite;
 
+CREATE TABLE IF NOT EXISTS `account` (
+    account_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_name VARCHAR(20) NULL,
+    email VARCHAR(254) NULL,
+    password_hash VARBINARY(64) NULL,
+    password_salt VARBINARY(32) NULL,
+    password_iterations INT NULL,
+    guest_id_hash BINARY(32) NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_login_at TIMESTAMP NULL,
+    UNIQUE KEY uq_account_user_name (user_name),
+    UNIQUE KEY uq_account_email (email),
+    UNIQUE KEY uq_account_guest_id (guest_id_hash),
+    CONSTRAINT ck_account_kind CHECK (
+        (guest_id_hash IS NULL AND user_name IS NOT NULL AND email IS NOT NULL AND password_hash IS NOT NULL
+            AND password_salt IS NOT NULL AND password_iterations IS NOT NULL)
+        OR (guest_id_hash IS NOT NULL AND user_name IS NULL AND email IS NULL AND password_hash IS NULL
+            AND password_salt IS NULL AND password_iterations IS NULL))
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `account_token` (
+    token_hash BINARY(32) NOT NULL PRIMARY KEY,
+    account_id BIGINT UNSIGNED NOT NULL,
+    expires_at BIGINT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY ix_account_token_account (account_id),
+    CONSTRAINT fk_account_token_account FOREIGN KEY (account_id) REFERENCES `account` (account_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `role` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     in_game_usr_name VARCHAR(32) NOT NULL,
@@ -12,7 +41,8 @@ CREATE TABLE IF NOT EXISTS `role` (
     using_lobby_bg_id INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uq_role_name (in_game_usr_name)
+    UNIQUE KEY uq_role_name (in_game_usr_name),
+    CONSTRAINT fk_role_account FOREIGN KEY (game_ulong_uid) REFERENCES `account` (account_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `role_pokemon` (
@@ -52,35 +82,6 @@ CREATE TABLE IF NOT EXISTS `role_shop_buy` (
     spec_sale_cycle_time BIGINT NOT NULL,
     PRIMARY KEY (game_ulong_uid, shop_id),
     CONSTRAINT fk_role_shop_buy_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
-) ENGINE=InnoDB;
-
-CREATE TABLE IF NOT EXISTS `account` (
-    account_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    user_name VARCHAR(20) NULL,
-    email VARCHAR(254) NULL,
-    password_hash VARBINARY(64) NULL,
-    password_salt VARBINARY(32) NULL,
-    password_iterations INT NULL,
-    guest_id_hash BINARY(32) NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_login_at TIMESTAMP NULL,
-    UNIQUE KEY uq_account_user_name (user_name),
-    UNIQUE KEY uq_account_email (email),
-    UNIQUE KEY uq_account_guest_id (guest_id_hash),
-    CONSTRAINT ck_account_kind CHECK (
-        (guest_id_hash IS NULL AND user_name IS NOT NULL AND email IS NOT NULL AND password_hash IS NOT NULL
-            AND password_salt IS NOT NULL AND password_iterations IS NOT NULL)
-        OR (guest_id_hash IS NOT NULL AND user_name IS NULL AND email IS NULL AND password_hash IS NULL
-            AND password_salt IS NULL AND password_iterations IS NULL))
-) ENGINE=InnoDB;
-
-CREATE TABLE IF NOT EXISTS `account_token` (
-    token_hash BINARY(32) NOT NULL PRIMARY KEY,
-    account_id BIGINT UNSIGNED NOT NULL,
-    expires_at BIGINT NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    KEY ix_account_token_account (account_id),
-    CONSTRAINT fk_account_token_account FOREIGN KEY (account_id) REFERENCES `account` (account_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `role_login_day` (
