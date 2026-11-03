@@ -87,6 +87,7 @@ public static class HttpServer
         app.MapGet(AccountPages.RegisterPath, ShowRegister);
         app.MapPost(AccountPages.RegisterPath, SubmitRegister).RequireRateLimiting(FormRateLimitPolicy).DisableAntiforgery();
         MsdkEndpoints.Map(app);
+        CentauriEndpoints.Map(app);
     }
 
     private static IResult ShowLogin(HttpRequest request, IOptions<HttpServerOptions> options) =>
