@@ -8,6 +8,7 @@ using Serilog;
 using Serilog.Events;
 using SpiritUNITE.Database;
 using SpiritUNITE.Database.Repositories;
+using SpiritUNITE.Game.Activity;
 using SpiritUNITE.Auth;
 using SpiritUNITE.Game.Data;
 using SpiritUNITE.Game.Role;
@@ -108,6 +109,7 @@ public static class Server
         builder.Services.AddSingleton<IShopRepository, ShopRepository>();
         builder.Services.AddSingleton<IAccountRepository, AccountRepository>();
         builder.Services.AddSingleton<IAccountTokenRepository, AccountTokenRepository>();
+        builder.Services.AddSingleton<IActivityRepository, ActivityRepository>();
     }
 
     private static void AddGameData(IHostApplicationBuilder builder) =>
@@ -119,6 +121,8 @@ public static class Server
         builder.Services.AddSingleton<RoleInfoStore>();
         builder.Services.AddSingleton<WalletService>();
         builder.Services.AddSingleton<ShopService>();
+        builder.Services.AddSingleton<ActivitySchedule>();
+        builder.Services.AddSingleton<ActivityTasks>();
         builder.Services.AddSingleton<LoginThrottle>();
         builder.Services.AddSingleton<AccountService>();
         builder.Services.AddSingleton<AuthorizationCodeStore>();

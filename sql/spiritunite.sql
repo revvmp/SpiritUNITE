@@ -82,3 +82,19 @@ CREATE TABLE IF NOT EXISTS `account_token` (
     KEY ix_account_token_account (account_id),
     CONSTRAINT fk_account_token_account FOREIGN KEY (account_id) REFERENCES `account` (account_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_login_day` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    login_day DATE NOT NULL,
+    PRIMARY KEY (game_ulong_uid, login_day),
+    CONSTRAINT fk_role_login_day_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_activity_task_reward` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    task_id INT NOT NULL,
+    period_start BIGINT NOT NULL,
+    reward_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, task_id, period_start),
+    CONSTRAINT fk_role_activity_task_reward_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SpiritUNITE.Game.Activity;
 using SpiritUNITE.Game.Ranked;
 using SpiritUNITE.Game.Data;
 using SpiritUNITE.Game.Role;
@@ -11,6 +12,7 @@ namespace SpiritUNITE.Packets.Handlers;
 
 public sealed class LoginHandlers(
     RoleInfoStore roles,
+    ActivityTasks activityTasks,
     GameData gameData,
     WalletService wallets,
     ShopService shop,
@@ -39,6 +41,7 @@ public sealed class LoginHandlers(
             ];
         }
 
+        await activityTasks.RecordLoginDayAsync(uid);
         return await CompleteLoginAsync(session, role);
     }
 
@@ -60,6 +63,7 @@ public sealed class LoginHandlers(
         var role = await roles.FindAsync(request.Uid)
             ?? throw new InvalidOperationException("Registered role could not be loaded");
         logger.LogInformation("Trainer registration completed for uid {Uid}", request.Uid);
+        await activityTasks.RecordLoginDayAsync(request.Uid);
         return [response, .. await CompleteLoginAsync(request, role)];
     }
 

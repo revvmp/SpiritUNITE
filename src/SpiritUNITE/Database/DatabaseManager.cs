@@ -34,6 +34,8 @@ public static class DatabaseManager
             await database.GetTable<RoleShopBuy>().FirstOrDefaultAsync();
             await database.GetTable<Account>().FirstOrDefaultAsync();
             await database.GetTable<AccountToken>().AnyAsync();
+            await database.GetTable<RoleLoginDay>().AnyAsync();
+            await database.GetTable<RoleActivityTaskReward>().AnyAsync();
         }
         catch (MySqlException exception)
         {
