@@ -1,14 +1,20 @@
+using System.Net;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
 using SpiritUNITE.Database;
 using SpiritUNITE.Database.Repositories;
+using SpiritUNITE.Auth;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Logging;
 using SpiritUNITE.Network;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Handlers;
+using SpiritUNITE.Servers.Http;
 using SpiritUNITE.Servers.Dir;
 using SpiritUNITE.Servers.Lobby;
 
@@ -30,17 +36,30 @@ public static class Server
         AddPackets(builder);
         AddServers(builder);
 
-        await builder.Build().RunAsync();
+        var app = builder.Build();
+        HttpServer.Map(app);
+        await app.RunAsync();
     }
 
-    private static HostApplicationBuilder CreateBuilder(string[] args) =>
-        Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
+    private static WebApplicationBuilder CreateBuilder(string[] args)
+    {
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
             Args = args,
             ContentRootPath = AppContext.BaseDirectory,
         });
+        builder.WebHost.ConfigureKestrel((context, kestrel) =>
+        {
+            var http = context.Configuration.GetSection(HttpServerOptions.SectionName).Get<HttpServerOptions>() ?? new HttpServerOptions();
+            if (IPAddress.TryParse(http.BindAddress, out var address))
+            {
+                kestrel.Listen(address, http.Port);
+            }
+        });
+        return builder;
+    }
 
-    private static void AddLogging(HostApplicationBuilder builder) =>
+    private static void AddLogging(IHostApplicationBuilder builder) =>
         builder.Services.AddSerilog(logger => logger
             .MinimumLevel.Debug()
             .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
@@ -52,7 +71,7 @@ public static class Server
                 retainedFileCountLimit: RetainedLogFiles,
                 shared: true)));
 
-    private static void AddSettings(HostApplicationBuilder builder)
+    private static void AddSettings(IHostApplicationBuilder builder)
     {
         builder.Services.AddOptions<TcpServerOptions>()
             .BindConfiguration(TcpServerOptions.SectionName)
@@ -65,27 +84,34 @@ public static class Server
             .ValidateOnStart();
     }
 
-    private static async Task AddDatabaseAsync(HostApplicationBuilder builder)
+    private static async Task AddDatabaseAsync(IHostApplicationBuilder builder)
     {
         var databaseOptions = await DatabaseManager.ConnectAsync(builder.Configuration["Database:ConnectionString"]);
 
         builder.Services.AddSingleton(databaseOptions);
         builder.Services.AddSingleton<IRoleRepository, RoleRepository>();
+        builder.Services.AddSingleton<IAccountRepository, AccountRepository>();
+        builder.Services.AddSingleton<IAccountTokenRepository, AccountTokenRepository>();
     }
 
-    private static void AddGame(HostApplicationBuilder builder)
+    private static void AddGame(IHostApplicationBuilder builder)
     {
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<RoleInfoStore>();
+        builder.Services.AddSingleton<LoginThrottle>();
+        builder.Services.AddSingleton<AccountService>();
+        builder.Services.AddSingleton<AuthorizationCodeStore>();
+        builder.Services.AddSingleton<AccountSessionService>();
     }
 
-    private static void AddPackets(HostApplicationBuilder builder) =>
+    private static void AddPackets(IHostApplicationBuilder builder) =>
         builder.Services.AddSingleton(services =>
             PacketDispatcher.Discover(typeof(DirHandlers).Assembly, services));
 
-    private static void AddServers(HostApplicationBuilder builder)
+    private static void AddServers(IHostApplicationBuilder builder)
     {
         builder.Services.AddHostedService<DirServer>();
         builder.Services.AddHostedService<LobbyServer>();
+        HttpServer.AddServices(builder.Services);
     }
 }

@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SpiritUNITE.Network.Gcp;
 using SpiritUNITE.Packets;
 
 namespace SpiritUNITE.Network;
@@ -15,6 +16,8 @@ public abstract class TcpServer(
     ILogger<TcpServer> logger,
     ILogger<Connection> connectionLogger) : BackgroundService
 {
+    protected const ulong NoAccount = 0;
+
     private readonly TcpListener listener = new(
         IPAddress.Parse(options.Value.BindAddress),
         port);
@@ -52,6 +55,8 @@ public abstract class TcpServer(
 
     protected virtual GamePacket[] BuildGreeting() => [];
 
+    protected virtual Task<ulong> AuthenticateAsync(GcpAuthReq request) => Task.FromResult(NoAccount);
+
     private void Accept(TcpClient client, TcpServerOptions settings, CancellationToken stoppingToken)
     {
         if (Interlocked.Increment(ref activeConnections) > settings.MaxConnections)
@@ -65,7 +70,7 @@ public abstract class TcpServer(
 
         var idleTimeout = TimeSpan.FromSeconds(settings.IdleTimeoutSeconds);
         var registrationIdleTimeout = TimeSpan.FromSeconds(settings.RegistrationIdleTimeoutSeconds);
-        _ = ServeAsync(new Connection(client, idleTimeout, registrationIdleTimeout, serverType, BuildGreeting(), dispatcher, connectionLogger), stoppingToken);
+        _ = ServeAsync(new Connection(client, idleTimeout, registrationIdleTimeout, serverType, BuildGreeting(), dispatcher, AuthenticateAsync, connectionLogger), stoppingToken);
     }
 
     private async Task ServeAsync(Connection connection, CancellationToken stoppingToken)

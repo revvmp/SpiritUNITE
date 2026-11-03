@@ -20,3 +20,25 @@ CREATE TABLE IF NOT EXISTS `role_pokemon` (
     PRIMARY KEY (game_ulong_uid, pokemon_id),
     CONSTRAINT fk_role_pokemon_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `account` (
+    account_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_name VARCHAR(20) NOT NULL,
+    email VARCHAR(254) NOT NULL,
+    password_hash VARBINARY(64) NOT NULL,
+    password_salt VARBINARY(32) NOT NULL,
+    password_iterations INT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_login_at TIMESTAMP NULL,
+    UNIQUE KEY uq_account_user_name (user_name),
+    UNIQUE KEY uq_account_email (email)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `account_token` (
+    token_hash BINARY(32) NOT NULL PRIMARY KEY,
+    account_id BIGINT UNSIGNED NOT NULL,
+    expires_at BIGINT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY ix_account_token_account (account_id),
+    CONSTRAINT fk_account_token_account FOREIGN KEY (account_id) REFERENCES `account` (account_id) ON DELETE CASCADE
+) ENGINE=InnoDB;

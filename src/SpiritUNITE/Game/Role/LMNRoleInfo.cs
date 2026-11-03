@@ -13,11 +13,17 @@ public sealed class LMNRoleInfo(
     public const int DefaultLobbyBgId = 1007600001;
 
     private const int BitsPerWord = 64;
+    private const int MaxNewbie =
+        (int)PB_MACRO_COM_MAX_NEWBIE_STATUS_BITS_NUM.PbComMaxNewbieStatusBitsNum * BitsPerWord - 1;
     private const int TutorialSkipID = 1;
     private const int CreateRoleNewbie = (int)PB_ENUM_RES_NEWBIE_STATUS_TYPE.PbResNewbieStatusTypeCreaterole;
     private const int TutorialRewardNewbie = (int)PB_ENUM_RES_NEWBIE_STATUS_TYPE.PbResNewbieStatusTypeTutorialReward;
 
-    private static readonly int[] TutorialBattleNewbies = [1, 2];
+    private static readonly int[] TutorialBattleNewbies =
+    [
+        (int)PB_ENUM_RES_NEWBIE_STATUS_TYPE.PbResNewbieStatusTypeTutorialRound1,
+        (int)PB_ENUM_RES_NEWBIE_STATUS_TYPE.PbResNewbieStatusTypeTutorialRound2,
+    ];
     private static readonly int[] TutorialRewardPokemonIds = [724, 4, 661];
 
     private readonly Lock gate = new();
@@ -36,6 +42,11 @@ public sealed class LMNRoleInfo(
 
     public PB_ENUM_RES_ERROR_CODE SetRoleCosmetic(int gender, pbCOMDT_ROLE_AVATAR_INFO roleAvatarInfo)
     {
+        if (!RoleImage.IsCreationChoice(gender, roleAvatarInfo.RoleBaseModelID, roleAvatarInfo.SkinColorID))
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
+        }
+
         if (!CreateRoleShowAvatar.IsCreationChoice(roleAvatarInfo.AvatarIDList))
         {
             return PB_ENUM_RES_ERROR_CODE.PbErrAvatarIdNotInCfg;
@@ -52,7 +63,7 @@ public sealed class LMNRoleInfo(
             RoleAvatarInfo = roleAvatarInfo;
         }
 
-        return 0;
+        return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
     public pbCOMDT_AVATAR_INFO[] BuildAvatarList()
@@ -75,12 +86,19 @@ public sealed class LMNRoleInfo(
         LobbyBgList = { new pbCOMDT_ONE_LOBBY_BACKGROUND_DATA { LobbyBgId = DefaultLobbyBgId } },
     };
 
-    public void SetNewbieState(int newbie)
+    public bool SetNewbieState(int newbie)
     {
+        if (newbie is < 0 or > MaxNewbie)
+        {
+            return false;
+        }
+
         lock (gate)
         {
             SetNewbieBit(newbie);
         }
+
+        return true;
     }
 
     public bool SkipNewbieStep(int skipID)
@@ -124,7 +142,7 @@ public sealed class LMNRoleInfo(
             pokemonIds.Add(pokemonId);
         }
 
-        return 0;
+        return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
     public int[] GetOwnedPokemonIds()

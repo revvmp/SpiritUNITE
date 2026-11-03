@@ -10,6 +10,11 @@ public sealed class RoleInfoStore(IRoleRepository repository)
     private const int MaximumNameBytes = 32;
     private const int MaximumNameWidth = 12;
     private const int MaximumDigits = 5;
+    private const int NarrowCharacterWidth = 1;
+    private const int WideCharacterWidth = 2;
+    private const int FirstWideCharacter = 0x0800;
+    private const int ThaiBlockStart = 0x0E00;
+    private const int ThaiBlockEnd = 0x0E7F;
 
     private readonly ConcurrentDictionary<ulong, LMNRoleInfo> roles = new();
 
@@ -41,7 +46,7 @@ public sealed class RoleInfoStore(IRoleRepository repository)
         }
 
         var error = ValidateName(userName);
-        return error != 0 ? error : await repository.RegisterAsync(uid, userName);
+        return error != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc ? error : await repository.RegisterAsync(uid, userName);
     }
 
     private static PB_ENUM_RES_ERROR_CODE ValidateName(string userName)
@@ -72,13 +77,15 @@ public sealed class RoleInfoStore(IRoleRepository repository)
 
             if (char.GetUnicodeCategory(character) is not (UnicodeCategory.NonSpacingMark or UnicodeCategory.EnclosingMark))
             {
-                width += character < '\u0800' || character is >= '\u0e00' and <= '\u0e7f' ? 1 : 2;
+                width += character < FirstWideCharacter || (int)character is >= ThaiBlockStart and <= ThaiBlockEnd
+                    ? NarrowCharacterWidth
+                    : WideCharacterWidth;
             }
         }
 
         return width > MaximumNameWidth || digits > MaximumDigits || width == 0
             ? PB_ENUM_RES_ERROR_CODE.PbErrRegisterNameInvalid
-            : 0;
+            : PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
     private static bool IsNameCharacter(char character) => character is

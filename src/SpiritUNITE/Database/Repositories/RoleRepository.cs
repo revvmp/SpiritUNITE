@@ -11,6 +11,8 @@ namespace SpiritUNITE.Database.Repositories;
 
 public sealed class RoleRepository(DataOptions options) : IRoleRepository
 {
+    private const int OneRow = 1;
+
     public async Task<LMNRoleInfo?> FindAsync(ulong gameUlongUID)
     {
         await using var database = new DataConnection(options);
@@ -31,7 +33,7 @@ public sealed class RoleRepository(DataOptions options) : IRoleRepository
     {
         await using var database = new DataConnection(options);
         await using var transaction = await database.BeginTransactionAsync();
-        if (await database.UpdateAsync(ToEntity(role)) != 1)
+        if (await database.UpdateAsync(ToEntity(role)) != OneRow)
         {
             throw new InvalidOperationException("Cannot save a role that does not exist");
         }
@@ -68,14 +70,14 @@ public sealed class RoleRepository(DataOptions options) : IRoleRepository
                 InGameUsrName = userName,
             });
         }
-        catch (MySqlException exception) when (exception.Number == 1062)
+        catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
         {
             return await database.GetTable<Role>().AnyAsync(role => role.GameUlongUID == gameUlongUID)
                 ? PB_ENUM_RES_ERROR_CODE.PbErrRegisterNotNeed
                 : PB_ENUM_RES_ERROR_CODE.PbErrRegisterNameDup;
         }
 
-        return 0;
+        return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
     private static LMNRoleInfo ToLMNRoleInfo(Role role, int[] pokemonIds) => new(

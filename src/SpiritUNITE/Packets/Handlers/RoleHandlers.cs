@@ -6,7 +6,7 @@ namespace SpiritUNITE.Packets.Handlers;
 
 public sealed class RoleHandlers(RoleInfoStore roles, ILogger<RoleHandlers> logger)
 {
-    private const int MaxNewbie = 4095;
+    private const int NoPokemonId = 0;
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidSetRoleCosmeticReq)]
     public async Task<GamePacket[]> OnSetRoleCosmeticReq(GamePacket request)
@@ -14,7 +14,7 @@ public sealed class RoleHandlers(RoleInfoStore roles, ILogger<RoleHandlers> logg
         var role = RequireRole(request);
         var cosmetic = pbCSSetRoleCosmeticReq.Parser.ParseFrom(request.PkgData);
         var result = role.SetRoleCosmetic(cosmetic.Gender, cosmetic.RoleAvatarInfo ?? new pbCOMDT_ROLE_AVATAR_INFO());
-        if (result != 0)
+        if (result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
         {
             logger.LogInformation("Role cosmetic refused for uid {Uid}: {Result}", role.GameUlongUID, result);
         }
@@ -38,12 +38,11 @@ public sealed class RoleHandlers(RoleInfoStore roles, ILogger<RoleHandlers> logg
     {
         var role = RequireRole(request);
         var newbie = pbCSSetNewbieStateInfoReq.Parser.ParseFrom(request.PkgData).Newbie;
-        if (newbie is < 0 or > MaxNewbie)
+        if (!role.SetNewbieState(newbie))
         {
             throw new InvalidDataException($"Newbie {newbie} is out of range");
         }
 
-        role.SetNewbieState(newbie);
         await roles.SaveAsync(role);
         var response = new pbSCNewbieStateInfoNtf { NewbieState = role.BuildNewbieState() };
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidNewbieStateInfoNtf, response)];
@@ -64,7 +63,7 @@ public sealed class RoleHandlers(RoleInfoStore roles, ILogger<RoleHandlers> logg
         return
         [
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidNewbieStateInfoNtf, state),
-            BuildSkipNewbieStepRsp(request, 0),
+            BuildSkipNewbieStepRsp(request, PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc),
         ];
     }
 
@@ -74,14 +73,14 @@ public sealed class RoleHandlers(RoleInfoStore roles, ILogger<RoleHandlers> logg
         var role = RequireRole(request);
         var pokemonId = pbCSGetTutorialRewardReq.Parser.ParseFrom(request.PkgData).PokemonId;
         var result = role.GetTutorialReward(pokemonId);
-        if (result != 0)
+        if (result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
         {
             logger.LogInformation(
                 "Tutorial reward {PokemonId} refused for uid {Uid}: {Result}",
                 pokemonId,
                 role.GameUlongUID,
                 result);
-            return [BuildGetTutorialRewardRsp(request, result, 0)];
+            return [BuildGetTutorialRewardRsp(request, result, NoPokemonId)];
         }
 
         await roles.SaveAsync(role);
@@ -96,7 +95,7 @@ public sealed class RoleHandlers(RoleInfoStore roles, ILogger<RoleHandlers> logg
         [
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdatePokemonNtf, gain),
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidNewbieStateInfoNtf, state),
-            BuildGetTutorialRewardRsp(request, 0, pokemonId),
+            BuildGetTutorialRewardRsp(request, PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, pokemonId),
         ];
     }
 

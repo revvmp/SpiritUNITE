@@ -6,15 +6,14 @@ namespace SpiritUNITE.Packets.Handlers;
 
 public sealed class LoginHandlers(RoleInfoStore roles, TimeProvider clock, ILogger<LoginHandlers> logger)
 {
-    private const int StartingLevel = 1;
     private const int LoginSucceeded = 1;
     private const int ShippedDatabinABTestID = 1;
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidAcntLoginReq)]
     public async Task<GamePacket[]> OnAcntLoginReq(GamePacket request)
     {
-        var login = pbCSAcntLoginReq.Parser.ParseFrom(request.PkgData);
-        var uid = ResolveUid(request.Uid, login.PlayerName);
+        _ = pbCSAcntLoginReq.Parser.ParseFrom(request.PkgData);
+        var uid = RequireAuthenticatedUid(request.Uid);
         var role = await roles.FindAsync(uid);
         var session = request with { Uid = uid };
         if (role is null)
@@ -41,7 +40,7 @@ public sealed class LoginHandlers(RoleInfoStore roles, TimeProvider clock, ILogg
         {
             ResultInfo = new pbResultInfo { ResultId = (int)result },
         });
-        if (result != 0)
+        if (result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
         {
             logger.LogInformation("Trainer registration refused for uid {Uid}: {Result}", request.Uid, result);
             return [response];
@@ -63,7 +62,7 @@ public sealed class LoginHandlers(RoleInfoStore roles, TimeProvider clock, ILogg
             ResultInfo = new pbResultInfo(),
             IsSucc = LoginSucceeded,
             GameAcntUid = role.GameUlongUID,
-            Level = StartingLevel,
+            Level = RoleProfile.StartingLevel,
             Name = role.InGameUsrName,
             Gender = role.Gender,
             RoleAvatarInfo = role.RoleAvatarInfo,
@@ -81,18 +80,6 @@ public sealed class LoginHandlers(RoleInfoStore roles, TimeProvider clock, ILogg
         ];
     }
 
-    private static ulong ResolveUid(ulong headUid, string platformOpenId)
-    {
-        if (headUid != 0)
-        {
-            return headUid;
-        }
-
-        if (ulong.TryParse(platformOpenId, out var gameAcntUid) && gameAcntUid != 0)
-        {
-            return gameAcntUid;
-        }
-
-        throw new InvalidDataException("Login has no usable account id");
-    }
+    private static ulong RequireAuthenticatedUid(ulong authenticatedUid) =>
+        authenticatedUid != 0 ? authenticatedUid : throw new InvalidDataException("Login has no valid account token");
 }

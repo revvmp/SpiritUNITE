@@ -9,6 +9,7 @@ public sealed class GcpCipher : IDisposable
     private const int BlockSize = 16;
     private const int LongTailThreshold = 10;
     private const int PadLengthSize = 1;
+    private const int LongTailSize = 2 * BlockSize;
 
     private static readonly byte[] InitializationVector =
         [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F];
@@ -69,7 +70,7 @@ public sealed class GcpCipher : IDisposable
     private static int PaddingLengthFor(int plaintextLength)
     {
         var remainder = plaintextLength % BlockSize;
-        var tailSize = remainder <= LongTailThreshold ? BlockSize : 2 * BlockSize;
+        var tailSize = remainder <= LongTailThreshold ? BlockSize : LongTailSize;
         return tailSize - remainder;
     }
 }

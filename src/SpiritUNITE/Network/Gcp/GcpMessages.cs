@@ -1,8 +1,9 @@
 using System.Buffers.Binary;
+using System.Text;
 
 namespace SpiritUNITE.Network.Gcp;
 
-public readonly record struct GcpAuthReq(ushort AuthType, int TokenLength, ReadOnlyMemory<byte> TransData);
+public readonly record struct GcpAuthReq(ushort AuthType, ReadOnlyMemory<byte> Token, ReadOnlyMemory<byte> TransData);
 
 public static class GcpMessages
 {
@@ -24,14 +25,22 @@ public static class GcpMessages
     private const int DataRouteMinimumVersion = 9;
     private const int DataMergeCountMinimumVersion = 10;
     private const int ClientDataSequenceSize = 4;
+    private const int ChannelTokenLengthOffset = 2;
+    private const int ChannelTokenLengthSize = 1;
+    private const int AckKeyHeaderSize = 2;
+    private const int DataCompressedFlagSize = 1;
+    private const int DataRouteSize = 2;
+    private const int DataMergeCountSize = 1;
+    private const byte FirstPrintableAscii = 0x21;
+    private const byte LastPrintableAscii = 0x7E;
 
     public static byte[] BuildAckSection(ReadOnlySpan<byte> sessionKey, int packingVersion)
     {
         var trailerSize = packingVersion >= AckTrailerMinimumVersion ? AckTrailerSize : 0;
-        var section = new byte[2 + sessionKey.Length + trailerSize];
+        var section = new byte[AckKeyHeaderSize + sessionKey.Length + trailerSize];
         section[0] = (byte)KeyMaking.Server;
         section[1] = (byte)sessionKey.Length;
-        sessionKey.CopyTo(section.AsSpan(2));
+        sessionKey.CopyTo(section.AsSpan(AckKeyHeaderSize));
         return section;
     }
 
@@ -49,9 +58,9 @@ public static class GcpMessages
 
     public static byte[] BuildDataSection(int packingVersion)
     {
-        var size = 1;
-        size += packingVersion >= DataRouteMinimumVersion ? 2 : 0;
-        size += packingVersion >= DataMergeCountMinimumVersion ? 1 : 0;
+        var size = DataCompressedFlagSize;
+        size += packingVersion >= DataRouteMinimumVersion ? DataRouteSize : 0;
+        size += packingVersion >= DataMergeCountMinimumVersion ? DataMergeCountSize : 0;
         return new byte[size];
     }
 
@@ -75,7 +84,25 @@ public static class GcpMessages
             ? ReadLengthPrefixed(body, ref offset, MaxTransDataLength)
             : ReadOnlyMemory<byte>.Empty;
 
-        return new GcpAuthReq(authType, token.Length, transData);
+        return new GcpAuthReq(authType, token, transData);
+    }
+
+    public static string? TryReadChannelAccessToken(ReadOnlySpan<byte> token)
+    {
+        if (token.Length <= ChannelTokenLengthOffset)
+        {
+            return null;
+        }
+
+        var accessTokenStart = ChannelTokenLengthOffset + ChannelTokenLengthSize;
+        var accessTokenLength = token[ChannelTokenLengthOffset];
+        if (accessTokenLength == 0 || token.Length - accessTokenStart < accessTokenLength)
+        {
+            return null;
+        }
+
+        var accessToken = token.Slice(accessTokenStart, accessTokenLength);
+        return accessToken.ContainsAnyExceptInRange(FirstPrintableAscii, LastPrintableAscii) ? null : Encoding.ASCII.GetString(accessToken);
     }
 
     private static ushort ReadUInt16(ReadOnlySpan<byte> data, ref int offset)

@@ -12,6 +12,7 @@ public sealed class Connection(
     eNetEventServerType serverType,
     GamePacket[] greeting,
     PacketDispatcher dispatcher,
+    Func<GcpAuthReq, Task<ulong>> authenticate,
     ILogger<Connection> logger)
 {
     private const int MaxLoggedBytes = 64;
@@ -19,7 +20,7 @@ public sealed class Connection(
     public async Task RunAsync(CancellationToken stoppingToken)
     {
         using (client)
-        using (var session = new GcpSession(serverType, greeting, dispatcher, logger))
+        using (var session = new GcpSession(serverType, greeting, dispatcher, authenticate, logger))
         {
             var remoteEndPoint = client.Client.RemoteEndPoint;
             logger.LogInformation("Connected {RemoteEndPoint}", remoteEndPoint);

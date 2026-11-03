@@ -10,6 +10,7 @@ public sealed class GcpSession(
     eNetEventServerType serverType,
     GamePacket[] greeting,
     PacketDispatcher dispatcher,
+    Func<GcpAuthReq, Task<ulong>> authenticate,
     ILogger logger) : IDisposable
 {
     private const int MaxLoggedBytes = 64;
@@ -20,6 +21,7 @@ public sealed class GcpSession(
     private uint nextSequence;
     private int nextSvrPkgSeq = 1;
     private ulong gameAcntUid;
+    private ulong authenticatedUid;
     private bool loginCompleted;
 
     public bool AwaitingRegistration => serverType == eNetEventServerType.LobbyServer && gameAcntUid != 0 && !loginCompleted;
@@ -67,8 +69,9 @@ public sealed class GcpSession(
         var body = cipher!.Decrypt(packet.Span[(int)head.HeadLength..]);
         var request = GcpMessages.ParseAuthReq(body, head.HeaderVersion);
         logger.LogInformation("GCP auth type {AuthType}, token {TokenLength} bytes, trans data {TransDataLength} bytes",
-            request.AuthType, request.TokenLength, request.TransData.Length);
+            request.AuthType, request.Token.Length, request.TransData.Length);
         LogTransData(request.TransData.Span);
+        authenticatedUid = await authenticate(request);
 
         state = GcpSessionState.Established;
         List<byte[]> replies =
@@ -95,7 +98,7 @@ public sealed class GcpSession(
 
     private async Task<byte[][]> DispatchGamePacketAsync(GcpHead head, ReadOnlyMemory<byte> data)
     {
-        var request = ParseGamePacket(data) with { Uid = gameAcntUid };
+        var request = ParseGamePacket(data) with { Uid = gameAcntUid != 0 ? gameAcntUid : authenticatedUid };
         packetLog.ReceivedGame(request);
 
         try

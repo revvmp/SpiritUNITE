@@ -11,7 +11,7 @@ public sealed record GamePacket(int MsgID, ulong Uid, int ClientSeq, byte[] PkgD
     private const int ClientSeqField = 5;
 
     public static GamePacket Create(PB_ENUM_CS_MSGID_DEF msgID, IMessage message) =>
-        new((int)msgID, 0, 0, message.ToByteArray());
+        new((int)msgID, Uid: 0, ClientSeq: 0, message.ToByteArray());
 
     public GamePacket Reply(PB_ENUM_CS_MSGID_DEF msgID, IMessage message) =>
         new((int)msgID, Uid, ClientSeq, message.ToByteArray());

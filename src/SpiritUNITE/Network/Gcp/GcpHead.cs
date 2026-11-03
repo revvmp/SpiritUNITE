@@ -37,6 +37,15 @@ public readonly record struct GcpHead(
 
     private const ushort Magic = 0x3366;
     private const ushort MaxPackingVersion = 11;
+    private const int PackingVersionOffset = 2;
+    private const int HeaderVersionOffset = 4;
+    private const int CommandOffset = 6;
+    private const int EncryptedFlagOffset = 8;
+    private const int SequenceOffset = 9;
+    private const int HeadLengthOffset = 13;
+    private const int BodyLengthOffset = 17;
+    private const byte Encrypted = 1;
+    private const byte Plaintext = 0;
 
     public int PacketLength => (int)(HeadLength + BodyLength);
 
@@ -54,13 +63,13 @@ public readonly record struct GcpHead(
         }
 
         head = new GcpHead(
-            BinaryPrimitives.ReadUInt16BigEndian(data[2..]),
-            BinaryPrimitives.ReadUInt16BigEndian(data[4..]),
-            BinaryPrimitives.ReadUInt16BigEndian(data[6..]),
-            data[8] != 0,
-            BinaryPrimitives.ReadUInt32BigEndian(data[9..]),
-            BinaryPrimitives.ReadUInt32BigEndian(data[13..]),
-            BinaryPrimitives.ReadUInt32BigEndian(data[17..]));
+            BinaryPrimitives.ReadUInt16BigEndian(data[PackingVersionOffset..]),
+            BinaryPrimitives.ReadUInt16BigEndian(data[HeaderVersionOffset..]),
+            BinaryPrimitives.ReadUInt16BigEndian(data[CommandOffset..]),
+            data[EncryptedFlagOffset] != Plaintext,
+            BinaryPrimitives.ReadUInt32BigEndian(data[SequenceOffset..]),
+            BinaryPrimitives.ReadUInt32BigEndian(data[HeadLengthOffset..]),
+            BinaryPrimitives.ReadUInt32BigEndian(data[BodyLengthOffset..]));
         head.Validate();
         return true;
     }
@@ -68,13 +77,13 @@ public readonly record struct GcpHead(
     public void WriteTo(Span<byte> destination)
     {
         BinaryPrimitives.WriteUInt16BigEndian(destination, Magic);
-        BinaryPrimitives.WriteUInt16BigEndian(destination[2..], PackingVersion);
-        BinaryPrimitives.WriteUInt16BigEndian(destination[4..], HeaderVersion);
-        BinaryPrimitives.WriteUInt16BigEndian(destination[6..], Command);
-        destination[8] = IsEncrypted ? (byte)1 : (byte)0;
-        BinaryPrimitives.WriteUInt32BigEndian(destination[9..], Sequence);
-        BinaryPrimitives.WriteUInt32BigEndian(destination[13..], HeadLength);
-        BinaryPrimitives.WriteUInt32BigEndian(destination[17..], BodyLength);
+        BinaryPrimitives.WriteUInt16BigEndian(destination[PackingVersionOffset..], PackingVersion);
+        BinaryPrimitives.WriteUInt16BigEndian(destination[HeaderVersionOffset..], HeaderVersion);
+        BinaryPrimitives.WriteUInt16BigEndian(destination[CommandOffset..], Command);
+        destination[EncryptedFlagOffset] = IsEncrypted ? Encrypted : Plaintext;
+        BinaryPrimitives.WriteUInt32BigEndian(destination[SequenceOffset..], Sequence);
+        BinaryPrimitives.WriteUInt32BigEndian(destination[HeadLengthOffset..], HeadLength);
+        BinaryPrimitives.WriteUInt32BigEndian(destination[BodyLengthOffset..], BodyLength);
     }
 
     private void Validate()
