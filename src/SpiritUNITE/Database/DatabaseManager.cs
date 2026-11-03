@@ -27,8 +27,9 @@ public static class DatabaseManager
         try
         {
             await using var database = new DataConnection(options);
-            await database.GetTable<Role>().AnyAsync();
+            await database.GetTable<Role>().FirstOrDefaultAsync();
             await database.GetTable<RolePokemon>().AnyAsync();
+            await database.GetTable<RoleItem>().FirstOrDefaultAsync();
             await database.GetTable<Account>().FirstOrDefaultAsync();
             await database.GetTable<AccountToken>().AnyAsync();
         }

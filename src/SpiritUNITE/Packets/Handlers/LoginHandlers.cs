@@ -1,10 +1,15 @@
 using Microsoft.Extensions.Logging;
+using SpiritUNITE.Game.Data;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers;
 
-public sealed class LoginHandlers(RoleInfoStore roles, TimeProvider clock, ILogger<LoginHandlers> logger)
+public sealed class LoginHandlers(
+    RoleInfoStore roles,
+    GameData gameData,
+    TimeProvider clock,
+    ILogger<LoginHandlers> logger)
 {
     private const int LoginSucceeded = 1;
     private const int ShippedDatabinABTestID = 1;
@@ -70,13 +75,18 @@ public sealed class LoginHandlers(RoleInfoStore roles, TimeProvider clock, ILogg
             ServerGameTimeStamp = now,
             ServerRealTimeStamp = now,
             ABTestID = ShippedDatabinABTestID,
-            UsingLobbyBgId = LMNRoleInfo.DefaultLobbyBgId,
+            UsingLobbyBgId = role.GetUsingLobbyBgId(gameData),
         };
 
         return
         [
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAcntLoginRsp, response),
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidLoginFinishNtf, new pbSCLoginFinishNtf()),
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetAvatarListRsp, new pbSCGetAvatarListRsp
+            {
+                ResultInfo = new pbResultInfo(),
+                AvatarList = { role.BuildAvatarList() },
+            }),
         ];
     }
 

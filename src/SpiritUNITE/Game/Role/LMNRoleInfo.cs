@@ -9,9 +9,11 @@ public sealed class LMNRoleInfo(
     int gender,
     pbCOMDT_ROLE_AVATAR_INFO roleAvatarInfo,
     IEnumerable<long> newbieBitsDetail,
-    IEnumerable<int> ownedPokemonIds)
+    IEnumerable<int> ownedPokemonIds,
+    IEnumerable<RoleItemInfo> ownedItems,
+    int usingLobbyBgId)
 {
-    public const int DefaultLobbyBgId = 1007600001;
+    public const int NoUsingLobbyBgId = 0;
 
     private const int BitsPerWord = 64;
     private const int MaxNewbie =
@@ -30,9 +32,13 @@ public sealed class LMNRoleInfo(
     private readonly Lock gate = new();
     private readonly List<long> bitsDetail = [.. newbieBitsDetail];
     private readonly HashSet<int> pokemonIds = [.. ownedPokemonIds];
+    private int mUsingLobbyBgId = usingLobbyBgId;
+
+    private readonly Dictionary<(RoleItemType ItemType, int ItemId), RoleItemInfo> items =
+        OwnWornAvatarItems(roleAvatarInfo, ownedItems);
 
     public LMNRoleInfo(ulong gameUlongUID, string inGameUsrName)
-        : this(gameUlongUID, inGameUsrName, 0, new pbCOMDT_ROLE_AVATAR_INFO(), [], [])
+        : this(gameUlongUID, inGameUsrName, 0, new pbCOMDT_ROLE_AVATAR_INFO(), [], [], [], NoUsingLobbyBgId)
     {
     }
 
@@ -41,7 +47,11 @@ public sealed class LMNRoleInfo(
     public int Gender { get; private set; } = gender;
     public pbCOMDT_ROLE_AVATAR_INFO RoleAvatarInfo { get; private set; } = roleAvatarInfo;
 
-    public PB_ENUM_RES_ERROR_CODE SetRoleCosmetic(GameData gameData, int gender, pbCOMDT_ROLE_AVATAR_INFO roleAvatarInfo)
+    public PB_ENUM_RES_ERROR_CODE SetRoleCosmetic(
+        GameData gameData,
+        int gender,
+        pbCOMDT_ROLE_AVATAR_INFO roleAvatarInfo,
+        long gainTime)
     {
         if (!RoleImage.IsCreationChoice(gameData, gender, roleAvatarInfo.RoleBaseModelID, roleAvatarInfo.SkinColorID))
         {
@@ -62,30 +72,160 @@ public sealed class LMNRoleInfo(
 
             Gender = gender;
             RoleAvatarInfo = roleAvatarInfo;
+            foreach (var avatarID in WornAvatarIDs(roleAvatarInfo))
+            {
+                AddItem(new RoleItemInfo(
+                    RoleItemType.AvatarItem,
+                    avatarID,
+                    gainTime,
+                    RoleItemInfo.Permanent,
+                    RoleItemInfo.NoNewTag));
+            }
         }
 
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
-    public pbCOMDT_AVATAR_INFO[] BuildAvatarList()
+    public bool OwnsItem(RoleItemType itemType, int itemId)
     {
         lock (gate)
         {
-            return
-            [
-                .. RoleAvatarInfo.AvatarIDList
-                    .Where(id => id != CreateRoleShowAvatar.EmptyAvatarSlot)
-                    .Distinct()
-                    .Select(id => new pbCOMDT_AVATAR_INFO { AvatarID = id }),
-            ];
+            return items.ContainsKey((itemType, itemId));
         }
     }
 
-    public static pbCOMDT_LOBBY_BACKGROUND_INFO BuildLobbyBackgroundInfo() => new()
+    public bool OwnsLobbyBg(GameData gameData, int lobbyBgId) =>
+        lobbyBgId == gameData.DefaultLobbyBgId || OwnsItem(RoleItemType.LobbyBg, lobbyBgId);
+
+    public RoleItemInfo[] GetOwnedItems()
     {
-        UsingLobbyBgId = DefaultLobbyBgId,
-        LobbyBgList = { new pbCOMDT_ONE_LOBBY_BACKGROUND_DATA { LobbyBgId = DefaultLobbyBgId } },
-    };
+        lock (gate)
+        {
+            return [.. items.Values];
+        }
+    }
+
+    public RoleItemInfo[] GetOwnedItems(RoleItemType itemType)
+    {
+        lock (gate)
+        {
+            return [.. items.Values.Where(item => item.ItemType == itemType).OrderBy(item => item.ItemId)];
+        }
+    }
+
+    public pbCOMDT_AVATAR_INFO[] BuildAvatarList() =>
+        [.. GetOwnedItems(RoleItemType.AvatarItem).Select(item => item.ToAvatarInfo())];
+
+    public int UsingLobbyBgId
+    {
+        get
+        {
+            lock (gate)
+            {
+                return mUsingLobbyBgId;
+            }
+        }
+    }
+
+    public int GetUsingLobbyBgId(GameData gameData)
+    {
+        var usingLobbyBgId = UsingLobbyBgId;
+        return OwnsLobbyBg(gameData, usingLobbyBgId) ? usingLobbyBgId : gameData.DefaultLobbyBgId;
+    }
+
+    public PB_ENUM_RES_ERROR_CODE ChgLobbyBackground(GameData gameData, int lobbyBgId)
+    {
+        if (!gameData.LobbyBg.Contains(lobbyBgId))
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrLobbyBgIdinvalid;
+        }
+
+        if (!OwnsLobbyBg(gameData, lobbyBgId))
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrLobbyBgCanNotUse;
+        }
+
+        lock (gate)
+        {
+            mUsingLobbyBgId = lobbyBgId;
+        }
+
+        return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
+    }
+
+    public PB_ENUM_RES_ERROR_CODE SetRoleAvatar(GameData gameData, IReadOnlyCollection<int> avatarIDList, long now)
+    {
+        if (!RoleAvatar.IsWearableList(avatarIDList))
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
+        }
+
+        lock (gate)
+        {
+            if (!HasNewbieBit(CreateRoleNewbie))
+            {
+                return PB_ENUM_RES_ERROR_CODE.PbErrAvatarNotInit;
+            }
+
+            if (!avatarIDList.All(avatarID => IsWearable(gameData, avatarID, now)))
+            {
+                return PB_ENUM_RES_ERROR_CODE.PbErrAvatarUnexists;
+            }
+
+            RoleAvatarInfo = new pbCOMDT_ROLE_AVATAR_INFO
+            {
+                AvatarIDList = { avatarIDList },
+                RoleBaseModelID = RoleAvatarInfo.RoleBaseModelID,
+                SkinColorID = RoleAvatarInfo.SkinColorID,
+            };
+        }
+
+        return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
+    }
+
+    public PB_ENUM_RES_ERROR_CODE ClearAvatarNewTag(IReadOnlyCollection<int> avatarIDList, out RoleItemInfo[] cleared)
+    {
+        cleared = [];
+        if (!RoleAvatar.IsNewTagClearList(avatarIDList))
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
+        }
+
+        lock (gate)
+        {
+            if (!avatarIDList.All(avatarID => items.ContainsKey((RoleItemType.AvatarItem, avatarID))))
+            {
+                return PB_ENUM_RES_ERROR_CODE.PbErrAvatarUnexists;
+            }
+
+            cleared =
+            [
+                .. avatarIDList.Distinct()
+                    .Select(avatarID => items[(RoleItemType.AvatarItem, avatarID)])
+                    .Where(item => item.NewTag != RoleItemInfo.NoNewTag)
+                    .Select(item => item with { NewTag = RoleItemInfo.NoNewTag }),
+            ];
+            foreach (var item in cleared)
+            {
+                items[(item.ItemType, item.ItemId)] = item;
+            }
+        }
+
+        return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
+    }
+
+    public pbCOMDT_LOBBY_BACKGROUND_INFO BuildLobbyBackgroundInfo(GameData gameData)
+    {
+        var owned = GetOwnedItems(RoleItemType.LobbyBg);
+        var info = new pbCOMDT_LOBBY_BACKGROUND_INFO { UsingLobbyBgId = GetUsingLobbyBgId(gameData) };
+        if (owned.All(item => item.ItemId != gameData.DefaultLobbyBgId))
+        {
+            info.LobbyBgList.Add(new pbCOMDT_ONE_LOBBY_BACKGROUND_DATA { LobbyBgId = gameData.DefaultLobbyBgId });
+        }
+
+        info.LobbyBgList.Add(owned.Select(item => item.ToLobbyBackgroundData()));
+        return info;
+    }
 
     public bool SetNewbieState(int newbie)
     {
@@ -171,6 +311,35 @@ public sealed class LMNRoleInfo(
             return new pbCOMDT_NEWBIE_STATE_INFO { BitsDetail = { bitsDetail } };
         }
     }
+
+    private static IEnumerable<int> WornAvatarIDs(pbCOMDT_ROLE_AVATAR_INFO roleAvatarInfo) =>
+        roleAvatarInfo.AvatarIDList.Where(id => id != CreateRoleShowAvatar.EmptyAvatarSlot).Distinct();
+
+    private static Dictionary<(RoleItemType ItemType, int ItemId), RoleItemInfo> OwnWornAvatarItems(
+        pbCOMDT_ROLE_AVATAR_INFO roleAvatarInfo,
+        IEnumerable<RoleItemInfo> ownedItems)
+    {
+        var owned = ownedItems.ToDictionary(item => (item.ItemType, item.ItemId));
+        foreach (var avatarID in WornAvatarIDs(roleAvatarInfo))
+        {
+            owned.TryAdd(
+                (RoleItemType.AvatarItem, avatarID),
+                new RoleItemInfo(
+                    RoleItemType.AvatarItem,
+                    avatarID,
+                    RoleItemInfo.UnknownGainTime,
+                    RoleItemInfo.Permanent,
+                    RoleItemInfo.NoNewTag));
+        }
+
+        return owned;
+    }
+
+    private bool AddItem(RoleItemInfo item) => items.TryAdd((item.ItemType, item.ItemId), item);
+
+    private bool IsWearable(GameData gameData, int avatarID, long now) =>
+        gameData.DefaultAvatarItem.Contains(avatarID)
+        || (items.TryGetValue((RoleItemType.AvatarItem, avatarID), out var item) && !item.IsExpired(now));
 
     private bool HasNewbieBit(int newbie)
     {

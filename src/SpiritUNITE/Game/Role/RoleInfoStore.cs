@@ -36,6 +36,9 @@ public sealed class RoleInfoStore(IRoleRepository repository)
 
     public LMNRoleInfo? Find(ulong uid) => roles.GetValueOrDefault(uid);
 
+    public LMNRoleInfo Require(ulong uid) =>
+        Find(uid) ?? throw new InvalidDataException("Message requires a logged in role");
+
     public Task SaveAsync(LMNRoleInfo role) => repository.SaveAsync(role);
 
     public async Task<PB_ENUM_RES_ERROR_CODE> RegisterAsync(ulong uid, string userName)

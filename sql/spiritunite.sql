@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS `role` (
     gender INT NOT NULL DEFAULT 0,
     role_avatar_info VARBINARY(4096) NOT NULL,
     newbie_state VARBINARY(4096) NOT NULL,
+    using_lobby_bg_id INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uq_role_name (in_game_usr_name)
@@ -19,6 +20,18 @@ CREATE TABLE IF NOT EXISTS `role_pokemon` (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (game_ulong_uid, pokemon_id),
     CONSTRAINT fk_role_pokemon_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_item` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    item_type INT NOT NULL,
+    item_id INT NOT NULL,
+    gain_time BIGINT NOT NULL,
+    time_limited BIGINT NOT NULL DEFAULT 0,
+    new_tag INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (game_ulong_uid, item_type, item_id),
+    CONSTRAINT fk_role_item_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `account` (
