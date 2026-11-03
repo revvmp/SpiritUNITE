@@ -2,7 +2,7 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Role;
 
-public sealed class RoleInfo(
+public sealed class LMNRoleInfo(
     ulong gameUlongUID,
     string inGameUsrName,
     int gender,
@@ -14,7 +14,7 @@ public sealed class RoleInfo(
     private readonly Lock gate = new();
     private readonly List<long> bitsDetail = [.. newbieBitsDetail];
 
-    public RoleInfo(ulong gameUlongUID, string inGameUsrName)
+    public LMNRoleInfo(ulong gameUlongUID, string inGameUsrName)
         : this(gameUlongUID, inGameUsrName, 0, new pbCOMDT_ROLE_AVATAR_INFO(), [])
     {
     }

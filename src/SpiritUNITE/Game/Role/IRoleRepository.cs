@@ -2,7 +2,7 @@ namespace SpiritUNITE.Game.Role;
 
 public interface IRoleRepository
 {
-    Task<RoleInfo?> FindAsync(ulong gameUlongUID);
+    Task<LMNRoleInfo?> FindAsync(ulong gameUlongUID);
 
-    Task SaveAsync(RoleInfo role);
+    Task SaveAsync(LMNRoleInfo role);
 }

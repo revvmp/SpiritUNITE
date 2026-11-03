@@ -41,6 +41,6 @@ public sealed class RoleHandlers(RoleInfoStore roles)
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidNewbieStateInfoNtf, response)];
     }
 
-    private RoleInfo RequireRole(GamePacket request) =>
+    private LMNRoleInfo RequireRole(GamePacket request) =>
         roles.Find(request.Uid) ?? throw new InvalidDataException("Message requires a logged in role");
 }
