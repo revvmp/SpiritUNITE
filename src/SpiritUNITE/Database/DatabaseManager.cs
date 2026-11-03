@@ -30,6 +30,8 @@ public static class DatabaseManager
             await database.GetTable<Role>().FirstOrDefaultAsync();
             await database.GetTable<RolePokemon>().AnyAsync();
             await database.GetTable<RoleItem>().FirstOrDefaultAsync();
+            await database.GetTable<RoleCoin>().FirstOrDefaultAsync();
+            await database.GetTable<RoleShopBuy>().FirstOrDefaultAsync();
             await database.GetTable<Account>().FirstOrDefaultAsync();
             await database.GetTable<AccountToken>().AnyAsync();
         }

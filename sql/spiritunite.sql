@@ -35,6 +35,25 @@ CREATE TABLE IF NOT EXISTS `role_item` (
     CONSTRAINT fk_role_item_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `role_coin` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    coin_id INT NOT NULL,
+    coin_val BIGINT NOT NULL DEFAULT 0,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (game_ulong_uid, coin_id),
+    CONSTRAINT ck_role_coin_val CHECK (coin_val >= 0),
+    CONSTRAINT fk_role_coin_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_shop_buy` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    shop_id INT NOT NULL,
+    spec_sale_num INT NOT NULL,
+    spec_sale_cycle_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, shop_id),
+    CONSTRAINT fk_role_shop_buy_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `account` (
     account_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     user_name VARCHAR(20) NULL,

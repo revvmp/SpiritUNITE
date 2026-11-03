@@ -11,6 +11,8 @@ using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Auth;
 using SpiritUNITE.Game.Data;
 using SpiritUNITE.Game.Role;
+using SpiritUNITE.Game.Shop;
+using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Logging;
 using SpiritUNITE.Network;
 using SpiritUNITE.Packets;
@@ -25,6 +27,7 @@ public static class Server
 {
     private const string LogFileTemplate = "{Timestamp:HH:mm:ss.fff} [{Level:u5}] {Message:lj}{NewLine}{Exception}";
     private const int RetainedLogFiles = 7;
+    private const string GameSettingsFile = "gamesettings.json";
 
     public static async Task Main(string[] args)
     {
@@ -50,6 +53,10 @@ public static class Server
             Args = args,
             ContentRootPath = AppContext.BaseDirectory,
         });
+        builder.Configuration
+            .AddJsonFile(GameSettingsFile, optional: false, reloadOnChange: false)
+            .AddEnvironmentVariables()
+            .AddCommandLine(args);
         builder.WebHost.ConfigureKestrel((context, kestrel) =>
         {
             var http = context.Configuration.GetSection(HttpServerOptions.SectionName).Get<HttpServerOptions>() ?? new HttpServerOptions();
@@ -80,6 +87,11 @@ public static class Server
             .Validate(options => options.IsValid(), "TcpServer settings are invalid")
             .ValidateOnStart();
 
+        builder.Services.AddOptions<WalletOptions>()
+            .BindConfiguration(WalletOptions.SectionName)
+            .Validate(options => options.IsValid(), "Wallet settings are invalid")
+            .ValidateOnStart();
+
         builder.Services.AddOptions<LobbyAddressOptions>()
             .BindConfiguration(LobbyAddressOptions.SectionName)
             .Validate(options => options.IsValid(), "Lobby settings are invalid")
@@ -92,6 +104,8 @@ public static class Server
 
         builder.Services.AddSingleton(databaseOptions);
         builder.Services.AddSingleton<IRoleRepository, RoleRepository>();
+        builder.Services.AddSingleton<IWalletRepository, WalletRepository>();
+        builder.Services.AddSingleton<IShopRepository, ShopRepository>();
         builder.Services.AddSingleton<IAccountRepository, AccountRepository>();
         builder.Services.AddSingleton<IAccountTokenRepository, AccountTokenRepository>();
     }
@@ -103,6 +117,8 @@ public static class Server
     {
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<RoleInfoStore>();
+        builder.Services.AddSingleton<WalletService>();
+        builder.Services.AddSingleton<ShopService>();
         builder.Services.AddSingleton<LoginThrottle>();
         builder.Services.AddSingleton<AccountService>();
         builder.Services.AddSingleton<AuthorizationCodeStore>();

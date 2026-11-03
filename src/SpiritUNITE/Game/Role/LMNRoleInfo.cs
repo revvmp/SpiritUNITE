@@ -89,6 +89,20 @@ public sealed class LMNRoleInfo(
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
+    public RoleItemInfo? GrantItem(
+        RoleItemType itemType,
+        int itemId,
+        long gainTime,
+        long timeLimited = RoleItemInfo.Permanent,
+        int newTag = RoleItemInfo.ShowNewTag)
+    {
+        var item = new RoleItemInfo(itemType, itemId, gainTime, timeLimited, newTag);
+        lock (gate)
+        {
+            return AddItem(item) ? item : null;
+        }
+    }
+
     public bool OwnsItem(RoleItemType itemType, int itemId)
     {
         lock (gate)
@@ -323,6 +337,24 @@ public sealed class LMNRoleInfo(
         lock (gate)
         {
             return [.. pokemonIds];
+        }
+    }
+
+    public bool OwnsPokemon(int pokemonId)
+    {
+        lock (gate)
+        {
+            return pokemonIds.Contains(pokemonId);
+        }
+    }
+
+    public bool GrantPokemon(int pokemonId)
+    {
+        lock (gate)
+        {
+            var added = pokemonIds.Add(pokemonId);
+            ResolveFollowPokemonId();
+            return added;
         }
     }
 

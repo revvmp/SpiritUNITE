@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <None Update="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="gamesettings.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Data/*.json" CopyToOutputDirectory="PreserveNewest" />
     <Protobuf Include="Protobuf/*.proto" ProtoRoot="Protobuf" GrpcServices="None" />
   </ItemGroup>

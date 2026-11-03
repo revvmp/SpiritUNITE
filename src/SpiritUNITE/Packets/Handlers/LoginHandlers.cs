@@ -2,7 +2,9 @@ using Microsoft.Extensions.Logging;
 using SpiritUNITE.Game.Ranked;
 using SpiritUNITE.Game.Data;
 using SpiritUNITE.Game.Role;
+using SpiritUNITE.Game.Shop;
 using SpiritUNITE.Game.StarRoad;
+using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers;
@@ -10,6 +12,8 @@ namespace SpiritUNITE.Packets.Handlers;
 public sealed class LoginHandlers(
     RoleInfoStore roles,
     GameData gameData,
+    WalletService wallets,
+    ShopService shop,
     TimeProvider clock,
     ILogger<LoginHandlers> logger)
 {
@@ -35,7 +39,7 @@ public sealed class LoginHandlers(
             ];
         }
 
-        return CompleteLogin(session, role);
+        return await CompleteLoginAsync(session, role);
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidAcntRegisterReq)]
@@ -56,12 +60,15 @@ public sealed class LoginHandlers(
         var role = await roles.FindAsync(request.Uid)
             ?? throw new InvalidOperationException("Registered role could not be loaded");
         logger.LogInformation("Trainer registration completed for uid {Uid}", request.Uid);
-        return [response, .. CompleteLogin(request, role)];
+        return [response, .. await CompleteLoginAsync(request, role)];
     }
 
-    private GamePacket[] CompleteLogin(GamePacket request, LMNRoleInfo role)
+    private async Task<GamePacket[]> CompleteLoginAsync(GamePacket request, LMNRoleInfo role)
     {
         logger.LogInformation("Login from uid {Uid} as {Name}", role.GameUlongUID, role.InGameUsrName);
+
+        var wallet = await wallets.LoadAsync(role.GameUlongUID);
+        var buyRecords = await shop.GetBuyRecordsAsync(role.GameUlongUID);
 
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
         var response = new pbSCAcntLoginRsp
@@ -81,6 +88,9 @@ public sealed class LoginHandlers(
             UsingLobbyBgId = role.GetUsingLobbyBgId(gameData),
             SeasonId = RankedMatch.FindCurrentSeason(gameData, clock.GetUtcNow()).Season.SeasonId,
             RankedDivision = (int)RankedMatch.StartingRankedDivision,
+            CoinInfo = wallet.BuildCoinInfo(),
+            AcntRealCoupous = wallet.AcntRealCoupous,
+            SpecialSaleInfo = ShopBuyRecord.BuildSpecialSaleInfo(buyRecords),
         };
 
         return
