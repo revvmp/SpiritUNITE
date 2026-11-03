@@ -1,3 +1,4 @@
+using SpiritUNITE.Game.Data;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Role;
@@ -40,14 +41,14 @@ public sealed class LMNRoleInfo(
     public int Gender { get; private set; } = gender;
     public pbCOMDT_ROLE_AVATAR_INFO RoleAvatarInfo { get; private set; } = roleAvatarInfo;
 
-    public PB_ENUM_RES_ERROR_CODE SetRoleCosmetic(int gender, pbCOMDT_ROLE_AVATAR_INFO roleAvatarInfo)
+    public PB_ENUM_RES_ERROR_CODE SetRoleCosmetic(GameData gameData, int gender, pbCOMDT_ROLE_AVATAR_INFO roleAvatarInfo)
     {
-        if (!RoleImage.IsCreationChoice(gender, roleAvatarInfo.RoleBaseModelID, roleAvatarInfo.SkinColorID))
+        if (!RoleImage.IsCreationChoice(gameData, gender, roleAvatarInfo.RoleBaseModelID, roleAvatarInfo.SkinColorID))
         {
             return PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
         }
 
-        if (!CreateRoleShowAvatar.IsCreationChoice(roleAvatarInfo.AvatarIDList))
+        if (!CreateRoleShowAvatar.IsCreationChoice(gameData, roleAvatarInfo.AvatarIDList))
         {
             return PB_ENUM_RES_ERROR_CODE.PbErrAvatarIdNotInCfg;
         }

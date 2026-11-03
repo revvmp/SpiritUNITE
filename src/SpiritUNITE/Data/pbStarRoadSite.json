@@ -1,0 +1,2743 @@
+[
+  {
+    "SiteType": 1,
+    "NeedScore": 100,
+    "SiteID": 1,
+    "PokemonIDList": [
+      25,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 325,
+    "SiteID": 2,
+    "PokemonIDList": [
+      700,
+      131,
+      448,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 3,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 4,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 490,
+    "SiteID": 5,
+    "PokemonIDList": [
+      7,
+      1,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 6,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 490,
+    "SiteID": 7,
+    "PokemonIDList": [
+      66,
+      220,
+      113,
+      280,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 8,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 9,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 10,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 11,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 325,
+    "SiteID": 12,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 13,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 14,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 15,
+    "PokemonIDList": [
+      196,
+      183,
+      359,
+      197,
+      35
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 16,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 17,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 18,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 19,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 325,
+    "SiteID": 20,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 21,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 490,
+    "SiteID": 22,
+    "PokemonIDList": [
+      557,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 23,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 24,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 325,
+    "SiteID": 25,
+    "PokemonIDList": [
+      829,
+      143,
+      4,
+      661,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 26,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 27,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 28,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 490,
+    "SiteID": 29,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 30,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 31,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 32,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 325,
+    "SiteID": 33,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 34,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 35,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 36,
+    "PokemonIDList": [
+      763,
+      794,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 37,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 38,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 490,
+    "SiteID": 39,
+    "PokemonIDList": [
+      39,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 40,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 41,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 42,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 325,
+    "SiteID": 43,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 44,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1960,
+    "SiteID": 45,
+    "PokemonIDList": [
+      9150,
+      150,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 46,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 47,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 490,
+    "SiteID": 48,
+    "PokemonIDList": [
+      79,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 49,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 50,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 325,
+    "SiteID": 51,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 52,
+    "PokemonIDList": [
+      885,
+      129,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 53,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 54,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1960,
+    "SiteID": 55,
+    "PokemonIDList": [
+      888,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 56,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 490,
+    "SiteID": 57,
+    "PokemonIDList": [
+      845,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 58,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 59,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 60,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 61,
+    "PokemonIDList": [
+      92,
+      470,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 62,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 63,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 490,
+    "SiteID": 64,
+    "PokemonIDList": [
+      122,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 65,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 66,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 67,
+    "PokemonIDList": [
+      708,
+      471,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 68,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 69,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 70,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 490,
+    "SiteID": 71,
+    "PokemonIDList": [
+      37,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 72,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 73,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 74,
+    "PokemonIDList": [
+      147,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 75,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 76,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 77,
+    "PokemonIDList": [
+      906,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 78,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 79,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 490,
+    "SiteID": 80,
+    "PokemonIDList": [
+      820,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 81,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 82,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1960,
+    "SiteID": 83,
+    "PokemonIDList": [
+      892,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 84,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 85,
+    "PokemonIDList": [
+      764,
+      302,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 86,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 87,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 88,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 490,
+    "SiteID": 89,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 90,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 91,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 92,
+    "PokemonIDList": [
+      84,
+      653,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 93,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 94,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 490,
+    "SiteID": 95,
+    "PokemonIDList": [
+      813,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 96,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 97,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 98,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 99,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 100,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 101,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 490,
+    "SiteID": 102,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 103,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 104,
+    "PokemonIDList": [
+      246,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 105,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 106,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 107,
+    "PokemonIDList": [
+      937,
+      778,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 108,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 109,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1960,
+    "SiteID": 110,
+    "PokemonIDList": [
+      720,
+      151,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 111,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 112,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 490,
+    "SiteID": 113,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 114,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 115,
+    "PokemonIDList": [
+      570,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 116,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 117,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 118,
+    "PokemonIDList": [
+      816,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 119,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 120,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 121,
+    "PokemonIDList": [
+      123,
+      884,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 122,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 123,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 124,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 125,
+    "PokemonIDList": [
+      724,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 126,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 127,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 128,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 129,
+    "PokemonIDList": [
+      374,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 130,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 131,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1960,
+    "SiteID": 132,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 133,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 134,
+    "PokemonIDList": [
+      936,
+      957,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 135,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 136,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 137,
+    "PokemonIDList": [
+      706,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 138,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 139,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 140,
+    "PokemonIDList": [
+      255,
+      609,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 141,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 142,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1960,
+    "SiteID": 143,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 144,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 145,
+    "PokemonIDList": [
+      77,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 146,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1960,
+    "SiteID": 147,
+    "PokemonIDList": [
+      1008,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 148,
+    "PokemonIDList": [
+      679,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 149,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 150,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 151,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 152,
+    "PokemonIDList": [
+      54,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 153,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 154,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 155,
+    "PokemonIDList": [
+      656,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 156,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 157,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 158,
+    "PokemonIDList": [
+      26,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 159,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 160,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1960,
+    "SiteID": 161,
+    "PokemonIDList": [
+      250,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 162,
+    "PokemonIDList": [
+      868,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 163,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 164,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 165,
+    "PokemonIDList": [
+      443,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 166,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 167,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 168,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 169,
+    "PokemonIDList": [
+      870,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 170,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 171,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1960,
+    "SiteID": 172,
+    "PokemonIDList": [
+      491,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 173,
+    "PokemonIDList": [
+      923,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 174,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 175,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 176,
+    "PokemonIDList": [
+      395,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 177,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 178,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 179,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 180,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 181,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 182,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1960,
+    "SiteID": 183,
+    "PokemonIDList": [
+      245,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 184,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 185,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 186,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 187,
+    "PokemonIDList": [
+      8448,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 188,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 189,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 190,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 191,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 192,
+    "PokemonIDList": [
+      6004,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 193,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 194,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 195,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 196,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1960,
+    "SiteID": 197,
+    "PokemonIDList": [
+      381,
+      380,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 198,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 199,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 200,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 201,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 202,
+    "PokemonIDList": [
+      781,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 2,
+    "SiteID": 203,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 204,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 205,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 206,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 207,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 208,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 209,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 210,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 211,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 212,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1960,
+    "SiteID": 213,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 214,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 215,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 216,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 217,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 3,
+    "SiteID": 218,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 219,
+    "PokemonIDList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 220,
+    "PokemonIDList": [
+      134,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 221,
+    "PokemonIDList": [
+      9129,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 222,
+    "PokemonIDList": [
+      8004,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 980,
+    "SiteID": 223,
+    "PokemonIDList": [
+      52,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 224,
+    "PokemonIDList": [
+      865,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 225,
+    "PokemonIDList": [
+      145,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 226,
+    "PokemonIDList": [
+      146,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 227,
+    "PokemonIDList": [
+      144,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 228,
+    "PokemonIDList": [
+      157,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 229,
+    "PokemonIDList": [
+      158,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 230,
+    "PokemonIDList": [
+      154,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 231,
+    "PokemonIDList": [
+      911,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 232,
+    "PokemonIDList": [
+      914,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 233,
+    "PokemonIDList": [
+      717,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 234,
+    "PokemonIDList": [
+      484,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 235,
+    "PokemonIDList": [
+      643,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 236,
+    "PokemonIDList": [
+      791,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 237,
+    "PokemonIDList": [
+      877,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 238,
+    "PokemonIDList": [
+      135,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 239,
+    "PokemonIDList": [
+      136,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "SiteType": 1,
+    "NeedScore": 1470,
+    "SiteID": 240,
+    "PokemonIDList": [
+      849,
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "RewardType": 2,
+    "HeroDesc": "Tutorial_NewbieBase_HeroNewbieDesc_25_001",
+    "HeroNewbieDesc": "Tutorial_NewbieBase_HeroNewbieDesc_25_002",
+    "HeroId": 724,
+    "HotShopID": 275,
+    "ShopID": 122266
+  },
+  {
+    "RewardType": 2,
+    "HeroDesc": "Tutorial_NewbieBase_HeroNewbieDesc_4_001",
+    "HeroNewbieDesc": "Tutorial_NewbieBase_HeroNewbieDesc_4_002",
+    "HeroId": 4,
+    "HotShopID": 276,
+    "ShopID": 122267
+  },
+  {
+    "RewardType": 2,
+    "HeroDesc": "Tutorial_NewbieBase_HeroNewbieDesc_661_001",
+    "HeroNewbieDesc": "Tutorial_NewbieBase_HeroNewbieDesc_661_002",
+    "HeroId": 661,
+    "HotShopID": 277,
+    "ShopID": 122268
+  },
+  {
+    "RewardType": 1,
+    "HeroDesc": "Tutorial_NewbieBase_HeroNewbieDesc_25_001",
+    "HeroNewbieDesc": "Tutorial_NewbieBase_HeroNewbieDesc_25_002",
+    "HeroId": 25
+  }
+]

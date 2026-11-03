@@ -1,0 +1,98 @@
+[
+  {
+    "HeadID": 1004000111,
+    "HairStyleID": 1004000110,
+    "EyeColorIDNew": 1004001106,
+    "Gender": 1,
+    "ModelID": 20191219,
+    "ID": 1,
+    "HairColorID": 5,
+    "RoleImagePic": "t_CreateRole_male1_1",
+    "EyeColorID": 11,
+    "SkinColorID": 7
+  },
+  {
+    "HeadID": 1004000111,
+    "HairStyleID": 1004000110,
+    "EyeColorIDNew": 1004001206,
+    "Gender": 1,
+    "ModelID": 20191219,
+    "ID": 2,
+    "HairColorID": 3,
+    "RoleImagePic": "t_CreateRole_male2_1",
+    "EyeColorID": 12,
+    "SkinColorID": 8
+  },
+  {
+    "HeadID": 1004000111,
+    "HairStyleID": 1004000110,
+    "EyeColorIDNew": 1004001206,
+    "Gender": 1,
+    "ModelID": 20191219,
+    "ID": 3,
+    "HairColorID": 3,
+    "RoleImagePic": "t_CreateRole_male3_1",
+    "EyeColorID": 13,
+    "SkinColorID": 9
+  },
+  {
+    "HeadID": 1004000111,
+    "HairStyleID": 1004000110,
+    "EyeColorIDNew": 1004001406,
+    "Gender": 1,
+    "ModelID": 20191219,
+    "ID": 4,
+    "HairColorID": 1,
+    "RoleImagePic": "t_CreateRole_male4_1",
+    "EyeColorID": 14,
+    "SkinColorID": 10
+  },
+  {
+    "HeadID": 1004000111,
+    "HairStyleID": 1004000110,
+    "EyeColorIDNew": 1004001106,
+    "Gender": 2,
+    "ModelID": 20200501,
+    "ID": 5,
+    "HairColorID": 5,
+    "RoleImagePic": "t_CreateRole_female1_1",
+    "EyeColorID": 11,
+    "SkinColorID": 7
+  },
+  {
+    "HeadID": 1004000111,
+    "HairStyleID": 1004000110,
+    "EyeColorIDNew": 1004001206,
+    "Gender": 2,
+    "ModelID": 20200501,
+    "ID": 6,
+    "HairColorID": 3,
+    "RoleImagePic": "t_CreateRole_female2_1",
+    "EyeColorID": 12,
+    "SkinColorID": 8
+  },
+  {
+    "HeadID": 1004000111,
+    "HairStyleID": 1004000110,
+    "EyeColorIDNew": 1004001206,
+    "Gender": 2,
+    "ModelID": 20200501,
+    "ID": 7,
+    "HairColorID": 3,
+    "RoleImagePic": "t_CreateRole_female3_1",
+    "EyeColorID": 13,
+    "SkinColorID": 9
+  },
+  {
+    "HeadID": 1004000111,
+    "HairStyleID": 1004000110,
+    "EyeColorIDNew": 1004001406,
+    "Gender": 2,
+    "ModelID": 20200501,
+    "ID": 8,
+    "HairColorID": 1,
+    "RoleImagePic": "t_CreateRole_female4_1",
+    "EyeColorID": 14,
+    "SkinColorID": 10
+  }
+]

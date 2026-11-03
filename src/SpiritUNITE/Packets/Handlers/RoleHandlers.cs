@@ -1,10 +1,11 @@
 using Microsoft.Extensions.Logging;
+using SpiritUNITE.Game.Data;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers;
 
-public sealed class RoleHandlers(RoleInfoStore roles, ILogger<RoleHandlers> logger)
+public sealed class RoleHandlers(RoleInfoStore roles, GameData gameData, ILogger<RoleHandlers> logger)
 {
     private const int NoPokemonId = 0;
 
@@ -13,7 +14,7 @@ public sealed class RoleHandlers(RoleInfoStore roles, ILogger<RoleHandlers> logg
     {
         var role = RequireRole(request);
         var cosmetic = pbCSSetRoleCosmeticReq.Parser.ParseFrom(request.PkgData);
-        var result = role.SetRoleCosmetic(cosmetic.Gender, cosmetic.RoleAvatarInfo ?? new pbCOMDT_ROLE_AVATAR_INFO());
+        var result = role.SetRoleCosmetic(gameData, cosmetic.Gender, cosmetic.RoleAvatarInfo ?? new pbCOMDT_ROLE_AVATAR_INFO());
         if (result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
         {
             logger.LogInformation("Role cosmetic refused for uid {Uid}: {Result}", role.GameUlongUID, result);

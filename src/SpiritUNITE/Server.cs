@@ -9,6 +9,7 @@ using Serilog.Events;
 using SpiritUNITE.Database;
 using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Auth;
+using SpiritUNITE.Game.Data;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Logging;
 using SpiritUNITE.Network;
@@ -32,6 +33,7 @@ public static class Server
         AddLogging(builder);
         AddSettings(builder);
         await AddDatabaseAsync(builder);
+        AddGameData(builder);
         AddGame(builder);
         AddPackets(builder);
         AddServers(builder);
@@ -93,6 +95,9 @@ public static class Server
         builder.Services.AddSingleton<IAccountRepository, AccountRepository>();
         builder.Services.AddSingleton<IAccountTokenRepository, AccountTokenRepository>();
     }
+
+    private static void AddGameData(IHostApplicationBuilder builder) =>
+        builder.Services.AddSingleton(GameData.Load(Path.Combine(AppContext.BaseDirectory, GameData.DirectoryName)));
 
     private static void AddGame(IHostApplicationBuilder builder)
     {
