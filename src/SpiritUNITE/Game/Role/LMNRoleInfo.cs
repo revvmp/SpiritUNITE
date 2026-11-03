@@ -10,8 +10,11 @@ public sealed class LMNRoleInfo(
     IEnumerable<long> newbieBitsDetail,
     IEnumerable<int> ownedPokemonIds)
 {
+    public const int DefaultLobbyBgId = 1007600001;
+
     private const int BitsPerWord = 64;
     private const int TutorialSkipID = 1;
+    private const int CreateRoleNewbie = (int)PB_ENUM_RES_NEWBIE_STATUS_TYPE.PbResNewbieStatusTypeCreaterole;
     private const int TutorialRewardNewbie = (int)PB_ENUM_RES_NEWBIE_STATUS_TYPE.PbResNewbieStatusTypeTutorialReward;
 
     private static readonly int[] TutorialBattleNewbies = [1, 2];
@@ -31,14 +34,46 @@ public sealed class LMNRoleInfo(
     public int Gender { get; private set; } = gender;
     public pbCOMDT_ROLE_AVATAR_INFO RoleAvatarInfo { get; private set; } = roleAvatarInfo;
 
-    public void SetRoleCosmetic(int gender, pbCOMDT_ROLE_AVATAR_INFO roleAvatarInfo)
+    public PB_ENUM_RES_ERROR_CODE SetRoleCosmetic(int gender, pbCOMDT_ROLE_AVATAR_INFO roleAvatarInfo)
     {
+        if (!CreateRoleShowAvatar.IsCreationChoice(roleAvatarInfo.AvatarIDList))
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrAvatarIdNotInCfg;
+        }
+
         lock (gate)
         {
+            if (HasNewbieBit(CreateRoleNewbie))
+            {
+                return PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
+            }
+
             Gender = gender;
             RoleAvatarInfo = roleAvatarInfo;
         }
+
+        return 0;
     }
+
+    public pbCOMDT_AVATAR_INFO[] BuildAvatarList()
+    {
+        lock (gate)
+        {
+            return
+            [
+                .. RoleAvatarInfo.AvatarIDList
+                    .Where(id => id != CreateRoleShowAvatar.EmptyAvatarSlot)
+                    .Distinct()
+                    .Select(id => new pbCOMDT_AVATAR_INFO { AvatarID = id }),
+            ];
+        }
+    }
+
+    public static pbCOMDT_LOBBY_BACKGROUND_INFO BuildLobbyBackgroundInfo() => new()
+    {
+        UsingLobbyBgId = DefaultLobbyBgId,
+        LobbyBgList = { new pbCOMDT_ONE_LOBBY_BACKGROUND_DATA { LobbyBgId = DefaultLobbyBgId } },
+    };
 
     public void SetNewbieState(int newbie)
     {
@@ -99,6 +134,16 @@ public sealed class LMNRoleInfo(
             return [.. pokemonIds];
         }
     }
+
+    public pbCOMDT_POKEMON_INFO[] BuildPokemonList()
+    {
+        lock (gate)
+        {
+            return [.. pokemonIds.Order().Select(BuildPokemonInfo)];
+        }
+    }
+
+    public static pbCOMDT_POKEMON_INFO BuildPokemonInfo(int pokemonId) => new() { PokemonId = pokemonId };
 
     public pbCOMDT_NEWBIE_STATE_INFO BuildNewbieState()
     {

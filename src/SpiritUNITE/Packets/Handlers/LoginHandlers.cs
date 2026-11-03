@@ -71,6 +71,7 @@ public sealed class LoginHandlers(RoleInfoStore roles, TimeProvider clock, ILogg
             ServerGameTimeStamp = now,
             ServerRealTimeStamp = now,
             ABTestID = ShippedDatabinABTestID,
+            UsingLobbyBgId = LMNRoleInfo.DefaultLobbyBgId,
         };
 
         return

@@ -13,12 +13,19 @@ public sealed class RoleHandlers(RoleInfoStore roles, ILogger<RoleHandlers> logg
     {
         var role = RequireRole(request);
         var cosmetic = pbCSSetRoleCosmeticReq.Parser.ParseFrom(request.PkgData);
-        role.SetRoleCosmetic(cosmetic.Gender, cosmetic.RoleAvatarInfo ?? new pbCOMDT_ROLE_AVATAR_INFO());
-        await roles.SaveAsync(role);
+        var result = role.SetRoleCosmetic(cosmetic.Gender, cosmetic.RoleAvatarInfo ?? new pbCOMDT_ROLE_AVATAR_INFO());
+        if (result != 0)
+        {
+            logger.LogInformation("Role cosmetic refused for uid {Uid}: {Result}", role.GameUlongUID, result);
+        }
+        else
+        {
+            await roles.SaveAsync(role);
+        }
 
         var response = new pbSCSetRoleCosmeticRsp
         {
-            ResultInfo = new pbResultInfo(),
+            ResultInfo = new pbResultInfo { ResultId = (int)result },
             RoleAvatarInfo = role.RoleAvatarInfo,
             Gender = role.Gender,
         };
@@ -79,9 +86,15 @@ public sealed class RoleHandlers(RoleInfoStore roles, ILogger<RoleHandlers> logg
 
         await roles.SaveAsync(role);
         logger.LogInformation("Tutorial reward {PokemonId} granted to uid {Uid}", pokemonId, role.GameUlongUID);
+        var gain = new pbSCUpdatePokemonNtf
+        {
+            UpdateType = (int)PB_ENUM_ENM_POKEMON_UPDATETYPE.PbEnmPokemonUpdatetypeGain,
+            PokemonInfo = LMNRoleInfo.BuildPokemonInfo(pokemonId),
+        };
         var state = new pbSCNewbieStateInfoNtf { NewbieState = role.BuildNewbieState() };
         return
         [
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdatePokemonNtf, gain),
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidNewbieStateInfoNtf, state),
             BuildGetTutorialRewardRsp(request, 0, pokemonId),
         ];
