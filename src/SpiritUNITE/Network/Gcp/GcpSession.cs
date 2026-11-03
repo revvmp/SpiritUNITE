@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using SpiritUNITE.Packets;
+using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Network.Gcp;
 
@@ -19,6 +20,9 @@ public sealed class GcpSession(
     private uint nextSequence;
     private int nextSvrPkgSeq = 1;
     private ulong gameAcntUid;
+    private bool loginCompleted;
+
+    public bool AwaitingRegistration => serverType == eNetEventServerType.LobbyServer && gameAcntUid != 0 && !loginCompleted;
 
     private enum GcpSessionState
     {
@@ -96,9 +100,11 @@ public sealed class GcpSession(
 
         try
         {
+            RequireLoginState(request);
             if (await dispatcher.DispatchAsync(serverType, request) is { } replies)
             {
                 gameAcntUid = replies.FirstOrDefault(reply => reply.Uid != 0)?.Uid ?? gameAcntUid;
+                loginCompleted |= replies.Any(reply => reply.MsgID == (int)PB_ENUM_CS_MSGID_DEF.PbScidLoginFinishNtf);
                 return [.. replies.Select(reply => BuildGamePacket(head, reply))];
             }
         }
@@ -111,6 +117,27 @@ public sealed class GcpSession(
         return serverType == eNetEventServerType.LobbyServer && DefaultReplies.TryBuild(request) is { } defaultReply
             ? [BuildGamePacket(head, defaultReply)]
             : [];
+    }
+
+    private void RequireLoginState(GamePacket request)
+    {
+        if (serverType != eNetEventServerType.LobbyServer || loginCompleted)
+        {
+            return;
+        }
+
+        var message = (PB_ENUM_CS_MSGID_DEF)request.MsgID;
+        if (message is PB_ENUM_CS_MSGID_DEF.PbCsidAcntLoginReq or PB_ENUM_CS_MSGID_DEF.PbCsidGameSvrPing)
+        {
+            return;
+        }
+
+        if (gameAcntUid != 0 && message is PB_ENUM_CS_MSGID_DEF.PbCsidAcntRegisterReq or PB_ENUM_CS_MSGID_DEF.PbCsidClientReportTlogReq)
+        {
+            return;
+        }
+
+        throw new InvalidDataException("Message requires completed trainer registration and login");
     }
 
     private byte[] BuildGamePacket(GcpHead head, GamePacket packet)

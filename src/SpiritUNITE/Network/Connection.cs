@@ -8,6 +8,7 @@ namespace SpiritUNITE.Network;
 public sealed class Connection(
     TcpClient client,
     TimeSpan idleTimeout,
+    TimeSpan registrationIdleTimeout,
     eNetEventServerType serverType,
     GamePacket[] greeting,
     PacketDispatcher dispatcher,
@@ -58,7 +59,7 @@ public sealed class Connection(
         while (true)
         {
             using var idleTimer = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
-            idleTimer.CancelAfter(idleTimeout);
+            idleTimer.CancelAfter(session.AwaitingRegistration ? registrationIdleTimeout : idleTimeout);
 
             var received = await stream.ReadAsync(buffer.AsMemory(buffered), idleTimer.Token);
             if (received == 0)

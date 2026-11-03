@@ -32,7 +32,7 @@ public static class DatabaseManager
         catch (MySqlException exception)
         {
             throw new InvalidOperationException(
-                $"Database is not ready: {exception.Message} Check appsettings.json and run Database/SpiritUNITE.sql.",
+                $"Database is not ready: {exception.Message} Check appsettings.json and run sql/SpiritUNITE.sql from the repository root.",
                 exception);
         }
     }

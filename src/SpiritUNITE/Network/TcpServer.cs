@@ -64,7 +64,8 @@ public abstract class TcpServer(
         }
 
         var idleTimeout = TimeSpan.FromSeconds(settings.IdleTimeoutSeconds);
-        _ = ServeAsync(new Connection(client, idleTimeout, serverType, BuildGreeting(), dispatcher, connectionLogger), stoppingToken);
+        var registrationIdleTimeout = TimeSpan.FromSeconds(settings.RegistrationIdleTimeoutSeconds);
+        _ = ServeAsync(new Connection(client, idleTimeout, registrationIdleTimeout, serverType, BuildGreeting(), dispatcher, connectionLogger), stoppingToken);
     }
 
     private async Task ServeAsync(Connection connection, CancellationToken stoppingToken)

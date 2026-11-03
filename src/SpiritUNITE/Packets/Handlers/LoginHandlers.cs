@@ -14,15 +14,54 @@ public sealed class LoginHandlers(RoleInfoStore roles, TimeProvider clock, ILogg
     {
         var login = pbCSAcntLoginReq.Parser.ParseFrom(request.PkgData);
         var uid = ResolveUid(request.Uid, login.PlayerName);
-        var role = await roles.GetOrCreateAsync(uid);
-        logger.LogInformation("Login from uid {Uid} as {Name}", uid, role.InGameUsrName);
+        var role = await roles.FindAsync(uid);
+        var session = request with { Uid = uid };
+        if (role is null)
+        {
+            logger.LogInformation("Trainer registration required for uid {Uid}", uid);
+            return
+            [
+                session.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAcntRegisterNtf, new pbSCAcntRegisterNtf
+                {
+                    ServerTimeStamp = clock.GetUtcNow().ToUnixTimeSeconds(),
+                }),
+            ];
+        }
+
+        return CompleteLogin(session, role);
+    }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidAcntRegisterReq)]
+    public async Task<GamePacket[]> OnAcntRegisterReq(GamePacket request)
+    {
+        var registration = pbCSAcntRegisterReq.Parser.ParseFrom(request.PkgData);
+        var result = await roles.RegisterAsync(request.Uid, registration.UserName);
+        var response = request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAcntRegisterRsp, new pbSCAcntRegisterRsp
+        {
+            ResultInfo = new pbResultInfo { ResultId = (int)result },
+        });
+        if (result != 0)
+        {
+            logger.LogInformation("Trainer registration refused for uid {Uid}: {Result}", request.Uid, result);
+            return [response];
+        }
+
+        var role = await roles.FindAsync(request.Uid)
+            ?? throw new InvalidOperationException("Registered role could not be loaded");
+        logger.LogInformation("Trainer registration completed for uid {Uid}", request.Uid);
+        return [response, .. CompleteLogin(request, role)];
+    }
+
+    private GamePacket[] CompleteLogin(GamePacket request, LMNRoleInfo role)
+    {
+        logger.LogInformation("Login from uid {Uid} as {Name}", role.GameUlongUID, role.InGameUsrName);
 
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
         var response = new pbSCAcntLoginRsp
         {
             ResultInfo = new pbResultInfo(),
             IsSucc = LoginSucceeded,
-            GameAcntUid = uid,
+            GameAcntUid = role.GameUlongUID,
             Level = StartingLevel,
             Name = role.InGameUsrName,
             Gender = role.Gender,
@@ -32,11 +71,10 @@ public sealed class LoginHandlers(RoleInfoStore roles, TimeProvider clock, ILogg
             ServerRealTimeStamp = now,
         };
 
-        var session = request with { Uid = uid };
         return
         [
-            session.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAcntLoginRsp, response),
-            session.Reply(PB_ENUM_CS_MSGID_DEF.PbScidLoginFinishNtf, new pbSCLoginFinishNtf()),
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAcntLoginRsp, response),
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidLoginFinishNtf, new pbSCLoginFinishNtf()),
         ];
     }
 
