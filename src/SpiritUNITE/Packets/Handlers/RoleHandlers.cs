@@ -41,6 +41,31 @@ public sealed class RoleHandlers(RoleInfoStore roles)
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidNewbieStateInfoNtf, response)];
     }
 
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidSkipNewbieStepReq)]
+    public async Task<GamePacket[]> OnSkipNewbieStepReq(GamePacket request)
+    {
+        var role = RequireRole(request);
+        var skipID = pbCSSkipNewbieStepReq.Parser.ParseFrom(request.PkgData).SkipID;
+        if (!role.SkipNewbieStep(skipID))
+        {
+            return [BuildSkipNewbieStepRsp(request, PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid)];
+        }
+
+        await roles.SaveAsync(role);
+        var state = new pbSCNewbieStateInfoNtf { NewbieState = role.BuildNewbieState() };
+        return
+        [
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidNewbieStateInfoNtf, state),
+            BuildSkipNewbieStepRsp(request, 0),
+        ];
+    }
+
+    private static GamePacket BuildSkipNewbieStepRsp(GamePacket request, PB_ENUM_RES_ERROR_CODE result) =>
+        request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidSkipNewbieStepRsp, new pbSCSkipNewbieStepRsp
+        {
+            ResultInfo = new pbResultInfo { ResultId = (int)result },
+        });
+
     private LMNRoleInfo RequireRole(GamePacket request) =>
         roles.Find(request.Uid) ?? throw new InvalidDataException("Message requires a logged in role");
 }

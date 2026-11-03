@@ -10,6 +10,9 @@ public sealed class LMNRoleInfo(
     IEnumerable<long> newbieBitsDetail)
 {
     private const int BitsPerWord = 64;
+    private const int TutorialSkipID = 1;
+
+    private static readonly int[] TutorialBattleNewbies = [1, 2];
 
     private readonly Lock gate = new();
     private readonly List<long> bitsDetail = [.. newbieBitsDetail];
@@ -37,14 +40,26 @@ public sealed class LMNRoleInfo(
     {
         lock (gate)
         {
-            var word = newbie / BitsPerWord;
-            while (bitsDetail.Count <= word)
-            {
-                bitsDetail.Add(0);
-            }
-
-            bitsDetail[word] |= 1L << (newbie % BitsPerWord);
+            SetNewbieBit(newbie);
         }
+    }
+
+    public bool SkipNewbieStep(int skipID)
+    {
+        if (skipID != TutorialSkipID)
+        {
+            return false;
+        }
+
+        lock (gate)
+        {
+            foreach (var newbie in TutorialBattleNewbies)
+            {
+                SetNewbieBit(newbie);
+            }
+        }
+
+        return true;
     }
 
     public pbCOMDT_NEWBIE_STATE_INFO BuildNewbieState()
@@ -53,5 +68,16 @@ public sealed class LMNRoleInfo(
         {
             return new pbCOMDT_NEWBIE_STATE_INFO { BitsDetail = { bitsDetail } };
         }
+    }
+
+    private void SetNewbieBit(int newbie)
+    {
+        var word = newbie / BitsPerWord;
+        while (bitsDetail.Count <= word)
+        {
+            bitsDetail.Add(0);
+        }
+
+        bitsDetail[word] |= 1L << (newbie % BitsPerWord);
     }
 }
