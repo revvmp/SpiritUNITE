@@ -27,15 +27,15 @@ public sealed class GcpSession(
         Established,
     }
 
-    public IReadOnlyList<byte[]> Handle(GcpHead head, ReadOnlyMemory<byte> packet)
+    public async Task<byte[][]> HandleAsync(GcpHead head, ReadOnlyMemory<byte> packet)
     {
         packetLog.Received(head);
 
         return (state, (GcpCommand)head.Command) switch
         {
             (GcpSessionState.AwaitingSyn, GcpCommand.Syn) => AcceptSyn(head, packet),
-            (GcpSessionState.AwaitingAuth, GcpCommand.AuthReq) => AcceptAuth(head, packet),
-            (GcpSessionState.Established, GcpCommand.Data) => AcceptData(head, packet),
+            (GcpSessionState.AwaitingAuth, GcpCommand.AuthReq) => await AcceptAuthAsync(head, packet),
+            (GcpSessionState.Established, GcpCommand.Data) => await AcceptDataAsync(head, packet),
             (GcpSessionState.Established, _) => IgnoreEstablishedPacket(head),
             _ => throw new GcpProtocolException($"Command 0x{head.Command:X4} is not valid in state {state}"),
         };
@@ -58,7 +58,7 @@ public sealed class GcpSession(
         return [BuildPacket(head, GcpCommand.Ack, GcpMessages.BuildAckSection(sessionKey, head.PackingVersion), [])];
     }
 
-    private byte[][] AcceptAuth(GcpHead head, ReadOnlyMemory<byte> packet)
+    private async Task<byte[][]> AcceptAuthAsync(GcpHead head, ReadOnlyMemory<byte> packet)
     {
         var body = cipher!.Decrypt(packet.Span[(int)head.HeadLength..]);
         var request = GcpMessages.ParseAuthReq(body, head.HeaderVersion);
@@ -77,26 +77,26 @@ public sealed class GcpSession(
 
         if (!request.TransData.IsEmpty)
         {
-            replies.AddRange(DispatchGamePacket(head, request.TransData));
+            replies.AddRange(await DispatchGamePacketAsync(head, request.TransData));
         }
 
         return [.. replies];
     }
 
-    private byte[][] AcceptData(GcpHead head, ReadOnlyMemory<byte> packet)
+    private async Task<byte[][]> AcceptDataAsync(GcpHead head, ReadOnlyMemory<byte> packet)
     {
         var body = cipher!.Decrypt(packet.Span[(int)head.HeadLength..]);
-        return DispatchGamePacket(head, GcpMessages.ReadClientData(body));
+        return await DispatchGamePacketAsync(head, GcpMessages.ReadClientData(body));
     }
 
-    private byte[][] DispatchGamePacket(GcpHead head, ReadOnlyMemory<byte> data)
+    private async Task<byte[][]> DispatchGamePacketAsync(GcpHead head, ReadOnlyMemory<byte> data)
     {
         var request = ParseGamePacket(data) with { Uid = gameAcntUid };
         packetLog.ReceivedGame(request);
 
         try
         {
-            if (dispatcher.TryDispatch(serverType, request, out var replies))
+            if (await dispatcher.DispatchAsync(serverType, request) is { } replies)
             {
                 gameAcntUid = replies.FirstOrDefault(reply => reply.Uid != 0)?.Uid ?? gameAcntUid;
                 return [.. replies.Select(reply => BuildGamePacket(head, reply))];

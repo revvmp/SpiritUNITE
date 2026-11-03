@@ -86,7 +86,7 @@ public sealed class Connection(
         while (GcpHead.TryParse(data.Span[consumed..], out var head) && head.PacketLength <= data.Length - consumed)
         {
             var packet = data.Slice(consumed, head.PacketLength);
-            foreach (var reply in session.Handle(head, packet))
+            foreach (var reply in await session.HandleAsync(head, packet))
             {
                 await stream.WriteAsync(reply, stoppingToken);
             }

@@ -434,3 +434,4 @@ tools/
 .re/
 .idea/
 src/SpiritUNITE/Protobuf/
+/src/SpiritUNITE/appsettings.json

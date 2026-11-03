@@ -10,11 +10,11 @@ public sealed class LoginHandlers(RoleInfoStore roles, TimeProvider clock, ILogg
     private const int LoginSucceeded = 1;
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidAcntLoginReq)]
-    public GamePacket[] OnAcntLoginReq(GamePacket request)
+    public async Task<GamePacket[]> OnAcntLoginReq(GamePacket request)
     {
         var login = pbCSAcntLoginReq.Parser.ParseFrom(request.PkgData);
         var uid = ResolveUid(request.Uid, login.PlayerName);
-        var role = roles.GetOrCreate(uid);
+        var role = await roles.GetOrCreateAsync(uid);
         logger.LogInformation("Login from uid {Uid} as {Name}", uid, role.InGameUsrName);
 
         var now = clock.GetUtcNow().ToUnixTimeSeconds();

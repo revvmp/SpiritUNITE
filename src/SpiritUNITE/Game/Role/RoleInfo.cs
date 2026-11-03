@@ -2,17 +2,27 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Role;
 
-public sealed class RoleInfo(ulong gameUlongUID, string inGameUsrName)
+public sealed class RoleInfo(
+    ulong gameUlongUID,
+    string inGameUsrName,
+    int gender,
+    pbCOMDT_ROLE_AVATAR_INFO roleAvatarInfo,
+    IEnumerable<long> newbieBitsDetail)
 {
     private const int BitsPerWord = 64;
 
     private readonly Lock gate = new();
-    private readonly List<long> bitsDetail = [];
+    private readonly List<long> bitsDetail = [.. newbieBitsDetail];
+
+    public RoleInfo(ulong gameUlongUID, string inGameUsrName)
+        : this(gameUlongUID, inGameUsrName, 0, new pbCOMDT_ROLE_AVATAR_INFO(), [])
+    {
+    }
 
     public ulong GameUlongUID { get; } = gameUlongUID;
     public string InGameUsrName { get; } = inGameUsrName;
-    public int Gender { get; private set; }
-    public pbCOMDT_ROLE_AVATAR_INFO RoleAvatarInfo { get; private set; } = new();
+    public int Gender { get; private set; } = gender;
+    public pbCOMDT_ROLE_AVATAR_INFO RoleAvatarInfo { get; private set; } = roleAvatarInfo;
 
     public void SetRoleCosmetic(int gender, pbCOMDT_ROLE_AVATAR_INFO roleAvatarInfo)
     {

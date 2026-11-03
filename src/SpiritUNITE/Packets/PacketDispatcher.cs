@@ -20,16 +20,16 @@ public sealed class PacketHandlerAttribute(eNetEventServerType serverType, PB_EN
 
 public sealed class PacketDispatcher
 {
-    private readonly Dictionary<(eNetEventServerType, int), Func<GamePacket, GamePacket[]>> handlers;
+    private readonly Dictionary<(eNetEventServerType, int), Func<GamePacket, Task<GamePacket[]>>> handlers;
 
-    private PacketDispatcher(Dictionary<(eNetEventServerType, int), Func<GamePacket, GamePacket[]>> handlers)
+    private PacketDispatcher(Dictionary<(eNetEventServerType, int), Func<GamePacket, Task<GamePacket[]>>> handlers)
     {
         this.handlers = handlers;
     }
 
     public static PacketDispatcher Discover(Assembly assembly, IServiceProvider services)
     {
-        var handlers = new Dictionary<(eNetEventServerType, int), Func<GamePacket, GamePacket[]>>();
+        var handlers = new Dictionary<(eNetEventServerType, int), Func<GamePacket, Task<GamePacket[]>>>();
 
         foreach (var type in assembly.GetTypes())
         {
@@ -51,32 +51,21 @@ public sealed class PacketDispatcher
         return new PacketDispatcher(handlers);
     }
 
-    public bool TryDispatch(eNetEventServerType serverType, GamePacket request, out GamePacket[] replies)
-    {
-        replies = [];
-        if (!handlers.TryGetValue((serverType, request.MsgID), out var handler))
-        {
-            return false;
-        }
-
-        replies = handler(request);
-        return true;
-    }
+    public async Task<GamePacket[]?> DispatchAsync(eNetEventServerType serverType, GamePacket request) =>
+        handlers.TryGetValue((serverType, request.MsgID), out var handler) ? await handler(request) : null;
 
     private static void Register(
-        Dictionary<(eNetEventServerType, int), Func<GamePacket, GamePacket[]>> handlers,
+        Dictionary<(eNetEventServerType, int), Func<GamePacket, Task<GamePacket[]>>> handlers,
         MethodInfo method,
         object instance)
     {
-        if (method.ReturnType != typeof(GamePacket[])
-            || method.GetParameters() is not [{ ParameterType: var parameterType }]
-            || parameterType != typeof(GamePacket))
+        if (method.GetParameters() is not [{ ParameterType: var parameterType }] || parameterType != typeof(GamePacket))
         {
             throw new InvalidOperationException(
-                $"Handler {method.DeclaringType?.Name}.{method.Name} must take a GamePacket and return a GamePacket array");
+                $"Handler {method.DeclaringType?.Name}.{method.Name} must take a GamePacket");
         }
 
-        var handler = method.CreateDelegate<Func<GamePacket, GamePacket[]>>(instance);
+        var handler = BuildHandler(method, instance);
         foreach (var attribute in method.GetCustomAttributes<PacketHandlerAttribute>())
         {
             if (!handlers.TryAdd((attribute.ServerType, attribute.MsgID), handler))
@@ -85,5 +74,22 @@ public sealed class PacketDispatcher
                     $"Message {attribute.MsgID} on {attribute.ServerType} already has a handler");
             }
         }
+    }
+
+    private static Func<GamePacket, Task<GamePacket[]>> BuildHandler(MethodInfo method, object instance)
+    {
+        if (method.ReturnType == typeof(Task<GamePacket[]>))
+        {
+            return method.CreateDelegate<Func<GamePacket, Task<GamePacket[]>>>(instance);
+        }
+
+        if (method.ReturnType == typeof(GamePacket[]))
+        {
+            var handler = method.CreateDelegate<Func<GamePacket, GamePacket[]>>(instance);
+            return request => Task.FromResult(handler(request));
+        }
+
+        throw new InvalidOperationException(
+            $"Handler {method.DeclaringType?.Name}.{method.Name} must return GamePacket[] or Task<GamePacket[]>");
     }
 }
