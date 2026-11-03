@@ -23,15 +23,22 @@ CREATE TABLE IF NOT EXISTS `role_pokemon` (
 
 CREATE TABLE IF NOT EXISTS `account` (
     account_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    user_name VARCHAR(20) NOT NULL,
-    email VARCHAR(254) NOT NULL,
-    password_hash VARBINARY(64) NOT NULL,
-    password_salt VARBINARY(32) NOT NULL,
-    password_iterations INT NOT NULL,
+    user_name VARCHAR(20) NULL,
+    email VARCHAR(254) NULL,
+    password_hash VARBINARY(64) NULL,
+    password_salt VARBINARY(32) NULL,
+    password_iterations INT NULL,
+    guest_id_hash BINARY(32) NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_login_at TIMESTAMP NULL,
     UNIQUE KEY uq_account_user_name (user_name),
-    UNIQUE KEY uq_account_email (email)
+    UNIQUE KEY uq_account_email (email),
+    UNIQUE KEY uq_account_guest_id (guest_id_hash),
+    CONSTRAINT ck_account_kind CHECK (
+        (guest_id_hash IS NULL AND user_name IS NOT NULL AND email IS NOT NULL AND password_hash IS NOT NULL
+            AND password_salt IS NOT NULL AND password_iterations IS NOT NULL)
+        OR (guest_id_hash IS NOT NULL AND user_name IS NULL AND email IS NULL AND password_hash IS NULL
+            AND password_salt IS NULL AND password_iterations IS NULL))
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `account_token` (

@@ -29,7 +29,7 @@ public static class DatabaseManager
             await using var database = new DataConnection(options);
             await database.GetTable<Role>().AnyAsync();
             await database.GetTable<RolePokemon>().AnyAsync();
-            await database.GetTable<Account>().AnyAsync();
+            await database.GetTable<Account>().FirstOrDefaultAsync();
             await database.GetTable<AccountToken>().AnyAsync();
         }
         catch (MySqlException exception)

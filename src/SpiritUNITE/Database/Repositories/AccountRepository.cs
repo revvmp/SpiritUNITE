@@ -21,14 +21,16 @@ public sealed class AccountRepository(DataOptions options) : IAccountRepository
     public async Task<StoredAccount?> FindByUserNameAsync(string userName)
     {
         await using var database = new DataConnection(options);
-        var account = await database.GetTable<AccountEntity>().FirstOrDefaultAsync(account => account.UserName == userName);
+        var account = await database.GetTable<AccountEntity>()
+            .FirstOrDefaultAsync(account => account.UserName == userName && account.GuestIdHash == null);
         return account is null ? null : ToStoredAccount(account);
     }
 
     public async Task<StoredAccount?> FindByEmailAsync(string email)
     {
         await using var database = new DataConnection(options);
-        var account = await database.GetTable<AccountEntity>().FirstOrDefaultAsync(account => account.Email == email);
+        var account = await database.GetTable<AccountEntity>()
+            .FirstOrDefaultAsync(account => account.Email == email && account.GuestIdHash == null);
         return account is null ? null : ToStoredAccount(account);
     }
 
@@ -56,6 +58,29 @@ public sealed class AccountRepository(DataOptions options) : IAccountRepository
         catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
         {
             return new AccountCreation(await FindTakenAsync(database, userName, email) ?? AccountRegistrationResult.UserNameTaken, null);
+        }
+    }
+
+    public async Task<PlayerAccount?> FindGuestAsync(byte[] guestIdHash)
+    {
+        await using var database = new DataConnection(options);
+        return await database.GetTable<AccountEntity>()
+            .Where(account => account.GuestIdHash == guestIdHash)
+            .Select(account => new PlayerAccount(account.AccountId, null))
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<PlayerAccount?> CreateGuestAsync(byte[] guestIdHash)
+    {
+        await using var database = new DataConnection(options);
+        try
+        {
+            var accountId = Convert.ToUInt64(await database.InsertWithIdentityAsync(new AccountEntity { GuestIdHash = guestIdHash }));
+            return new PlayerAccount(accountId, null);
+        }
+        catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
+        {
+            return null;
         }
     }
 
@@ -90,7 +115,8 @@ public sealed class AccountRepository(DataOptions options) : IAccountRepository
         return await accounts.AnyAsync(account => account.Email == email) ? AccountRegistrationResult.EmailTaken : null;
     }
 
-    private static StoredAccount ToStoredAccount(AccountEntity account) => new(
-        new PlayerAccount(account.AccountId, account.UserName),
-        new AccountPassword(account.PasswordHash, account.PasswordSalt, account.PasswordIterations));
+    private static StoredAccount? ToStoredAccount(AccountEntity account) =>
+        account is { UserName: { } userName, PasswordHash: { } hash, PasswordSalt: { } salt, PasswordIterations: { } iterations }
+            ? new StoredAccount(new PlayerAccount(account.AccountId, userName), new AccountPassword(hash, salt, iterations))
+            : null;
 }

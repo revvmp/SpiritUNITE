@@ -10,6 +10,7 @@ namespace SpiritUNITE.Servers.Http;
 public static class AccountPages
 {
     public const string LoginPath = "/oauth2/auth";
+    public const string NintendoLoginPath = "/connect/1.0.0/authorize";
     public const string RegisterPath = "/oauth2/register";
 
     private const string CompletionScript =

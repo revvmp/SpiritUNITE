@@ -1,6 +1,6 @@
 namespace SpiritUNITE.Auth;
 
-public sealed record AuthorizationRequest(string RedirectUri, string? State, string? Scope, string CodeChallenge)
+public sealed record AuthorizationRequest(string RedirectUri, string? State, string? Scope, string? CodeChallenge)
 {
     public const string RedirectUriParameter = "redirect_uri";
     public const string StateParameter = "state";
@@ -28,7 +28,10 @@ public sealed record AuthorizationRequest(string RedirectUri, string? State, str
     private const int MaximumParameterLength = 2048;
     private const int Sha256ChallengeLength = 43;
 
-    public static AuthorizationRequest? TryCreate(IReadOnlyDictionary<string, string> parameters, IReadOnlyCollection<string> allowedRedirectUris)
+    public static AuthorizationRequest? TryCreate(
+        IReadOnlyDictionary<string, string> parameters,
+        IReadOnlyCollection<string> allowedRedirectUris,
+        string codeChallengeOptionalRedirectUri)
     {
         if (parameters.Values.Any(value => value.Length > MaximumParameterLength))
         {
@@ -45,10 +48,12 @@ public sealed record AuthorizationRequest(string RedirectUri, string? State, str
             return null;
         }
 
-        if (parameters.GetValueOrDefault(CodeChallengeMethodParameter) != Sha256ChallengeMethod ||
-            !parameters.TryGetValue(CodeChallengeParameter, out var codeChallenge) ||
-            codeChallenge.Length != Sha256ChallengeLength ||
-            !codeChallenge.All(IsBase64UrlCharacter))
+        var codeChallenge = parameters.GetValueOrDefault(CodeChallengeParameter);
+        var codeChallengeMethod = parameters.GetValueOrDefault(CodeChallengeMethodParameter);
+        var codeChallengeAccepted = codeChallenge is null && codeChallengeMethod is null
+            ? string.Equals(redirectUri, codeChallengeOptionalRedirectUri, StringComparison.Ordinal)
+            : codeChallengeMethod == Sha256ChallengeMethod && IsSha256CodeChallenge(codeChallenge);
+        if (!codeChallengeAccepted)
         {
             return null;
         }
@@ -78,9 +83,15 @@ public sealed record AuthorizationRequest(string RedirectUri, string? State, str
             yield return new(ScopeParameter, Scope);
         }
 
-        yield return new(CodeChallengeParameter, CodeChallenge);
-        yield return new(CodeChallengeMethodParameter, Sha256ChallengeMethod);
+        if (CodeChallenge is not null)
+        {
+            yield return new(CodeChallengeParameter, CodeChallenge);
+            yield return new(CodeChallengeMethodParameter, Sha256ChallengeMethod);
+        }
     }
+
+    private static bool IsSha256CodeChallenge(string? codeChallenge) =>
+        codeChallenge is { Length: Sha256ChallengeLength } && codeChallenge.All(IsBase64UrlCharacter);
 
     private static bool IsBase64UrlCharacter(char character) => char.IsAsciiLetterOrDigit(character) || character is '-' or '_';
 }

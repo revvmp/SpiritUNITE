@@ -82,6 +82,8 @@ public static class HttpServer
         app.UseRateLimiter();
         app.MapGet(AccountPages.LoginPath, ShowLogin);
         app.MapPost(AccountPages.LoginPath, SubmitLogin).RequireRateLimiting(FormRateLimitPolicy).DisableAntiforgery();
+        app.MapGet(AccountPages.NintendoLoginPath, ShowLogin);
+        app.MapPost(AccountPages.NintendoLoginPath, SubmitLogin).RequireRateLimiting(FormRateLimitPolicy).DisableAntiforgery();
         app.MapGet(AccountPages.RegisterPath, ShowRegister);
         app.MapPost(AccountPages.RegisterPath, SubmitRegister).RequireRateLimiting(FormRateLimitPolicy).DisableAntiforgery();
         MsdkEndpoints.Map(app);
@@ -196,7 +198,7 @@ public static class HttpServer
             parameters[name] = value;
         }
 
-        return AuthorizationRequest.TryCreate(parameters, options.RedirectUris);
+        return AuthorizationRequest.TryCreate(parameters, options.RedirectUris, HttpServerOptions.CodeChallengeOptionalRedirectUri);
     }
 
     private static async Task<IFormCollection?> ReadSameSiteFormAsync(HttpRequest request, CancellationToken cancellationToken)

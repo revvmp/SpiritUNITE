@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
@@ -10,7 +11,9 @@ namespace SpiritUNITE.Servers.Http;
 
 public static class MsdkEndpoints
 {
+    public const int GuestChannelId = 3;
     public const int PokemonChannelId = 24;
+    public const int Nintendo_Unite = 26;
 
     private const string LoginPath = "/v2/auth/login";
     private const string CheckAndLoginPath = "/v2/auth/check_and_login";
@@ -21,6 +24,9 @@ public static class MsdkEndpoints
     private const int Refused = 1;
     private const int FirstLogin = 1;
     private const int ReturningLogin = 0;
+    private const string ChannelInfoKey = "channel_info";
+    private const string GuestIdKey = "uuid";
+    private const string GuestDisplayName = "guest";
 
     public static void Map(WebApplication app)
     {
@@ -34,14 +40,51 @@ public static class MsdkEndpoints
     {
         var logger = loggers.CreateLogger(typeof(MsdkEndpoints));
         var query = MsdkQuery.Read(request);
-        if (query.ChannelId != PokemonChannelId)
+        if (!IsLoginChannel(query.ChannelId))
         {
             logger.LogInformation("MSDK login refused: channel {ChannelId} is not supported", query.ChannelId);
             return Refuse(query, "channel not supported");
         }
 
         using var body = await ReadBodyAsync(request);
-        var channelInfo = body is null ? null : ReadObject(body.RootElement, "channel_info");
+        var channelInfo = body is null ? null : ReadObject(body.RootElement, ChannelInfoKey);
+        return query.ChannelId == GuestChannelId
+            ? await GuestLoginAsync(query, channelInfo, request.HttpContext.Connection.RemoteIpAddress, sessions, logger)
+            : await AuthorizationCodeLoginAsync(query, channelInfo, sessions, logger);
+    }
+
+    private static async Task<IResult> GuestLoginAsync(
+        MsdkQuery query,
+        JsonElement? channelInfo,
+        IPAddress? clientAddress,
+        AccountSessionService sessions,
+        ILogger logger)
+    {
+        if ((channelInfo is { } info ? ReadString(info, GuestIdKey) : null) is not { } guestId)
+        {
+            logger.LogInformation("MSDK guest login refused: no guest id");
+            return Refuse(query, "missing uuid");
+        }
+
+        var login = await sessions.GuestLoginAsync(guestId, clientAddress);
+        if (login.Session is not { } session)
+        {
+            logger.LogInformation("MSDK guest login refused from {Address}: {Result}, guest id {GuestIdLength} characters",
+                clientAddress, login.Result, guestId.Length);
+            return Refuse(query, login.Result == GuestLoginResult.Throttled ? "too many new guests" : "invalid uuid");
+        }
+
+        logger.LogInformation("MSDK guest login issued a token to guest account {AccountId}, new account {IsNewAccount}",
+            session.Account.AccountId, session.IsNewAccount);
+        return Succeed(query, session);
+    }
+
+    private static async Task<IResult> AuthorizationCodeLoginAsync(
+        MsdkQuery query,
+        JsonElement? channelInfo,
+        AccountSessionService sessions,
+        ILogger logger)
+    {
         var code = channelInfo is { } info ? ReadString(info, "code") : null;
         if (code is null)
         {
@@ -51,11 +94,12 @@ public static class MsdkEndpoints
 
         if (await sessions.ExchangeCodeAsync(code, ReadString(channelInfo!.Value, "code_verifier")) is not { } session)
         {
-            logger.LogInformation("MSDK login refused: authorization code is invalid, used or expired");
+            logger.LogInformation("MSDK login refused on channel {ChannelId}: authorization code is invalid, used or expired", query.ChannelId);
             return Refuse(query, "invalid code");
         }
 
-        logger.LogInformation("MSDK login issued a token to account {AccountId} ({UserName})", session.Account.AccountId, session.Account.UserName);
+        logger.LogInformation("MSDK login on channel {ChannelId} issued a token to account {AccountId} ({UserName})",
+            query.ChannelId, session.Account.AccountId, session.Account.UserName);
         return Succeed(query, session);
     }
 
@@ -66,14 +110,16 @@ public static class MsdkEndpoints
         using var body = await ReadBodyAsync(request);
         var openId = body is null ? null : ReadString(body.RootElement, "openid");
         var token = body is null ? null : ReadString(body.RootElement, "token");
-        if (query.ChannelId != PokemonChannelId || openId is null || token is null ||
-            await sessions.ResumeAsync(openId, token) is not { } session)
+        if (!IsLoginChannel(query.ChannelId) || openId is null || token is null ||
+            await sessions.ResumeAsync(openId, token) is not { } session ||
+            session.Account.IsGuest != (query.ChannelId == GuestChannelId))
         {
             logger.LogInformation("MSDK auto login refused for channel {ChannelId}", query.ChannelId);
             return Refuse(query, "login expired");
         }
 
-        logger.LogInformation("MSDK auto login renewed account {AccountId} ({UserName})", session.Account.AccountId, session.Account.UserName);
+        logger.LogInformation("MSDK auto login renewed account {AccountId} ({UserName})",
+            session.Account.AccountId, session.Account.UserName ?? GuestDisplayName);
         return Succeed(query, session);
     }
 
@@ -82,6 +128,8 @@ public static class MsdkEndpoints
         loggers.CreateLogger(typeof(MsdkEndpoints)).LogInformation("MSDK call {Method} {Path} is not supported", request.Method, request.Path);
         return Refuse(MsdkQuery.Read(request), "not supported");
     }
+
+    private static bool IsLoginChannel(int channelId) => channelId is GuestChannelId or PokemonChannelId or Nintendo_Unite;
 
     private static IResult Succeed(MsdkQuery query, AccountSession session) => Results.Json(new MsdkLoginReply
     {
@@ -93,7 +141,7 @@ public static class MsdkEndpoints
         Token = session.Token,
         TokenExpireTime = session.ExpiresAt,
         First = session.IsNewAccount ? FirstLogin : ReturningLogin,
-        UserName = session.Account.UserName,
+        UserName = session.Account.UserName ?? string.Empty,
     });
 
     private static IResult Refuse(MsdkQuery query, string message) => Results.Json(new MsdkLoginReply

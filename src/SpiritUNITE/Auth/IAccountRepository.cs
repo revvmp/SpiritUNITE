@@ -1,6 +1,9 @@
 namespace SpiritUNITE.Auth;
 
-public sealed record PlayerAccount(ulong AccountId, string UserName);
+public sealed record PlayerAccount(ulong AccountId, string? UserName)
+{
+    public bool IsGuest => UserName is null;
+}
 
 public sealed record StoredAccount(PlayerAccount Account, AccountPassword Password);
 
@@ -27,6 +30,10 @@ public interface IAccountRepository
     Task<StoredAccount?> FindByEmailAsync(string email);
 
     Task<AccountCreation> CreateAsync(string userName, string email, AccountPassword password);
+
+    Task<PlayerAccount?> FindGuestAsync(byte[] guestIdHash);
+
+    Task<PlayerAccount?> CreateGuestAsync(byte[] guestIdHash);
 
     Task RecordLoginAsync(ulong accountId);
 

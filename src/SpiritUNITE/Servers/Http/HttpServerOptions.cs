@@ -7,6 +7,8 @@ public sealed class HttpServerOptions
 {
     public const string SectionName = "HttpServer";
     public const string PokemonChannelRedirectUri = "https://cdn.itopsdk.com/v5/tpci/prod/loginSuccess.html";
+    public const string NintendoChannelRedirectUri = "https://cdn.itopsdk.com/v5/release/nintendo/loginSuccess.html";
+    public const string CodeChallengeOptionalRedirectUri = NintendoChannelRedirectUri;
 
     public string BindAddress { get; set; } = "127.0.0.1";
 
@@ -22,8 +24,8 @@ public sealed class HttpServerOptions
 
     public int QueuedPasswordHashes { get; set; } = 32;
 
-    public IReadOnlyCollection<string> RedirectUris => AllowedRedirectUris.Length > 0 ? AllowedRedirectUris : [PokemonChannelRedirectUri];
-
+    public IReadOnlyCollection<string> RedirectUris =>
+        AllowedRedirectUris.Length > 0 ? AllowedRedirectUris : [PokemonChannelRedirectUri, NintendoChannelRedirectUri];
     public int PasswordHashSlots => ConcurrentPasswordHashes > 0 ? ConcurrentPasswordHashes : Math.Max(1, Environment.ProcessorCount / 2);
 
     public static bool TryParseProxyNetwork(string proxy, out IPNetwork network)

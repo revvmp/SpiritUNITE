@@ -11,19 +11,22 @@ public sealed class Account
     public ulong AccountId { get; set; }
 
     [Column("user_name")]
-    public string UserName { get; set; } = string.Empty;
+    public string? UserName { get; set; }
 
     [Column("email")]
-    public string Email { get; set; } = string.Empty;
+    public string? Email { get; set; }
 
     [Column("password_hash")]
-    public byte[] PasswordHash { get; set; } = [];
+    public byte[]? PasswordHash { get; set; }
 
     [Column("password_salt")]
-    public byte[] PasswordSalt { get; set; } = [];
+    public byte[]? PasswordSalt { get; set; }
 
     [Column("password_iterations")]
-    public int PasswordIterations { get; set; }
+    public int? PasswordIterations { get; set; }
+
+    [Column("guest_id_hash")]
+    public byte[]? GuestIdHash { get; set; }
 
     [Column("last_login_at")]
     public DateTime? LastLoginAt { get; set; }
