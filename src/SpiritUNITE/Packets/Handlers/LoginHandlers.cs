@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging;
+using SpiritUNITE.Game.Ranked;
 using SpiritUNITE.Game.Data;
 using SpiritUNITE.Game.Role;
+using SpiritUNITE.Game.StarRoad;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers;
@@ -77,6 +79,8 @@ public sealed class LoginHandlers(
             ServerRealTimeStamp = now,
             ABTestID = ShippedDatabinABTestID,
             UsingLobbyBgId = role.GetUsingLobbyBgId(gameData),
+            SeasonId = RankedMatch.FindCurrentSeason(gameData, clock.GetUtcNow()).Season.SeasonId,
+            RankedDivision = (int)RankedMatch.StartingRankedDivision,
         };
 
         return
@@ -87,6 +91,10 @@ public sealed class LoginHandlers(
             {
                 ResultInfo = new pbResultInfo(),
                 AvatarList = { role.BuildAvatarList() },
+            }),
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidStarRoadInfoNtf, new pbSCStarRoadInfoNtf
+            {
+                StarRoadInfo = StarRoadProgress.Starting(gameData).BuildStarRoadInfo(isLoginNtf: true),
             }),
         ];
     }
