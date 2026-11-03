@@ -112,6 +112,7 @@ public sealed class RoleRepository(DataOptions options) : IRoleRepository
         pbCOMDT_NEWBIE_STATE_INFO.Parser.ParseFrom(role.NewbieState).BitsDetail,
         pokemonIds,
         items,
+        role.FollowPokemonId,
         role.UsingLobbyBgId);
 
     private static RoleItemInfo ToRoleItemInfo(RoleItem item) => new(
@@ -140,6 +141,7 @@ public sealed class RoleRepository(DataOptions options) : IRoleRepository
         Gender = role.Gender,
         RoleAvatarInfo = role.RoleAvatarInfo.ToByteArray(),
         NewbieState = role.BuildNewbieState().ToByteArray(),
+        FollowPokemonId = role.FollowPokemonId,
         UsingLobbyBgId = role.UsingLobbyBgId,
     };
 }

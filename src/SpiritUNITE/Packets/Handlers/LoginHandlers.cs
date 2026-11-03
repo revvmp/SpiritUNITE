@@ -69,6 +69,7 @@ public sealed class LoginHandlers(
             GameAcntUid = role.GameUlongUID,
             Level = RoleProfile.StartingLevel,
             Name = role.InGameUsrName,
+            FollowInfo = role.BuildFollowInfo(),
             Gender = role.Gender,
             RoleAvatarInfo = role.RoleAvatarInfo,
             NewbieState = role.BuildNewbieState(),

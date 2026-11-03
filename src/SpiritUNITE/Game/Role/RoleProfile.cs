@@ -16,6 +16,7 @@ public static class RoleProfile
         RoleName = role.InGameUsrName,
         RoleLevel = StartingLevel,
         RoleGender = role.Gender,
+        FollowInfo = role.BuildFollowInfo(),
         UserShortId = BuildShortId(role),
         PlayerContestantInfo = new pbCOMDT_PLAYER_CONTESTANT_INFO
         {

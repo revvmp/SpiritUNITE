@@ -81,7 +81,7 @@ public sealed class RoleHandlers(
     {
         var role = RequireRole(request);
         var pokemonId = pbCSGetTutorialRewardReq.Parser.ParseFrom(request.PkgData).PokemonId;
-        var result = role.GetTutorialReward(pokemonId);
+        var result = role.GetTutorialReward(gameData, pokemonId);
         if (result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
         {
             logger.LogInformation(
@@ -100,13 +100,22 @@ public sealed class RoleHandlers(
             PokemonInfo = LMNRoleInfo.BuildPokemonInfo(pokemonId),
         };
         var state = new pbSCNewbieStateInfoNtf { NewbieState = role.BuildNewbieState() };
+        GamePacket[] followUpdate = role.FollowPokemonId == pokemonId ? [BuildSetPokemonFollowRsp(request, pokemonId)] : [];
         return
         [
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdatePokemonNtf, gain),
+            .. followUpdate,
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidNewbieStateInfoNtf, state),
             BuildGetTutorialRewardRsp(request, PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, pokemonId),
         ];
     }
+
+    private static GamePacket BuildSetPokemonFollowRsp(GamePacket request, int pokemonId) =>
+        request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidSetPokemonFollowRsp, new pbSCSetPokemonFollowRsp
+        {
+            ResultInfo = new pbResultInfo(),
+            PokemonId = pokemonId,
+        });
 
     private static GamePacket BuildGetTutorialRewardRsp(GamePacket request, PB_ENUM_RES_ERROR_CODE result, int pokemonId) =>
         request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetTutorialRewardRsp, new pbSCGetTutorialRewardRsp

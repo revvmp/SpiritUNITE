@@ -11,8 +11,10 @@ public sealed class LMNRoleInfo(
     IEnumerable<long> newbieBitsDetail,
     IEnumerable<int> ownedPokemonIds,
     IEnumerable<RoleItemInfo> ownedItems,
+    int followPokemonId,
     int usingLobbyBgId)
 {
+    public const int NoFollowPokemonId = 0;
     public const int NoUsingLobbyBgId = 0;
 
     private const int BitsPerWord = 64;
@@ -21,24 +23,25 @@ public sealed class LMNRoleInfo(
     private const int TutorialSkipID = 1;
     private const int CreateRoleNewbie = (int)PB_ENUM_RES_NEWBIE_STATUS_TYPE.PbResNewbieStatusTypeCreaterole;
     private const int TutorialRewardNewbie = (int)PB_ENUM_RES_NEWBIE_STATUS_TYPE.PbResNewbieStatusTypeTutorialReward;
+    private const int TutorialPickRewardType = 2;
 
     private static readonly int[] TutorialBattleNewbies =
     [
         (int)PB_ENUM_RES_NEWBIE_STATUS_TYPE.PbResNewbieStatusTypeTutorialRound1,
         (int)PB_ENUM_RES_NEWBIE_STATUS_TYPE.PbResNewbieStatusTypeTutorialRound2,
     ];
-    private static readonly int[] TutorialRewardPokemonIds = [724, 4, 661];
 
     private readonly Lock gate = new();
     private readonly List<long> bitsDetail = [.. newbieBitsDetail];
     private readonly HashSet<int> pokemonIds = [.. ownedPokemonIds];
+    private int mFollowPokemonId = followPokemonId;
     private int mUsingLobbyBgId = usingLobbyBgId;
 
     private readonly Dictionary<(RoleItemType ItemType, int ItemId), RoleItemInfo> items =
         OwnWornAvatarItems(roleAvatarInfo, ownedItems);
 
     public LMNRoleInfo(ulong gameUlongUID, string inGameUsrName)
-        : this(gameUlongUID, inGameUsrName, 0, new pbCOMDT_ROLE_AVATAR_INFO(), [], [], [], NoUsingLobbyBgId)
+        : this(gameUlongUID, inGameUsrName, 0, new pbCOMDT_ROLE_AVATAR_INFO(), [], [], [], NoFollowPokemonId, NoUsingLobbyBgId)
     {
     }
 
@@ -260,9 +263,9 @@ public sealed class LMNRoleInfo(
         return true;
     }
 
-    public PB_ENUM_RES_ERROR_CODE GetTutorialReward(int pokemonId)
+    public PB_ENUM_RES_ERROR_CODE GetTutorialReward(GameData gameData, int pokemonId)
     {
-        if (!TutorialRewardPokemonIds.Contains(pokemonId))
+        if (!IsTutorialRewardPokemon(gameData, pokemonId))
         {
             return PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
         }
@@ -281,10 +284,39 @@ public sealed class LMNRoleInfo(
 
             SetNewbieBit(TutorialRewardNewbie);
             pokemonIds.Add(pokemonId);
+            ResolveFollowPokemonId();
         }
 
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
+
+    public int FollowPokemonId
+    {
+        get
+        {
+            lock (gate)
+            {
+                return ResolveFollowPokemonId();
+            }
+        }
+    }
+
+    public PB_ENUM_RES_ERROR_CODE SetPokemonFollow(int pokemonId)
+    {
+        lock (gate)
+        {
+            if (!pokemonIds.Contains(pokemonId))
+            {
+                return PB_ENUM_RES_ERROR_CODE.PbErrPokemonUnexists;
+            }
+
+            mFollowPokemonId = pokemonId;
+        }
+
+        return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
+    }
+
+    public pbCOMDT_POKEMON_FOLLOW_INFO BuildFollowInfo() => new() { PokemonId = FollowPokemonId };
 
     public int[] GetOwnedPokemonIds()
     {
@@ -311,6 +343,19 @@ public sealed class LMNRoleInfo(
             return new pbCOMDT_NEWBIE_STATE_INFO { BitsDetail = { bitsDetail } };
         }
     }
+
+    private int ResolveFollowPokemonId()
+    {
+        if (!pokemonIds.Contains(mFollowPokemonId))
+        {
+            mFollowPokemonId = pokemonIds.Count == 0 ? NoFollowPokemonId : pokemonIds.Min();
+        }
+
+        return mFollowPokemonId;
+    }
+
+    private static bool IsTutorialRewardPokemon(GameData gameData, int pokemonId) =>
+        gameData.NewbieRewardHero.Find(pokemonId)?.RewardType == TutorialPickRewardType;
 
     private static IEnumerable<int> WornAvatarIDs(pbCOMDT_ROLE_AVATAR_INFO roleAvatarInfo) =>
         roleAvatarInfo.AvatarIDList.Where(id => id != CreateRoleShowAvatar.EmptyAvatarSlot).Distinct();

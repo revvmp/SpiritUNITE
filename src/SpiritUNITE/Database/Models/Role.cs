@@ -21,6 +21,9 @@ public sealed class Role
     [Column("newbie_state")]
     public byte[] NewbieState { get; set; } = [];
 
+    [Column("follow_pokemon_id")]
+    public int FollowPokemonId { get; set; }
+
     [Column("using_lobby_bg_id")]
     public int UsingLobbyBgId { get; set; }
 }
