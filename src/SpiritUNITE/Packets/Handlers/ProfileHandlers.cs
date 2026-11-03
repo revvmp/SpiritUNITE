@@ -11,7 +11,7 @@ public sealed class ProfileHandlers(RoleInfoStore roles, ILogger<ProfileHandlers
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetAcntProfileNewReq)]
     public async Task<GamePacket[]> OnGetAcntProfileNewReq(GamePacket request)
     {
-        RequireRole(request);
+        roles.Require(request.Uid);
         var query = pbCSGetAcntProfileNewReq.Parser.ParseFrom(request.PkgData);
         if (query.Context.Length > MaximumContextLength)
         {
@@ -40,7 +40,7 @@ public sealed class ProfileHandlers(RoleInfoStore roles, ILogger<ProfileHandlers
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidProfileImageInfoReq)]
     public async Task<GamePacket[]> OnProfileImageInfoReq(GamePacket request)
     {
-        RequireRole(request);
+        roles.Require(request.Uid);
         var query = pbCSProfileImageInfoReq.Parser.ParseFrom(request.PkgData);
         var queried = await FindQueriedRoleAsync(query.QueryUid);
         if (queried is null)
@@ -60,7 +60,4 @@ public sealed class ProfileHandlers(RoleInfoStore roles, ILogger<ProfileHandlers
 
     private async Task<LMNRoleInfo?> FindQueriedRoleAsync(ulong queryUid) =>
         queryUid == 0 ? null : await roles.FindAsync(queryUid);
-
-    private LMNRoleInfo RequireRole(GamePacket request) =>
-        roles.Find(request.Uid) ?? throw new InvalidDataException("Message requires a logged in role");
 }

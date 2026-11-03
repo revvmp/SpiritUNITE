@@ -16,7 +16,7 @@ public sealed class RoleHandlers(
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidSetRoleCosmeticReq)]
     public async Task<GamePacket[]> OnSetRoleCosmeticReq(GamePacket request)
     {
-        var role = RequireRole(request);
+        var role = roles.Require(request.Uid);
         var cosmetic = pbCSSetRoleCosmeticReq.Parser.ParseFrom(request.PkgData);
         var result = role.SetRoleCosmetic(
             gameData,
@@ -45,7 +45,7 @@ public sealed class RoleHandlers(
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidSetNewbieStateInfoReq)]
     public async Task<GamePacket[]> OnSetNewbieStateInfoReq(GamePacket request)
     {
-        var role = RequireRole(request);
+        var role = roles.Require(request.Uid);
         var newbie = pbCSSetNewbieStateInfoReq.Parser.ParseFrom(request.PkgData).Newbie;
         if (!role.SetNewbieState(newbie))
         {
@@ -60,7 +60,7 @@ public sealed class RoleHandlers(
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidSkipNewbieStepReq)]
     public async Task<GamePacket[]> OnSkipNewbieStepReq(GamePacket request)
     {
-        var role = RequireRole(request);
+        var role = roles.Require(request.Uid);
         var skipID = pbCSSkipNewbieStepReq.Parser.ParseFrom(request.PkgData).SkipID;
         if (!role.SkipNewbieStep(skipID))
         {
@@ -79,7 +79,7 @@ public sealed class RoleHandlers(
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetTutorialRewardReq)]
     public async Task<GamePacket[]> OnGetTutorialRewardReq(GamePacket request)
     {
-        var role = RequireRole(request);
+        var role = roles.Require(request.Uid);
         var pokemonId = pbCSGetTutorialRewardReq.Parser.ParseFrom(request.PkgData).PokemonId;
         var result = role.GetTutorialReward(gameData, pokemonId);
         if (result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
@@ -129,7 +129,4 @@ public sealed class RoleHandlers(
         {
             ResultInfo = new pbResultInfo { ResultId = (int)result },
         });
-
-    private LMNRoleInfo RequireRole(GamePacket request) =>
-        roles.Find(request.Uid) ?? throw new InvalidDataException("Message requires a logged in role");
 }
