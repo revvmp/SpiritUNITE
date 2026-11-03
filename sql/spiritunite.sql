@@ -12,3 +12,11 @@ CREATE TABLE IF NOT EXISTS `role` (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uq_role_name (in_game_usr_name)
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_pokemon` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    pokemon_id INT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (game_ulong_uid, pokemon_id),
+    CONSTRAINT fk_role_pokemon_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;

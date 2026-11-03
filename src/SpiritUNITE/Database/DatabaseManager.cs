@@ -28,11 +28,12 @@ public static class DatabaseManager
         {
             await using var database = new DataConnection(options);
             await database.GetTable<Role>().AnyAsync();
+            await database.GetTable<RolePokemon>().AnyAsync();
         }
         catch (MySqlException exception)
         {
             throw new InvalidOperationException(
-                $"Database is not ready: {exception.Message} Check appsettings.json and run sql/SpiritUNITE.sql from the repository root.",
+                $"Database is not ready: {exception.Message} Check appsettings.json and run sql/spiritunite.sql from the repository root.",
                 exception);
         }
     }
