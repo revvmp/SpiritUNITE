@@ -8,6 +8,7 @@ public sealed class LoginHandlers(RoleInfoStore roles, TimeProvider clock, ILogg
 {
     private const int StartingLevel = 1;
     private const int LoginSucceeded = 1;
+    private const int ShippedDatabinABTestID = 1;
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidAcntLoginReq)]
     public async Task<GamePacket[]> OnAcntLoginReq(GamePacket request)
@@ -69,6 +70,7 @@ public sealed class LoginHandlers(RoleInfoStore roles, TimeProvider clock, ILogg
             NewbieState = role.BuildNewbieState(),
             ServerGameTimeStamp = now,
             ServerRealTimeStamp = now,
+            ABTestID = ShippedDatabinABTestID,
         };
 
         return

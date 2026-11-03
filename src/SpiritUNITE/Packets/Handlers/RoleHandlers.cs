@@ -1,9 +1,10 @@
+using Microsoft.Extensions.Logging;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers;
 
-public sealed class RoleHandlers(RoleInfoStore roles)
+public sealed class RoleHandlers(RoleInfoStore roles, ILogger<RoleHandlers> logger)
 {
     private const int MaxNewbie = 4095;
 
@@ -59,6 +60,39 @@ public sealed class RoleHandlers(RoleInfoStore roles)
             BuildSkipNewbieStepRsp(request, 0),
         ];
     }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetTutorialRewardReq)]
+    public async Task<GamePacket[]> OnGetTutorialRewardReq(GamePacket request)
+    {
+        var role = RequireRole(request);
+        var pokemonId = pbCSGetTutorialRewardReq.Parser.ParseFrom(request.PkgData).PokemonId;
+        var result = role.GetTutorialReward(pokemonId);
+        if (result != 0)
+        {
+            logger.LogInformation(
+                "Tutorial reward {PokemonId} refused for uid {Uid}: {Result}",
+                pokemonId,
+                role.GameUlongUID,
+                result);
+            return [BuildGetTutorialRewardRsp(request, result, 0)];
+        }
+
+        await roles.SaveAsync(role);
+        logger.LogInformation("Tutorial reward {PokemonId} granted to uid {Uid}", pokemonId, role.GameUlongUID);
+        var state = new pbSCNewbieStateInfoNtf { NewbieState = role.BuildNewbieState() };
+        return
+        [
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidNewbieStateInfoNtf, state),
+            BuildGetTutorialRewardRsp(request, 0, pokemonId),
+        ];
+    }
+
+    private static GamePacket BuildGetTutorialRewardRsp(GamePacket request, PB_ENUM_RES_ERROR_CODE result, int pokemonId) =>
+        request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetTutorialRewardRsp, new pbSCGetTutorialRewardRsp
+        {
+            ResultInfo = new pbResultInfo { ResultId = (int)result },
+            PokemonId = pokemonId,
+        });
 
     private static GamePacket BuildSkipNewbieStepRsp(GamePacket request, PB_ENUM_RES_ERROR_CODE result) =>
         request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidSkipNewbieStepRsp, new pbSCSkipNewbieStepRsp

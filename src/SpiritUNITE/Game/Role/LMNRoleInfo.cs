@@ -7,18 +7,22 @@ public sealed class LMNRoleInfo(
     string inGameUsrName,
     int gender,
     pbCOMDT_ROLE_AVATAR_INFO roleAvatarInfo,
-    IEnumerable<long> newbieBitsDetail)
+    IEnumerable<long> newbieBitsDetail,
+    IEnumerable<int> ownedPokemonIds)
 {
     private const int BitsPerWord = 64;
     private const int TutorialSkipID = 1;
+    private const int TutorialRewardNewbie = (int)PB_ENUM_RES_NEWBIE_STATUS_TYPE.PbResNewbieStatusTypeTutorialReward;
 
     private static readonly int[] TutorialBattleNewbies = [1, 2];
+    private static readonly int[] TutorialRewardPokemonIds = [724, 4, 661];
 
     private readonly Lock gate = new();
     private readonly List<long> bitsDetail = [.. newbieBitsDetail];
+    private readonly HashSet<int> pokemonIds = [.. ownedPokemonIds];
 
     public LMNRoleInfo(ulong gameUlongUID, string inGameUsrName)
-        : this(gameUlongUID, inGameUsrName, 0, new pbCOMDT_ROLE_AVATAR_INFO(), [])
+        : this(gameUlongUID, inGameUsrName, 0, new pbCOMDT_ROLE_AVATAR_INFO(), [], [])
     {
     }
 
@@ -62,12 +66,52 @@ public sealed class LMNRoleInfo(
         return true;
     }
 
+    public PB_ENUM_RES_ERROR_CODE GetTutorialReward(int pokemonId)
+    {
+        if (!TutorialRewardPokemonIds.Contains(pokemonId))
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
+        }
+
+        lock (gate)
+        {
+            if (!TutorialBattleNewbies.All(HasNewbieBit))
+            {
+                return PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
+            }
+
+            if (HasNewbieBit(TutorialRewardNewbie))
+            {
+                return PB_ENUM_RES_ERROR_CODE.PbErrRewardAlreadyReceived;
+            }
+
+            SetNewbieBit(TutorialRewardNewbie);
+            pokemonIds.Add(pokemonId);
+        }
+
+        return 0;
+    }
+
+    public int[] GetOwnedPokemonIds()
+    {
+        lock (gate)
+        {
+            return [.. pokemonIds];
+        }
+    }
+
     public pbCOMDT_NEWBIE_STATE_INFO BuildNewbieState()
     {
         lock (gate)
         {
             return new pbCOMDT_NEWBIE_STATE_INFO { BitsDetail = { bitsDetail } };
         }
+    }
+
+    private bool HasNewbieBit(int newbie)
+    {
+        var word = newbie / BitsPerWord;
+        return word < bitsDetail.Count && (bitsDetail[word] & (1L << (newbie % BitsPerWord))) != 0;
     }
 
     private void SetNewbieBit(int newbie)

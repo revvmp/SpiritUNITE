@@ -15,16 +15,41 @@ public sealed class RoleRepository(DataOptions options) : IRoleRepository
     {
         await using var database = new DataConnection(options);
         var role = await database.GetTable<Role>().FirstOrDefaultAsync(role => role.GameUlongUID == gameUlongUID);
-        return role is null ? null : ToLMNRoleInfo(role);
+        if (role is null)
+        {
+            return null;
+        }
+
+        var pokemonIds = await database.GetTable<RolePokemon>()
+            .Where(pokemon => pokemon.GameUlongUID == gameUlongUID)
+            .Select(pokemon => pokemon.PokemonId)
+            .ToArrayAsync();
+        return ToLMNRoleInfo(role, pokemonIds);
     }
 
     public async Task SaveAsync(LMNRoleInfo role)
     {
         await using var database = new DataConnection(options);
+        await using var transaction = await database.BeginTransactionAsync();
         if (await database.UpdateAsync(ToEntity(role)) != 1)
         {
             throw new InvalidOperationException("Cannot save a role that does not exist");
         }
+
+        var savedPokemonIds = await database.GetTable<RolePokemon>()
+            .Where(pokemon => pokemon.GameUlongUID == role.GameUlongUID)
+            .Select(pokemon => pokemon.PokemonId)
+            .ToArrayAsync();
+        foreach (var pokemonId in role.GetOwnedPokemonIds().Except(savedPokemonIds))
+        {
+            await database.InsertAsync(new RolePokemon
+            {
+                GameUlongUID = role.GameUlongUID,
+                PokemonId = pokemonId,
+            });
+        }
+
+        await transaction.CommitAsync();
     }
 
     public async Task<PB_ENUM_RES_ERROR_CODE> RegisterAsync(ulong gameUlongUID, string userName)
@@ -53,12 +78,13 @@ public sealed class RoleRepository(DataOptions options) : IRoleRepository
         return 0;
     }
 
-    private static LMNRoleInfo ToLMNRoleInfo(Role role) => new(
+    private static LMNRoleInfo ToLMNRoleInfo(Role role, int[] pokemonIds) => new(
         role.GameUlongUID,
         role.InGameUsrName,
         role.Gender,
         pbCOMDT_ROLE_AVATAR_INFO.Parser.ParseFrom(role.RoleAvatarInfo),
-        pbCOMDT_NEWBIE_STATE_INFO.Parser.ParseFrom(role.NewbieState).BitsDetail);
+        pbCOMDT_NEWBIE_STATE_INFO.Parser.ParseFrom(role.NewbieState).BitsDetail,
+        pokemonIds);
 
     private static Role ToEntity(LMNRoleInfo role) => new()
     {
