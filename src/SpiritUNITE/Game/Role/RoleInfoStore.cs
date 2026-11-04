@@ -1,11 +1,12 @@
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text;
+using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Role;
 
-public sealed class RoleInfoStore(IRoleRepository repository)
+public sealed class RoleInfoStore(RoleRepository repository)
 {
     private const int MaximumNameBytes = 32;
     private const int MaximumNameWidth = 12;

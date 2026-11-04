@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Game.Data;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Wallet;
@@ -12,7 +13,7 @@ public sealed record ShopBuyOutcome(
     RoleWallet? Wallet = null,
     IReadOnlyList<ShopBuyRecord>? BuyRecords = null);
 
-public sealed class ShopManager(GameData gameData, IShopRepository repository, WalletManager wallets, TimeProvider clock)
+public sealed class ShopManager(GameData gameData, ShopRepository repository, WalletManager wallets, TimeProvider clock)
 {
     private const int Enabled = 0;
 

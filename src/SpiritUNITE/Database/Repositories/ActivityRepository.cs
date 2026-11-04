@@ -7,7 +7,7 @@ using SpiritUNITE.Game.Activity;
 
 namespace SpiritUNITE.Database.Repositories;
 
-public sealed class ActivityRepository(DataOptions options) : IActivityRepository
+public sealed class ActivityRepository(DataOptions options)
 {
     public async Task RecordLoginDayAsync(ulong gameUlongUID, DateOnly loginDay)
     {

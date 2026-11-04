@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Game.Data;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
@@ -7,7 +8,7 @@ namespace SpiritUNITE.Game.Activity;
 
 public sealed class ActivityTasks(
     ActivitySchedule schedule,
-    IActivityRepository repository,
+    ActivityRepository repository,
     RoleInfoStore roles,
     GameData gameData,
     TimeProvider clock,

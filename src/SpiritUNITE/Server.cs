@@ -104,12 +104,12 @@ public static class Server
         var databaseOptions = await DatabaseManager.ConnectAsync(builder.Configuration["Database:ConnectionString"]);
 
         builder.Services.AddSingleton(databaseOptions);
-        builder.Services.AddSingleton<IRoleRepository, RoleRepository>();
-        builder.Services.AddSingleton<IWalletRepository, WalletRepository>();
-        builder.Services.AddSingleton<IShopRepository, ShopRepository>();
-        builder.Services.AddSingleton<IAccountRepository, AccountRepository>();
-        builder.Services.AddSingleton<IAccountTokenRepository, AccountTokenRepository>();
-        builder.Services.AddSingleton<IActivityRepository, ActivityRepository>();
+        builder.Services.AddSingleton<RoleRepository>();
+        builder.Services.AddSingleton<WalletRepository>();
+        builder.Services.AddSingleton<ShopRepository>();
+        builder.Services.AddSingleton<AccountRepository>();
+        builder.Services.AddSingleton<AccountTokenRepository>();
+        builder.Services.AddSingleton<ActivityRepository>();
     }
 
     private static void AddGameData(IHostApplicationBuilder builder) =>

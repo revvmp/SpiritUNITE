@@ -7,7 +7,7 @@ using SpiritUNITE.Game.Wallet;
 
 namespace SpiritUNITE.Database.Repositories;
 
-public sealed class WalletRepository(DataOptions options) : IWalletRepository
+public sealed class WalletRepository(DataOptions options)
 {
     public async Task<RoleWallet> LoadAsync(ulong gameUlongUID, IReadOnlyDictionary<int, long> startingBalances)
     {

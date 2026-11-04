@@ -9,7 +9,7 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Database.Repositories;
 
-public sealed class RoleRepository(DataOptions options) : IRoleRepository
+public sealed class RoleRepository(DataOptions options)
 {
     private const int OneRow = 1;
 

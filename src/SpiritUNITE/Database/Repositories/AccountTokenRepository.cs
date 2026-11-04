@@ -6,7 +6,7 @@ using SpiritUNITE.Database.Models;
 
 namespace SpiritUNITE.Database.Repositories;
 
-public sealed class AccountTokenRepository(DataOptions options) : IAccountTokenRepository
+public sealed class AccountTokenRepository(DataOptions options)
 {
     public async Task AddAsync(byte[] tokenHash, ulong accountId, long expiresAt)
     {

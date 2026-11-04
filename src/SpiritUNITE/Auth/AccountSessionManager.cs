@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Network;
 
 namespace SpiritUNITE.Auth;
@@ -20,8 +21,8 @@ public sealed record GuestLogin(GuestLoginResult Result, AccountSession? Session
 
 public sealed class AccountSessionManager(
     AuthorizationCodeStore codes,
-    IAccountRepository accounts,
-    IAccountTokenRepository tokens,
+    AccountRepository accounts,
+    AccountTokenRepository tokens,
     TimeProvider clock)
 {
     public const int MaximumTokenLength = 128;

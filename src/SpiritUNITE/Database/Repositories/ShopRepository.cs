@@ -9,7 +9,7 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Database.Repositories;
 
-public sealed class ShopRepository(DataOptions options) : IShopRepository
+public sealed class ShopRepository(DataOptions options)
 {
     private const int OneRow = 1;
 

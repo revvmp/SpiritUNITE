@@ -7,7 +7,7 @@ using AccountEntity = SpiritUNITE.Database.Models.Account;
 
 namespace SpiritUNITE.Database.Repositories;
 
-public sealed class AccountRepository(DataOptions options) : IAccountRepository
+public sealed class AccountRepository(DataOptions options)
 {
     public async Task<PlayerAccount?> FindByIdAsync(ulong accountId)
     {
