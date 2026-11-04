@@ -4,6 +4,7 @@ using LinqToDB.Async;
 using LinqToDB.Data;
 using MySqlConnector;
 using SpiritUNITE.Database.Models;
+using SpiritUNITE.Game.Pokemon;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
 
@@ -22,14 +23,13 @@ public sealed class RoleRepository(DataOptions options)
             return null;
         }
 
-        var pokemonIds = await database.GetTable<RolePokemon>()
+        var pokemon = await database.GetTable<RolePokemon>()
             .Where(pokemon => pokemon.GameUlongUID == gameUlongUID)
-            .Select(pokemon => pokemon.PokemonId)
             .ToArrayAsync();
         var items = await database.GetTable<RoleItem>()
-            .Where(item => item.GameUlongUID == gameUlongUID)
+            .Where(item => item.GameUlongUID == gameUlongUID && !BagRepository.BagItemTypes.Contains(item.ItemType))
             .ToArrayAsync();
-        return ToLMNRoleInfo(role, pokemonIds, items.Select(ToRoleItemInfo));
+        return ToLMNRoleInfo(role, pokemon.Select(ToRolePokemonInfo), items.Select(ToRoleItemInfo));
     }
 
     public async Task SaveAsync(LMNRoleInfo role)
@@ -41,19 +41,7 @@ public sealed class RoleRepository(DataOptions options)
             throw new InvalidOperationException("Cannot save a role that does not exist");
         }
 
-        var savedPokemonIds = await database.GetTable<RolePokemon>()
-            .Where(pokemon => pokemon.GameUlongUID == role.GameUlongUID)
-            .Select(pokemon => pokemon.PokemonId)
-            .ToArrayAsync();
-        foreach (var pokemonId in role.GetOwnedPokemonIds().Except(savedPokemonIds))
-        {
-            await database.InsertAsync(new RolePokemon
-            {
-                GameUlongUID = role.GameUlongUID,
-                PokemonId = pokemonId,
-            });
-        }
-
+        await SavePokemonAsync(database, role);
         await SaveItemsAsync(database, role);
         await transaction.CommitAsync();
     }
@@ -84,10 +72,50 @@ public sealed class RoleRepository(DataOptions options)
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
+    public async Task<long> FindCreateTimeAsync(ulong gameUlongUID)
+    {
+        await using var database = new DataConnection(options);
+        return await database.ExecuteAsync<long>(
+            "SELECT UNIX_TIMESTAMP(created_at) FROM role WHERE game_ulong_uid = @gameUlongUID",
+            new DataParameter("gameUlongUID", gameUlongUID, DataType.UInt64));
+    }
+
+    private static async Task SavePokemonAsync(DataConnection database, LMNRoleInfo role)
+    {
+        var savedPokemon = (await database.GetTable<RolePokemon>()
+                .Where(pokemon => pokemon.GameUlongUID == role.GameUlongUID)
+                .ToArrayAsync())
+            .Select(ToRolePokemonInfo)
+            .ToDictionary(pokemon => pokemon.PokemonId);
+        foreach (var pokemon in role.GetOwnedPokemon())
+        {
+            if (!savedPokemon.TryGetValue(pokemon.PokemonId, out var saved))
+            {
+                await database.InsertAsync(ToEntity(role.GameUlongUID, pokemon));
+            }
+            else if (saved != pokemon)
+            {
+                await database.UpdateAsync(ToEntity(role.GameUlongUID, pokemon));
+            }
+        }
+    }
+
+    private static RolePokemonInfo ToRolePokemonInfo(RolePokemon pokemon) =>
+        new(pokemon.PokemonId, pokemon.GainTime, pokemon.GainChannel, pokemon.NewTag);
+
+    internal static RolePokemon ToEntity(ulong gameUlongUID, RolePokemonInfo pokemon) => new()
+    {
+        GameUlongUID = gameUlongUID,
+        PokemonId = pokemon.PokemonId,
+        GainTime = pokemon.GainTime,
+        GainChannel = pokemon.GainChannel,
+        NewTag = pokemon.NewTag,
+    };
+
     private static async Task SaveItemsAsync(DataConnection database, LMNRoleInfo role)
     {
         var savedItems = (await database.GetTable<RoleItem>()
-                .Where(item => item.GameUlongUID == role.GameUlongUID)
+                .Where(item => item.GameUlongUID == role.GameUlongUID && !BagRepository.BagItemTypes.Contains(item.ItemType))
                 .ToArrayAsync())
             .Select(ToRoleItemInfo)
             .ToDictionary(item => (item.ItemType, item.ItemId));
@@ -104,18 +132,19 @@ public sealed class RoleRepository(DataOptions options)
         }
     }
 
-    private static LMNRoleInfo ToLMNRoleInfo(Role role, int[] pokemonIds, IEnumerable<RoleItemInfo> items) => new(
+    private static LMNRoleInfo ToLMNRoleInfo(Role role, IEnumerable<RolePokemonInfo> pokemon, IEnumerable<RoleItemInfo> items) => new(
         role.GameUlongUID,
         role.InGameUsrName,
         role.Gender,
         pbCOMDT_ROLE_AVATAR_INFO.Parser.ParseFrom(role.RoleAvatarInfo),
         pbCOMDT_NEWBIE_STATE_INFO.Parser.ParseFrom(role.NewbieState).BitsDetail,
-        pokemonIds,
+        pokemon,
         items,
         role.FollowPokemonId,
         role.UsingLobbyBgId,
         role.RoleTotalExp,
-        role.RoleHistoryMaxTotalExp);
+        role.RoleHistoryMaxTotalExp,
+        role.FirstPokemonId);
 
     private static RoleItemInfo ToRoleItemInfo(RoleItem item) => new(
         Enum.IsDefined((RoleItemType)item.ItemType)
@@ -147,5 +176,6 @@ public sealed class RoleRepository(DataOptions options)
         NewbieState = role.BuildNewbieState().ToByteArray(),
         FollowPokemonId = role.FollowPokemonId,
         UsingLobbyBgId = role.UsingLobbyBgId,
+        FirstPokemonId = role.FirstPokemonId,
     };
 }

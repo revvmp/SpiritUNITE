@@ -31,6 +31,11 @@ public sealed record RoleItemInfo(RoleItemType ItemType, int ItemId, long GainTi
         {
             RoleItemType.AvatarItem => PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesAvatar,
             RoleItemType.LobbyBg => PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesLobbyBackground,
+            RoleItemType.HeadIcon => PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesHeadicon,
+            RoleItemType.ContestantCardDecoration => PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesContestantCardRecoration,
+            RoleItemType.Canopy => PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesCanopy,
+            RoleItemType.PersonStyleHeadFrame => PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesHeadFrame,
+            RoleItemType.CardFace => PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesCardFace,
             _ => throw new InvalidOperationException($"Item type {ItemType} has no resource type"),
         }),
     };

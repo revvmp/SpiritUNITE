@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS `role` (
     newbie_state VARBINARY(4096) NOT NULL,
     follow_pokemon_id INT NOT NULL DEFAULT 0,
     using_lobby_bg_id INT NOT NULL DEFAULT 0,
+    first_pokemon_id INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uq_role_name (in_game_usr_name),
@@ -51,6 +52,9 @@ CREATE TABLE IF NOT EXISTS `role` (
 CREATE TABLE IF NOT EXISTS `role_pokemon` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL,
     pokemon_id INT NOT NULL,
+    gain_time BIGINT NOT NULL DEFAULT 0,
+    gain_channel INT NOT NULL DEFAULT 0,
+    new_tag INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (game_ulong_uid, pokemon_id),
     CONSTRAINT fk_role_pokemon_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
@@ -101,4 +105,18 @@ CREATE TABLE IF NOT EXISTS `role_activity_task_reward` (
     reward_time BIGINT NOT NULL,
     PRIMARY KEY (game_ulong_uid, task_id, period_start),
     CONSTRAINT fk_role_activity_task_reward_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_pokemon_used` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    pokemon_id INT NOT NULL,
+    held_item_design_info VARBINARY(256) NOT NULL,
+    last_carry_trainer_item_id INT NOT NULL DEFAULT 0,
+    last_schedue_id INT NOT NULL DEFAULT 0,
+    battle_not_use_badge INT NOT NULL DEFAULT 0,
+    wear_paster_id INT NOT NULL DEFAULT 0,
+    pokemon_total_point INT NOT NULL DEFAULT 0,
+    pokemon_season_point INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid, pokemon_id),
+    CONSTRAINT fk_role_pokemon_used_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;

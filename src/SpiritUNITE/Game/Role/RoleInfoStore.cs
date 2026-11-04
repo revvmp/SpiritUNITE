@@ -55,7 +55,7 @@ public sealed class RoleInfoStore(RoleRepository repository)
         return error != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc ? error : await repository.RegisterAsync(uid, userName);
     }
 
-    private static PB_ENUM_RES_ERROR_CODE ValidateName(string userName)
+    public static PB_ENUM_RES_ERROR_CODE ValidateName(string userName)
     {
         if (string.IsNullOrWhiteSpace(userName))
         {
@@ -71,7 +71,7 @@ public sealed class RoleInfoStore(RoleRepository repository)
         var digits = 0;
         foreach (var character in userName)
         {
-            if (!IsNameCharacter(character) || character is '<' or '>')
+            if (!IsNameCharacter(character))
             {
                 return PB_ENUM_RES_ERROR_CODE.PbErrRegisterNameInvalid;
             }

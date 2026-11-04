@@ -1,11 +1,17 @@
-using System.Globalization;
-using SpiritUNITE.Game.Data;
-using SpiritUNITE.Packets.Messages;
+using SpiritUNITE.Databin;
 
 namespace SpiritUNITE.Game.Role;
 
 public static class RoleProfile
 {
+    private const string ShortIdAlphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private const int ShortIdLength = 7;
+    private const ulong ShortIdRadix = 36;
+    private const ulong ShortIdSpace = 78_364_164_096;
+    private const ulong ShortIdMultiplier = 48_431_716_907;
+    private const ulong ShortIdInverseMultiplier = 37_428_827_267;
+    private const ulong ShortIdOffset = 31_415_926_535;
+
     public static int GetLevel(GameData gameData, LMNRoleInfo role) => gameData.TrainerLevel.Rows
         .Where(row => row.UpgradeExp <= role.RoleTotalExp)
         .Max(row => row.Level);
@@ -19,31 +25,47 @@ public static class RoleProfile
     public static bool HasReachedMaxLevel(GameData gameData, LMNRoleInfo role) =>
         role.RoleTotalExp >= gameData.TrainerLevel.Rows.Max(row => row.UpgradeExp);
 
-    public static string BuildShortId(LMNRoleInfo role) =>
-        role.GameUlongUID.ToString(CultureInfo.InvariantCulture);
+    public static string BuildShortId(LMNRoleInfo role) => BuildShortId(role.GameUlongUID);
 
-    public static pbCSDT_PROFILE_DETAIL_NEW BuildProfileDetail(GameData gameData, LMNRoleInfo role) => new()
+    public static string BuildShortId(ulong uid)
     {
-        Uid = role.GameUlongUID,
-        RoleName = role.InGameUsrName,
-        RoleLevel = GetLevel(gameData, role),
-        RoleGender = role.Gender,
-        FollowInfo = role.BuildFollowInfo(),
-        UserShortId = BuildShortId(role),
-        PlayerContestantInfo = new pbCOMDT_PLAYER_CONTESTANT_INFO
+        if (uid >= ShortIdSpace)
         {
-            TrainerImageInfo = new pbCOMDT_TRAINER_IMAGE_INFO(),
-            ContestantResList = new pbCOMDT_PLAYER_CONTESTANT_RES_LIST(),
-            RoleAvatarInfo = role.RoleAvatarInfo.Clone(),
-        },
-    };
+            throw new InvalidDataException($"Uid {uid} has no short id");
+        }
 
-    public static pbSCProfileImageInfoRsp BuildProfileImageInfo(LMNRoleInfo role) => new()
+        var value = (ulong)((((UInt128)uid * ShortIdMultiplier) + ShortIdOffset) % ShortIdSpace);
+        return string.Create(ShortIdLength, value, static (characters, remaining) =>
+        {
+            for (var index = characters.Length - 1; index >= 0; index--)
+            {
+                characters[index] = ShortIdAlphabet[(int)(remaining % ShortIdRadix)];
+                remaining /= ShortIdRadix;
+            }
+        });
+    }
+
+    public static bool TryParseShortId(string text, out ulong uid)
     {
-        ResultInfo = new pbResultInfo(),
-        RoleAvatar = role.RoleAvatarInfo.Clone(),
-        TrainerImageInfo = new pbCOMDT_TRAINER_IMAGE_INFO(),
-        ShortId = BuildShortId(role),
-        QueryUid = role.GameUlongUID,
-    };
+        uid = 0;
+        if (text.Length != ShortIdLength)
+        {
+            return false;
+        }
+
+        ulong value = 0;
+        foreach (var character in text)
+        {
+            var digit = ShortIdAlphabet.IndexOf(char.ToUpperInvariant(character), StringComparison.Ordinal);
+            if (digit < 0)
+            {
+                return false;
+            }
+
+            value = (value * ShortIdRadix) + (ulong)digit;
+        }
+
+        uid = (ulong)((((UInt128)value + ShortIdSpace - ShortIdOffset) * ShortIdInverseMultiplier) % ShortIdSpace);
+        return true;
+    }
 }

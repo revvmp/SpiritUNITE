@@ -8,6 +8,7 @@ using Serilog;
 using Serilog.Events;
 using SpiritUNITE.Database;
 using SpiritUNITE.Database.Repositories;
+using SpiritUNITE.Game.Pokemon;
 using SpiritUNITE.Game.Activity;
 using SpiritUNITE.Auth;
 using SpiritUNITE.Databin;
@@ -93,6 +94,11 @@ public static class Server
             .Validate(options => options.IsValid(), "Wallet settings are invalid")
             .ValidateOnStart();
 
+        builder.Services.AddOptions<PokemonOptions>()
+            .BindConfiguration(PokemonOptions.SectionName)
+            .Validate(options => options.IsValid(), "Pokemon settings are invalid")
+            .ValidateOnStart();
+
         builder.Services.AddOptions<NoticeOptions>()
             .BindConfiguration(NoticeOptions.SectionName)
             .Validate(options => options.IsValid(), "MSDKNotice settings are invalid")
@@ -112,6 +118,7 @@ public static class Server
         builder.Services.AddSingleton<RoleRepository>();
         builder.Services.AddSingleton<WalletRepository>();
         builder.Services.AddSingleton<ShopRepository>();
+        builder.Services.AddSingleton<PokemonUsedRepository>();
         builder.Services.AddSingleton<AccountRepository>();
         builder.Services.AddSingleton<AccountTokenRepository>();
         builder.Services.AddSingleton<ActivityRepository>();
@@ -127,8 +134,10 @@ public static class Server
         builder.Services.AddSingleton<RoleInfoStore>();
         builder.Services.AddSingleton<WalletManager>();
         builder.Services.AddSingleton<ShopManager>();
+        builder.Services.AddSingleton<PokemonManager>();
         builder.Services.AddSingleton<ActivitySchedule>();
         builder.Services.AddSingleton<ActivityTasks>();
+        builder.Services.AddSingleton<AppearanceGift>();
         builder.Services.AddSingleton<LoginThrottle>();
         builder.Services.AddSingleton<AccountManager>();
         builder.Services.AddSingleton<AuthorizationCodeStore>();

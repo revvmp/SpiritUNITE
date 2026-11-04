@@ -1,4 +1,7 @@
 {
+  "Pokemon": {
+    "FreePokemonList": [77, 557, 845, 957]
+  },
   "Wallet": {
     "StartingCookies": 0,
     "StartingPokeCoins": 0,

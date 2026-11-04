@@ -32,4 +32,7 @@ public sealed class Role
 
     [Column("using_lobby_bg_id")]
     public int UsingLobbyBgId { get; set; }
+
+    [Column("first_pokemon_id")]
+    public int FirstPokemonId { get; set; }
 }
