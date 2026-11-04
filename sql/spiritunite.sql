@@ -146,3 +146,10 @@ CREATE TABLE IF NOT EXISTS `role_pokemon_used` (
     PRIMARY KEY (game_ulong_uid, pokemon_id),
     CONSTRAINT fk_role_pokemon_used_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_held_item_slot` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    held_item_slot_index INT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, held_item_slot_index),
+    CONSTRAINT fk_role_held_item_slot_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
