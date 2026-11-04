@@ -16,7 +16,7 @@ public sealed class RoleWallet(IReadOnlyDictionary<int, long> balances)
         CommonCoinInfo =
         {
             balances
-                .Where(balance => !CoinID.WalletCoins.Contains(balance.Key))
+                .Where(balance => !CoinID.WalletCoins.Contains(balance.Key) && !CoinID.IsSpecialCoin(balance.Key))
                 .OrderBy(balance => balance.Key)
                 .Select(balance => new pbCOMDT_COMMON_COIN_INFO
                 {
@@ -26,9 +26,20 @@ public sealed class RoleWallet(IReadOnlyDictionary<int, long> balances)
         },
     };
 
+    public pbCOMDT_SPECIAL_COIN_INFO BuildSpecialCoinInfo() => new()
+    {
+        CoinInfo =
+        {
+            balances
+                .Where(balance => CoinID.IsSpecialCoin(balance.Key) && balance.Value > 0)
+                .OrderBy(balance => balance.Key)
+                .Select(balance => SpecialCoin.BuildSpecialCoinDetail(balance.Key, balance.Value)),
+        },
+    };
+
     public pbSCAcntCouponsRsp BuildAcntCouponsRsp() => new() { Coupons = GetCoinVal(CoinID.Coupons) };
 
     public int AcntRealCoupous => ToClientCoinVal(GetCoinVal(CoinID.Coupons));
 
-    private static int ToClientCoinVal(long coinVal) => (int)Math.Clamp(coinVal, 0, int.MaxValue);
+    internal static int ToClientCoinVal(long coinVal) => (int)Math.Clamp(coinVal, 0, int.MaxValue);
 }

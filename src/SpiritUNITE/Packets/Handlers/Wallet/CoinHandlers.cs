@@ -1,10 +1,11 @@
+using SpiritUNITE.Game.Lobby;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers.Wallet;
 
-public sealed class CoinHandlers(RoleInfoStore roles, WalletManager wallets)
+public sealed class CoinHandlers(RoleInfoStore roles, WalletManager wallets, LobbyNotices notices)
 {
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetCoinValReq)]
     public async Task<GamePacket[]> OnGetCoinValReq(GamePacket request)
@@ -22,6 +23,6 @@ public sealed class CoinHandlers(RoleInfoStore roles, WalletManager wallets)
         var role = roles.Require(request.Uid);
         pbCSAcntCouponsReq.Parser.ParseFrom(request.PkgData);
         var wallet = await wallets.LoadAsync(role.GameUlongUID);
-        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAcntCouponsRsp, wallet.BuildAcntCouponsRsp())];
+        return [.. notices.BuildCouponsRefreshPackets(wallet.BuildAcntCouponsRsp(), grantSubscriptionOpen: false).Select(packet => packet with { Uid = request.Uid, ClientSeq = request.ClientSeq })];
     }
 }

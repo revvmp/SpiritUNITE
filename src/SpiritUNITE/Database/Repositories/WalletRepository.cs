@@ -35,6 +35,23 @@ public sealed class WalletRepository(DataOptions options)
         return await ReadAsync(database, gameUlongUID);
     }
 
+    internal static Task CreditAsync(DataConnection database, ulong gameUlongUID, int coinID, long amount) =>
+        database.GetTable<RoleCoin>().InsertOrUpdateAsync(
+            () => new RoleCoin { GameUlongUID = gameUlongUID, CoinID = coinID, CoinVal = amount },
+            saved => new RoleCoin { CoinVal = saved.CoinVal + amount });
+
+    internal static async Task<bool> TryDebitAsync(DataConnection database, ulong gameUlongUID, int coinID, long amount) =>
+        await database.GetTable<RoleCoin>()
+            .Where(coin => coin.GameUlongUID == gameUlongUID && coin.CoinID == coinID && coin.CoinVal >= amount)
+            .Set(coin => coin.CoinVal, coin => coin.CoinVal - amount)
+            .UpdateAsync() == 1;
+
+    internal static Task<long> ReadCoinValAsync(DataConnection database, ulong gameUlongUID, int coinID) =>
+        database.GetTable<RoleCoin>()
+            .Where(coin => coin.GameUlongUID == gameUlongUID && coin.CoinID == coinID)
+            .Select(coin => coin.CoinVal)
+            .FirstOrDefaultAsync();
+
     internal static async Task<RoleWallet> ReadAsync(DataConnection database, ulong gameUlongUID)
     {
         var balances = await database.GetTable<RoleCoin>()

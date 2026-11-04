@@ -3,6 +3,9 @@ using LinqToDB.Async;
 using LinqToDB.Data;
 using MySqlConnector;
 using SpiritUNITE.Database.Models;
+using SpiritUNITE.Game.Bag;
+using SpiritUNITE.Game.Pokemon;
+using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Shop;
 using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Packets.Messages;
@@ -22,9 +25,10 @@ public sealed class ShopRepository(DataOptions options)
         return [.. records.Select(record => new ShopBuyRecord(record.ShopID, record.SpecSaleNum, record.SpecSaleCycleTime))];
     }
 
-    public async Task<(PB_ENUM_RES_ERROR_CODE Result, RoleWallet? Wallet)> CommitPurchaseAsync(
+    public async Task<(PB_ENUM_RES_ERROR_CODE Result, RoleWallet? Wallet, IReadOnlyList<BagItem> ChangedBagItems)> CommitPurchaseAsync(
         ulong gameUlongUID,
-        ShopPurchase purchase)
+        ShopPurchase purchase,
+        long now)
     {
         await using var database = new DataConnection(options);
         await using var transaction = await database.BeginTransactionAsync();
@@ -37,7 +41,7 @@ public sealed class ShopRepository(DataOptions options)
             if (debited != OneRow)
             {
                 await transaction.RollbackAsync();
-                return (PB_ENUM_RES_ERROR_CODE.PbErrNotEnoughCoin, null);
+                return (PB_ENUM_RES_ERROR_CODE.PbErrNotEnoughCoin, null, []);
             }
         }
 
@@ -50,13 +54,24 @@ public sealed class ShopRepository(DataOptions options)
 
             foreach (var pokemonId in purchase.PokemonIds)
             {
-                await database.InsertAsync(new RolePokemon { GameUlongUID = gameUlongUID, PokemonId = pokemonId });
+                await database.InsertAsync(RoleRepository.ToEntity(gameUlongUID, new RolePokemonInfo(
+                    pokemonId,
+                    now,
+                    (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonShopadditem,
+                    RolePokemonInfo.HasNewTag)));
             }
         }
         catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
         {
             await transaction.RollbackAsync();
-            return (PB_ENUM_RES_ERROR_CODE.PbErrShopItemExist, null);
+            return (PB_ENUM_RES_ERROR_CODE.PbErrShopItemExist, null, []);
+        }
+
+        var granted = await BagRepository.ApplyGrantsAsync(database, gameUlongUID, purchase.OutSideItems, now);
+        if (granted != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+        {
+            await transaction.RollbackAsync();
+            return (granted, null, []);
         }
 
         foreach (var record in purchase.BuyRecords)
@@ -71,7 +86,11 @@ public sealed class ShopRepository(DataOptions options)
         }
 
         var wallet = await WalletRepository.ReadAsync(database, gameUlongUID);
+        var changedBagItems = await BagRepository.ReadItemsAsync(
+            database,
+            gameUlongUID,
+            purchase.OutSideItems.Select(grant => (grant.ItemType, grant.ItemId)).Distinct());
         await transaction.CommitAsync();
-        return (PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, wallet);
+        return (PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, wallet, changedBagItems);
     }
 }

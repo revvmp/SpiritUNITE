@@ -25,4 +25,10 @@ public sealed class RoleItem
 
     [Column("new_tag")]
     public int NewTag { get; set; }
+
+    [Column("item_cnt")]
+    public int ItemCnt { get; set; } = 1;
+
+    [Column("item_level")]
+    public int ItemLevel { get; set; }
 }

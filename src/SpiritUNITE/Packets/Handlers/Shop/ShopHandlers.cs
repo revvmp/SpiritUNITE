@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Logging;
-using SpiritUNITE.Game.Data;
+using SpiritUNITE.Game.Bag;
+using SpiritUNITE.Databin;
+using SpiritUNITE.Game.Lobby;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Shop;
 using SpiritUNITE.Game.Wallet;
@@ -11,6 +13,7 @@ public sealed class ShopHandlers(
     RoleInfoStore roles,
     ShopManager shop,
     GameData gameData,
+    LobbyNotices notices,
     ILogger<ShopHandlers> logger)
 {
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidShopBuyReq)]
@@ -27,7 +30,7 @@ public sealed class ShopHandlers(
         };
         var reply = request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidShopBuyRsp, response);
 
-        if (outcome is not { Purchase: { } purchase, Wallet: { } wallet, BuyRecords: { } buyRecords })
+        if (outcome is not { Purchase: { } purchase, Wallet: { } wallet, BuyRecords: { } buyRecords, ChangedBagItems: { } bagItems })
         {
             logger.LogInformation(
                 "Shop buy refused for uid {Uid}: {Result} for shop ids {ShopIDs}",
@@ -44,7 +47,7 @@ public sealed class ShopHandlers(
             string.Join(',', purchase.CoinCosts.Select(cost => $"{cost.Key}x{cost.Value}")),
             purchase.Items.Count,
             string.Join(',', purchase.PokemonIds));
-        return [.. BuildPurchaseUpdates(request, role, purchase, wallet, buyRecords), reply];
+        return [.. BuildPurchaseUpdates(request, role, purchase, wallet, buyRecords, bagItems), reply];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidShopGetPriceReq)]
@@ -66,7 +69,7 @@ public sealed class ShopHandlers(
         var response = new pbSCShopGetNewSaleInfoRsp
         {
             ResultInfo = new pbResultInfo(),
-            ShopNewSaleInfo = new pbCOMDT_SHOP_NEW_SALE_INFO_LIST(),
+            ShopNewSaleInfo = notices.BuildShopNewSaleInfo(),
         };
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidShopGetNewSaleInfoRsp, response)];
     }
@@ -88,7 +91,8 @@ public sealed class ShopHandlers(
         LMNRoleInfo role,
         ShopPurchase purchase,
         RoleWallet wallet,
-        IReadOnlyList<ShopBuyRecord> buyRecords)
+        IReadOnlyList<ShopBuyRecord> buyRecords,
+        IReadOnlyList<BagItem> bagItems)
     {
         foreach (var item in purchase.Items.Where(item => item.ItemType == RoleItemType.AvatarItem))
         {
@@ -113,8 +117,15 @@ public sealed class ShopHandlers(
             yield return request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdatePokemonNtf, new pbSCUpdatePokemonNtf
             {
                 UpdateType = (int)PB_ENUM_ENM_POKEMON_UPDATETYPE.PbEnmPokemonUpdatetypeGain,
-                PokemonInfo = LMNRoleInfo.BuildPokemonInfo(pokemonId),
+                PokemonInfo = role.BuildPokemonInfo(pokemonId),
             });
+        }
+
+        if (bagItems.Count > 0)
+        {
+            yield return request.Reply(
+                PB_ENUM_CS_MSGID_DEF.PbScidOutSideItemUpdateNotify,
+                BagManager.BuildOutSideItemUpdateNotify(bagItems));
         }
 
         yield return request.Reply(
@@ -134,7 +145,7 @@ public sealed class ShopHandlers(
             });
         }
 
-        if (purchase.Items.Count > 0 || purchase.PokemonIds.Count > 0)
+        if (purchase.Items.Count > 0 || purchase.PokemonIds.Count > 0 || purchase.OutSideItems.Count > 0)
         {
             yield return request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidResourcesAwardNotify, purchase.BuildResourcesAwardNotify());
         }

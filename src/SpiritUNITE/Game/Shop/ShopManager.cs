@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
 using SpiritUNITE.Database.Repositories;
-using SpiritUNITE.Game.Data;
+using SpiritUNITE.Game.Bag;
+using SpiritUNITE.Databin;
+using SpiritUNITE.Tools;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Packets.Messages;
@@ -11,15 +13,22 @@ public sealed record ShopBuyOutcome(
     PB_ENUM_RES_ERROR_CODE Result,
     ShopPurchase? Purchase = null,
     RoleWallet? Wallet = null,
-    IReadOnlyList<ShopBuyRecord>? BuyRecords = null);
+    IReadOnlyList<ShopBuyRecord>? BuyRecords = null,
+    IReadOnlyList<BagItem>? ChangedBagItems = null);
 
-public sealed class ShopManager(GameData gameData, ShopRepository repository, WalletManager wallets, TimeProvider clock)
+public sealed class ShopManager(
+    GameData gameData,
+    ShopRepository repository,
+    WalletManager wallets,
+    BagManager bag,
+    TimeProvider clock)
 {
     private const int Enabled = 0;
 
     private const int PokemonIdItemParam = 0;
     private const int NoChoice = 0;
     private const int PermanentItemBuyNum = 1;
+    private const int BulkBuyAllowed = 1;
     private const int MaxBuyShopCnt = (int)PB_MACRO_COM_MAX_BUY_SHOP_CNT.PbComMaxBuyShopCnt;
     private const int MaxBuyOneShopCnt = (int)PB_MACRO_COM_MAX_BUY_ONE_SHOP_CNT.PbComMaxBuyOneShopCnt;
 
@@ -69,6 +78,7 @@ public sealed class ShopManager(GameData gameData, ShopRepository repository, Wa
         var coinCosts = new Dictionary<int, long>();
         var items = new List<RoleItemInfo>();
         var pokemonIds = new List<int>();
+        var outSideItems = new List<BagGrant>();
         var changedRecords = new List<ShopBuyRecord>();
 
         foreach (var shopInfo in buyShopList)
@@ -85,7 +95,7 @@ public sealed class ShopManager(GameData gameData, ShopRepository repository, Wa
                 return new(result);
             }
 
-            result = AddGrants(role, shopItem, shopInfo.Num, now.ToUnixTimeSeconds(), items, pokemonIds);
+            result = AddGrants(role, shopItem, shopInfo.Num, now.ToUnixTimeSeconds(), items, pokemonIds, outSideItems);
             if (result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
             {
                 return new(result);
@@ -112,8 +122,11 @@ public sealed class ShopManager(GameData gameData, ShopRepository repository, Wa
             return new(PB_ENUM_RES_ERROR_CODE.PbErrNotEnoughCoin);
         }
 
-        var purchase = new ShopPurchase(coinCosts, items, pokemonIds, changedRecords);
-        var (commitResult, walletAfter) = await repository.CommitPurchaseAsync(role.GameUlongUID, purchase);
+        var purchase = new ShopPurchase(coinCosts, items, pokemonIds, changedRecords, outSideItems);
+        var (commitResult, walletAfter, changedBagItems) = await repository.CommitPurchaseAsync(
+            role.GameUlongUID,
+            purchase,
+            now.ToUnixTimeSeconds());
         if (commitResult != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
         {
             return new(commitResult);
@@ -126,10 +139,13 @@ public sealed class ShopManager(GameData gameData, ShopRepository repository, Wa
 
         foreach (var pokemonId in pokemonIds)
         {
-            role.GrantPokemon(pokemonId);
+            role.GrantPokemon(
+                pokemonId,
+                now.ToUnixTimeSeconds(),
+                (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonShopadditem);
         }
 
-        return new(commitResult, purchase, walletAfter, [.. buyRecords.Values]);
+        return new(commitResult, purchase, walletAfter, [.. buyRecords.Values], changedBagItems);
     }
 
     private static PB_ENUM_RES_ERROR_CODE ValidateShopInfo(
@@ -194,7 +210,8 @@ public sealed class ShopManager(GameData gameData, ShopRepository repository, Wa
         int num,
         long gainTime,
         List<RoleItemInfo> items,
-        List<int> pokemonIds)
+        List<int> pokemonIds,
+        List<BagGrant> outSideItems)
     {
         if ((PB_ENUM_RES_SHOP_TYPE)shopItem.ShopType == PB_ENUM_RES_SHOP_TYPE.PbResShopTypeGiftPack)
         {
@@ -204,7 +221,7 @@ public sealed class ShopManager(GameData gameData, ShopRepository repository, Wa
         var (avatarIDs, lobbyBgId, pokemonId) = ResolveShopRes(shopItem);
         if (avatarIDs.Length == 0 && lobbyBgId is null && pokemonId is null)
         {
-            return PB_ENUM_RES_ERROR_CODE.PbErrShopUnexistsItem;
+            return AddOutSideItemGrant(shopItem, num, outSideItems);
         }
 
         if (num != PermanentItemBuyNum)
@@ -232,6 +249,23 @@ public sealed class ShopManager(GameData gameData, ShopRepository repository, Wa
 
         var granted = avatarIDs.Count(avatarID => AddItemGrant(role, RoleItemType.AvatarItem, avatarID, gainTime, items));
         return granted > 0 ? PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc : PB_ENUM_RES_ERROR_CODE.PbErrShopAvatarExists;
+    }
+
+    private PB_ENUM_RES_ERROR_CODE AddOutSideItemGrant(pbShop shopItem, int num, List<BagGrant> outSideItems)
+    {
+        if ((PB_ENUM_RES_SHOP_TYPE)shopItem.ShopType == PB_ENUM_RES_SHOP_TYPE.PbResShopTypeCandys
+            || bag.CreateOutSideItemGrant(shopItem.ShopResID, num) is not { } grant)
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrShopUnexistsItem;
+        }
+
+        if (num != PermanentItemBuyNum && shopItem.CanBulkBuy != BulkBuyAllowed)
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrShopBuyNumFail;
+        }
+
+        outSideItems.Add(grant);
+        return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
     private static bool AddItemGrant(

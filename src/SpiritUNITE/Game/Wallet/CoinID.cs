@@ -7,8 +7,13 @@ public static class CoinID
     public const int Cookies = 1000000001;
     public const int PokeCoins = 1000000002;
     public const int Coupons = 1000000003;
+    public const int UNIVERSAL_SHARDS_TOKEN_ID = 1000000500;
 
     public static IReadOnlyList<int> WalletCoins { get; } = [Cookies, PokeCoins, Coupons];
+
+    public static IReadOnlyList<int> SpecialCoins { get; } = [UNIVERSAL_SHARDS_TOKEN_ID];
+
+    public static bool IsSpecialCoin(int coinID) => SpecialCoins.Contains(coinID);
 
     public static int? GetCoinID(PB_ENUM_RES_COIN_TYPE coinType) => coinType switch
     {

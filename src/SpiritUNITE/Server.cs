@@ -11,6 +11,7 @@ using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Game.Pokemon;
 using SpiritUNITE.Game.Activity;
 using SpiritUNITE.Auth;
+using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.MSDKNotice;
 using SpiritUNITE.Game.Profile;
@@ -119,6 +120,7 @@ public static class Server
         builder.Services.AddSingleton<RoleRepository>();
         builder.Services.AddSingleton<WalletRepository>();
         builder.Services.AddSingleton<ShopRepository>();
+        builder.Services.AddSingleton<BagRepository>();
         builder.Services.AddSingleton<PokemonUsedRepository>();
         builder.Services.AddSingleton<AccountRepository>();
         builder.Services.AddSingleton<AccountTokenRepository>();
@@ -136,6 +138,7 @@ public static class Server
         builder.Services.AddSingleton<RoleInfoStore>();
         builder.Services.AddSingleton<WalletManager>();
         builder.Services.AddSingleton<ShopManager>();
+        builder.Services.AddSingleton<BagManager>();
         builder.Services.AddSingleton<PokemonManager>();
         builder.Services.AddSingleton<ActivitySchedule>();
         builder.Services.AddSingleton<ActivityTasks>();
