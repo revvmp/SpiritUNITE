@@ -113,7 +113,9 @@ public sealed class RoleRepository(DataOptions options) : IRoleRepository
         pokemonIds,
         items,
         role.FollowPokemonId,
-        role.UsingLobbyBgId);
+        role.UsingLobbyBgId,
+        role.RoleTotalExp,
+        role.RoleHistoryMaxTotalExp);
 
     private static RoleItemInfo ToRoleItemInfo(RoleItem item) => new(
         Enum.IsDefined((RoleItemType)item.ItemType)
@@ -139,6 +141,8 @@ public sealed class RoleRepository(DataOptions options) : IRoleRepository
         GameUlongUID = role.GameUlongUID,
         InGameUsrName = role.InGameUsrName,
         Gender = role.Gender,
+        RoleTotalExp = role.RoleTotalExp,
+        RoleHistoryMaxTotalExp = role.RoleHistoryMaxTotalExp,
         RoleAvatarInfo = role.RoleAvatarInfo.ToByteArray(),
         NewbieState = role.BuildNewbieState().ToByteArray(),
         FollowPokemonId = role.FollowPokemonId,

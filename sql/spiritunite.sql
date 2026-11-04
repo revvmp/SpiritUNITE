@@ -35,6 +35,8 @@ CREATE TABLE IF NOT EXISTS `role` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     in_game_usr_name VARCHAR(32) NOT NULL,
     gender INT NOT NULL DEFAULT 0,
+    role_total_exp INT NOT NULL DEFAULT 0 CHECK (role_total_exp >= 0),
+    role_history_max_total_exp INT NOT NULL DEFAULT 0,
     role_avatar_info VARBINARY(4096) NOT NULL,
     newbie_state VARBINARY(4096) NOT NULL,
     follow_pokemon_id INT NOT NULL DEFAULT 0,
@@ -42,6 +44,7 @@ CREATE TABLE IF NOT EXISTS `role` (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uq_role_name (in_game_usr_name),
+    CONSTRAINT ck_role_history_max_total_exp CHECK (role_history_max_total_exp >= role_total_exp),
     CONSTRAINT fk_role_account FOREIGN KEY (game_ulong_uid) REFERENCES `account` (account_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 

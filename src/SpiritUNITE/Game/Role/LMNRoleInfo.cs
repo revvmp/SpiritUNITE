@@ -12,7 +12,9 @@ public sealed class LMNRoleInfo(
     IEnumerable<int> ownedPokemonIds,
     IEnumerable<RoleItemInfo> ownedItems,
     int followPokemonId,
-    int usingLobbyBgId)
+    int usingLobbyBgId,
+    int roleTotalExp,
+    int roleHistoryMaxTotalExp)
 {
     public const int NoFollowPokemonId = 0;
     public const int NoUsingLobbyBgId = 0;
@@ -41,13 +43,19 @@ public sealed class LMNRoleInfo(
         OwnWornAvatarItems(roleAvatarInfo, ownedItems);
 
     public LMNRoleInfo(ulong gameUlongUID, string inGameUsrName)
-        : this(gameUlongUID, inGameUsrName, 0, new pbCOMDT_ROLE_AVATAR_INFO(), [], [], [], NoFollowPokemonId, NoUsingLobbyBgId)
+        : this(gameUlongUID, inGameUsrName, 0, new pbCOMDT_ROLE_AVATAR_INFO(), [], [], [], NoFollowPokemonId, NoUsingLobbyBgId, 0, 0)
     {
     }
 
     public ulong GameUlongUID { get; } = gameUlongUID;
     public string InGameUsrName { get; } = inGameUsrName;
     public int Gender { get; private set; } = gender;
+    public int RoleTotalExp { get; } = roleTotalExp >= 0
+        ? roleTotalExp
+        : throw new InvalidDataException("RoleTotalExp cannot be negative");
+    public int RoleHistoryMaxTotalExp { get; } = roleHistoryMaxTotalExp >= roleTotalExp
+        ? roleHistoryMaxTotalExp
+        : throw new InvalidDataException("RoleHistoryMaxTotalExp cannot be below RoleTotalExp");
     public pbCOMDT_ROLE_AVATAR_INFO RoleAvatarInfo { get; private set; } = roleAvatarInfo;
 
     public PB_ENUM_RES_ERROR_CODE SetRoleCosmetic(

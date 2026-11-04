@@ -1,12 +1,37 @@
 using Microsoft.Extensions.Logging;
+using SpiritUNITE.Game.Data;
+using SpiritUNITE.Game.Ranked;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers;
 
-public sealed class ProfileHandlers(RoleInfoStore roles, ILogger<ProfileHandlers> logger)
+public sealed class ProfileHandlers(RoleInfoStore roles, GameData gameData, TimeProvider clock, ILogger<ProfileHandlers> logger)
 {
     private const int MaximumContextLength = 64;
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidQueryTrainerExpGiftReq)]
+    public GamePacket[] OnQueryTrainerExpGiftReq(GamePacket request)
+    {
+        var role = roles.Require(request.Uid);
+        var query = pbCSQueryTrainerExpGiftReq.Parser.ParseFrom(request.PkgData);
+        var validGiftType = Enum.IsDefined((PB_ENUM_ENM_TRAINER_EXP_GIFT_TYPE)query.GiftType);
+        var response = new pbSCQueryTrainerExpGiftRsp
+        {
+            ResultInfo = new pbResultInfo
+            {
+                ResultId = (int)(validGiftType
+                    ? PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc
+                    : PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid),
+            },
+            GiftType = validGiftType ? query.GiftType : (int)PB_ENUM_ENM_TRAINER_EXP_GIFT_TYPE.PbEnmTrainerExpGiftTypeNormal,
+            RoleTotalExp = role.RoleTotalExp,
+            RoleHistoryMaxTotalExp = role.RoleHistoryMaxTotalExp,
+            RoleLevel = RoleProfile.GetLevel(gameData, role),
+            SeasonId = RankedMatch.FindCurrentSeason(gameData, clock.GetUtcNow()).Season.SeasonId,
+        };
+        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidQueryTrainerExpGiftRsp, response)];
+    }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetAcntProfileNewReq)]
     public async Task<GamePacket[]> OnGetAcntProfileNewReq(GamePacket request)
@@ -31,7 +56,7 @@ public sealed class ProfileHandlers(RoleInfoStore roles, ILogger<ProfileHandlers
         }
         else
         {
-            response.ProfileDetail = RoleProfile.BuildProfileDetail(queried);
+            response.ProfileDetail = RoleProfile.BuildProfileDetail(gameData, queried);
         }
 
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetAcntProfileNewRsp, EmptyChildren.Fill(response))];

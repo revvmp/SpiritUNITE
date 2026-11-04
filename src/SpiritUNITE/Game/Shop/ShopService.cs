@@ -78,7 +78,7 @@ public sealed class ShopService(GameData gameData, IShopRepository repository, W
                 return new(PB_ENUM_RES_ERROR_CODE.PbErrShopUnexists);
             }
 
-            var result = ValidateShopInfo(shopItem, shopInfo, svrConfTime, out var coinID, out var cost);
+            var result = ValidateShopInfo(shopItem, shopInfo, svrConfTime, RoleProfile.GetLevel(gameData, role), out var coinID, out var cost);
             if (result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
             {
                 return new(result);
@@ -135,6 +135,7 @@ public sealed class ShopService(GameData gameData, IShopRepository repository, W
         pbShop shopItem,
         pbCOMDT_SHOP_INFO shopInfo,
         long svrConfTime,
+        int roleLevel,
         out int coinID,
         out long cost)
     {
@@ -145,7 +146,7 @@ public sealed class ShopService(GameData gameData, IShopRepository repository, W
             return PB_ENUM_RES_ERROR_CODE.PbErrShopNotOnTime;
         }
 
-        if (shopItem.Level > RoleProfile.StartingLevel)
+        if (shopItem.Level > roleLevel)
         {
             return PB_ENUM_RES_ERROR_CODE.PbErrShopLevelLimit;
         }

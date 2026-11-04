@@ -15,6 +15,12 @@ public sealed class Role
     [Column("gender")]
     public int Gender { get; set; }
 
+    [Column("role_total_exp")]
+    public int RoleTotalExp { get; set; }
+
+    [Column("role_history_max_total_exp")]
+    public int RoleHistoryMaxTotalExp { get; set; }
+
     [Column("role_avatar_info")]
     public byte[] RoleAvatarInfo { get; set; } = [];
 

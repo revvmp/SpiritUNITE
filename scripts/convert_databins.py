@@ -124,6 +124,7 @@ TABLES = {
     ),
     "databin_RankedMatchSeason": Table("pbRankedMatchSeason", key_field="SeasonId"),
     "databin_RoleImage": Table("pbRoleImage"),
+    "databin_TrainerLevel": Table("pbTrainerLevel", key_field="Level"),
     "databin_Shop.group.1": Table("pbShop", key_field="ShopID", kept_fields=SHOP_SERVER_FIELDS),
     "databin_StarRoadSite": Table("pbStarRoadSite", LUA_ONLY_FIELDS["pbStarRoadSite"]),
 }
@@ -158,9 +159,9 @@ JSON_STRING_TYPES = {"int64", "uint64", "fixed64", "sfixed64"}
 UINT64_RANGE = 1 << 64
 INT32_RANGE = range(-(1 << 31), 1 << 31)
 
-PROTO_MESSAGE = re.compile(r"^message (\w+) \{\n(.*?)^\}", re.M | re.S)
-PROTO_ENUM = re.compile(r"^enum (\w+) \{", re.M)
-PROTO_FIELD = re.compile(r"^\s*(repeated\s+)?([\w.]+)\s+(\w+)\s*=\s*(\d+);", re.M)
+PROTO_MESSAGE = re.compile(r"^message (\w+) \{\n(.*?)^\}", re.MULTILINE | re.DOTALL)
+PROTO_ENUM = re.compile(r"^enum (\w+) \{", re.MULTILINE)
+PROTO_FIELD = re.compile(r"^\s*(repeated\s+)?([\w.]+)\s+(\w+)\s*=\s*(\d+);", re.MULTILINE)
 
 
 class ConversionError(Exception):

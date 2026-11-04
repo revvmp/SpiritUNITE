@@ -1,20 +1,32 @@
 using System.Globalization;
+using SpiritUNITE.Game.Data;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Role;
 
 public static class RoleProfile
 {
-    public const int StartingLevel = 1;
+    public static int GetLevel(GameData gameData, LMNRoleInfo role) => gameData.TrainerLevel.Rows
+        .Where(row => row.UpgradeExp <= role.RoleTotalExp)
+        .Max(row => row.Level);
+
+    public static int GetNextLevelTotalExp(GameData gameData, LMNRoleInfo role) => gameData.TrainerLevel.Rows
+        .Where(row => row.UpgradeExp > role.RoleTotalExp)
+        .Select(row => row.UpgradeExp)
+        .DefaultIfEmpty(gameData.TrainerLevel.Rows.Max(row => row.UpgradeExp))
+        .Min();
+
+    public static bool HasReachedMaxLevel(GameData gameData, LMNRoleInfo role) =>
+        role.RoleTotalExp >= gameData.TrainerLevel.Rows.Max(row => row.UpgradeExp);
 
     public static string BuildShortId(LMNRoleInfo role) =>
         role.GameUlongUID.ToString(CultureInfo.InvariantCulture);
 
-    public static pbCSDT_PROFILE_DETAIL_NEW BuildProfileDetail(LMNRoleInfo role) => new()
+    public static pbCSDT_PROFILE_DETAIL_NEW BuildProfileDetail(GameData gameData, LMNRoleInfo role) => new()
     {
         Uid = role.GameUlongUID,
         RoleName = role.InGameUsrName,
-        RoleLevel = StartingLevel,
+        RoleLevel = GetLevel(gameData, role),
         RoleGender = role.Gender,
         FollowInfo = role.BuildFollowInfo(),
         UserShortId = BuildShortId(role),

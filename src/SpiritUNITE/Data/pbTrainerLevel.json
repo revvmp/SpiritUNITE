@@ -1,0 +1,901 @@
+[
+  {
+    "Level": 1,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 100,
+    "Level": 2,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 250,
+    "Level": 3,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 450,
+    "Level": 4,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 700,
+    "Level": 5,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 950,
+    "Level": 6,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 1400,
+    "Level": 7,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 2050,
+    "Level": 8,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 2900,
+    "Level": 9,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 3950,
+    "Level": 10,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 5200,
+    "Level": 11,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 6650,
+    "Level": 12,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 8300,
+    "Level": 13,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 10150,
+    "Level": 14,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 12200,
+    "Level": 15,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 14400,
+    "Level": 16,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 16750,
+    "Level": 17,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 19250,
+    "Level": 18,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 21900,
+    "Level": 19,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 24700,
+    "Level": 20,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 28050,
+    "Level": 21,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 31950,
+    "Level": 22,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 36400,
+    "Level": 23,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 41400,
+    "Level": 24,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 46950,
+    "Level": 25,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 52550,
+    "Level": 26,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 58200,
+    "Level": 27,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 63900,
+    "Level": 28,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 69650,
+    "Level": 29,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 75450,
+    "Level": 30,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 81350,
+    "Level": 31,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 87350,
+    "Level": 32,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 93450,
+    "Level": 33,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 99650,
+    "Level": 34,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 105950,
+    "Level": 35,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 112300,
+    "Level": 36,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 118700,
+    "Level": 37,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 125150,
+    "Level": 38,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 131650,
+    "Level": 39,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 138600,
+    "Level": 40,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 147600,
+    "Level": 41,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 158100,
+    "Level": 42,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 170100,
+    "Level": 43,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 183600,
+    "Level": 44,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 198600,
+    "Level": 45,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 215100,
+    "Level": 46,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 233100,
+    "Level": 47,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 252600,
+    "Level": 48,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 273600,
+    "Level": 49,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 296100,
+    "Level": 50,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 350000,
+    "Level": 51,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 400000,
+    "Level": 52,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 450000,
+    "Level": 53,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 500000,
+    "Level": 54,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 550000,
+    "Level": 55,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 600000,
+    "Level": 56,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 650000,
+    "Level": 57,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 700000,
+    "Level": 58,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 750000,
+    "Level": 59,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 800000,
+    "Level": 60,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 850000,
+    "Level": 61,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 900000,
+    "Level": 62,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 950000,
+    "Level": 63,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 1000000,
+    "Level": 64,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 1050000,
+    "Level": 65,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 1100000,
+    "Level": 66,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 1150000,
+    "Level": 67,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 1200000,
+    "Level": 68,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 1250000,
+    "Level": 69,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 1300000,
+    "Level": 70,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 1350000,
+    "Level": 71,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 1400000,
+    "Level": 72,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 1450000,
+    "Level": 73,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 1500000,
+    "Level": 74,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 1550000,
+    "Level": 75,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 1600000,
+    "Level": 76,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 1650000,
+    "Level": 77,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 1700000,
+    "Level": 78,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 1750000,
+    "Level": 79,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 1800000,
+    "Level": 80,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 1850000,
+    "Level": 81,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 1900000,
+    "Level": 82,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 1950000,
+    "Level": 83,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 2000000,
+    "Level": 84,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 2050000,
+    "Level": 85,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 2100000,
+    "Level": 86,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 2150000,
+    "Level": 87,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 2200000,
+    "Level": 88,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 2250000,
+    "Level": 89,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 2300000,
+    "Level": 90,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 2350000,
+    "Level": 91,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 2400000,
+    "Level": 92,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 2450000,
+    "Level": 93,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 2500000,
+    "Level": 94,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 2550000,
+    "Level": 95,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 2600000,
+    "Level": 96,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 2650000,
+    "Level": 97,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 2700000,
+    "Level": 98,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 2750000,
+    "Level": 99,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 2800000,
+    "Level": 100,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 2850000,
+    "Level": 101,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 2900000,
+    "Level": 102,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 2950000,
+    "Level": 103,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 3000000,
+    "Level": 104,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 3050000,
+    "Level": 105,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 3100000,
+    "Level": 106,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 3150000,
+    "Level": 107,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 3200000,
+    "Level": 108,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 3250000,
+    "Level": 109,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 3300000,
+    "Level": 110,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 3350000,
+    "Level": 111,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 3400000,
+    "Level": 112,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 3450000,
+    "Level": 113,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 3500000,
+    "Level": 114,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 3550000,
+    "Level": 115,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 3600000,
+    "Level": 116,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 3650000,
+    "Level": 117,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 3700000,
+    "Level": 118,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 3750000,
+    "Level": 119,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 3800000,
+    "Level": 120,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 3850000,
+    "Level": 121,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 3900000,
+    "Level": 122,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 3950000,
+    "Level": 123,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 4000000,
+    "Level": 124,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 4050000,
+    "Level": 125,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 4100000,
+    "Level": 126,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 4150000,
+    "Level": 127,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 4200000,
+    "Level": 128,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 4250000,
+    "Level": 129,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 4300000,
+    "Level": 130,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 4350000,
+    "Level": 131,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 4400000,
+    "Level": 132,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 4450000,
+    "Level": 133,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 4500000,
+    "Level": 134,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 4550000,
+    "Level": 135,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 4600000,
+    "Level": 136,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 4650000,
+    "Level": 137,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 4700000,
+    "Level": 138,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 4750000,
+    "Level": 139,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 4800000,
+    "Level": 140,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 4850000,
+    "Level": 141,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 4900000,
+    "Level": 142,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 4950000,
+    "Level": 143,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 5000000,
+    "Level": 144,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 5050000,
+    "Level": 145,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 5100000,
+    "Level": 146,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 5150000,
+    "Level": 147,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 5200000,
+    "Level": 148,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 5250000,
+    "Level": 149,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 5300000,
+    "Level": 150,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 5350000,
+    "Level": 151,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 5400000,
+    "Level": 152,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 5450000,
+    "Level": 153,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 5500000,
+    "Level": 154,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 5550000,
+    "Level": 155,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 5600000,
+    "Level": 156,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 5650000,
+    "Level": 157,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 5700000,
+    "Level": 158,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 5750000,
+    "Level": 159,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 5800000,
+    "Level": 160,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 5850000,
+    "Level": 161,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 5900000,
+    "Level": 162,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 5950000,
+    "Level": 163,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 6000000,
+    "Level": 164,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 6050000,
+    "Level": 165,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 6100000,
+    "Level": 166,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 6150000,
+    "Level": 167,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 6200000,
+    "Level": 168,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 6250000,
+    "Level": 169,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 6300000,
+    "Level": 170,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 6350000,
+    "Level": 171,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 6400000,
+    "Level": 172,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 6450000,
+    "Level": 173,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 6500000,
+    "Level": 174,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 6550000,
+    "Level": 175,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 6600000,
+    "Level": 176,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 6650000,
+    "Level": 177,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 6700000,
+    "Level": 178,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 6750000,
+    "Level": 179,
+    "LevelPic": "t_Icon_Score_1"
+  },
+  {
+    "UpgradeExp": 6800000,
+    "Level": 180,
+    "LevelPic": "t_Icon_Score_1"
+  }
+]

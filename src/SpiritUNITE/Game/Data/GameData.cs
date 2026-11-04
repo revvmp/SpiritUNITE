@@ -30,6 +30,7 @@ public sealed class GameData
         CreateRoleShowAvatar = LoadMessages<pbCreateRoleShowAvatar>(row => row.AvatarID);
         DefaultAvatarItem = LoadMessages<pbDefaultAvatarItem>(row => row.AvatarItemId);
         RoleImage = LoadMessages<pbRoleImage>(row => row.ID);
+        TrainerLevel = LoadMessages<pbTrainerLevel>(row => row.Level);
         NewbieRewardHero = LoadMessages<pbNewbie_RewardHero>(row => row.HeroId);
         LobbyBg = LoadRecords<pbLobbyBg>(row => row.LobbyBgID);
         StarRoadSite = LoadRecords<pbStarRoadSite>(row => row.SiteID);
@@ -47,6 +48,7 @@ public sealed class GameData
     public DatabinTable<pbCreateRoleShowAvatar> CreateRoleShowAvatar { get; }
     public DatabinTable<pbDefaultAvatarItem> DefaultAvatarItem { get; }
     public DatabinTable<pbRoleImage> RoleImage { get; }
+    public DatabinTable<pbTrainerLevel> TrainerLevel { get; }
     public DatabinTable<pbNewbie_RewardHero> NewbieRewardHero { get; }
     public DatabinTable<pbLobbyBg> LobbyBg { get; }
     public DatabinTable<pbStarRoadSite> StarRoadSite { get; }
