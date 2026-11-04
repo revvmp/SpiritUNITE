@@ -1,0 +1,42 @@
+[
+  {
+    "MaleIcon": "t_CreateRole_male1_1",
+    "HeadIconID": 11,
+    "FemaleIcon": "t_CreateRole_female1_1"
+  },
+  {
+    "MaleIcon": "t_CreateRole_male2_1",
+    "HeadIconID": 12,
+    "FemaleIcon": "t_CreateRole_female2_1"
+  },
+  {
+    "MaleIcon": "t_CreateRole_male3_1",
+    "HeadIconID": 13,
+    "FemaleIcon": "t_CreateRole_female3_1"
+  },
+  {
+    "MaleIcon": "t_CreateRole_male4_1",
+    "HeadIconID": 14,
+    "FemaleIcon": "t_CreateRole_female4_1"
+  },
+  {
+    "MaleIcon": "t_CreateRole_male1_1",
+    "HeadIconID": 21,
+    "FemaleIcon": "t_CreateRole_female1_1"
+  },
+  {
+    "MaleIcon": "t_CreateRole_male2_1",
+    "HeadIconID": 22,
+    "FemaleIcon": "t_CreateRole_female2_1"
+  },
+  {
+    "MaleIcon": "t_CreateRole_male3_1",
+    "HeadIconID": 23,
+    "FemaleIcon": "t_CreateRole_female3_1"
+  },
+  {
+    "MaleIcon": "t_CreateRole_male4_1",
+    "HeadIconID": 24,
+    "FemaleIcon": "t_CreateRole_female4_1"
+  }
+]

@@ -1,0 +1,626 @@
+[
+  {
+    "TrainerExp": 950,
+    "TrainerLevel": 6,
+    "ID": 2,
+    "SchemeId": 1
+  },
+  {
+    "ID": 7,
+    "SchemeId": 1
+  },
+  {
+    "TrainerExp": 700,
+    "TrainerLevel": 5,
+    "ID": 8,
+    "SchemeId": 1
+  },
+  {
+    "ID": 11,
+    "SchemeId": 1
+  },
+  {
+    "ID": 9,
+    "SchemeId": 1
+  },
+  {
+    "ID": 10,
+    "SchemeId": 1
+  },
+  {
+    "ID": 12,
+    "SchemeId": 1
+  },
+  {
+    "ID": 1,
+    "SchemeId": 1
+  },
+  {
+    "ID": 13,
+    "SchemeId": 1
+  },
+  {
+    "ID": 4,
+    "SchemeId": 1
+  },
+  {
+    "ID": 5,
+    "SchemeId": 1
+  },
+  {
+    "ID": 14,
+    "SchemeId": 1
+  },
+  {
+    "ID": 3,
+    "SchemeId": 1
+  },
+  {
+    "TrainerExp": 950,
+    "TrainerLevel": 6,
+    "ID": 6,
+    "SchemeId": 1
+  },
+  {
+    "ID": 15,
+    "SchemeId": 1
+  },
+  {
+    "TrainerExp": 250,
+    "TrainerLevel": 3,
+    "ID": 26,
+    "SchemeId": 1
+  },
+  {
+    "TrainerExp": 1400,
+    "TrainerLevel": 7,
+    "ID": 17,
+    "SchemeId": 1
+  },
+  {
+    "TrainerExp": 3950,
+    "TrainerLevel": 10,
+    "ID": 18,
+    "SchemeId": 1
+  },
+  {
+    "TrainerExp": 250,
+    "TrainerLevel": 3,
+    "ID": 19,
+    "SchemeId": 1
+  },
+  {
+    "TrainerExp": 450,
+    "TrainerLevel": 4,
+    "ID": 20,
+    "SchemeId": 1
+  },
+  {
+    "TrainerExp": 250,
+    "TrainerLevel": 3,
+    "ID": 21,
+    "SchemeId": 1
+  },
+  {
+    "TrainerExp": 2900,
+    "TrainerLevel": 9,
+    "ID": 22,
+    "SchemeId": 1
+  },
+  {
+    "TrainerExp": 1400,
+    "TrainerLevel": 7,
+    "ID": 24,
+    "SchemeId": 1
+  },
+  {
+    "TrainerExp": 1400,
+    "TrainerLevel": 7,
+    "ID": 25,
+    "SchemeId": 1
+  },
+  {
+    "TrainerExp": 950,
+    "TrainerLevel": 6,
+    "ID": 28,
+    "SchemeId": 1
+  },
+  {
+    "TrainerExp": 1400,
+    "TrainerLevel": 7,
+    "ID": 29,
+    "SchemeId": 1
+  },
+  {
+    "TrainerExp": 250,
+    "TrainerLevel": 3,
+    "ID": 30,
+    "SchemeId": 1
+  },
+  {
+    "TrainerExp": 700,
+    "TrainerLevel": 5,
+    "ID": 31,
+    "SchemeId": 1
+  },
+  {
+    "TrainerExp": 100,
+    "TrainerLevel": 2,
+    "ID": 42,
+    "SchemeId": 1
+  },
+  {
+    "TrainerExp": 700,
+    "TrainerLevel": 5,
+    "ID": 43,
+    "SchemeId": 1
+  },
+  {
+    "TrainerExp": 950,
+    "TrainerLevel": 6,
+    "ID": 2,
+    "SchemeId": 2
+  },
+  {
+    "ID": 7,
+    "SchemeId": 2
+  },
+  {
+    "TrainerExp": 700,
+    "TrainerLevel": 5,
+    "ID": 8,
+    "SchemeId": 2
+  },
+  {
+    "ID": 11,
+    "SchemeId": 2
+  },
+  {
+    "ID": 9,
+    "SchemeId": 2
+  },
+  {
+    "ID": 10,
+    "SchemeId": 2
+  },
+  {
+    "ID": 12,
+    "SchemeId": 2
+  },
+  {
+    "ID": 1,
+    "SchemeId": 2
+  },
+  {
+    "ID": 13,
+    "SchemeId": 2
+  },
+  {
+    "ID": 4,
+    "SchemeId": 2
+  },
+  {
+    "ID": 5,
+    "SchemeId": 2
+  },
+  {
+    "ID": 14,
+    "SchemeId": 2
+  },
+  {
+    "ID": 3,
+    "SchemeId": 2
+  },
+  {
+    "TrainerExp": 950,
+    "TrainerLevel": 6,
+    "ID": 6,
+    "SchemeId": 2
+  },
+  {
+    "ID": 15,
+    "SchemeId": 2
+  },
+  {
+    "TrainerExp": 250,
+    "TrainerLevel": 3,
+    "ID": 26,
+    "SchemeId": 2
+  },
+  {
+    "TrainerExp": 1400,
+    "TrainerLevel": 7,
+    "ID": 17,
+    "SchemeId": 2
+  },
+  {
+    "TrainerExp": 3950,
+    "TrainerLevel": 10,
+    "ID": 18,
+    "SchemeId": 2
+  },
+  {
+    "TrainerExp": 250,
+    "TrainerLevel": 3,
+    "ID": 19,
+    "SchemeId": 2
+  },
+  {
+    "TrainerExp": 450,
+    "TrainerLevel": 4,
+    "ID": 20,
+    "SchemeId": 2
+  },
+  {
+    "TrainerExp": 250,
+    "TrainerLevel": 3,
+    "ID": 21,
+    "SchemeId": 2
+  },
+  {
+    "TrainerExp": 2900,
+    "TrainerLevel": 9,
+    "ID": 22,
+    "SchemeId": 2
+  },
+  {
+    "TrainerExp": 1400,
+    "TrainerLevel": 7,
+    "ID": 24,
+    "SchemeId": 2
+  },
+  {
+    "TrainerExp": 1400,
+    "TrainerLevel": 7,
+    "ID": 25,
+    "SchemeId": 2
+  },
+  {
+    "TrainerExp": 950,
+    "TrainerLevel": 6,
+    "ID": 28,
+    "SchemeId": 2
+  },
+  {
+    "TrainerExp": 1400,
+    "TrainerLevel": 7,
+    "ID": 29,
+    "SchemeId": 2
+  },
+  {
+    "TrainerExp": 250,
+    "TrainerLevel": 3,
+    "ID": 30,
+    "SchemeId": 2
+  },
+  {
+    "TrainerExp": 700,
+    "TrainerLevel": 5,
+    "ID": 31,
+    "SchemeId": 2
+  },
+  {
+    "TrainerExp": 100,
+    "TrainerLevel": 2,
+    "ID": 42,
+    "SchemeId": 2
+  },
+  {
+    "TrainerExp": 700,
+    "TrainerLevel": 5,
+    "ID": 43,
+    "SchemeId": 2
+  },
+  {
+    "TrainerExp": 950,
+    "TrainerLevel": 6,
+    "ID": 2,
+    "SchemeId": 3
+  },
+  {
+    "ID": 7,
+    "SchemeId": 3
+  },
+  {
+    "TrainerExp": 700,
+    "TrainerLevel": 5,
+    "ID": 8,
+    "SchemeId": 3
+  },
+  {
+    "ID": 11,
+    "SchemeId": 3
+  },
+  {
+    "ID": 9,
+    "SchemeId": 3
+  },
+  {
+    "ID": 10,
+    "SchemeId": 3
+  },
+  {
+    "ID": 12,
+    "SchemeId": 3
+  },
+  {
+    "ID": 1,
+    "SchemeId": 3
+  },
+  {
+    "ID": 13,
+    "SchemeId": 3
+  },
+  {
+    "ID": 4,
+    "SchemeId": 3
+  },
+  {
+    "ID": 5,
+    "SchemeId": 3
+  },
+  {
+    "ID": 14,
+    "SchemeId": 3
+  },
+  {
+    "ID": 3,
+    "SchemeId": 3
+  },
+  {
+    "TrainerExp": 950,
+    "TrainerLevel": 6,
+    "ID": 6,
+    "SchemeId": 3
+  },
+  {
+    "ID": 15,
+    "SchemeId": 3
+  },
+  {
+    "TrainerExp": 250,
+    "TrainerLevel": 3,
+    "ID": 26,
+    "SchemeId": 3
+  },
+  {
+    "TrainerExp": 1400,
+    "TrainerLevel": 7,
+    "ID": 17,
+    "SchemeId": 3
+  },
+  {
+    "TrainerExp": 3950,
+    "TrainerLevel": 10,
+    "ID": 18,
+    "SchemeId": 3
+  },
+  {
+    "TrainerExp": 250,
+    "TrainerLevel": 3,
+    "ID": 19,
+    "SchemeId": 3
+  },
+  {
+    "TrainerExp": 450,
+    "TrainerLevel": 4,
+    "ID": 20,
+    "SchemeId": 3
+  },
+  {
+    "TrainerExp": 250,
+    "TrainerLevel": 3,
+    "ID": 21,
+    "SchemeId": 3
+  },
+  {
+    "TrainerExp": 2900,
+    "TrainerLevel": 9,
+    "ID": 22,
+    "SchemeId": 3
+  },
+  {
+    "TrainerExp": 1400,
+    "TrainerLevel": 7,
+    "ID": 24,
+    "SchemeId": 3
+  },
+  {
+    "TrainerExp": 1400,
+    "TrainerLevel": 7,
+    "ID": 25,
+    "SchemeId": 3
+  },
+  {
+    "TrainerExp": 950,
+    "TrainerLevel": 6,
+    "ID": 28,
+    "SchemeId": 3
+  },
+  {
+    "TrainerExp": 1400,
+    "TrainerLevel": 7,
+    "ID": 29,
+    "SchemeId": 3
+  },
+  {
+    "TrainerExp": 250,
+    "TrainerLevel": 3,
+    "ID": 30,
+    "SchemeId": 3
+  },
+  {
+    "TrainerExp": 700,
+    "TrainerLevel": 5,
+    "ID": 31,
+    "SchemeId": 3
+  },
+  {
+    "TrainerExp": 100,
+    "TrainerLevel": 2,
+    "ID": 42,
+    "SchemeId": 3
+  },
+  {
+    "TrainerExp": 700,
+    "TrainerLevel": 5,
+    "ID": 43,
+    "SchemeId": 3
+  },
+  {
+    "TrainerExp": 950,
+    "TrainerLevel": 6,
+    "ID": 2,
+    "SchemeId": 4
+  },
+  {
+    "ID": 7,
+    "SchemeId": 4
+  },
+  {
+    "TrainerExp": 700,
+    "TrainerLevel": 5,
+    "ID": 8,
+    "SchemeId": 4
+  },
+  {
+    "ID": 11,
+    "SchemeId": 4
+  },
+  {
+    "ID": 9,
+    "SchemeId": 4
+  },
+  {
+    "ID": 10,
+    "SchemeId": 4
+  },
+  {
+    "ID": 12,
+    "SchemeId": 4
+  },
+  {
+    "ID": 1,
+    "SchemeId": 4
+  },
+  {
+    "ID": 13,
+    "SchemeId": 4
+  },
+  {
+    "ID": 4,
+    "SchemeId": 4
+  },
+  {
+    "ID": 5,
+    "SchemeId": 4
+  },
+  {
+    "ID": 14,
+    "SchemeId": 4
+  },
+  {
+    "ID": 3,
+    "SchemeId": 4
+  },
+  {
+    "TrainerExp": 950,
+    "TrainerLevel": 6,
+    "ID": 6,
+    "SchemeId": 4
+  },
+  {
+    "ID": 15,
+    "SchemeId": 4
+  },
+  {
+    "TrainerExp": 250,
+    "TrainerLevel": 3,
+    "ID": 26,
+    "SchemeId": 4
+  },
+  {
+    "TrainerExp": 1400,
+    "TrainerLevel": 7,
+    "ID": 17,
+    "SchemeId": 4
+  },
+  {
+    "TrainerExp": 3950,
+    "TrainerLevel": 10,
+    "ID": 18,
+    "SchemeId": 4
+  },
+  {
+    "TrainerExp": 250,
+    "TrainerLevel": 3,
+    "ID": 19,
+    "SchemeId": 4
+  },
+  {
+    "TrainerExp": 450,
+    "TrainerLevel": 4,
+    "ID": 20,
+    "SchemeId": 4
+  },
+  {
+    "TrainerExp": 250,
+    "TrainerLevel": 3,
+    "ID": 21,
+    "SchemeId": 4
+  },
+  {
+    "TrainerExp": 2900,
+    "TrainerLevel": 9,
+    "ID": 22,
+    "SchemeId": 4
+  },
+  {
+    "TrainerExp": 1400,
+    "TrainerLevel": 7,
+    "ID": 24,
+    "SchemeId": 4
+  },
+  {
+    "TrainerExp": 1400,
+    "TrainerLevel": 7,
+    "ID": 25,
+    "SchemeId": 4
+  },
+  {
+    "TrainerExp": 950,
+    "TrainerLevel": 6,
+    "ID": 28,
+    "SchemeId": 4
+  },
+  {
+    "TrainerExp": 1400,
+    "TrainerLevel": 7,
+    "ID": 29,
+    "SchemeId": 4
+  },
+  {
+    "TrainerExp": 250,
+    "TrainerLevel": 3,
+    "ID": 30,
+    "SchemeId": 4
+  },
+  {
+    "TrainerExp": 700,
+    "TrainerLevel": 5,
+    "ID": 31,
+    "SchemeId": 4
+  },
+  {
+    "TrainerExp": 100,
+    "TrainerLevel": 2,
+    "ID": 42,
+    "SchemeId": 4
+  },
+  {
+    "TrainerExp": 700,
+    "TrainerLevel": 5,
+    "ID": 43,
+    "SchemeId": 4
+  }
+]

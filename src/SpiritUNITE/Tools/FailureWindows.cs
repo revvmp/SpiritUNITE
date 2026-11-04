@@ -1,4 +1,4 @@
-namespace SpiritUNITE.Auth;
+namespace SpiritUNITE.Tools;
 
 public sealed class FailureWindows<TKey>(TimeProvider clock, TimeSpan window, int capacity)
     where TKey : notnull

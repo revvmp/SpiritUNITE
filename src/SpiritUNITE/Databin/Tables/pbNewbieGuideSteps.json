@@ -1,0 +1,1072 @@
+[
+  {
+    "GuideType": 2,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      0,
+      0
+    ]
+  },
+  {
+    "GuideType": 6,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      10000,
+      0
+    ],
+    "NewbieEnum": 1
+  },
+  {
+    "GuideType": 2,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      0,
+      0
+    ],
+    "NewbieEnum": 1
+  },
+  {
+    "GuideType": 1,
+    "StepIndex": 3,
+    "GuideParamInt": [
+      1,
+      0
+    ],
+    "NewbieEnum": 1
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 4,
+    "GuideParamInt": [
+      0,
+      0
+    ],
+    "NewbieEnum": 1
+  },
+  {
+    "GuideType": 2,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      0,
+      0
+    ],
+    "NewbieEnum": 2
+  },
+  {
+    "GuideType": 1,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      2,
+      0
+    ],
+    "NewbieEnum": 2
+  },
+  {
+    "GuideType": 1,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      3,
+      0
+    ],
+    "NewbieEnum": 13
+  },
+  {
+    "GuideType": 1,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      4,
+      0
+    ],
+    "NewbieEnum": 14
+  },
+  {
+    "GuideType": 1,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      5,
+      0
+    ],
+    "NewbieEnum": 27
+  },
+  {
+    "GuideType": 1,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      6,
+      0
+    ],
+    "NewbieEnum": 63
+  },
+  {
+    "GuideType": 2,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      0,
+      0
+    ],
+    "NewbieEnum": 3
+  },
+  {
+    "GuideType": 2,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      0,
+      0
+    ],
+    "NewbieEnum": 3
+  },
+  {
+    "GuideType": 2,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      0,
+      0
+    ],
+    "NewbieEnum": 67
+  },
+  {
+    "GuideType": 27,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      1,
+      1
+    ],
+    "NewbieEnum": 200
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      6003502,
+      0
+    ],
+    "NewbieEnum": 200
+  },
+  {
+    "GuideType": 16,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      100,
+      0
+    ],
+    "NewbieEnum": 11
+  },
+  {
+    "GuideType": 6,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      20026,
+      0
+    ],
+    "NewbieEnum": 11
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 3,
+    "GuideParamInt": [
+      50002,
+      0
+    ],
+    "NewbieEnum": 11
+  },
+  {
+    "GuideType": 6,
+    "StepIndex": 4,
+    "GuideParamInt": [
+      20012,
+      0
+    ],
+    "NewbieEnum": 11
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 5,
+    "GuideParamInt": [
+      50003,
+      0
+    ],
+    "NewbieEnum": 11
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      60035,
+      0
+    ],
+    "NewbieEnum": 202
+  },
+  {
+    "GuideType": 6,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      20014,
+      0
+    ],
+    "NewbieEnum": 104
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      60035,
+      0
+    ],
+    "NewbieEnum": 104
+  },
+  {
+    "GuideType": 6,
+    "StepIndex": 3,
+    "GuideParamInt": [
+      20009,
+      0
+    ],
+    "NewbieEnum": 104
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      60037,
+      0
+    ],
+    "NewbieEnum": 65
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      60039,
+      0
+    ],
+    "NewbieEnum": 65
+  },
+  {
+    "GuideType": 6,
+    "StepIndex": 3,
+    "GuideParamInt": [
+      30011,
+      0
+    ],
+    "NewbieEnum": 65
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 4,
+    "GuideParamInt": [
+      60045,
+      0
+    ],
+    "NewbieEnum": 65
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      60005,
+      0
+    ],
+    "NewbieEnum": 10
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      6000601,
+      0
+    ],
+    "NewbieEnum": 10
+  },
+  {
+    "GuideType": 16,
+    "StepIndex": 3,
+    "GuideParamInt": [
+      500,
+      0
+    ],
+    "NewbieEnum": 10
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 4,
+    "GuideParamInt": [
+      60006,
+      0
+    ],
+    "NewbieEnum": 10
+  },
+  {
+    "GuideType": 16,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      100,
+      0
+    ],
+    "NewbieEnum": 203
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      6003502,
+      0
+    ],
+    "NewbieEnum": 203
+  },
+  {
+    "GuideType": 6,
+    "StepIndex": 3,
+    "GuideParamInt": [
+      20052,
+      0
+    ],
+    "NewbieEnum": 203
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      60044,
+      0
+    ],
+    "NewbieEnum": 18
+  },
+  {
+    "GuideType": 16,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      100,
+      0
+    ],
+    "NewbieEnum": 18
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 3,
+    "GuideParamInt": [
+      60004,
+      0
+    ],
+    "NewbieEnum": 18
+  },
+  {
+    "GuideType": 16,
+    "StepIndex": 4,
+    "GuideParamInt": [
+      500,
+      0
+    ],
+    "NewbieEnum": 18
+  },
+  {
+    "GuideType": 6,
+    "StepIndex": 5,
+    "GuideParamInt": [
+      20010,
+      0
+    ],
+    "NewbieEnum": 18
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      60028,
+      0
+    ],
+    "NewbieEnum": 30
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      60030,
+      0
+    ],
+    "NewbieEnum": 30
+  },
+  {
+    "GuideType": 6,
+    "StepIndex": 3,
+    "GuideParamInt": [
+      20008,
+      0
+    ],
+    "NewbieEnum": 30
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      60034,
+      0
+    ],
+    "NewbieEnum": 32
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      60003,
+      0
+    ],
+    "NewbieEnum": 16
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      60003,
+      0
+    ],
+    "NewbieEnum": 16
+  },
+  {
+    "GuideType": 6,
+    "StepIndex": 3,
+    "GuideParamInt": [
+      20006,
+      0
+    ],
+    "NewbieEnum": 16
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 4,
+    "GuideParamInt": [
+      60020,
+      0
+    ],
+    "NewbieEnum": 16
+  },
+  {
+    "GuideType": 6,
+    "StepIndex": 5,
+    "GuideParamInt": [
+      20007,
+      0
+    ],
+    "NewbieEnum": 16
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      60040,
+      0
+    ],
+    "NewbieEnum": 76
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      60047,
+      0
+    ],
+    "NewbieEnum": 76
+  },
+  {
+    "GuideType": 6,
+    "StepIndex": 3,
+    "GuideParamInt": [
+      20034,
+      0
+    ],
+    "NewbieEnum": 76
+  },
+  {
+    "GuideType": 6,
+    "StepIndex": 4,
+    "GuideParamInt": [
+      20035,
+      0
+    ],
+    "NewbieEnum": 76
+  },
+  {
+    "GuideType": 2,
+    "StepIndex": 5,
+    "GuideParamInt": [
+      0,
+      0
+    ],
+    "NewbieEnum": 76
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 6,
+    "GuideParamInt": [
+      60049,
+      0
+    ],
+    "NewbieEnum": 76
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 7,
+    "GuideParamInt": [
+      60050,
+      0
+    ],
+    "NewbieEnum": 76
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      60051,
+      0
+    ],
+    "NewbieEnum": 77
+  },
+  {
+    "GuideType": 6,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      20038,
+      0
+    ],
+    "NewbieEnum": 77
+  },
+  {
+    "GuideType": 6,
+    "StepIndex": 3,
+    "GuideParamInt": [
+      20040,
+      0
+    ],
+    "NewbieEnum": 77
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      960,
+      0
+    ],
+    "NewbieEnum": 85
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      960,
+      0
+    ],
+    "NewbieEnum": 85
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 3,
+    "GuideParamInt": [
+      961,
+      0
+    ],
+    "NewbieEnum": 85
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 4,
+    "GuideParamInt": [
+      962,
+      0
+    ],
+    "NewbieEnum": 85
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 5,
+    "GuideParamInt": [
+      963,
+      0
+    ],
+    "NewbieEnum": 85
+  },
+  {
+    "GuideType": 6,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      20041,
+      0
+    ],
+    "NewbieEnum": 80
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      60057,
+      0
+    ],
+    "NewbieEnum": 80
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      60053,
+      0
+    ],
+    "NewbieEnum": 82
+  },
+  {
+    "GuideType": 6,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      20044,
+      0
+    ],
+    "NewbieEnum": 82
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 3,
+    "GuideParamInt": [
+      60061,
+      0
+    ],
+    "NewbieEnum": 82
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 4,
+    "GuideParamInt": [
+      60060,
+      0
+    ],
+    "NewbieEnum": 82
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 5,
+    "GuideParamInt": [
+      60060,
+      0
+    ],
+    "NewbieEnum": 82
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      60053,
+      0
+    ],
+    "NewbieEnum": 83
+  },
+  {
+    "GuideType": 6,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      20044,
+      0
+    ],
+    "NewbieEnum": 83
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 3,
+    "GuideParamInt": [
+      60059,
+      0
+    ],
+    "NewbieEnum": 83
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      60060,
+      0
+    ],
+    "NewbieEnum": 84
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      60060,
+      0
+    ],
+    "NewbieEnum": 84
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      60040,
+      0
+    ],
+    "NewbieEnum": 66
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      60042,
+      0
+    ],
+    "NewbieEnum": 66
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 3,
+    "GuideParamInt": [
+      60043,
+      0
+    ],
+    "NewbieEnum": 66
+  },
+  {
+    "GuideType": 6,
+    "StepIndex": 4,
+    "GuideParamInt": [
+      30021,
+      0
+    ],
+    "NewbieEnum": 66
+  },
+  {
+    "GuideType": 27,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      1,
+      1
+    ],
+    "NewbieEnum": 204
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      6003502,
+      0
+    ],
+    "NewbieEnum": 204
+  },
+  {
+    "GuideType": 27,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      1,
+      1
+    ],
+    "NewbieEnum": 205
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      6003502,
+      0
+    ],
+    "NewbieEnum": 205
+  },
+  {
+    "GuideType": 27,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      1,
+      1
+    ],
+    "NewbieEnum": 206
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      6003502,
+      0
+    ],
+    "NewbieEnum": 206
+  },
+  {
+    "GuideType": 27,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      1,
+      1
+    ],
+    "NewbieEnum": 207
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      6003502,
+      0
+    ],
+    "NewbieEnum": 207
+  },
+  {
+    "GuideType": 27,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      1,
+      1
+    ],
+    "NewbieEnum": 208
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      6003502,
+      0
+    ],
+    "NewbieEnum": 208
+  },
+  {
+    "GuideType": 27,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      1,
+      1
+    ],
+    "NewbieEnum": 209
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      6003502,
+      0
+    ],
+    "NewbieEnum": 209
+  },
+  {
+    "GuideType": 27,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      1,
+      1
+    ],
+    "NewbieEnum": 210
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      6003502,
+      0
+    ],
+    "NewbieEnum": 210
+  },
+  {
+    "GuideType": 27,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      1,
+      1
+    ],
+    "NewbieEnum": 211
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      6003502,
+      0
+    ],
+    "NewbieEnum": 211
+  },
+  {
+    "GuideType": 27,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      1,
+      1
+    ],
+    "NewbieEnum": 212
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      6003502,
+      0
+    ],
+    "NewbieEnum": 212
+  },
+  {
+    "GuideType": 27,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      1,
+      1
+    ],
+    "NewbieEnum": 213
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      6003502,
+      0
+    ],
+    "NewbieEnum": 213
+  },
+  {
+    "GuideType": 27,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      1,
+      1
+    ],
+    "NewbieEnum": 214
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      6003502,
+      0
+    ],
+    "NewbieEnum": 214
+  },
+  {
+    "GuideType": 27,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      1,
+      1
+    ],
+    "NewbieEnum": 215
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      6003502,
+      0
+    ],
+    "NewbieEnum": 215
+  },
+  {
+    "GuideType": 27,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      1,
+      1
+    ],
+    "NewbieEnum": 216
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      6003502,
+      0
+    ],
+    "NewbieEnum": 216
+  },
+  {
+    "GuideType": 27,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      1,
+      1
+    ],
+    "NewbieEnum": 217
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      6003502,
+      0
+    ],
+    "NewbieEnum": 217
+  },
+  {
+    "GuideType": 27,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      1,
+      1
+    ],
+    "NewbieEnum": 218
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      6003502,
+      0
+    ],
+    "NewbieEnum": 218
+  },
+  {
+    "GuideType": 27,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      1,
+      1
+    ],
+    "NewbieEnum": 219
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      6003502,
+      0
+    ],
+    "NewbieEnum": 219
+  },
+  {
+    "GuideType": 27,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      1,
+      1
+    ],
+    "NewbieEnum": 220
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      6003502,
+      0
+    ],
+    "NewbieEnum": 220
+  },
+  {
+    "GuideType": 27,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      1,
+      1
+    ],
+    "NewbieEnum": 221
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      6003502,
+      0
+    ],
+    "NewbieEnum": 221
+  },
+  {
+    "GuideType": 27,
+    "StepIndex": 1,
+    "GuideParamInt": [
+      1,
+      1
+    ],
+    "NewbieEnum": 222
+  },
+  {
+    "GuideType": 3,
+    "StepIndex": 2,
+    "GuideParamInt": [
+      6003502,
+      0
+    ],
+    "NewbieEnum": 222
+  }
+]

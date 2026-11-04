@@ -1,0 +1,167 @@
+[
+  {
+    "BadgeColorLv": 1,
+    "BadgeColor": 1,
+    "LvNeedCount": 2
+  },
+  {
+    "BadgeColorLv": 2,
+    "BadgeColor": 1,
+    "LvNeedCount": 4
+  },
+  {
+    "BadgeColorLv": 3,
+    "BadgeColor": 1,
+    "LvNeedCount": 6
+  },
+  {
+    "BadgeColorLv": 1,
+    "BadgeColor": 2,
+    "LvNeedCount": 3
+  },
+  {
+    "BadgeColorLv": 2,
+    "BadgeColor": 2,
+    "LvNeedCount": 5
+  },
+  {
+    "BadgeColorLv": 3,
+    "BadgeColor": 2,
+    "LvNeedCount": 7
+  },
+  {
+    "BadgeColorLv": 1,
+    "BadgeColor": 3,
+    "LvNeedCount": 3
+  },
+  {
+    "BadgeColorLv": 2,
+    "BadgeColor": 3,
+    "LvNeedCount": 5
+  },
+  {
+    "BadgeColorLv": 3,
+    "BadgeColor": 3,
+    "LvNeedCount": 7
+  },
+  {
+    "BadgeColorLv": 1,
+    "BadgeColor": 4,
+    "LvNeedCount": 2
+  },
+  {
+    "BadgeColorLv": 2,
+    "BadgeColor": 4,
+    "LvNeedCount": 4
+  },
+  {
+    "BadgeColorLv": 3,
+    "BadgeColor": 4,
+    "LvNeedCount": 6
+  },
+  {
+    "BadgeColorLv": 1,
+    "BadgeColor": 5,
+    "LvNeedCount": 2
+  },
+  {
+    "BadgeColorLv": 2,
+    "BadgeColor": 5,
+    "LvNeedCount": 4
+  },
+  {
+    "BadgeColorLv": 3,
+    "BadgeColor": 5,
+    "LvNeedCount": 6
+  },
+  {
+    "BadgeColorLv": 1,
+    "BadgeColor": 6,
+    "LvNeedCount": 3
+  },
+  {
+    "BadgeColorLv": 2,
+    "BadgeColor": 6,
+    "LvNeedCount": 5
+  },
+  {
+    "BadgeColorLv": 3,
+    "BadgeColor": 6,
+    "LvNeedCount": 7
+  },
+  {
+    "BadgeColorLv": 1,
+    "BadgeColor": 7,
+    "LvNeedCount": 2
+  },
+  {
+    "BadgeColorLv": 2,
+    "BadgeColor": 7,
+    "LvNeedCount": 4
+  },
+  {
+    "BadgeColorLv": 3,
+    "BadgeColor": 7,
+    "LvNeedCount": 6
+  },
+  {
+    "BadgeColorLv": 1,
+    "BadgeColor": 8,
+    "LvNeedCount": 2
+  },
+  {
+    "BadgeColorLv": 2,
+    "BadgeColor": 8,
+    "LvNeedCount": 4
+  },
+  {
+    "BadgeColorLv": 3,
+    "BadgeColor": 8,
+    "LvNeedCount": 6
+  },
+  {
+    "BadgeColorLv": 1,
+    "BadgeColor": 9,
+    "LvNeedCount": 3
+  },
+  {
+    "BadgeColorLv": 2,
+    "BadgeColor": 9,
+    "LvNeedCount": 5
+  },
+  {
+    "BadgeColorLv": 3,
+    "BadgeColor": 9,
+    "LvNeedCount": 7
+  },
+  {
+    "BadgeColorLv": 1,
+    "BadgeColor": 10,
+    "LvNeedCount": 3
+  },
+  {
+    "BadgeColorLv": 2,
+    "BadgeColor": 10,
+    "LvNeedCount": 5
+  },
+  {
+    "BadgeColorLv": 3,
+    "BadgeColor": 10,
+    "LvNeedCount": 7
+  },
+  {
+    "BadgeColorLv": 1,
+    "BadgeColor": 11,
+    "LvNeedCount": 3
+  },
+  {
+    "BadgeColorLv": 2,
+    "BadgeColor": 11,
+    "LvNeedCount": 5
+  },
+  {
+    "BadgeColorLv": 3,
+    "BadgeColor": 11,
+    "LvNeedCount": 7
+  }
+]

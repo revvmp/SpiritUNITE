@@ -1,5 +1,6 @@
 using System.Net;
 using SpiritUNITE.Network;
+using SpiritUNITE.Tools;
 
 namespace SpiritUNITE.Auth;
 

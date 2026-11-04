@@ -1,6 +1,6 @@
 using System.Collections.Frozen;
 
-namespace SpiritUNITE.Game.Data;
+namespace SpiritUNITE.Databin;
 
 public sealed class DatabinTable<TRow>
     where TRow : class

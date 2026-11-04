@@ -1,4 +1,4 @@
-namespace SpiritUNITE.Game.Data;
+namespace SpiritUNITE.Databin;
 
 public sealed record pbLobbyBg(
     int LobbyBgID,

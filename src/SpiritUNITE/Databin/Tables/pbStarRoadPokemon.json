@@ -1,0 +1,406 @@
+[
+  {
+    "PokemonId": 25,
+    "PokemonCoupons": 345
+  },
+  {
+    "PokemonId": 700,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 4,
+    "PokemonCoupons": 345
+  },
+  {
+    "PokemonId": 183,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 471,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 937,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 143,
+    "PokemonCoupons": 345
+  },
+  {
+    "PokemonId": 829,
+    "PokemonCoupons": 345
+  },
+  {
+    "PokemonId": 359,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 724,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 794,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 9150,
+    "PokemonCoupons": 700
+  },
+  {
+    "PokemonId": 557,
+    "PokemonCoupons": 460
+  },
+  {
+    "PokemonId": 936,
+    "PokemonCoupons": 790
+  },
+  {
+    "PokemonId": 888,
+    "PokemonCoupons": 700
+  },
+  {
+    "PokemonId": 813,
+    "PokemonCoupons": 460
+  },
+  {
+    "PokemonId": 92,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 39,
+    "PokemonCoupons": 460
+  },
+  {
+    "PokemonId": 656,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 884,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 129,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 720,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 708,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 570,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 443,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 122,
+    "PokemonCoupons": 460
+  },
+  {
+    "PokemonId": 679,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 906,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 653,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 892,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 820,
+    "PokemonCoupons": 460
+  },
+  {
+    "PokemonId": 885,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 255,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 123,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 302,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 374,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 280,
+    "PokemonCoupons": 460
+  },
+  {
+    "PokemonId": 250,
+    "PokemonCoupons": 840
+  },
+  {
+    "PokemonId": 246,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 609,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 706,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 1008,
+    "PokemonCoupons": 700
+  },
+  {
+    "PokemonId": 816,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 491,
+    "PokemonCoupons": 790
+  },
+  {
+    "PokemonId": 778,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 54,
+    "PokemonCoupons": 790
+  },
+  {
+    "PokemonId": 77,
+    "PokemonCoupons": 790
+  },
+  {
+    "PokemonId": 245,
+    "PokemonCoupons": 840
+  },
+  {
+    "PokemonId": 868,
+    "PokemonCoupons": 790
+  },
+  {
+    "PokemonId": 923,
+    "PokemonCoupons": 790
+  },
+  {
+    "PokemonId": 381,
+    "PokemonCoupons": 840
+  },
+  {
+    "PokemonId": 26,
+    "PokemonCoupons": 790
+  },
+  {
+    "PokemonId": 395,
+    "PokemonCoupons": 790
+  },
+  {
+    "PokemonId": 8448,
+    "PokemonCoupons": 840
+  },
+  {
+    "PokemonId": 134,
+    "PokemonCoupons": 790
+  },
+  {
+    "PokemonId": 6004,
+    "PokemonCoupons": 840
+  },
+  {
+    "PokemonId": 781,
+    "PokemonCoupons": 790
+  },
+  {
+    "PokemonId": 52,
+    "PokemonCoupons": 790
+  },
+  {
+    "PokemonId": 9129,
+    "PokemonCoupons": 840
+  },
+  {
+    "PokemonId": 8004,
+    "PokemonCoupons": 840
+  },
+  {
+    "PokemonId": 865,
+    "PokemonCoupons": 790
+  },
+  {
+    "PokemonId": 661,
+    "PokemonCoupons": 345
+  },
+  {
+    "PokemonId": 131,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 7,
+    "PokemonCoupons": 460
+  },
+  {
+    "PokemonId": 79,
+    "PokemonCoupons": 460
+  },
+  {
+    "PokemonId": 448,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 1,
+    "PokemonCoupons": 460
+  },
+  {
+    "PokemonId": 113,
+    "PokemonCoupons": 460
+  },
+  {
+    "PokemonId": 196,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 84,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 220,
+    "PokemonCoupons": 460
+  },
+  {
+    "PokemonId": 35,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 763,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 147,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 150,
+    "PokemonCoupons": 700
+  },
+  {
+    "PokemonId": 151,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 197,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 957,
+    "PokemonCoupons": 790
+  },
+  {
+    "PokemonId": 66,
+    "PokemonCoupons": 460
+  },
+  {
+    "PokemonId": 37,
+    "PokemonCoupons": 460
+  },
+  {
+    "PokemonId": 470,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 764,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 845,
+    "PokemonCoupons": 460
+  },
+  {
+    "PokemonId": 870,
+    "PokemonCoupons": 575
+  },
+  {
+    "PokemonId": 380,
+    "PokemonCoupons": 840
+  },
+  {
+    "PokemonId": 145,
+    "PokemonCoupons": 590
+  },
+  {
+    "PokemonId": 146,
+    "PokemonCoupons": 590
+  },
+  {
+    "PokemonId": 144,
+    "PokemonCoupons": 590
+  },
+  {
+    "PokemonId": 157,
+    "PokemonCoupons": 590
+  },
+  {
+    "PokemonId": 158,
+    "PokemonCoupons": 590
+  },
+  {
+    "PokemonId": 154,
+    "PokemonCoupons": 590
+  },
+  {
+    "PokemonId": 911,
+    "PokemonCoupons": 590
+  },
+  {
+    "PokemonId": 914,
+    "PokemonCoupons": 590
+  },
+  {
+    "PokemonId": 717,
+    "PokemonCoupons": 590
+  },
+  {
+    "PokemonId": 484,
+    "PokemonCoupons": 590
+  },
+  {
+    "PokemonId": 643,
+    "PokemonCoupons": 590
+  },
+  {
+    "PokemonId": 791,
+    "PokemonCoupons": 590
+  },
+  {
+    "PokemonId": 877,
+    "PokemonCoupons": 590
+  },
+  {
+    "PokemonId": 135,
+    "PokemonCoupons": 590
+  },
+  {
+    "PokemonId": 136,
+    "PokemonCoupons": 590
+  },
+  {
+    "PokemonId": 849,
+    "PokemonCoupons": 1
+  }
+]

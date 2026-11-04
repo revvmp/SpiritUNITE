@@ -1,0 +1,38 @@
+[
+  {
+    "PeriodID": 1,
+    "DisplayEndTime": "20230822235959",
+    "StartTime": "20230521000000",
+    "EndTime": "20230820235959"
+  },
+  {
+    "PeriodID": 2,
+    "DisplayEndTime": "20240225235959",
+    "StartTime": "20231212070000",
+    "EndTime": "20240223235959"
+  },
+  {
+    "PeriodID": 3,
+    "DisplayEndTime": "20240324235959",
+    "StartTime": "20240227070000",
+    "EndTime": "20240323235959"
+  },
+  {
+    "PeriodID": 4,
+    "DisplayEndTime": "20240905235959",
+    "StartTime": "20240719000000",
+    "EndTime": "20240904235959"
+  },
+  {
+    "PeriodID": 5,
+    "DisplayEndTime": "20250710235959",
+    "StartTime": "20250605040000",
+    "EndTime": "20250709235959"
+  },
+  {
+    "PeriodID": 6,
+    "DisplayEndTime": "20260417235959",
+    "StartTime": "20260227000000",
+    "EndTime": "20260416235959"
+  }
+]

@@ -1,0 +1,170 @@
+[
+  {
+    "SDropID": 20177,
+    "SchemeId": 1,
+    "GiftID": 1,
+    "ShowType": 2
+  },
+  {
+    "SDropID": 20174,
+    "SchemeId": 1,
+    "GiftID": 2,
+    "ShowType": 1
+  },
+  {
+    "SDropID": 20096,
+    "SchemeId": 1,
+    "GiftID": 3,
+    "ShowType": 1
+  },
+  {
+    "SDropID": 20176,
+    "SchemeId": 1,
+    "GiftID": 4,
+    "ShowType": 2
+  },
+  {
+    "SDropID": 20098,
+    "SchemeId": 1,
+    "GiftID": 5,
+    "ShowType": 2
+  },
+  {
+    "SDropID": 20099,
+    "SchemeId": 1,
+    "GiftID": 6,
+    "ShowType": 2
+  },
+  {
+    "SDropID": 20178,
+    "SchemeId": 1,
+    "GiftID": 7,
+    "ShowType": 2
+  },
+  {
+    "SDropID": 20101,
+    "SchemeId": 1,
+    "GiftID": 8,
+    "ShowType": 1
+  },
+  {
+    "SDropID": 20180,
+    "SchemeId": 1,
+    "GiftID": 9,
+    "ShowType": 2
+  },
+  {
+    "SDropID": 20103,
+    "SchemeId": 1,
+    "GiftID": 10,
+    "ShowType": 2
+  },
+  {
+    "SDropID": 20180,
+    "SchemeId": 1,
+    "GiftID": 11,
+    "ShowType": 2
+  },
+  {
+    "SDropID": 20105,
+    "SchemeId": 1,
+    "GiftID": 12,
+    "ShowType": 2
+  },
+  {
+    "SDropID": 20187,
+    "SchemeId": 1,
+    "GiftID": 13,
+    "ShowType": 2
+  },
+  {
+    "SDropID": 20107,
+    "SchemeId": 1,
+    "GiftID": 14,
+    "ShowType": 1
+  },
+  {
+    "SDropID": 100333,
+    "SchemeId": 2,
+    "GiftID": 1,
+    "ShowType": 2
+  },
+  {
+    "SDropID": 20174,
+    "SchemeId": 2,
+    "GiftID": 2,
+    "ShowType": 1
+  },
+  {
+    "SDropID": 100358,
+    "SchemeId": 2,
+    "GiftID": 3,
+    "ShowType": 2
+  },
+  {
+    "SDropID": 100359,
+    "SchemeId": 2,
+    "GiftID": 4,
+    "ShowType": 2
+  },
+  {
+    "SDropID": 20101,
+    "SchemeId": 2,
+    "GiftID": 5,
+    "ShowType": 1
+  },
+  {
+    "SDropID": 100334,
+    "SchemeId": 2,
+    "GiftID": 6,
+    "ShowType": 2
+  },
+  {
+    "SDropID": 100360,
+    "SchemeId": 2,
+    "GiftID": 7,
+    "ShowType": 2
+  },
+  {
+    "SDropID": 20096,
+    "SchemeId": 2,
+    "GiftID": 8,
+    "ShowType": 1
+  },
+  {
+    "SDropID": 20180,
+    "SchemeId": 2,
+    "GiftID": 9,
+    "ShowType": 2
+  },
+  {
+    "SDropID": 100361,
+    "SchemeId": 2,
+    "GiftID": 10,
+    "ShowType": 2
+  },
+  {
+    "SDropID": 20180,
+    "SchemeId": 2,
+    "GiftID": 11,
+    "ShowType": 2
+  },
+  {
+    "SDropID": 100362,
+    "SchemeId": 2,
+    "GiftID": 12,
+    "ShowType": 2
+  },
+  {
+    "SDropID": 20187,
+    "SchemeId": 2,
+    "GiftID": 13,
+    "ShowType": 2
+  },
+  {
+    "SDropID": 20107,
+    "SchemeId": 2,
+    "GiftID": 14,
+    "ShowType": 1
+  }
+]

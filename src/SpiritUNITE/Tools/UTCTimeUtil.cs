@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace SpiritUNITE.Game.Data;
+namespace SpiritUNITE.Tools;
 
 public static class UTCTimeUtil
 {

@@ -1,0 +1,906 @@
+[
+  {
+    "PokemonId": 1,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 4,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 6004,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 7004,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 8004,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 9004,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 448,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 8448,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 9448,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 129,
+    "RecommendEquips": [
+      15,
+      14,
+      12
+    ]
+  },
+  {
+    "PokemonId": 9129,
+    "RecommendEquips": [
+      15,
+      14,
+      12
+    ]
+  },
+  {
+    "PokemonId": 8129,
+    "RecommendEquips": [
+      15,
+      14,
+      12
+    ]
+  },
+  {
+    "PokemonId": 892,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 1892,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 679,
+    "RecommendEquips": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "PokemonId": 1679,
+    "RecommendEquips": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "PokemonId": 150,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 7150,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 9150,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 8150,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 888,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 7,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 25,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 37,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 39,
+    "RecommendEquips": [
+      15,
+      14,
+      12
+    ]
+  },
+  {
+    "PokemonId": 66,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 79,
+    "RecommendEquips": [
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "PokemonId": 92,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 113,
+    "RecommendEquips": [
+      15,
+      14,
+      12
+    ]
+  },
+  {
+    "PokemonId": 122,
+    "RecommendEquips": [
+      15,
+      14,
+      12
+    ]
+  },
+  {
+    "PokemonId": 143,
+    "RecommendEquips": [
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "PokemonId": 220,
+    "RecommendEquips": [
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "PokemonId": 280,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 359,
+    "RecommendEquips": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "PokemonId": 443,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 557,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 656,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 661,
+    "RecommendEquips": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "PokemonId": 807,
+    "RecommendEquips": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "PokemonId": 700,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 724,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 813,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 829,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 845,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 763,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 820,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 147,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 708,
+    "RecommendEquips": [
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "PokemonId": 720,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 1720,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 884,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 183,
+    "RecommendEquips": [
+      15,
+      14,
+      12
+    ]
+  },
+  {
+    "PokemonId": 196,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 653,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 471,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 794,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 246,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 151,
+    "RecommendEquips": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "PokemonId": 84,
+    "RecommendEquips": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "PokemonId": 123,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 35,
+    "RecommendEquips": [
+      15,
+      14,
+      12
+    ]
+  },
+  {
+    "PokemonId": 570,
+    "RecommendEquips": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "PokemonId": 302,
+    "RecommendEquips": [
+      15,
+      14,
+      12
+    ]
+  },
+  {
+    "PokemonId": 764,
+    "RecommendEquips": [
+      15,
+      14,
+      12
+    ]
+  },
+  {
+    "PokemonId": 885,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 20443,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 706,
+    "RecommendEquips": [
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "PokemonId": 131,
+    "RecommendEquips": [
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "PokemonId": 197,
+    "RecommendEquips": [
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "PokemonId": 609,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 470,
+    "RecommendEquips": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "PokemonId": 816,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 255,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 778,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 374,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 906,
+    "RecommendEquips": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "PokemonId": 870,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 1008,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 937,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 250,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 936,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 491,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 54,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 957,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 77,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 245,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 26,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 868,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 380,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 381,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 923,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 781,
+    "RecommendEquips": [
+      15,
+      14,
+      12
+    ]
+  },
+  {
+    "PokemonId": 134,
+    "RecommendEquips": [
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "PokemonId": 395,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 865,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 52,
+    "RecommendEquips": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "PokemonId": 144,
+    "RecommendEquips": [
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "PokemonId": 145,
+    "RecommendEquips": [
+      15,
+      14,
+      12
+    ]
+  },
+  {
+    "PokemonId": 146,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 154,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 157,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 158,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 911,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 914,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 484,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 717,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 643,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 791,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 849,
+    "RecommendEquips": [
+      7,
+      9,
+      10
+    ]
+  },
+  {
+    "PokemonId": 877,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 9877,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 135,
+    "RecommendEquips": [
+      3,
+      2,
+      5
+    ]
+  },
+  {
+    "PokemonId": 136,
+    "RecommendEquips": [
+      6,
+      4,
+      1
+    ]
+  }
+]

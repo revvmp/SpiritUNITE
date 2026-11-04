@@ -1,0 +1,282 @@
+[
+  {
+    "SeasonStartTime": "20200801000000",
+    "SeasonID": 1,
+    "SeasonEndTime": "20200802000000"
+  },
+  {
+    "SeasonStartTime": "20200802000001",
+    "SeasonID": 2,
+    "SeasonEndTime": "20200803000000"
+  },
+  {
+    "SeasonStartTime": "20200803000001",
+    "SeasonID": 3,
+    "SeasonEndTime": "20200804000000"
+  },
+  {
+    "SeasonStartTime": "20200804000001",
+    "SeasonID": 4,
+    "SeasonEndTime": "20200910000000"
+  },
+  {
+    "SeasonStartTime": "20200910000001",
+    "SeasonID": 5,
+    "SeasonEndTime": "20201005000000"
+  },
+  {
+    "SeasonStartTime": "20201005000001",
+    "SeasonID": 6,
+    "SeasonEndTime": "20201006000000"
+  },
+  {
+    "SeasonStartTime": "20201006000001",
+    "SeasonID": 7,
+    "SeasonEndTime": "20201015000000"
+  },
+  {
+    "SeasonStartTime": "20201015000001",
+    "SeasonID": 8,
+    "SeasonEndTime": "20201225000000"
+  },
+  {
+    "SeasonStartTime": "20201225000001",
+    "SeasonID": 9,
+    "SeasonEndTime": "20210501000000"
+  },
+  {
+    "SeasonStartTime": "20210501000001",
+    "SeasonID": 10,
+    "SeasonEndTime": "20210720235959"
+  },
+  {
+    "SeasonStartTime": "20210721000000",
+    "SeasonID": 11,
+    "SeasonEndTime": "20210922065959"
+  },
+  {
+    "SeasonStartTime": "20210922070000",
+    "SeasonID": 12,
+    "SeasonEndTime": "20211107235959"
+  },
+  {
+    "SeasonStartTime": "20211108000000",
+    "SeasonID": 13,
+    "SeasonEndTime": "20211219235959"
+  },
+  {
+    "SeasonStartTime": "20211220000000",
+    "SeasonID": 14,
+    "SeasonEndTime": "20220130235959"
+  },
+  {
+    "SeasonStartTime": "20220131000000",
+    "SeasonID": 15,
+    "SeasonEndTime": "20220314235959"
+  },
+  {
+    "SeasonStartTime": "20220315000000",
+    "SeasonID": 16,
+    "SeasonEndTime": "20220427235959"
+  },
+  {
+    "SeasonStartTime": "20220428000000",
+    "SeasonID": 17,
+    "SeasonEndTime": "20220608235959"
+  },
+  {
+    "SeasonStartTime": "20220609000000",
+    "SeasonID": 18,
+    "SeasonEndTime": "20220720235959"
+  },
+  {
+    "SeasonStartTime": "20220721000000",
+    "SeasonID": 19,
+    "SeasonEndTime": "20220901235959"
+  },
+  {
+    "SeasonStartTime": "20220902000000",
+    "SeasonID": 20,
+    "SeasonEndTime": "20221012235959"
+  },
+  {
+    "SeasonStartTime": "20221013000000",
+    "SeasonID": 21,
+    "SeasonEndTime": "20221201035959"
+  },
+  {
+    "SeasonStartTime": "20221201040000",
+    "SeasonID": 22,
+    "SeasonEndTime": "20221225235959"
+  },
+  {
+    "SeasonStartTime": "20221226000000",
+    "SeasonID": 23,
+    "SeasonEndTime": "20230302235959"
+  },
+  {
+    "SeasonStartTime": "20230303000000",
+    "SeasonID": 24,
+    "SeasonEndTime": "20230420235959"
+  },
+  {
+    "SeasonStartTime": "20230421000000",
+    "SeasonID": 25,
+    "SeasonEndTime": "20230611235959"
+  },
+  {
+    "SeasonStartTime": "20230612000000",
+    "SeasonID": 26,
+    "SeasonEndTime": "20230720235959"
+  },
+  {
+    "SeasonStartTime": "20230721000000",
+    "SeasonID": 27,
+    "SeasonEndTime": "20230907035959"
+  },
+  {
+    "SeasonStartTime": "20230907040000",
+    "SeasonID": 28,
+    "SeasonEndTime": "20231022235959"
+  },
+  {
+    "SeasonStartTime": "20231023000000",
+    "SeasonID": 29,
+    "SeasonEndTime": "20231205035959"
+  },
+  {
+    "SeasonStartTime": "20231205040000",
+    "SeasonID": 30,
+    "SeasonEndTime": "20240115235959"
+  },
+  {
+    "SeasonStartTime": "20240116000000",
+    "SeasonID": 31,
+    "SeasonEndTime": "20240227035959"
+  },
+  {
+    "SeasonStartTime": "20240227040000",
+    "SeasonID": 32,
+    "SeasonEndTime": "20240416235959"
+  },
+  {
+    "SeasonStartTime": "20240417000000",
+    "SeasonID": 33,
+    "SeasonEndTime": "20240606065959"
+  },
+  {
+    "SeasonStartTime": "20240606070000",
+    "SeasonID": 34,
+    "SeasonEndTime": "20240725235959"
+  },
+  {
+    "SeasonStartTime": "20240726000000",
+    "SeasonID": 35,
+    "SeasonEndTime": "20240905035959"
+  },
+  {
+    "SeasonStartTime": "20240905040000",
+    "SeasonID": 36,
+    "SeasonEndTime": "20241023235959"
+  },
+  {
+    "SeasonStartTime": "20241024000000",
+    "SeasonID": 37,
+    "SeasonEndTime": "20241205035959"
+  },
+  {
+    "SeasonStartTime": "20241205040000",
+    "SeasonID": 38,
+    "SeasonEndTime": "20250117065959"
+  },
+  {
+    "SeasonStartTime": "20250117070000",
+    "SeasonID": 39,
+    "SeasonEndTime": "20250227035959"
+  },
+  {
+    "SeasonStartTime": "20250227040000",
+    "SeasonID": 40,
+    "SeasonEndTime": "20250417065959"
+  },
+  {
+    "SeasonStartTime": "20250417070000",
+    "SeasonID": 41,
+    "SeasonEndTime": "20250605035959"
+  },
+  {
+    "SeasonStartTime": "20250605040000",
+    "SeasonID": 42,
+    "SeasonEndTime": "20250718065959"
+  },
+  {
+    "SeasonStartTime": "20250718070000",
+    "SeasonID": 43,
+    "SeasonEndTime": "20250904035959"
+  },
+  {
+    "SeasonStartTime": "20250904040000",
+    "SeasonID": 44,
+    "SeasonEndTime": "20251023065959"
+  },
+  {
+    "SeasonStartTime": "20251023070000",
+    "SeasonID": 45,
+    "SeasonEndTime": "20251204035959"
+  },
+  {
+    "SeasonStartTime": "20251204040000",
+    "SeasonID": 46,
+    "SeasonEndTime": "20251225235959"
+  },
+  {
+    "SeasonStartTime": "20251226000000",
+    "SeasonID": 47,
+    "SeasonEndTime": "20260129235959"
+  },
+  {
+    "SeasonStartTime": "20260130000000",
+    "SeasonID": 48,
+    "SeasonEndTime": "20260228235959"
+  },
+  {
+    "SeasonStartTime": "20260301000000",
+    "SeasonID": 49,
+    "SeasonEndTime": "20260331235959"
+  },
+  {
+    "SeasonStartTime": "20260401000000",
+    "SeasonID": 50,
+    "SeasonEndTime": "20260430235959"
+  },
+  {
+    "SeasonStartTime": "20260501000000",
+    "SeasonID": 51,
+    "SeasonEndTime": "20260531235959"
+  },
+  {
+    "SeasonStartTime": "20260601000000",
+    "SeasonID": 52,
+    "SeasonEndTime": "20260630235959"
+  },
+  {
+    "SeasonStartTime": "20260701000000",
+    "SeasonID": 53,
+    "SeasonEndTime": "20260731235959"
+  },
+  {
+    "SeasonStartTime": "20260801000000",
+    "SeasonID": 54,
+    "SeasonEndTime": "20260831235959"
+  },
+  {
+    "SeasonStartTime": "20260901000000",
+    "SeasonID": 55,
+    "SeasonEndTime": "20260930235959"
+  },
+  {
+    "SeasonStartTime": "20261001000000",
+    "SeasonID": 56,
+    "SeasonEndTime": "20261031235959"
+  }
+]
