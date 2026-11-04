@@ -18,6 +18,7 @@ public static class MsdkEndpoints
     private const string LoginPath = "/v2/auth/login";
     private const string CheckAndLoginPath = "/v2/auth/check_and_login";
     private const string AutoLoginPath = "/v2/auth/auto_login";
+    private const string LogoutPath = "/v2/auth/logout";
     private const string UnsupportedPath = "/v2/{**action}";
     private const int MaximumBodyBytes = 64 * 1024;
     private const int Succeeded = 0;
@@ -33,6 +34,7 @@ public static class MsdkEndpoints
         app.MapPost(LoginPath, LoginAsync).DisableAntiforgery();
         app.MapPost(CheckAndLoginPath, LoginAsync).DisableAntiforgery();
         app.MapPost(AutoLoginPath, AutoLoginAsync).DisableAntiforgery();
+        app.MapPost(LogoutPath, LogoutAsync).DisableAntiforgery();
         app.Map(UnsupportedPath, Unsupported);
     }
 
@@ -121,6 +123,29 @@ public static class MsdkEndpoints
         logger.LogInformation("MSDK auto login renewed account {AccountId} ({UserName})",
             session.Account.AccountId, session.Account.UserName ?? GuestDisplayName);
         return Succeed(query, session);
+    }
+
+    private static async Task<IResult> LogoutAsync(HttpRequest request, AccountSessionManager sessions, ILoggerFactory loggers)
+    {
+        var logger = loggers.CreateLogger(typeof(MsdkEndpoints));
+        var query = MsdkQuery.Read(request);
+        using var body = await ReadBodyAsync(request);
+        var openId = body is null ? null : ReadString(body.RootElement, "openid");
+        var token = body is null ? null : ReadString(body.RootElement, "token");
+        if (openId is null || token is null || !await sessions.LogoutAsync(openId, token))
+        {
+            logger.LogInformation("MSDK logout on channel {ChannelId} found no matching token", query.ChannelId);
+            return Refuse(query, "login expired");
+        }
+
+        logger.LogInformation("MSDK logout revoked a token of account {AccountId}", openId);
+        return Results.Json(new MsdkLoginReply
+        {
+            Ret = Succeeded,
+            Msg = "success",
+            Seq = query.Seq,
+            ChannelId = query.ChannelId,
+        });
     }
 
     private static IResult Unsupported(HttpRequest request, ILoggerFactory loggers)

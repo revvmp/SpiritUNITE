@@ -97,6 +97,8 @@ public sealed class AccountManager(AccountRepository repository, PasswordHashing
         return new AccountLogin(AccountLoginResult.LoggedIn, stored.Account);
     }
 
+    public Task<bool> DeleteAsync(ulong accountId) => repository.DeleteAsync(accountId);
+
     private async Task<StoredAccount?> FindAsync(string login)
     {
         if (IsValidUserName(login))

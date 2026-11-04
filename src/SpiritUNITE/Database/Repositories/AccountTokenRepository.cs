@@ -38,6 +38,15 @@ public sealed class AccountTokenRepository(DataOptions options)
             .FirstOrDefaultAsync();
     }
 
+    public async Task<bool> RevokeAsync(byte[] tokenHash, ulong accountId)
+    {
+        await using var database = new DataConnection(options);
+        var revoked = await database.GetTable<AccountToken>()
+            .Where(token => token.TokenHash == tokenHash && token.AccountId == accountId)
+            .DeleteAsync();
+        return revoked == 1;
+    }
+
     public async Task RemoveExpiredAsync(ulong accountId, long now)
     {
         await using var database = new DataConnection(options);

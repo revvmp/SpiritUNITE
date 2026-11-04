@@ -35,6 +35,8 @@ public sealed class RoleInfoStore(RoleRepository repository)
         return roles.GetOrAdd(uid, role);
     }
 
+    public void Forget(ulong uid) => roles.TryRemove(uid, out _);
+
     public LMNRoleInfo? Find(ulong uid) => roles.GetValueOrDefault(uid);
 
     public LMNRoleInfo Require(ulong uid) =>

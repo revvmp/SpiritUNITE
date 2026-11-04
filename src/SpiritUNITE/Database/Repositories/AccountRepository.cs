@@ -104,6 +104,15 @@ public sealed class AccountRepository(DataOptions options)
             .UpdateAsync();
     }
 
+    public async Task<bool> DeleteAsync(ulong accountId)
+    {
+        await using var database = new DataConnection(options);
+        var deleted = await database.GetTable<AccountEntity>()
+            .Where(account => account.AccountId == accountId)
+            .DeleteAsync();
+        return deleted == 1;
+    }
+
     private static async Task<AccountRegistrationResult?> FindTakenAsync(DataConnection database, string userName, string email)
     {
         var accounts = database.GetTable<AccountEntity>();

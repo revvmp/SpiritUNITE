@@ -109,6 +109,10 @@ public sealed class AccountSessionManager(
         return new AccountSession(account, token, expiresAt, false);
     }
 
+    public async Task<bool> LogoutAsync(string openId, string token) =>
+        TryParseOpenId(openId, out var accountId) && token.Length is > 0 and <= MaximumTokenLength &&
+        await tokens.RevokeAsync(HashToken(token), accountId);
+
     private async Task<GuestLogin> ResumeGuestAsync(PlayerAccount guest)
     {
         await accounts.RecordLoginAsync(guest.AccountId);
