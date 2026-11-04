@@ -112,6 +112,14 @@ CREATE TABLE IF NOT EXISTS `role_activity_task_reward` (
 ) ENGINE=InnoDB;
 
 
+CREATE TABLE IF NOT EXISTS `role_achievement` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    achievement_id INT NOT NULL,
+    reward_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, achievement_id),
+    CONSTRAINT fk_role_achievement_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `role_profile_style` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     cur_head_icon_id INT NOT NULL,
