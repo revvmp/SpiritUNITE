@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SpiritUNITE.Auth;
-using SpiritUNITE.Game.Notice;
+using SpiritUNITE.Game.MSDKNotice;
 
 namespace SpiritUNITE.Servers.Http;
 

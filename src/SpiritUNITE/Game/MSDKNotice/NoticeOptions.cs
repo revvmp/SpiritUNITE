@@ -1,4 +1,4 @@
-namespace SpiritUNITE.Game.Notice;
+namespace SpiritUNITE.Game.MSDKNotice;
 
 public sealed class NoticeOptions
 {
