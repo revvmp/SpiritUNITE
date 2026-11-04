@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 DEFAULT_PROTO = Path("src/SpiritUNITE/Protobuf/pb_protocol.proto")
-DEFAULT_OUTPUT = Path("src/SpiritUNITE/Data")
+DEFAULT_OUTPUT = Path("src/SpiritUNITE/Databin/Tables")
 
 
 @dataclass(frozen=True)
@@ -32,6 +32,9 @@ class Table:
 
 
 LUA_ONLY_FIELDS = {
+    "pbSystemMenuList": {
+        239936: Field("MenuItem", "int32"),
+    },
     "pbLobbyBg": {
         212370: Field("TransmuteId", "int32"),
         250142: Field("LobbyBgID", "int32"),
@@ -40,11 +43,110 @@ LUA_ONLY_FIELDS = {
         282277: Field("JumpID", "int32"),
         297667: Field("TransmuteNum", "int32"),
     },
+    "pbNewbieGift": {
+        256687: Field("SDropID", "int32"),
+        269998: Field("SchemeId", "int32"),
+        289481: Field("GiftID", "int32"),
+        296267: Field("ShowType", "int32"),
+    },
     "pbStarRoadSite": {
         225519: Field("SiteType", "int32"),
         240550: Field("NeedScore", "int32"),
+        255685: Field("SlotNum", "int32"),
         260146: Field("SiteID", "int32"),
+        266240: Field("OnTime", "int64"),
         298876: Field("PokemonIDList", "int32", repeated=True),
+    },
+    "pbStarRoadPokemon": {
+        232556: Field("PokemonId", "int32"),
+        236844: Field("PokemonCoupons", "int32"),
+    },
+    "pbAchievement": {
+        223098: Field("Score", "int32"),
+        240759: Field("AchievementTaskID", "int32"),
+        245693: Field("AchievementType", "int32"),
+        270106: Field("AchievementID", "int32"),
+    },
+    "pbBattlePassSeason": {
+        211257: Field("SeasonStartTime", "int64"),
+        223064: Field("SeasonID", "int32"),
+        255263: Field("SeasonEndTime", "int64"),
+    },
+    "pbReward_Pool": {
+        236391: Field("StartTime", "int64"),
+        258880: Field("EndTime", "int64"),
+        259142: Field("LotteryPoolId", "int32"),
+    },
+    "pbCanopy_Base": {
+        266240: Field("OnTime", "int64"),
+        283821: Field("CanopyID", "int32"),
+    },
+    "pbCardFace": {
+        232556: Field("PokemonID", "int32"),
+        247630: Field("CardFaceID", "int32"),
+        266240: Field("OnTime", "int64"),
+    },
+    "pbPersonStyleHeadFrame": {
+        221526: Field("HeadIconID", "int32"),
+        266240: Field("OnTime", "int64"),
+        282160: Field("IsOpen", "int32"),
+    },
+    "pbPersonalityLabel": {
+        266127: Field("ID", "int32"),
+        277336: Field("Category", "int32"),
+    },
+    "pbHeldItemSystemConfig": {
+        245971: Field("LevelStages", "int32", repeated=True),
+        266095: Field("Id", "int32"),
+        278460: Field("MaxLevel", "int32"),
+    },
+    "pbBadgeUnlock": {
+        207649: Field("CookiesBuy", "int32"),
+        207889: Field("PokeCoinsBuy", "int32"),
+        224071: Field("IsCookiesBuy", "int32"),
+        228681: Field("IsPokeCoinsBuy", "int32"),
+        239227: Field("IsCouponsBuy", "int32"),
+        255043: Field("CouponsBuy", "int32"),
+        291249: Field("BadgeSchemeID", "int32"),
+    },
+    "pbNationGroup": {
+        234861: Field("CountryCode", "int32", repeated=True),
+        276539: Field("NationGroupID", "int32"),
+    },
+    "pbSubScriptionPeriod": {
+        266127: Field("ID", "int32"),
+        288591: Field("StartTime", "int64"),
+        294988: Field("EndTime", "int64"),
+    },
+    "pbTowerDefenseBase": {
+        225340: Field("PeriodID", "int32"),
+        266186: Field("DisplayEndTime", "int64"),
+        288591: Field("StartTime", "int64"),
+        294988: Field("EndTime", "int64"),
+    },
+    "pbTrainerExpGift": {
+        206673: Field("IsBigAward", "int32"),
+        224136: Field("BigAwardParam", "int32"),
+        229878: Field("AwardParam", "int32"),
+        230419: Field("AwardType", "int32"),
+        269998: Field("SchemeId", "int32"),
+        270334: Field("Level", "int32"),
+        288065: Field("TotalExp", "int32"),
+        262487: Field("AwardItemParam", "int32", repeated=True),
+    },
+    "pbTrainerSeasonExpGift": {
+        223064: Field("SeasonID", "int32"),
+        288065: Field("TotalExp", "int32"),
+    },
+    "pbPasterSpray": {
+        230559: Field("SprayType", "int32"),
+        266240: Field("OnTime", "int64"),
+        271147: Field("PasterSprayID", "int32"),
+    },
+    "pbBadgeColor": {
+        241164: Field("BadgeColorLv", "int32"),
+        266754: Field("BadgeColor", "int32"),
+        299143: Field("LvNeedCount", "int32"),
     },
 }
 
@@ -52,6 +154,7 @@ SERVER_FIELD_SUBSETS = {
     "pbActivity_Base": {
         229558: Field("ValidEndTime", "int64"),
         230959: Field("TaskGroupIDList", "int32", repeated=True),
+        239066: Field("NationGroupList", "int32", repeated=True),
         244760: Field("ActivityID", "int32"),
         256887: Field("ActivityType", "int32"),
         291705: Field("ValidStartTime", "int64"),
@@ -64,12 +167,31 @@ SERVER_FIELD_SUBSETS = {
         266136: Field("FinishCondition", "pbFinishCondition", repeated=True),
         289808: Field("TaskID", "int32"),
     },
+    "pbBadge_Base": {
+        208485: Field("BadgeGroupId", "int32"),
+        212370: Field("TransmuteId", "int32"),
+        217461: Field("UpgradeCost", "pbUpgradeCost", repeated=True),
+        247056: Field("BadgeQuality", "int32"),
+        261074: Field("BadgeId", "int32"),
+        282986: Field("BadgePictureId", "int32"),
+        291479: Field("BadgeColors", "int32", repeated=True),
+        297667: Field("TransmuteNum", "int32"),
+    },
+    "pbPokemon_Base": {
+        232524: Field("PokemonId", "int32"),
+        250599: Field("RecommendEquips", "int32", repeated=True),
+    },
 }
 
 NESTED_MESSAGE_FIELDS = {
     "pbFinishCondition": {
         266127: Field("ID", "int32"),
         288334: Field("TargetProcess", "int32"),
+    },
+    "pbUpgradeCost": {
+        249005: Field("Probability", "int32"),
+        252306: Field("Gold", "int32"),
+        267875: Field("BadgeNum", "int32"),
     },
 }
 
@@ -105,7 +227,60 @@ SHOP_SERVER_FIELDS = (
     "SubShopItemIDs",
 )
 
-OUT_SIDE_ITEM_SERVER_FIELDS = ("OutSideItemId", "OutSideItemType", "ItemParam")
+OUT_SIDE_ITEM_SERVER_FIELDS = (
+    "OutSideItemId",
+    "OutSideItemType",
+    "ItemParam",
+    "OutSideItemCategory",
+    "OutSideItemTypeParam",
+    "OutSideItemStackSize",
+    "IsCanSell",
+    "IsCanBulkSell",
+    "BulkSellLimit",
+    "SellCurrency",
+    "SellPrice",
+    "IsCanLevelUp",
+)
+
+HELD_ITEM_LEVEL_UP_DESIGN_SERVER_FIELDS = ("Id", "GroupId", "Level", "LevelUpCost", "LevelUpCostID")
+
+SYSTEM_UNLOCK_SERVER_FIELDS = ("ID", "SchemeId", "TrainerExp", "TrainerLevel")
+
+
+NEWBIE_GUIDE_STEPS_SERVER_FIELDS = ("NewbieEnum", "StepIndex", "GuideType", "GuideParamInt")
+
+PVE_CHALLENGE_STAGE_ROUTE_SERVER_FIELDS = (
+    "StageID",
+    "NodeID",
+    "DifficultyLevel",
+    "SceneId",
+    "BattleId",
+    "IsUnLock",
+    "IsNormalType",
+    "NextUnLock",
+    "NextUnLockHard",
+)
+
+CONTESTANT_CARD_DECORATION_SERVER_FIELDS = ("DecorationID", "DecorationType", "IsDefault", "OnTime")
+
+HEAD_ICON_SERVER_FIELDS = ("HeadIconID", "IsOpen", "OnTime")
+
+BATTLE_SIGNAL_COMMUNICATE_SERVER_FIELDS = ("Id", "SignalType", "PhraseLocation")
+
+NATION_SELECT_INFORMATION_SERVER_FIELDS = ("NationID",)
+
+SCENE_MAP_SERVER_FIELDS = (
+    "SceneId",
+    "MapMode",
+    "MapSubMode",
+    "ShowInList",
+    "CampNum",
+    "CampPlayerNum",
+    "CampMatchPlayerNum",
+    "GameType",
+    "GameLevel",
+    "SortPriority",
+)
 
 TABLES = {
     "databin_ActivityTask": Table("pbTask_Base", SERVER_FIELD_SUBSETS["pbTask_Base"], key_field="TaskID"),
@@ -124,9 +299,61 @@ TABLES = {
     ),
     "databin_RankedMatchSeason": Table("pbRankedMatchSeason", key_field="SeasonId"),
     "databin_RoleImage": Table("pbRoleImage"),
+    "databin_Scene_Map": Table("pbScene_Map", key_field="SceneId", kept_fields=SCENE_MAP_SERVER_FIELDS),
     "databin_TrainerLevel": Table("pbTrainerLevel", key_field="Level"),
     "databin_Shop.group.1": Table("pbShop", key_field="ShopID", kept_fields=SHOP_SERVER_FIELDS),
     "databin_StarRoadSite": Table("pbStarRoadSite", LUA_ONLY_FIELDS["pbStarRoadSite"]),
+    "databin_StarRoadPokemon": Table("pbStarRoadPokemon", LUA_ONLY_FIELDS["pbStarRoadPokemon"]),
+    "databin_NewbieGift": Table("pbNewbieGift", LUA_ONLY_FIELDS["pbNewbieGift"]),
+    "databin_OridinaryTask": Table("pbTask_Base", SERVER_FIELD_SUBSETS["pbTask_Base"], key_field="TaskID"),
+    "databin_Achievement": Table("pbAchievement", LUA_ONLY_FIELDS["pbAchievement"], key_field="AchievementID"),
+    "databin_BattlePassSeason": Table(
+        "pbBattlePassSeason", LUA_ONLY_FIELDS["pbBattlePassSeason"], key_field="SeasonID"
+    ),
+    "databin_Reward_Pool": Table("pbReward_Pool", LUA_ONLY_FIELDS["pbReward_Pool"], key_field="LotteryPoolId"),
+    "databin_Canopy_Base": Table("pbCanopy_Base", LUA_ONLY_FIELDS["pbCanopy_Base"], key_field="CanopyID"),
+    "databin_CardFace": Table("pbCardFace", LUA_ONLY_FIELDS["pbCardFace"], key_field="CardFaceID"),
+    "databin_Contestant_Card_Decoration": Table(
+        "pbContestant_Card_Decoration", key_field="DecorationID", kept_fields=CONTESTANT_CARD_DECORATION_SERVER_FIELDS
+    ),
+    "databin_HeadIcon_Base": Table("pbHeadIcon_Base", key_field="HeadIconID", kept_fields=HEAD_ICON_SERVER_FIELDS),
+    "databin_HeadIcon": Table("pbHeadIcon", key_field="HeadIconID"),
+    "databin_PersonStyleHeadFrame": Table(
+        "pbPersonStyleHeadFrame", LUA_ONLY_FIELDS["pbPersonStyleHeadFrame"], key_field="HeadIconID"
+    ),
+    "databin_PersonalityLabel": Table("pbPersonalityLabel", LUA_ONLY_FIELDS["pbPersonalityLabel"], key_field="ID"),
+    "databin_BattleSignalCommunicate": Table(
+        "pbBattleSignalCommunicate", key_field="Id", kept_fields=BATTLE_SIGNAL_COMMUNICATE_SERVER_FIELDS
+    ),
+    "databin_SystemMenuList": Table("pbSystemMenuList", LUA_ONLY_FIELDS["pbSystemMenuList"], key_field="MenuItem"),
+    "databin_NationSelectInformation": Table(
+        "pbNationSelectInformation", key_field="NationID", kept_fields=NATION_SELECT_INFORMATION_SERVER_FIELDS
+    ),
+    "databin_HeldItemLevelUpDesign": Table(
+        "pbHeldItemLevelUpDesign", key_field="Id", kept_fields=HELD_ITEM_LEVEL_UP_DESIGN_SERVER_FIELDS
+    ),
+    "databin_HeldItemSystemConfig": Table(
+        "pbHeldItemSystemConfig", LUA_ONLY_FIELDS["pbHeldItemSystemConfig"], key_field="Id"
+    ),
+    "databin_SystemUnlock": Table("pbSystemUnlock", kept_fields=SYSTEM_UNLOCK_SERVER_FIELDS),
+    "databin_Pokemon_Base": Table("pbPokemon_Base", SERVER_FIELD_SUBSETS["pbPokemon_Base"], key_field="PokemonId"),
+    "databin_Badge_Base": Table("pbBadge_Base", SERVER_FIELD_SUBSETS["pbBadge_Base"], key_field="BadgeId"),
+    "databin_BadgeUnlock": Table("pbBadgeUnlock", LUA_ONLY_FIELDS["pbBadgeUnlock"], key_field="BadgeSchemeID"),
+    "databin_BadgeColor": Table("pbBadgeColor", LUA_ONLY_FIELDS["pbBadgeColor"]),
+    "databin_NationGroup": Table("pbNationGroup", LUA_ONLY_FIELDS["pbNationGroup"], key_field="NationGroupID"),
+    "databin_SubScriptionPeriod": Table("pbSubScriptionPeriod", LUA_ONLY_FIELDS["pbSubScriptionPeriod"], key_field="ID"),
+    "databin_TowerDefenseBase": Table(
+        "pbTowerDefenseBase", LUA_ONLY_FIELDS["pbTowerDefenseBase"], key_field="PeriodID"
+    ),
+    "databin_TrainerExpGift": Table("pbTrainerExpGift", LUA_ONLY_FIELDS["pbTrainerExpGift"]),
+    "databin_TrainerSeasonExpGift": Table("pbTrainerSeasonExpGift", LUA_ONLY_FIELDS["pbTrainerSeasonExpGift"]),
+    "databin_PasterSpray": Table("pbPasterSpray", LUA_ONLY_FIELDS["pbPasterSpray"], key_field="PasterSprayID"),
+    "databin_NewbieGuideOrder": Table("pbNewbieGuideOrder", key_field="ID"),
+    "databin_NewbieGuideSteps": Table("pbNewbieGuideSteps", kept_fields=NEWBIE_GUIDE_STEPS_SERVER_FIELDS),
+    "databin_PveChallengeStageRoute": Table(
+        "pbPveChallengeStageRoute", kept_fields=PVE_CHALLENGE_STAGE_ROUTE_SERVER_FIELDS
+    ),
+    "databin_AiInfoConfig": Table("pbAiInfoConfig", key_field="ID"),
 }
 
 TABLE_MAGIC = b"pbc"
@@ -409,6 +636,10 @@ def write_rows(output_path, rows):
         output.write("\n")
 
 
+def databins_of(message):
+    return [name for name, table in TABLES.items() if table.message == message]
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Convert decoded databin tables into the server's game data files.")
     parser.add_argument("names", nargs="*", help="Databin names to convert; all known tables when omitted")
@@ -420,10 +651,15 @@ def parse_arguments():
     unknown = [name for name in args.names if name not in TABLES]
     if unknown:
         parser.error(f"Unknown databin tables: {', '.join(unknown)}; add them to TABLES first")
+    missing_parts = sorted(
+        {part for name in args.names for part in databins_of(TABLES[name].message) if part not in args.names}
+    )
+    if missing_parts:
+        parser.error(f"Convert {', '.join(missing_parts)} too; they write the same game data file")
     if not args.input.is_dir():
         parser.error(f"Input folder does not exist: {args.input}")
     if not args.proto.is_file():
-        parser.error(f"Proto file does not exist: {args.proto}; run scripts/generate_protos.py first")
+        parser.error(f"Proto file does not exist: {args.proto}; run tools/generate_protos.py first")
     return args
 
 
@@ -432,17 +668,18 @@ def main():
     proto_messages = read_proto_messages(args.proto)
     args.output.mkdir(parents=True, exist_ok=True)
     failures = 0
-    for name in args.names:
-        table = TABLES[name]
+    for message in dict.fromkeys(TABLES[name].message for name in args.names):
+        rows = []
         try:
-            rows = convert_table(name, table, args.input, proto_messages)
+            for name in databins_of(message):
+                rows.extend(convert_table(name, TABLES[name], args.input, proto_messages))
         except (ConversionError, struct.error) as error:
             print(f"{name}: {error}", file=sys.stderr)
             failures += 1
             continue
-        output_path = args.output / f"{table.message}.json"
+        output_path = args.output / f"{message}.json"
         write_rows(output_path, rows)
-        print(f"{name}: {len(rows)} rows written to {output_path}")
+        print(f"{', '.join(databins_of(message))}: {len(rows)} rows written to {output_path}")
     return 1 if failures else 0
 
 

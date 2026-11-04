@@ -20,7 +20,7 @@ Screenshots coming soon.
 
 1. Generate the protocol files from your own copy of the client. Nothing taken from the client is included in this repository.
    ```powershell
-   python scripts/generate_protos.py path/to/dump.cs
+   python tools/generate_protos.py path/to/dump.cs
    ```
 
 2. Create the database and its tables.

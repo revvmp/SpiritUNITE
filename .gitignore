@@ -430,7 +430,7 @@ FodyWeavers.xsd
 AGENTS.md
 CLAUDE.md
 docs/
-tools/
+/local_tools/
 .re/
 .idea/
 src/SpiritUNITE/Protobuf/
