@@ -153,3 +153,19 @@ CREATE TABLE IF NOT EXISTS `role_held_item_slot` (
     PRIMARY KEY (game_ulong_uid, held_item_slot_index),
     CONSTRAINT fk_role_held_item_slot_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_badge` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    cur_badge_schedue_id INT NOT NULL DEFAULT 0,
+    CONSTRAINT fk_role_badge_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_badge_schedue` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    badge_schedue_id INT NOT NULL,
+    schedue_name VARCHAR(64) NOT NULL DEFAULT '',
+    schedue_data VARBINARY(256) NOT NULL,
+    unlock_time_stamp BIGINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid, badge_schedue_id),
+    CONSTRAINT fk_role_badge_schedue_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
