@@ -3,7 +3,7 @@ using SpiritUNITE.Game.Data;
 using SpiritUNITE.Game.StarRoad;
 using SpiritUNITE.Packets.Messages;
 
-namespace SpiritUNITE.Packets.Handlers;
+namespace SpiritUNITE.Packets.Handlers.StarRoad;
 
 public sealed class StarRoadHandlers(GameData gameData, ILogger<StarRoadHandlers> logger)
 {

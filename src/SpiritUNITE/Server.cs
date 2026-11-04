@@ -17,7 +17,6 @@ using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Logging;
 using SpiritUNITE.Network;
 using SpiritUNITE.Packets;
-using SpiritUNITE.Packets.Handlers;
 using SpiritUNITE.Servers.Http;
 using SpiritUNITE.Servers.Dir;
 using SpiritUNITE.Servers.Lobby;
@@ -131,7 +130,7 @@ public static class Server
 
     private static void AddPackets(IHostApplicationBuilder builder) =>
         builder.Services.AddSingleton(services =>
-            PacketDispatcher.Discover(typeof(DirHandlers).Assembly, services));
+            PacketDispatcher.Discover(typeof(PacketDispatcher).Assembly, services));
 
     private static void AddServers(IHostApplicationBuilder builder)
     {

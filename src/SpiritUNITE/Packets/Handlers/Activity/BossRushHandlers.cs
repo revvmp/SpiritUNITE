@@ -1,6 +1,6 @@
 using SpiritUNITE.Packets.Messages;
 
-namespace SpiritUNITE.Packets.Handlers;
+namespace SpiritUNITE.Packets.Handlers.Activity;
 
 public sealed class BossRushHandlers
 {

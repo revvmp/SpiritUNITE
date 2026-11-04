@@ -5,7 +5,7 @@ using SpiritUNITE.Game.Shop;
 using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Packets.Messages;
 
-namespace SpiritUNITE.Packets.Handlers;
+namespace SpiritUNITE.Packets.Handlers.Shop;
 
 public sealed class ShopHandlers(
     RoleInfoStore roles,

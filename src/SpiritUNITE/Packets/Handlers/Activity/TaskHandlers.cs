@@ -2,7 +2,7 @@ using SpiritUNITE.Game.Activity;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
 
-namespace SpiritUNITE.Packets.Handlers;
+namespace SpiritUNITE.Packets.Handlers.Activity;
 
 public sealed class TaskHandlers(RoleInfoStore roles, ActivityTasks activityTasks)
 {

@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using SpiritUNITE.Packets.Messages;
 using SpiritUNITE.Servers.Lobby;
 
-namespace SpiritUNITE.Packets.Handlers;
+namespace SpiritUNITE.Packets.Handlers.Session;
 
 public sealed class DirHandlers(IOptions<LobbyAddressOptions> lobbyAddress, ILogger<DirHandlers> logger)
 {

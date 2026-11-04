@@ -2,7 +2,7 @@ using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Packets.Messages;
 
-namespace SpiritUNITE.Packets.Handlers;
+namespace SpiritUNITE.Packets.Handlers.Wallet;
 
 public sealed class CoinHandlers(RoleInfoStore roles, WalletManager wallets)
 {

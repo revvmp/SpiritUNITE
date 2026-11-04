@@ -3,7 +3,7 @@ using SpiritUNITE.Game.Data;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
 
-namespace SpiritUNITE.Packets.Handlers;
+namespace SpiritUNITE.Packets.Handlers.Role;
 
 public sealed class CosmeticHandlers(
     RoleInfoStore roles,

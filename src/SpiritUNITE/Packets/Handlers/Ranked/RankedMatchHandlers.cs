@@ -2,7 +2,7 @@ using SpiritUNITE.Game.Data;
 using SpiritUNITE.Game.Ranked;
 using SpiritUNITE.Packets.Messages;
 
-namespace SpiritUNITE.Packets.Handlers;
+namespace SpiritUNITE.Packets.Handlers.Ranked;
 
 public sealed class RankedMatchHandlers(GameData gameData, TimeProvider clock)
 {

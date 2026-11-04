@@ -3,7 +3,7 @@ using SpiritUNITE.Game.Activity;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
 
-namespace SpiritUNITE.Packets.Handlers;
+namespace SpiritUNITE.Packets.Handlers.Activity;
 
 public sealed class ActivityHandlers(RoleInfoStore roles, ActivityTasks activityTasks, ILogger<ActivityHandlers> logger)
 {
