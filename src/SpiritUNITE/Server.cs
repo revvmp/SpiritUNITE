@@ -119,14 +119,14 @@ public static class Server
     {
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<RoleInfoStore>();
-        builder.Services.AddSingleton<WalletService>();
-        builder.Services.AddSingleton<ShopService>();
+        builder.Services.AddSingleton<WalletManager>();
+        builder.Services.AddSingleton<ShopManager>();
         builder.Services.AddSingleton<ActivitySchedule>();
         builder.Services.AddSingleton<ActivityTasks>();
         builder.Services.AddSingleton<LoginThrottle>();
-        builder.Services.AddSingleton<AccountService>();
+        builder.Services.AddSingleton<AccountManager>();
         builder.Services.AddSingleton<AuthorizationCodeStore>();
-        builder.Services.AddSingleton<AccountSessionService>();
+        builder.Services.AddSingleton<AccountSessionManager>();
     }
 
     private static void AddPackets(IHostApplicationBuilder builder) =>

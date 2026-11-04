@@ -14,8 +14,8 @@ public sealed class LoginHandlers(
     RoleInfoStore roles,
     ActivityTasks activityTasks,
     GameData gameData,
-    WalletService wallets,
-    ShopService shop,
+    WalletManager wallets,
+    ShopManager shop,
     TimeProvider clock,
     ILogger<LoginHandlers> logger)
 {

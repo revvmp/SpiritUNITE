@@ -18,7 +18,7 @@ public enum GuestLoginResult
 
 public sealed record GuestLogin(GuestLoginResult Result, AccountSession? Session);
 
-public sealed class AccountSessionService(
+public sealed class AccountSessionManager(
     AuthorizationCodeStore codes,
     IAccountRepository accounts,
     IAccountTokenRepository tokens,

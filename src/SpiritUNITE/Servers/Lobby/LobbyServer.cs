@@ -12,7 +12,7 @@ public sealed class LobbyServer(
     IOptions<LobbyAddressOptions> lobbyAddress,
     IOptions<TcpServerOptions> options,
     PacketDispatcher dispatcher,
-    AccountSessionService sessions,
+    AccountSessionManager sessions,
     ILogger<LobbyServer> lobbyLogger,
     ILogger<TcpServer> logger,
     ILogger<Connection> connectionLogger)

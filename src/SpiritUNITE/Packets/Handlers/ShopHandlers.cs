@@ -9,7 +9,7 @@ namespace SpiritUNITE.Packets.Handlers;
 
 public sealed class ShopHandlers(
     RoleInfoStore roles,
-    ShopService shop,
+    ShopManager shop,
     GameData gameData,
     ILogger<ShopHandlers> logger)
 {

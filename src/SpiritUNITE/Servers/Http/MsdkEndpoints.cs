@@ -36,7 +36,7 @@ public static class MsdkEndpoints
         app.Map(UnsupportedPath, Unsupported);
     }
 
-    private static async Task<IResult> LoginAsync(HttpRequest request, AccountSessionService sessions, ILoggerFactory loggers)
+    private static async Task<IResult> LoginAsync(HttpRequest request, AccountSessionManager sessions, ILoggerFactory loggers)
     {
         var logger = loggers.CreateLogger(typeof(MsdkEndpoints));
         var query = MsdkQuery.Read(request);
@@ -57,7 +57,7 @@ public static class MsdkEndpoints
         MsdkQuery query,
         JsonElement? channelInfo,
         IPAddress? clientAddress,
-        AccountSessionService sessions,
+        AccountSessionManager sessions,
         ILogger logger)
     {
         if ((channelInfo is { } info ? ReadString(info, GuestIdKey) : null) is not { } guestId)
@@ -82,7 +82,7 @@ public static class MsdkEndpoints
     private static async Task<IResult> AuthorizationCodeLoginAsync(
         MsdkQuery query,
         JsonElement? channelInfo,
-        AccountSessionService sessions,
+        AccountSessionManager sessions,
         ILogger logger)
     {
         var code = channelInfo is { } info ? ReadString(info, "code") : null;
@@ -103,7 +103,7 @@ public static class MsdkEndpoints
         return Succeed(query, session);
     }
 
-    private static async Task<IResult> AutoLoginAsync(HttpRequest request, AccountSessionService sessions, ILoggerFactory loggers)
+    private static async Task<IResult> AutoLoginAsync(HttpRequest request, AccountSessionManager sessions, ILoggerFactory loggers)
     {
         var logger = loggers.CreateLogger(typeof(MsdkEndpoints));
         var query = MsdkQuery.Read(request);
@@ -137,7 +137,7 @@ public static class MsdkEndpoints
         Msg = "success",
         Seq = query.Seq,
         ChannelId = query.ChannelId,
-        OpenId = AccountSessionService.ToOpenId(session.Account.AccountId),
+        OpenId = AccountSessionManager.ToOpenId(session.Account.AccountId),
         Token = session.Token,
         TokenExpireTime = session.ExpiresAt,
         First = session.IsNewAccount ? FirstLogin : ReturningLogin,

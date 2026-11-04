@@ -103,7 +103,7 @@ public static class HttpServer
     private static async Task<IResult> SubmitLogin(
         HttpRequest request,
         IOptions<HttpServerOptions> options,
-        AccountService accounts,
+        AccountManager accounts,
         AuthorizationCodeStore codes,
         ILoggerFactory loggers,
         CancellationToken cancellationToken)
@@ -131,7 +131,7 @@ public static class HttpServer
     private static async Task<IResult> SubmitRegister(
         HttpRequest request,
         IOptions<HttpServerOptions> options,
-        AccountService accounts,
+        AccountManager accounts,
         AuthorizationCodeStore codes,
         ILoggerFactory loggers,
         CancellationToken cancellationToken)

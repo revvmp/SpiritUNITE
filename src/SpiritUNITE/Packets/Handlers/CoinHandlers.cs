@@ -4,7 +4,7 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers;
 
-public sealed class CoinHandlers(RoleInfoStore roles, WalletService wallets)
+public sealed class CoinHandlers(RoleInfoStore roles, WalletManager wallets)
 {
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetCoinValReq)]
     public async Task<GamePacket[]> OnGetCoinValReq(GamePacket request)

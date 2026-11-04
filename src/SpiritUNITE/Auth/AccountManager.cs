@@ -15,7 +15,7 @@ public enum AccountLoginResult
 
 public sealed record AccountLogin(AccountLoginResult Result, PlayerAccount? Account);
 
-public sealed class AccountService(IAccountRepository repository, PasswordHashing hashing, LoginThrottle throttle)
+public sealed class AccountManager(IAccountRepository repository, PasswordHashing hashing, LoginThrottle throttle)
 {
     public const int MinimumUserNameLength = 3;
     public const int MaximumUserNameLength = 20;

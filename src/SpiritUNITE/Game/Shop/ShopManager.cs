@@ -12,7 +12,7 @@ public sealed record ShopBuyOutcome(
     RoleWallet? Wallet = null,
     IReadOnlyList<ShopBuyRecord>? BuyRecords = null);
 
-public sealed class ShopService(GameData gameData, IShopRepository repository, WalletService wallets, TimeProvider clock)
+public sealed class ShopManager(GameData gameData, IShopRepository repository, WalletManager wallets, TimeProvider clock)
 {
     private const int Enabled = 0;
 

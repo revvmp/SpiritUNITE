@@ -39,7 +39,7 @@ public static class AccountPages
           {HiddenFields(request)}
           <div class="field">
             <label class="visually-hidden" for="field-login">Username or email</label>
-            <input id="field-login" name="login" value="{Html.Encode(login)}" placeholder="Username or email" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="{AccountService.MaximumEmailLength}" required>
+            <input id="field-login" name="login" value="{Html.Encode(login)}" placeholder="Username or email" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="{AccountManager.MaximumEmailLength}" required>
           </div>
           <div class="field">
             <label class="visually-hidden" for="field-password">Password</label>
@@ -61,17 +61,17 @@ public static class AccountPages
           {HiddenFields(request)}
           <div class="field">
             <label class="visually-hidden" for="field-user-name">Username</label>
-            <input id="field-user-name" name="user_name" value="{Html.Encode(userName)}" placeholder="Username" autocomplete="username" autocapitalize="none" spellcheck="false" minlength="{AccountService.MinimumUserNameLength}" maxlength="{AccountService.MaximumUserNameLength}" pattern="[A-Za-z0-9_.\-]+" aria-describedby="hint-user-name" required>
-            <p class="hint" id="hint-user-name">{AccountService.MinimumUserNameLength} to {AccountService.MaximumUserNameLength} letters, numbers, dots, dashes or underscores.</p>
+            <input id="field-user-name" name="user_name" value="{Html.Encode(userName)}" placeholder="Username" autocomplete="username" autocapitalize="none" spellcheck="false" minlength="{AccountManager.MinimumUserNameLength}" maxlength="{AccountManager.MaximumUserNameLength}" pattern="[A-Za-z0-9_.\-]+" aria-describedby="hint-user-name" required>
+            <p class="hint" id="hint-user-name">{AccountManager.MinimumUserNameLength} to {AccountManager.MaximumUserNameLength} letters, numbers, dots, dashes or underscores.</p>
           </div>
           <div class="field">
             <label class="visually-hidden" for="field-email">Email</label>
-            <input id="field-email" name="email" type="email" value="{Html.Encode(email)}" placeholder="Email" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="{AccountService.MaximumEmailLength}" required>
+            <input id="field-email" name="email" type="email" value="{Html.Encode(email)}" placeholder="Email" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="{AccountManager.MaximumEmailLength}" required>
           </div>
           <div class="field">
             <label class="visually-hidden" for="field-password">Password</label>
-            {PasswordInput("field-password", "password", "Password", "new-password", AccountService.MinimumPasswordLength, "hint-password")}
-            <p class="hint" id="hint-password">{AccountService.MinimumPasswordLength} to {AccountService.MaximumPasswordLength} characters. Use a password you do not use anywhere else.</p>
+            {PasswordInput("field-password", "password", "Password", "new-password", AccountManager.MinimumPasswordLength, "hint-password")}
+            <p class="hint" id="hint-password">{AccountManager.MinimumPasswordLength} to {AccountManager.MaximumPasswordLength} characters. Use a password you do not use anywhere else.</p>
           </div>
           <div class="field">
             <label class="visually-hidden" for="field-password-confirmation">Confirm password</label>
@@ -113,10 +113,10 @@ public static class AccountPages
     public static string RegistrationError(AccountRegistrationResult result) => result switch
     {
         AccountRegistrationResult.UserNameInvalid =>
-            $"Usernames are {AccountService.MinimumUserNameLength} to {AccountService.MaximumUserNameLength} letters, numbers, dots, dashes or underscores.",
+            $"Usernames are {AccountManager.MinimumUserNameLength} to {AccountManager.MaximumUserNameLength} letters, numbers, dots, dashes or underscores.",
         AccountRegistrationResult.EmailInvalid => "Enter a valid email address.",
         AccountRegistrationResult.PasswordInvalid =>
-            $"Passwords are {AccountService.MinimumPasswordLength} to {AccountService.MaximumPasswordLength} characters.",
+            $"Passwords are {AccountManager.MinimumPasswordLength} to {AccountManager.MaximumPasswordLength} characters.",
         AccountRegistrationResult.PasswordConfirmationMismatch => "The passwords do not match.",
         AccountRegistrationResult.UserNameTaken => "That username is already taken.",
         AccountRegistrationResult.EmailTaken => "An account with that email already exists. Log in instead.",
@@ -132,7 +132,7 @@ public static class AccountPages
     private static string PasswordInput(string id, string name, string placeholder, string autocomplete, int? minimumLength, string? hintId) =>
         $"""
         <div class="password">
-              <input id="{id}" name="{name}" type="password" placeholder="{placeholder}" autocomplete="{autocomplete}"{(minimumLength is { } minimum ? $" minlength=\"{minimum}\"" : string.Empty)} maxlength="{AccountService.MaximumPasswordLength}"{(hintId is null ? string.Empty : $" aria-describedby=\"{hintId}\"")} required>
+              <input id="{id}" name="{name}" type="password" placeholder="{placeholder}" autocomplete="{autocomplete}"{(minimumLength is { } minimum ? $" minlength=\"{minimum}\"" : string.Empty)} maxlength="{AccountManager.MaximumPasswordLength}"{(hintId is null ? string.Empty : $" aria-describedby=\"{hintId}\"")} required>
               <button class="reveal" type="button" data-reveal aria-controls="{id}" aria-pressed="false" aria-label="Show password">
                 <svg class="eye-shown" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
                 <svg class="eye-hidden" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10.6 5.1A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7a17.7 17.7 0 0 1-2.8 3.8M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7a9.8 9.8 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M3 3l18 18"/></svg>
