@@ -1,3 +1,7 @@
+using System.Buffers.Text;
+using System.Security.Cryptography;
+using System.Text;
+
 namespace SpiritUNITE.Auth;
 
 public sealed record AuthorizationRequest(string RedirectUri, string? State, string? Scope, string? CodeChallenge)
@@ -65,9 +69,21 @@ public sealed record AuthorizationRequest(string RedirectUri, string? State, str
             codeChallenge);
     }
 
-    public static bool IsValidCodeVerifier(string codeVerifier) =>
-        codeVerifier.Length is >= MinimumCodeVerifierLength and <= MaximumCodeVerifierLength &&
-        codeVerifier.All(character => char.IsAsciiLetterOrDigit(character) || character is '-' or '.' or '_' or '~');
+    public bool AcceptsVerifier(string? codeVerifier)
+    {
+        if (CodeChallenge is null)
+        {
+            return codeVerifier is null;
+        }
+
+        if (codeVerifier is null || !IsValidCodeVerifier(codeVerifier))
+        {
+            return false;
+        }
+
+        var expected = Base64Url.EncodeToString(SHA256.HashData(Encoding.ASCII.GetBytes(codeVerifier)));
+        return CryptographicOperations.FixedTimeEquals(Encoding.ASCII.GetBytes(expected), Encoding.ASCII.GetBytes(CodeChallenge));
+    }
 
     public IEnumerable<KeyValuePair<string, string?>> ToParameters()
     {
@@ -89,6 +105,10 @@ public sealed record AuthorizationRequest(string RedirectUri, string? State, str
             yield return new(CodeChallengeMethodParameter, Sha256ChallengeMethod);
         }
     }
+
+    private static bool IsValidCodeVerifier(string codeVerifier) =>
+        codeVerifier.Length is >= MinimumCodeVerifierLength and <= MaximumCodeVerifierLength &&
+        codeVerifier.All(character => char.IsAsciiLetterOrDigit(character) || character is '-' or '.' or '_' or '~');
 
     private static bool IsSha256CodeChallenge(string? codeChallenge) =>
         codeChallenge is { Length: Sha256ChallengeLength } && codeChallenge.All(IsBase64UrlCharacter);

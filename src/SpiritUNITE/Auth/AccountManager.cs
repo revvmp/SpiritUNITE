@@ -16,6 +16,20 @@ public enum AccountLoginResult
 
 public sealed record AccountLogin(AccountLoginResult Result, PlayerAccount? Account);
 
+public enum AccountRegistrationResult
+{
+    Created,
+    UserNameInvalid,
+    EmailInvalid,
+    PasswordInvalid,
+    PasswordConfirmationMismatch,
+    UserNameTaken,
+    EmailTaken,
+    Busy,
+}
+
+public sealed record AccountCreation(AccountRegistrationResult Result, PlayerAccount? Account);
+
 public sealed class AccountManager(AccountRepository repository, PasswordHashing hashing, LoginThrottle throttle)
 {
     public const int MinimumUserNameLength = 3;
@@ -98,6 +112,11 @@ public sealed class AccountManager(AccountRepository repository, PasswordHashing
     }
 
     public Task<bool> DeleteAsync(ulong accountId) => repository.DeleteAsync(accountId);
+
+    public async Task<LoginPlatform[]> FindBoundChannelsAsync(ulong accountId) =>
+        await repository.FindByIdAsync(accountId) is { } account
+            ? [account.IsGuest ? LoginPlatform.GUEST : LoginPlatform.POKEMON]
+            : [];
 
     private async Task<StoredAccount?> FindAsync(string login)
     {

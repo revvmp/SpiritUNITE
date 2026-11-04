@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Network;
+using SpiritUNITE.Tools;
 
 namespace SpiritUNITE.Auth;
 
@@ -87,19 +88,19 @@ public sealed class AccountSessionManager(
     }
 
     public async Task<ulong?> FindAccountIdAsync(string token) =>
-        token.Length is 0 or > MaximumTokenLength
+        !IsValidTokenLength(token)
             ? null
             : await tokens.FindAccountIdAsync(HashToken(token), clock.GetUtcNow().ToUnixTimeSeconds());
 
     public async Task<AccountSession?> ResumeAsync(string openId, string token)
     {
-        if (!TryParseOpenId(openId, out var accountId) || token.Length is 0 or > MaximumTokenLength)
+        if (!TryParseOpenId(openId, out var accountId) || !IsValidTokenLength(token))
         {
             return null;
         }
 
         var now = clock.GetUtcNow();
-        var expiresAt = (now + TokenLifetime).ToUnixTimeSeconds();
+        var expiresAt = ExpiryFrom(now);
         if (!await tokens.ExtendAsync(HashToken(token), accountId, now.ToUnixTimeSeconds(), expiresAt) ||
             await accounts.FindByIdAsync(accountId) is not { } account)
         {
@@ -110,8 +111,12 @@ public sealed class AccountSessionManager(
     }
 
     public async Task<bool> LogoutAsync(string openId, string token) =>
-        TryParseOpenId(openId, out var accountId) && token.Length is > 0 and <= MaximumTokenLength &&
+        TryParseOpenId(openId, out var accountId) && IsValidTokenLength(token) &&
         await tokens.RevokeAsync(HashToken(token), accountId);
+
+    private static bool IsValidTokenLength(string token) => token.Length is > 0 and <= MaximumTokenLength;
+
+    private static long ExpiryFrom(DateTimeOffset now) => (now + TokenLifetime).ToUnixTimeSeconds();
 
     private async Task<GuestLogin> ResumeGuestAsync(PlayerAccount guest)
     {
@@ -123,7 +128,7 @@ public sealed class AccountSessionManager(
     {
         var now = clock.GetUtcNow();
         var token = Base64Url.EncodeToString(RandomNumberGenerator.GetBytes(TokenBytes));
-        var expiresAt = (now + TokenLifetime).ToUnixTimeSeconds();
+        var expiresAt = ExpiryFrom(now);
         await tokens.RemoveExpiredAsync(account.AccountId, now.ToUnixTimeSeconds());
         await tokens.AddAsync(HashToken(token), account.AccountId, expiresAt);
         return new AccountSession(account, token, expiresAt, isNewAccount);

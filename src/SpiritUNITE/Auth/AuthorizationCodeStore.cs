@@ -1,7 +1,6 @@
 using System.Buffers.Text;
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace SpiritUNITE.Auth;
 
@@ -29,23 +28,7 @@ public sealed class AuthorizationCodeStore(TimeProvider clock)
             return null;
         }
 
-        return VerifierMatches(grant.Request, codeVerifier) ? grant : null;
-    }
-
-    private static bool VerifierMatches(AuthorizationRequest request, string? codeVerifier)
-    {
-        if (request.CodeChallenge is not { } codeChallenge)
-        {
-            return codeVerifier is null;
-        }
-
-        if (codeVerifier is null || !AuthorizationRequest.IsValidCodeVerifier(codeVerifier))
-        {
-            return false;
-        }
-
-        var expected = Base64Url.EncodeToString(SHA256.HashData(Encoding.ASCII.GetBytes(codeVerifier)));
-        return CryptographicOperations.FixedTimeEquals(Encoding.ASCII.GetBytes(expected), Encoding.ASCII.GetBytes(codeChallenge));
+        return grant.Request.AcceptsVerifier(codeVerifier) ? grant : null;
     }
 
     private void RemoveExpired()
