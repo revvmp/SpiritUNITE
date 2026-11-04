@@ -11,6 +11,7 @@ using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Game.Activity;
 using SpiritUNITE.Auth;
 using SpiritUNITE.Game.Data;
+using SpiritUNITE.Game.Notice;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Shop;
 using SpiritUNITE.Game.Wallet;
@@ -90,6 +91,11 @@ public static class Server
         builder.Services.AddOptions<WalletOptions>()
             .BindConfiguration(WalletOptions.SectionName)
             .Validate(options => options.IsValid(), "Wallet settings are invalid")
+            .ValidateOnStart();
+
+        builder.Services.AddOptions<NoticeOptions>()
+            .BindConfiguration(NoticeOptions.SectionName)
+            .Validate(options => options.IsValid(), "MSDKNotice settings are invalid")
             .ValidateOnStart();
 
         builder.Services.AddOptions<LobbyAddressOptions>()

@@ -5,7 +5,9 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SpiritUNITE.Auth;
+using SpiritUNITE.Game.Notice;
 
 namespace SpiritUNITE.Servers.Http;
 
@@ -19,6 +21,8 @@ public static class MsdkEndpoints
     private const string CheckAndLoginPath = "/v2/auth/check_and_login";
     private const string AutoLoginPath = "/v2/auth/auto_login";
     private const string LogoutPath = "/v2/auth/logout";
+    private const string GetConfPath = "/v2/conf/get_conf";
+    private const string GetNoticePath = "/v2/notice/get_notice";
     private const string UnsupportedPath = "/v2/{**action}";
     private const int MaximumBodyBytes = 64 * 1024;
     private const int Succeeded = 0;
@@ -35,6 +39,8 @@ public static class MsdkEndpoints
         app.MapPost(CheckAndLoginPath, LoginAsync).DisableAntiforgery();
         app.MapPost(AutoLoginPath, AutoLoginAsync).DisableAntiforgery();
         app.MapPost(LogoutPath, LogoutAsync).DisableAntiforgery();
+        app.MapPost(GetConfPath, GetConf).DisableAntiforgery();
+        app.MapPost(GetNoticePath, GetNotice).DisableAntiforgery();
         app.Map(UnsupportedPath, Unsupported);
     }
 
@@ -147,6 +153,21 @@ public static class MsdkEndpoints
             ChannelId = query.ChannelId,
         });
     }
+
+    private static IResult GetConf(HttpRequest request) => Results.Json(new MsdkConfReply
+    {
+        Ret = Succeeded,
+        Msg = "success",
+        Seq = MsdkQuery.Read(request).Seq,
+    });
+
+    private static IResult GetNotice(HttpRequest request, IOptions<NoticeOptions> options) => Results.Json(new MsdkNoticeReply
+    {
+        Ret = Succeeded,
+        Msg = "success",
+        Seq = MsdkQuery.Read(request).Seq,
+        NoticeList = [.. options.Value.NoticeInfoList.Select(MsdkNotice.From)],
+    });
 
     private static IResult Unsupported(HttpRequest request, ILoggerFactory loggers)
     {
@@ -311,5 +332,107 @@ public static class MsdkEndpoints
         public string BindList { get; init; } = string.Empty;
 
         private static readonly JsonElement EmptyObject = JsonDocument.Parse("{}").RootElement.Clone();
+    }
+
+    private sealed class MsdkConfReply
+    {
+        [JsonPropertyName("ret")]
+        public int Ret { get; init; }
+
+        [JsonPropertyName("msg")]
+        public string Msg { get; init; } = string.Empty;
+
+        [JsonPropertyName("seq")]
+        public string Seq { get; init; } = string.Empty;
+
+        [JsonPropertyName("conf")]
+        public Dictionary<string, string> Conf { get; init; } = [];
+
+        [JsonPropertyName("conf_sig")]
+        public string ConfSig { get; init; } = string.Empty;
+
+        [JsonPropertyName("conf_version")]
+        public string ConfVersion { get; init; } = string.Empty;
+    }
+
+    private sealed class MsdkNoticeReply
+    {
+        [JsonPropertyName("ret")]
+        public int Ret { get; init; }
+
+        [JsonPropertyName("msg")]
+        public string Msg { get; init; } = string.Empty;
+
+        [JsonPropertyName("seq")]
+        public string Seq { get; init; } = string.Empty;
+
+        [JsonPropertyName("notice_list")]
+        public MsdkNotice[] NoticeList { get; init; } = [];
+    }
+
+    private sealed class MsdkNotice
+    {
+        [JsonPropertyName("notice_id")]
+        public int NoticeId { get; init; }
+
+        [JsonPropertyName("notice_type")]
+        public int NoticeType { get; init; }
+
+        [JsonPropertyName("notice_group")]
+        public string NoticeGroup { get; init; } = string.Empty;
+
+        [JsonPropertyName("start_time")]
+        public int StartTime { get; init; }
+
+        [JsonPropertyName("end_time")]
+        public int EndTime { get; init; }
+
+        [JsonPropertyName("update_time")]
+        public int UpdateTime { get; init; }
+
+        [JsonPropertyName("content_type")]
+        public int ContentType { get; init; }
+
+        [JsonPropertyName("order")]
+        public int Order { get; init; }
+
+        [JsonPropertyName("language")]
+        public string Language { get; init; } = string.Empty;
+
+        [JsonPropertyName("notice_text_obj")]
+        public MsdkNoticeText NoticeTextObj { get; init; } = new();
+
+        [JsonPropertyName("notice_pic_list")]
+        public JsonElement[] NoticePicList { get; init; } = [];
+
+        [JsonPropertyName("notice_web_url")]
+        public string NoticeWebUrl { get; init; } = string.Empty;
+
+        [JsonPropertyName("extra_data")]
+        public string ExtraData { get; init; } = string.Empty;
+
+        public static MsdkNotice From(MSDKNoticeInfo notice) => new()
+        {
+            NoticeId = notice.NoticeId,
+            NoticeType = notice.NoticeType,
+            NoticeGroup = notice.NoticeGroup,
+            StartTime = notice.BeginTimestamp,
+            EndTime = notice.EndTimestamp,
+            UpdateTime = notice.BeginTimestamp,
+            Order = notice.Order,
+            NoticeTextObj = new MsdkNoticeText { NoticeTitle = notice.NoticeTitle, NoticeContent = notice.NoticeContent },
+        };
+    }
+
+    private sealed class MsdkNoticeText
+    {
+        [JsonPropertyName("notice_title")]
+        public string NoticeTitle { get; init; } = string.Empty;
+
+        [JsonPropertyName("notice_content")]
+        public string NoticeContent { get; init; } = string.Empty;
+
+        [JsonPropertyName("notice_redirect_url")]
+        public string NoticeRedirectUrl { get; init; } = string.Empty;
     }
 }

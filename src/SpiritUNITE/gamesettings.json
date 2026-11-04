@@ -3,5 +3,17 @@
     "StartingCookies": 0,
     "StartingPokeCoins": 0,
     "StartingCoupons": 0
+  },
+  "MSDKNotice": {
+    "NoticeInfoList": [
+      {
+        "NoticeId": 1,
+        "NoticeType": 0,
+        "NoticeGroup": "emergency1",
+        "Order": 0,
+        "NoticeTitle": "Welcome",
+        "NoticeContent": "Welcome to SpiritUNITE."
+      }
+    ]
   }
 }
