@@ -107,6 +107,28 @@ CREATE TABLE IF NOT EXISTS `role_activity_task_reward` (
     CONSTRAINT fk_role_activity_task_reward_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+
+CREATE TABLE IF NOT EXISTS `role_profile_style` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    cur_head_icon_id INT NOT NULL,
+    player_contestant_info VARBINARY(4096) NOT NULL,
+    individual_label_info VARBINARY(256) NOT NULL,
+    is_anonymity INT NOT NULL DEFAULT 0,
+    is_hide_info INT NOT NULL DEFAULT 0,
+    cur_canopy_id INT NOT NULL DEFAULT 0,
+    head_type INT NOT NULL,
+    cur_head_res_id INT NOT NULL DEFAULT 0,
+    CONSTRAINT ck_role_profile_style_flags CHECK (is_anonymity IN (0, 1) AND is_hide_info IN (0, 1)),
+    CONSTRAINT fk_role_profile_style_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_card_face_wear` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    pokemon_id INT NOT NULL,
+    card_face_id INT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, pokemon_id),
+    CONSTRAINT fk_role_card_face_wear_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
 CREATE TABLE IF NOT EXISTS `role_pokemon_used` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL,
     pokemon_id INT NOT NULL,

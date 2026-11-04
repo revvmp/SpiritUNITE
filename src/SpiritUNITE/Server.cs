@@ -13,6 +13,7 @@ using SpiritUNITE.Game.Activity;
 using SpiritUNITE.Auth;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.MSDKNotice;
+using SpiritUNITE.Game.Profile;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Shop;
 using SpiritUNITE.Game.Wallet;
@@ -122,6 +123,7 @@ public static class Server
         builder.Services.AddSingleton<AccountRepository>();
         builder.Services.AddSingleton<AccountTokenRepository>();
         builder.Services.AddSingleton<ActivityRepository>();
+        builder.Services.AddSingleton<ProfileRepository>();
     }
 
     private static void AddGameData(IHostApplicationBuilder builder) =>
@@ -138,6 +140,7 @@ public static class Server
         builder.Services.AddSingleton<ActivitySchedule>();
         builder.Services.AddSingleton<ActivityTasks>();
         builder.Services.AddSingleton<AppearanceGift>();
+        builder.Services.AddSingleton<ProfileManager>();
         builder.Services.AddSingleton<LoginThrottle>();
         builder.Services.AddSingleton<AccountManager>();
         builder.Services.AddSingleton<AuthorizationCodeStore>();

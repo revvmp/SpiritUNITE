@@ -36,6 +36,8 @@ public static class DatabaseManager
             await database.GetTable<AccountToken>().AnyAsync();
             await database.GetTable<RoleLoginDay>().AnyAsync();
             await database.GetTable<RoleActivityTaskReward>().AnyAsync();
+            await database.GetTable<RoleProfileStyle>().AnyAsync();
+            await database.GetTable<RoleCardFaceWear>().AnyAsync();
         }
         catch (MySqlException exception)
         {
