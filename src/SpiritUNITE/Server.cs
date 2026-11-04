@@ -123,6 +123,7 @@ public static class Server
     private static void AddGame(IHostApplicationBuilder builder)
     {
         builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddSingleton<RoleSessions>();
         builder.Services.AddSingleton<RoleInfoStore>();
         builder.Services.AddSingleton<WalletManager>();
         builder.Services.AddSingleton<ShopManager>();

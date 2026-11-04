@@ -10,9 +10,10 @@ public sealed class Connection(
     TimeSpan idleTimeout,
     TimeSpan registrationIdleTimeout,
     eNetEventServerType serverType,
-    GamePacket[] greeting,
+    Func<ulong, GamePacket[]> greeting,
     PacketDispatcher dispatcher,
     Func<GcpAuthReq, Task<ulong>> authenticate,
+    GcpSessionHooks hooks,
     ILogger<Connection> logger)
 {
     private const int MaxLoggedBytes = 64;
@@ -20,14 +21,22 @@ public sealed class Connection(
     public async Task RunAsync(CancellationToken stoppingToken)
     {
         using (client)
-        using (var session = new GcpSession(serverType, greeting, dispatcher, authenticate, logger))
         {
+            var stream = client.GetStream();
+            await using var session = new GcpSession(
+                serverType,
+                greeting,
+                dispatcher,
+                authenticate,
+                packet => stream.WriteAsync(packet, stoppingToken).AsTask(),
+                hooks,
+                logger);
             var remoteEndPoint = client.Client.RemoteEndPoint;
             logger.LogInformation("Connected {RemoteEndPoint}", remoteEndPoint);
 
             try
             {
-                await ReceiveUntilClosedAsync(client.GetStream(), session, stoppingToken);
+                await ReceiveUntilClosedAsync(stream, session, stoppingToken);
                 logger.LogInformation("Disconnected {RemoteEndPoint}", remoteEndPoint);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -49,10 +58,7 @@ public sealed class Connection(
         }
     }
 
-    private async Task ReceiveUntilClosedAsync(
-        NetworkStream stream,
-        GcpSession session,
-        CancellationToken stoppingToken)
+    private async Task ReceiveUntilClosedAsync(NetworkStream stream, GcpSession session, CancellationToken stoppingToken)
     {
         var buffer = new byte[GcpHead.MaxPacketSize];
         var buffered = 0;
@@ -71,27 +77,19 @@ public sealed class Connection(
             LogReceived(buffer.AsSpan(buffered, received));
             buffered += received;
 
-            var consumed = await HandleCompletePacketsAsync(stream, session, buffer.AsMemory(0, buffered), stoppingToken);
+            var consumed = await HandleCompletePacketsAsync(session, buffer.AsMemory(0, buffered));
             buffer.AsSpan(consumed, buffered - consumed).CopyTo(buffer);
             buffered -= consumed;
         }
     }
 
-    private static async Task<int> HandleCompletePacketsAsync(
-        NetworkStream stream,
-        GcpSession session,
-        ReadOnlyMemory<byte> data,
-        CancellationToken stoppingToken)
+    private static async Task<int> HandleCompletePacketsAsync(GcpSession session, ReadOnlyMemory<byte> data)
     {
         var consumed = 0;
 
         while (GcpHead.TryParse(data.Span[consumed..], out var head) && head.PacketLength <= data.Length - consumed)
         {
-            var packet = data.Slice(consumed, head.PacketLength);
-            foreach (var reply in await session.HandleAsync(head, packet))
-            {
-                await stream.WriteAsync(reply, stoppingToken);
-            }
+            await session.HandleAsync(head, data.Slice(consumed, head.PacketLength));
 
             consumed += head.PacketLength;
         }

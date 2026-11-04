@@ -33,6 +33,12 @@ public static class GcpMessages
     private const int DataMergeCountSize = 1;
     private const byte FirstPrintableAscii = 0x21;
     private const byte LastPrintableAscii = 0x7E;
+    private const int AckBodySize = 3;
+
+    public const byte CompressModeLz4 = 1;
+    public const int CompressMinSize = 100;
+    public const byte DataCompressed = 1;
+    public const byte DataRouteSelector = 0x10;
 
     public static byte[] BuildAckSection(ReadOnlySpan<byte> sessionKey, int packingVersion)
     {
@@ -41,28 +47,49 @@ public static class GcpMessages
         section[0] = (byte)KeyMaking.Server;
         section[1] = (byte)sessionKey.Length;
         sessionKey.CopyTo(section.AsSpan(AckKeyHeaderSize));
+        if (trailerSize > 0)
+        {
+            WriteCompressSettings(section.AsSpan(AckKeyHeaderSize + sessionKey.Length));
+        }
+
         return section;
     }
+
+    public static byte[] BuildAckBody() => new byte[AckBodySize];
 
     public static byte[] BuildEmptyAuthRsp(int headerVersion) =>
         new byte[AuthRspBaseSize + (headerVersion >= AuthRspRouteIdMinimumVersion ? RouteIdSize : 0)];
 
-    public static byte[] BuildEmptyBingo(int headerVersion)
+    public static byte[] BuildBingo(int headerVersion)
     {
         var size = BingoBaseSize;
         size += headerVersion >= BingoSessionIdMinimumVersion ? RouteIdSize : 0;
         size += headerVersion >= BingoSettingsMinimumVersion ? BingoSettingsSize : 0;
         size += headerVersion == BingoExtendedVersion ? BingoExtendedSize : 0;
-        return new byte[size];
+        var bingo = new byte[size];
+        if (headerVersion >= BingoSettingsMinimumVersion)
+        {
+            var settingsOffset = BingoBaseSize + (headerVersion >= BingoSessionIdMinimumVersion ? RouteIdSize : 0);
+            WriteCompressSettings(bingo.AsSpan(settingsOffset));
+        }
+
+        return bingo;
     }
 
-    public static byte[] BuildDataSection(int packingVersion)
+    public static byte[] BuildDataSection(int packingVersion, bool compressed, byte sessionRoute)
     {
-        var size = DataCompressedFlagSize;
-        size += packingVersion >= DataRouteMinimumVersion ? DataRouteSize : 0;
-        size += packingVersion >= DataMergeCountMinimumVersion ? DataMergeCountSize : 0;
-        return new byte[size];
+        var section = new byte[DataSectionSize(packingVersion)];
+        section[0] = compressed ? DataCompressed : (byte)0;
+        if (packingVersion >= DataRouteMinimumVersion)
+        {
+            section[DataCompressedFlagSize] = DataRouteSelector;
+            section[DataCompressedFlagSize + 1] = sessionRoute;
+        }
+
+        return section;
     }
+
+    public static bool IsCompressedData(ReadOnlySpan<byte> section) => !section.IsEmpty && section[0] == DataCompressed;
 
     public static ReadOnlyMemory<byte> ReadClientData(ReadOnlyMemory<byte> decryptedBody)
     {
@@ -103,6 +130,20 @@ public static class GcpMessages
 
         var accessToken = token.Slice(accessTokenStart, accessTokenLength);
         return accessToken.ContainsAnyExceptInRange(FirstPrintableAscii, LastPrintableAscii) ? null : Encoding.ASCII.GetString(accessToken);
+    }
+
+    private static int DataSectionSize(int packingVersion)
+    {
+        var size = DataCompressedFlagSize;
+        size += packingVersion >= DataRouteMinimumVersion ? DataRouteSize : 0;
+        size += packingVersion >= DataMergeCountMinimumVersion ? DataMergeCountSize : 0;
+        return size;
+    }
+
+    private static void WriteCompressSettings(Span<byte> destination)
+    {
+        destination[0] = CompressModeLz4;
+        BinaryPrimitives.WriteUInt32BigEndian(destination[1..], CompressMinSize);
     }
 
     private static ushort ReadUInt16(ReadOnlySpan<byte> data, ref int offset)

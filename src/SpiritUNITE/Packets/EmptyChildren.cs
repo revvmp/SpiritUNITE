@@ -1,10 +1,13 @@
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
+using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets;
 
 public static class EmptyChildren
 {
+    private static readonly HashSet<MessageDescriptor> TypesSentWithoutChildren = [pbResultInfo.Descriptor];
+
     public static T Fill<T>(T message)
         where T : IMessage
     {
@@ -15,7 +18,7 @@ public static class EmptyChildren
     private static void Fill(IMessage message, HashSet<MessageDescriptor> enclosingTypes)
     {
         var descriptor = message.Descriptor;
-        if (!enclosingTypes.Add(descriptor))
+        if (TypesSentWithoutChildren.Contains(descriptor) || !enclosingTypes.Add(descriptor))
         {
             return;
         }

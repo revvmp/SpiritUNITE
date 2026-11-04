@@ -53,9 +53,11 @@ public abstract class TcpServer(
         }
     }
 
-    protected virtual GamePacket[] BuildGreeting() => [];
+    protected virtual GamePacket[] BuildGreeting(ulong authenticatedUid) => [];
 
     protected virtual Task<ulong> AuthenticateAsync(GcpAuthReq request) => Task.FromResult(NoAccount);
+
+    protected virtual GcpSessionHooks SessionHooks => GcpSessionHooks.None;
 
     private void Accept(TcpClient client, TcpServerOptions settings, CancellationToken stoppingToken)
     {
@@ -70,7 +72,7 @@ public abstract class TcpServer(
 
         var idleTimeout = TimeSpan.FromSeconds(settings.IdleTimeoutSeconds);
         var registrationIdleTimeout = TimeSpan.FromSeconds(settings.RegistrationIdleTimeoutSeconds);
-        _ = ServeAsync(new Connection(client, idleTimeout, registrationIdleTimeout, serverType, BuildGreeting(), dispatcher, AuthenticateAsync, connectionLogger), stoppingToken);
+        _ = ServeAsync(new Connection(client, idleTimeout, registrationIdleTimeout, serverType, BuildGreeting, dispatcher, AuthenticateAsync, SessionHooks, connectionLogger), stoppingToken);
     }
 
     private async Task ServeAsync(Connection connection, CancellationToken stoppingToken)
