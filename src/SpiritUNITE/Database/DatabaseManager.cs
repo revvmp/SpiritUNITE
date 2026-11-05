@@ -40,6 +40,7 @@ public static class DatabaseManager
             await database.GetTable<RoleFriend>().AnyAsync();
             await database.GetTable<RoleFriendRequest>().AnyAsync();
             await database.GetTable<RoleFriendBlack>().AnyAsync();
+            await database.GetTable<RoleChatOffline>().AnyAsync();
             await database.GetTable<RoleProfileStyle>().AnyAsync();
             await database.GetTable<RoleCardFaceWear>().AnyAsync();
         }

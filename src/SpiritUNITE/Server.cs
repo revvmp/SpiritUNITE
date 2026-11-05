@@ -15,6 +15,7 @@ using SpiritUNITE.Game.TrainerExpGift;
 using SpiritUNITE.Game.StarRoad;
 using SpiritUNITE.Game.Activity;
 using SpiritUNITE.Auth;
+using SpiritUNITE.Game.Chat;
 using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Game.Badge;
 using SpiritUNITE.Game.HeldItem;
@@ -129,6 +130,7 @@ public static class Server
         builder.Services.AddSingleton(databaseOptions);
         builder.Services.AddSingleton<RoleRepository>();
         builder.Services.AddSingleton<FriendRepository>();
+        builder.Services.AddSingleton<ChatRepository>();
         builder.Services.AddSingleton<WalletRepository>();
         builder.Services.AddSingleton<ShopRepository>();
         builder.Services.AddSingleton<NewbieGiftRepository>();
@@ -155,6 +157,7 @@ public static class Server
         builder.Services.AddSingleton<FriendPresence>();
         builder.Services.AddSingleton<RoleBriefBuilder>();
         builder.Services.AddSingleton<FriendManager>();
+        builder.Services.AddSingleton<ChatManager>();
         builder.Services.AddSingleton<RoleInfoStore>();
         builder.Services.AddSingleton<WalletManager>();
         builder.Services.AddSingleton<ShopManager>();

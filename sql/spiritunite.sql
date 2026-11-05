@@ -195,6 +195,17 @@ CREATE TABLE IF NOT EXISTS `role_friend_black` (
     CONSTRAINT fk_role_friend_black_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE,
     CONSTRAINT fk_role_friend_black_black FOREIGN KEY (black_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_chat_offline` (
+    chat_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    dest_uid BIGINT UNSIGNED NOT NULL,
+    from_uid BIGINT UNSIGNED NOT NULL,
+    chat_time BIGINT NOT NULL,
+    chat_msg VARBINARY(2048) NOT NULL,
+    KEY ix_role_chat_offline_dest (dest_uid, chat_id),
+    CONSTRAINT fk_role_chat_offline_dest FOREIGN KEY (dest_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE,
+    CONSTRAINT fk_role_chat_offline_from FOREIGN KEY (from_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
 CREATE TABLE IF NOT EXISTS `role_profile_style` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     cur_head_icon_id INT NOT NULL,
