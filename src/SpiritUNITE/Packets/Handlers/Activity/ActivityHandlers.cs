@@ -13,11 +13,7 @@ public sealed class ActivityHandlers(RoleInfoStore roles, ActivityTasks activity
         pbCSRefreshActivityTaskReq.Parser.ParseFrom(request.PkgData);
         var role = roles.Require(request.Uid);
         await activityTasks.RecordLoginDayAsync(role.GameUlongUID);
-        var update = new pbSCUpdateTaskInfoNtf
-        {
-            TaskInfoList = { await activityTasks.BuildTaskInfoListAsync(role.GameUlongUID) },
-        };
-        return update.TaskInfoList.Count == 0 ? [] : [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf, update)];
+        return [];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetActivityExchangeInfoReq)]
@@ -26,7 +22,6 @@ public sealed class ActivityHandlers(RoleInfoStore roles, ActivityTasks activity
         pbCSGetActivityExchangeInfoReq.Parser.ParseFrom(request.PkgData);
         var response = new pbSCGetActivityExchangeInfoRsp
         {
-            ResultInfo = new pbResultInfo(),
             AllExchangeInfo = new pbCOMDT_ALL_EXCHANGE_INFO(),
         };
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetActivityExchangeInfoRsp, response)];

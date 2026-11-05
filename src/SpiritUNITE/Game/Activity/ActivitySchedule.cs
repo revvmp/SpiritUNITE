@@ -1,4 +1,4 @@
-using SpiritUNITE.Game.Data;
+using SpiritUNITE.Databin;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Activity;
@@ -26,6 +26,12 @@ public sealed class ActivitySchedule
 
     public ScheduledActivity[] FindActive(DateTimeOffset now) =>
         [.. activities.Where(activity => activity.IsValidAt(now))];
+
+    public ScheduledActivity? FindOpen(PB_ENUM_RES_ACTIVITY_TYPE activityType, DateTimeOffset now) =>
+        FindActive(now).FirstOrDefault(activity => activity.Row.ActivityType == (int)activityType);
+
+    public bool IsOpen(int activityID, PB_ENUM_RES_ACTIVITY_TYPE activityType, DateTimeOffset now) =>
+        FindActive(now).Any(activity => activity.Row.ActivityID == activityID && activity.Row.ActivityType == (int)activityType);
 
     public ActiveActivityTask[] FindActiveTasks(DateTimeOffset now) =>
         [.. FindActive(now)
@@ -66,7 +72,18 @@ public sealed class ActivitySchedule
         row,
         ParseConfigTime(row.ValidStartTime),
         ParseConfigTime(row.ValidEndTime),
-        [.. row.TaskGroupIDList.Prepend(row.ActivityParam).Where(groupId => groupId != NoTaskGroup).Distinct()]);
+        FindTaskGroupIds(row));
+
+    private static int[] FindTaskGroupIds(pbActivity_Base row)
+    {
+        if (row.ActivityType == (int)PB_ENUM_RES_ACTIVITY_TYPE.PbResActivityTypeEeveeChallenge)
+        {
+            return [];
+        }
+
+        int[] listedGroupIds = [.. row.TaskGroupIDList.Where(groupId => groupId != NoTaskGroup).Distinct()];
+        return listedGroupIds.Length > 0 || row.ActivityParam == NoTaskGroup ? listedGroupIds : [row.ActivityParam];
+    }
 }
 
 public sealed record ScheduledActivity(
