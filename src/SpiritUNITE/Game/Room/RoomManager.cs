@@ -746,7 +746,7 @@ public sealed class RoomManager(
         return outcome.PushAll(
             uids,
             PB_ENUM_CS_MSGID_DEF.PbScidMatchRsp,
-            PveMatch.MatchSucc(gameData, room, members, aiLevel, room.MatchStartedAt, options.FeatureSection1));
+            PveMatch.MatchSucc(gameData, room, members, aiLevel, room.MatchStartedAt));
     }
 
     private bool IsSelectableNode(LMNRoleInfo role, pbScene_Map scene, pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE selectNode) =>
@@ -801,7 +801,7 @@ public sealed class RoomManager(
                     MapMode = room.MapMode,
                     MapSubMode = room.MapSubMode,
                     MapId = room.MapId,
-                    Feature = new pbCOMDT_BATTLE_VERSION { Section1 = options.FeatureSection1 },
+                    Feature = BattleVersion.Build(),
                     ManMachine = room.ManMachine,
                     RankedTeamMemberNumType = room.RankedTeamMemberNumType,
                     FriendRoomRule = new pbCOMDT_FRIENDLY_ROOM_RULE_INFO(),

@@ -11,7 +11,6 @@ public sealed class RoomOptions
     public const string SectionName = "Room";
     public const int CanUseMap = 1;
 
-    public ulong FeatureSection1 { get; init; }
     public List<RoomMapCanUseType> MapCanUseTypes { get; init; } = [];
     public List<int> HiddenMapIds { get; init; } = [];
 

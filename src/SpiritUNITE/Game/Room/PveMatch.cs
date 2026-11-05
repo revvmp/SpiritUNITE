@@ -31,8 +31,7 @@ public static class PveMatch
         MatchRoom room,
         IReadOnlyList<pbCOMDT_ROOMMEMBER_DT> members,
         int aiLevel,
-        long succTimeStamp,
-        ulong featureSection1)
+        long succTimeStamp)
     {
         var teammateCount = Math.Max(0, room.CampPlayerNum - members.Count);
         var teammates = gameData.AiInfoConfig.Rows
@@ -80,7 +79,7 @@ public static class PveMatch
                         RoomInfo = new pbCOMDT_MATCHROOM_ATTR
                         {
                             MapId = room.MapId,
-                            Feature = new pbCOMDT_BATTLE_VERSION { Section1 = featureSection1 },
+                            Feature = BattleVersion.Build(),
                             AILevel = aiLevel,
                         },
                         MemInfo = memInfo,

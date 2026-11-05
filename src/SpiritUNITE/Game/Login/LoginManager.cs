@@ -292,7 +292,7 @@ public sealed class LoginManager(
             .. await mail.BuildUnreadRedDotDetailsAsync(uid),
             .. notices.BuildRegistRedDots(CountNewTags(lastRegistGain)),
         ]);
-        await settings.ReplaceBubTipsAsync(uid, notices.BuildRegistBubTips());
+        await settings.ReplaceBubTipsAsync(uid, LobbyNotices.BuildRegistBubTips());
     }
 
     private async Task<GamePacket[]> BuildCouponsRefreshPacketsAsync(ulong uid)

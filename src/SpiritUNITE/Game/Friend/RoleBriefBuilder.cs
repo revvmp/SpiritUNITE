@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Options;
 using SpiritUNITE.Auth;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Newbie;
@@ -16,8 +15,7 @@ public sealed class RoleBriefBuilder(
     SettingsManager settings,
     NewbieManager newbies,
     AccountManager accounts,
-    FriendPresence presence,
-    IOptions<RoomOptions> roomOptions)
+    FriendPresence presence)
 {
     private const int GuestAccount = 1;
     private const int RegisteredAccount = 0;
@@ -41,7 +39,7 @@ public sealed class RoleBriefBuilder(
             PrivilePlatInfo = new pbCOMDT_PRIVILE_PLAT_INFO(),
             IsGuestAccount = (await accounts.FindBoundChannelsAsync(uid)).Contains(LoginPlatform.GUEST) ? GuestAccount : RegisteredAccount,
             ABModeType = clientSettings.ABMode,
-            ClientVersion = new pbCOMDT_BATTLE_VERSION { Section1 = roomOptions.Value.FeatureSection1 },
+            ClientVersion = BattleVersion.Build(),
             RegisterTime = await newbies.GetRegisterTimeAsync(role),
             TrainerBriefInfo = new pbCOMDT_TRAINER_BRIEF_INFO
             {

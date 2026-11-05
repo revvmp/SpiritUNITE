@@ -29,6 +29,11 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
     private const int TaskCompletedOnce = 1;
     private const int TaskNewTag = 1;
     private const int RedDotBadgeOne = 1;
+    private const int OfficialAcntSysPlat = 1;
+    private const int RegistBubTipID = 10;
+    private const int RegistBubTipBadgeNum = 1;
+
+    private static readonly (int FieldNumber, long Value)[] SubscriptionInterfaceUnnamedVarints = [(9, 200), (10, 30)];
 
     private readonly LobbyOptions rules = options.Value;
 
@@ -92,7 +97,7 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
     public pbSCSubscriptionStatusNtf BuildSubscriptionStatusNtf() => new()
     {
         IsOpen = rules.SubscriptionIsOpen,
-        AcntSysPlat = rules.AcntSysPlat,
+        AcntSysPlat = OfficialAcntSysPlat,
     };
 
     public pbSCActivityInfoNtf BuildActivityInfoNtf(int countryCode) => new()
@@ -139,13 +144,9 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
         },
     };
 
-    public pbCOMDT_BUB_TIP_DETAIL[] BuildRegistBubTips() =>
+    public static pbCOMDT_BUB_TIP_DETAIL[] BuildRegistBubTips() =>
     [
-        .. rules.RegistBubTips.Select(bubTip => new pbCOMDT_BUB_TIP_DETAIL
-        {
-            BubTipID = bubTip.BubTipID,
-            BubTipBadgeNum = bubTip.BubTipBadgeNum,
-        }),
+        new pbCOMDT_BUB_TIP_DETAIL { BubTipID = RegistBubTipID, BubTipBadgeNum = RegistBubTipBadgeNum },
     ];
 
     public pbCOMDT_RED_DOT_DETAIL[] BuildRegistRedDots(int newEntrycardEditItemCount)
@@ -192,7 +193,7 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
             FindCurSubscriptionPeriodID(),
             new pbCOMDT_SUBSCRIPTION_BASE_INFO
             {
-                AcntSysPlat = rules.AcntSysPlat,
+                AcntSysPlat = OfficialAcntSysPlat,
                 IsFirstSubscription = (int)PB_ENUM_COM_FIRST_SUBSCRIPTION_TYPE.PbComFirstSubscriptionTypeNever,
                 CanCollectCoupons = (int)PB_ENUM_COM_SUBSCRIPTION_COUPONS_TYPE.PbComSubscriptionCouponsCanCollect,
             },
@@ -205,10 +206,10 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
         using (var output = new CodedOutputStream(buffer))
         {
             known.WriteTo(output);
-            foreach (var varint in rules.SubscriptionInterfaceVarints.OrderBy(varint => varint.FieldNumber))
+            foreach (var (fieldNumber, value) in SubscriptionInterfaceUnnamedVarints)
             {
-                output.WriteTag(varint.FieldNumber, WireFormat.WireType.Varint);
-                output.WriteInt64(varint.Value);
+                output.WriteTag(fieldNumber, WireFormat.WireType.Varint);
+                output.WriteInt64(value);
             }
         }
 

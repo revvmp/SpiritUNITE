@@ -7,7 +7,6 @@
     },
     "StartingCreditPoint": 100,
     "SubscriptionIsOpen": 1,
-    "AcntSysPlat": 1,
     "NewSaleShopIDs": [130339, 130340, 130341, 130342, 130343, 130344, 130345, 130346, 130347, 130348, 130349, 130350, 130351, 130352],
     "UserSchemes": [
       { "BusinessType": 1, "SchemeId": 4 },
@@ -18,23 +17,15 @@
       { "BusinessType": 7, "SchemeId": 2 },
       { "BusinessType": 3, "SchemeId": 1 }
     ],
-    "RegistBubTips": [
-      { "BubTipID": 10, "BubTipBadgeNum": 1 }
-    ],
     "SubscriptionFree": {
       "FreePokemonList": [54, 816],
       "FreePasterList": [1006005403, 1006081803]
-    },
-    "SubscriptionInterfaceVarints": [
-      { "FieldNumber": 9, "Value": 200 },
-      { "FieldNumber": 10, "Value": 30 }
-    ]
+    }
   },
   "Pokemon": {
     "FreePokemonList": [77, 557, 845, 957]
   },
   "Room": {
-    "FeatureSection1": 307867550744583,
     "MapCanUseTypes": [
       { "CanUseType": 3, "MapIds": [402, 403, 404, 405, 412, 416, 417, 90006, 90011, 90012, 90013, 90015, 90022, 90023, 521, 522, 523, 2521, 2522, 2523, 606, 90070] },
       { "CanUseType": 4, "MapIds": [301, 304, 319] }
