@@ -7,8 +7,6 @@ namespace SpiritUNITE.Packets.Handlers.Session;
 
 public sealed class DirHandlers(IOptions<LobbyAddressOptions> lobbyAddress, ILogger<DirHandlers> logger)
 {
-    private const int ServerId = 1;
-
     [PacketHandler(eNetEventServerType.DirServer, PB_ENUM_CS_MSGID_DEF.PbCsidGameSvrAddrReq)]
     public GamePacket[] OnGameSvrAddrReq(GamePacket request)
     {
@@ -22,7 +20,6 @@ public sealed class DirHandlers(IOptions<LobbyAddressOptions> lobbyAddress, ILog
             {
                 GameSvrUrl = lobbyAddress.Value.Host,
                 GameSvrVport = lobbyAddress.Value.Port,
-                ServerID = ServerId,
             },
         };
 

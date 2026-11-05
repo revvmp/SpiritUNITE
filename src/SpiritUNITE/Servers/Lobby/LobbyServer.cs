@@ -13,13 +13,25 @@ public sealed class LobbyServer(
     IOptions<TcpServerOptions> options,
     PacketDispatcher dispatcher,
     AccountSessionManager sessions,
+    RoleSessions roleSessions,
+    OffingRestartSessions offingRestarts,
     ILogger<LobbyServer> lobbyLogger,
     ILogger<TcpServer> logger,
     ILogger<Connection> connectionLogger)
     : TcpServer(eNetEventServerType.LobbyServer, lobbyAddress.Value.Port, options, dispatcher, logger, connectionLogger)
 {
-    protected override GamePacket[] BuildGreeting() =>
-        [GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidLoginNowNtf, new pbSCLoginNowNtf())];
+    protected override GcpSessionHooks SessionHooks { get; } = new()
+    {
+        LoginCompleted = roleSessions.AttachAsync,
+        SessionClosed = roleSessions.DetachAsync,
+        RepliesSending = roleSessions.RaiseSendingAsync,
+        FindNextSvrPkgSeq = roleSessions.FindNextSvrPkgSeq,
+    };
+
+    protected override GamePacket[] BuildGreeting(ulong authenticatedUid) =>
+        authenticatedUid != NoAccount && offingRestarts.CanResume(authenticatedUid)
+            ? [GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidOffingRestartNtf, new pbSCOffingRestartNtf())]
+            : [GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidLoginNowNtf, new pbSCLoginNowNtf())];
 
     protected override async Task<ulong> AuthenticateAsync(GcpAuthReq request)
     {

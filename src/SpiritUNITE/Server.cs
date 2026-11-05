@@ -9,6 +9,7 @@ using Serilog.Events;
 using SpiritUNITE.Database;
 using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Game.Achievement;
+using SpiritUNITE.Game.Login;
 using SpiritUNITE.Game.Pokemon;
 using SpiritUNITE.Game.Tasks;
 using SpiritUNITE.Game.TrainerExpGift;
@@ -36,6 +37,7 @@ using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Logging;
 using SpiritUNITE.Network;
 using SpiritUNITE.Packets;
+using SpiritUNITE.Packets.Handlers.Session;
 using SpiritUNITE.Servers.Http;
 using SpiritUNITE.Servers.Dir;
 using SpiritUNITE.Servers.Lobby;
@@ -175,7 +177,10 @@ public static class Server
     {
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<RoleSessions>();
+        builder.Services.AddSingleton<OffingRestartSessions>();
+        builder.Services.AddSingleton<PendingLoginFinishes>();
         builder.Services.AddSingleton<LobbyNotices>();
+        builder.Services.AddSingleton<LoginManager>();
         builder.Services.AddSingleton<FriendPresence>();
         builder.Services.AddSingleton<RoleBriefBuilder>();
         builder.Services.AddSingleton<FriendManager>();
