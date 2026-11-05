@@ -104,8 +104,13 @@ public static class Server
     private static void AddSettings(IHostApplicationBuilder builder)
     {
         builder.Services.AddOptions<TcpServerOptions>()
-            .BindConfiguration(TcpServerOptions.SectionName)
+            .BindConfiguration(TcpServerOptions.SectionName, options => options.ErrorOnUnknownConfiguration = true)
             .Validate(options => options.IsValid(), "TcpServer settings are invalid")
+            .ValidateOnStart();
+
+        builder.Services.AddOptions<DirServerOptions>()
+            .BindConfiguration(DirServerOptions.SectionName, options => options.ErrorOnUnknownConfiguration = true)
+            .Validate(options => options.IsValid(), "DirServer settings are invalid")
             .ValidateOnStart();
 
         builder.Services.AddOptions<LobbyOptions>()
@@ -129,8 +134,9 @@ public static class Server
             .ValidateOnStart();
 
         builder.Services.AddOptions<LobbyAddressOptions>()
-            .BindConfiguration(LobbyAddressOptions.SectionName)
-            .Validate(options => options.IsValid(), "Lobby settings are invalid")
+            .BindConfiguration(LobbyAddressOptions.SectionName, options => options.ErrorOnUnknownConfiguration = true)
+            .Validate(_ => !builder.Configuration.GetSection("Lobby").Exists(), "Rename the Lobby settings section to LobbyServer")
+            .Validate(options => options.IsValid(), "LobbyServer settings are invalid")
             .ValidateOnStart();
 
         builder.Services.AddOptions<RoomOptions>()

@@ -8,13 +8,15 @@ Screenshots coming soon.
 
 ## Environment Setup
 
-**WARNING**: These instructions are meant for a Windows 11 machine and have only been tested on Windows.
+**WARNING**: These instructions have only been tested on a Windows 11 machine.
 
 1. Clone the repository
 2. Install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 3. Install [MariaDB](https://mariadb.org/download/)
 4. Install [Python 3](https://www.python.org/downloads/)
    - Make sure to tick `Add to PATH` while installing. You can check by running `python --version` in your terminal.
+5. Install JDK 17+ to build the APK. Make sure `java` and `keytool` are on your PATH.
+6. For local testing, install Android SDK Platform-Tools and put `adb` on your PATH.
 
 ## Server Setup
 
@@ -39,14 +41,25 @@ Screenshots coming soon.
    ```powershell
    copy src/SpiritUNITE/appsettings.example.json src/SpiritUNITE/appsettings.json
    ```
-   **DO NOT** commit `appsettings.json`. It holds your password.
 
 5. Build and start the server from the root directory.
    ```powershell
    dotnet run --project src/SpiritUNITE
    ```
 
-6. Point your client at the server and launch the game. You should see logs in the server as you log in.
+6. Build and install the client using the steps below. You should see logs in the server as you log in.
+
+## Build the APK
+
+1. Put your own official `base.apk`, `split_ab.apk` and `split_config.arm64_v8a.apk` in one folder. Build `1192039` is currently supported.
+2. For local testing, run this from the root directory:
+   ```powershell
+   python tools/build_apk.py --apks "path/to/splits" --dev
+   ```
+   The script uses your server settings, creates a signing key and offers to download Android build tools if needed. Back up the signing key so future builds can update installed clients.
+3. Uninstall the official app from your device, then run the `adb install-multiple` command. Uninstalling removes the app's data.
+4. With the default local settings, run the printed `adb reverse` commands to connect your device to the server. Repeat these after restarting.
+5. Start the server and launch the game.
 
 ## Ports
 
@@ -60,16 +73,20 @@ All of these can be changed in `appsettings.json`.
 
 ### Hosting for Others (Remote Play)
 
-The steps above are all you need when the client and server run on the same machine. For friends to connect over a LAN or the internet, there are a few extra steps.
+For friends to connect, use a domain pointing to your server and a publicly trusted HTTPS certificate.
 
 The directory server tells the client where to find the lobby server. By default it says `127.0.0.1`, which only works on your own machine. A remote client sent to `127.0.0.1` will never reach the lobby.
 
-1. In `appsettings.json`, set `Lobby.Host` to your public IP or domain.
+1. In `appsettings.json`, set `LobbyServer.Host` to your domain.
    ```json
-   "Lobby": {
-     "Host": "your.public.ip.or.domain",
+   "LobbyServer": {
+     "Host": "play.example.com",
      "Port": 10002
    }
    ```
-2. Set `TcpServer.BindAddress` and `HttpServer.BindAddress` to `0.0.0.0` so the server accepts outside connections.
-3. Forward or open ports `10001`, `10002` and `10080` on your router and firewall.
+2. Set `TcpServer.BindAddress` to `0.0.0.0` so the directory and lobby servers accept outside connections. Keep `127.0.0.1` for local testing. Their ports are set separately in `DirServer.Port` and `LobbyServer.Port`.
+3. Set up HTTPS on port `443` for your domain, forwarding requests to the account server on `127.0.0.1:10080`. Forward or open TCP ports `443`, `10001` and `10002` on your router and firewall.
+4. Build the client for your domain:
+   ```powershell
+   python tools/build_apk.py --apks "path/to/splits" --host play.example.com
+   ```

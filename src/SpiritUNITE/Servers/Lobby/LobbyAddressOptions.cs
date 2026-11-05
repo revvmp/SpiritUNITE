@@ -4,7 +4,7 @@ namespace SpiritUNITE.Servers.Lobby;
 
 public sealed class LobbyAddressOptions
 {
-    public const string SectionName = "Lobby";
+    public const string SectionName = "LobbyServer";
 
     public string Host { get; init; } = "127.0.0.1";
     public int Port { get; init; } = 10002;
