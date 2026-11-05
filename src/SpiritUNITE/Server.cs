@@ -11,6 +11,7 @@ using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Game.Achievement;
 using SpiritUNITE.Game.Pokemon;
 using SpiritUNITE.Game.Tasks;
+using SpiritUNITE.Game.StarRoad;
 using SpiritUNITE.Game.Activity;
 using SpiritUNITE.Auth;
 using SpiritUNITE.Game.Bag;
@@ -132,6 +133,7 @@ public static class Server
         builder.Services.AddSingleton<AccountTokenRepository>();
         builder.Services.AddSingleton<ActivityRepository>();
         builder.Services.AddSingleton<AchievementRepository>();
+        builder.Services.AddSingleton<StarRoadRepository>();
         builder.Services.AddSingleton<ProfileRepository>();
     }
 
@@ -153,6 +155,7 @@ public static class Server
         builder.Services.AddSingleton<ActivityTasks>();
         builder.Services.AddSingleton<AchievementTasks>();
         builder.Services.AddSingleton<TaskUpdates>();
+        builder.Services.AddSingleton<StarRoadManager>();
         builder.Services.AddSingleton<AppearanceGift>();
         builder.Services.AddSingleton<ProfileManager>();
         builder.Services.AddSingleton<LoginThrottle>();

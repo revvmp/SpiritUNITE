@@ -112,6 +112,23 @@ CREATE TABLE IF NOT EXISTS `role_activity_task_reward` (
 ) ENGINE=InnoDB;
 
 
+CREATE TABLE IF NOT EXISTS `role_star_road_site` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    site_id INT NOT NULL,
+    cur_pokemon_id INT NOT NULL,
+    end_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, site_id),
+    UNIQUE KEY uq_role_star_road_site_pokemon (game_ulong_uid, cur_pokemon_id),
+    CONSTRAINT fk_role_star_road_site_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_star_road` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    tips_site_id INT NOT NULL,
+    PRIMARY KEY (game_ulong_uid),
+    CONSTRAINT fk_role_star_road_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `role_achievement` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL,
     achievement_id INT NOT NULL,
