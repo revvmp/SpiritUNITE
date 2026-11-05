@@ -111,6 +111,14 @@ CREATE TABLE IF NOT EXISTS `role_activity_task_reward` (
     CONSTRAINT fk_role_activity_task_reward_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `role_trainer_exp_gift` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    gift_type INT NOT NULL,
+    reward_exp INT NOT NULL,
+    award_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, gift_type, reward_exp),
+    CONSTRAINT fk_role_trainer_exp_gift_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `role_star_road_site` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL,
