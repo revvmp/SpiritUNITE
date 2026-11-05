@@ -28,6 +28,7 @@ using SpiritUNITE.Game.FightHistory;
 using SpiritUNITE.Game.Profile;
 using SpiritUNITE.Game.PveChallenge;
 using SpiritUNITE.Game.Role;
+using SpiritUNITE.Game.Room;
 using SpiritUNITE.Game.Settings;
 using SpiritUNITE.Game.Shop;
 using SpiritUNITE.Game.Wallet;
@@ -123,6 +124,16 @@ public static class Server
             .BindConfiguration(LobbyAddressOptions.SectionName)
             .Validate(options => options.IsValid(), "Lobby settings are invalid")
             .ValidateOnStart();
+
+        builder.Services.AddOptions<RoomOptions>()
+            .BindConfiguration(RoomOptions.SectionName)
+            .Validate(options => options.IsValid(), "Room settings are invalid")
+            .ValidateOnStart();
+
+        builder.Services.AddOptions<GVoiceOptions>()
+            .BindConfiguration(GVoiceOptions.SectionName)
+            .Validate(options => options.IsValid(), "GVoice settings are invalid")
+            .ValidateOnStart();
     }
 
     private static async Task AddDatabaseAsync(IHostApplicationBuilder builder)
@@ -184,6 +195,8 @@ public static class Server
         builder.Services.AddSingleton<AccountManager>();
         builder.Services.AddSingleton<AuthorizationCodeStore>();
         builder.Services.AddSingleton<AccountSessionManager>();
+        builder.Services.AddSingleton<RoomManager>();
+        builder.Services.AddSingleton<RoomInvites>();
         builder.Services.AddSingleton<PveChallengeProgress>();
         builder.Services.AddSingleton<NewbieManager>();
         builder.Services.AddSingleton<NewbieGiftManager>();
