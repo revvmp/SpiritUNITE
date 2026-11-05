@@ -14,6 +14,7 @@ public sealed class Connection(
     PacketDispatcher dispatcher,
     Func<GcpAuthReq, Task<ulong>> authenticate,
     GcpSessionHooks hooks,
+    GcpCompression compression,
     ILogger<Connection> logger)
 {
     private const int MaxLoggedBytes = 64;
@@ -23,15 +24,21 @@ public sealed class Connection(
         using (client)
         {
             var stream = client.GetStream();
+            var socket = client.Client;
             await using var session = new GcpSession(
                 serverType,
                 greeting,
                 dispatcher,
                 authenticate,
                 packet => stream.WriteAsync(packet, stoppingToken).AsTask(),
+                Shutdown,
                 hooks,
-                logger);
-            var remoteEndPoint = client.Client.RemoteEndPoint;
+                compression,
+                logger)
+            {
+                MeasureRtt = () => TcpRtt.Measure(socket),
+            };
+            var remoteEndPoint = socket.RemoteEndPoint;
             logger.LogInformation("Connected {RemoteEndPoint}", remoteEndPoint);
 
             try
@@ -55,6 +62,18 @@ public sealed class Connection(
             {
                 logger.LogWarning("Refused {RemoteEndPoint}: {Reason}", remoteEndPoint, exception.Message);
             }
+        }
+    }
+
+    private void Shutdown()
+    {
+        try
+        {
+            client.Client.Shutdown(SocketShutdown.Both);
+        }
+        catch (Exception exception) when (exception is SocketException or ObjectDisposedException)
+        {
+            logger.LogDebug("Connection was already closed: {Reason}", exception.Message);
         }
     }
 

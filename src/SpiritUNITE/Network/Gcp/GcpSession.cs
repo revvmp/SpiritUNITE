@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Security.Cryptography;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -12,10 +13,26 @@ public sealed class GcpSession(
     PacketDispatcher dispatcher,
     Func<GcpAuthReq, Task<ulong>> authenticate,
     Func<byte[], Task> write,
+    Action close,
     GcpSessionHooks hooks,
+    GcpCompression compression,
     ILogger logger) : IAsyncDisposable
 {
     private const int MaxLoggedBytes = 64;
+    private const int NoClientSeq = 0;
+    private const int NoStopExCode = 0;
+
+    private static readonly FrozenSet<int> PacketsWithoutIsPkgMem = new[]
+    {
+        PB_ENUM_CS_MSGID_DEF.PbScidOffingRestartNtf,
+        PB_ENUM_CS_MSGID_DEF.PbScidFightHistoryListRsp,
+        PB_ENUM_CS_MSGID_DEF.PbScidMultGameBeginPickNtf,
+        PB_ENUM_CS_MSGID_DEF.PbScidChooseHeroRsp,
+        PB_ENUM_CS_MSGID_DEF.PbScidLockHeroRsp,
+        PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf,
+        PB_ENUM_CS_MSGID_DEF.PbScidDeskUpdPickWaitTimeNtf,
+        PB_ENUM_CS_MSGID_DEF.PbScidConfirmHeroRsp,
+    }.Select(msgID => (int)msgID).ToFrozenSet();
 
     private readonly PacketLog packetLog = new(logger);
     private readonly SemaphoreSlim sendLock = new(1, 1);
@@ -23,15 +40,37 @@ public sealed class GcpSession(
     private GcpCipher? cipher;
     private GcpHead? lastHead;
     private bool loginCompletedNotified;
+    private bool authenticatedNotified;
     private GcpSessionState state = GcpSessionState.AwaitingSyn;
     private uint nextSequence;
     private int nextSvrPkgSeq = 1;
     private ulong gameAcntUid;
+    private GcpSessionStyle style = GcpSessionStyle.Lobby;
+    private ReadOnlyMemory<byte> synAccount;
     private ulong authenticatedUid;
     private bool loginCompleted;
     private bool acntLoginSent;
+    private int latestClientSeq;
 
     internal int NextSvrPkgSeq => nextSvrPkgSeq;
+
+    public uint? SynReserved { get; private set; }
+
+    public Func<byte[], Task>? WriteUnreliable { get; init; }
+
+    public Func<TimeSpan?>? MeasureRtt { get; init; }
+
+    public TimeSpan? Rtt => MeasureRtt?.Invoke();
+
+    public GcpSessionStyle Style
+    {
+        get => style;
+        init
+        {
+            style = value;
+            nextSequence = value.FirstHeadSequence;
+        }
+    }
 
     public bool AwaitingRegistration => serverType == eNetEventServerType.LobbyServer && gameAcntUid != 0 && !loginCompleted;
 
@@ -52,11 +91,23 @@ public sealed class GcpSession(
             (GcpSessionState.AwaitingSyn, GcpCommand.Syn) => SendAsync(() => AcceptSyn(head, packet)),
             (GcpSessionState.AwaitingAuth, GcpCommand.AuthReq) => AcceptAuthAsync(head, packet),
             (GcpSessionState.Established, GcpCommand.Data) => AcceptDataAsync(head, packet),
+            (GcpSessionState.Established, GcpCommand.ClientStop) when style.AnswersClientStop => AcceptClientStopAsync(),
             (GcpSessionState.Established, _) => IgnoreEstablishedPacket(head),
             _ => throw new GcpProtocolException($"Command 0x{head.Command:X4} is not valid in state {state}"),
         };
         await task;
         await NotifyLoginCompletedAsync();
+    }
+
+    public async Task HandleUnreliableBodyAsync(ReadOnlyMemory<byte> encryptedBody, bool compressed)
+    {
+        if (lastHead is not { } head || state != GcpSessionState.Established)
+        {
+            throw new GcpProtocolException("Unreliable data arrived before the session was established");
+        }
+
+        var replies = await DispatchGamePacketAsync(ReadClientPayload(encryptedBody.Span, compressed));
+        await SendAsync(() => [.. replies.Select(reply => BuildGamePacket(head, reply))]);
     }
 
     public async Task PushAsync(IReadOnlyList<GamePacket> packets)
@@ -66,7 +117,35 @@ public sealed class GcpSession(
             throw new InvalidOperationException("Session cannot take pushed packets before it is established");
         }
 
-        await SendAsync(() => [.. packets.Select(packet => BuildGamePacket(head, packet))]);
+        await SendAsync(() => [.. packets.Select(packet => BuildGamePacket(head, StampClientSeq(packet, Volatile.Read(ref latestClientSeq))))]);
+    }
+
+    public async Task PushUnreliableAsync(IReadOnlyList<GamePacket> packets)
+    {
+        if (lastHead is not { } head || state != GcpSessionState.Established)
+        {
+            throw new InvalidOperationException("Session cannot take pushed packets before it is established");
+        }
+
+        await SendAsync(() => [.. packets.Select(packet => BuildGamePacket(head, StampClientSeq(packet, Volatile.Read(ref latestClientSeq))))], WriteUnreliable ?? write);
+    }
+
+    public void Close() => close();
+
+    public async Task StopAsync(GcpStopReason reason, int exCode)
+    {
+        try
+        {
+            if (lastHead is { } head && state == GcpSessionState.Established)
+            {
+                logger.LogInformation("Stopping the GCP session: reason {Reason}, ex code 0x{ExCode:X8}", reason, exCode);
+                await SendAsync(() => [BuildPacket(head, GcpCommand.ServerStop, [], GcpMessages.BuildServerStop(reason, exCode), encryptsBody: false)]);
+            }
+        }
+        finally
+        {
+            close();
+        }
     }
 
     public async ValueTask DisposeAsync()
@@ -74,6 +153,11 @@ public sealed class GcpSession(
         if (loginCompletedNotified)
         {
             await hooks.SessionClosed(gameAcntUid, this);
+        }
+
+        if (authenticatedNotified)
+        {
+            await hooks.AuthenticatedSessionClosed(authenticatedUid, this);
         }
 
         await sendLock.WaitAsync();
@@ -93,14 +177,16 @@ public sealed class GcpSession(
         await hooks.LoginCompleted(gameAcntUid, this);
     }
 
-    private async Task SendAsync(Func<byte[][]> build)
+    private Task SendAsync(Func<byte[][]> build) => SendAsync(build, write);
+
+    private async Task SendAsync(Func<byte[][]> build, Func<byte[], Task> writer)
     {
         await sendLock.WaitAsync();
         try
         {
             foreach (var packet in build())
             {
-                await write(packet);
+                await writer(packet);
             }
         }
         finally
@@ -117,11 +203,14 @@ public sealed class GcpSession(
             throw new GcpProtocolException("SYN does not request a server generated key");
         }
 
+        var syn = GcpMessages.ParseSyn(section);
+        SynReserved = syn.Reserved;
+        synAccount = style.EchoesAccountInAuthRsp ? syn.Account : ReadOnlyMemory<byte>.Empty;
         var sessionKey = RandomNumberGenerator.GetBytes(GcpCipher.KeySize);
         cipher = new GcpCipher(sessionKey);
         state = GcpSessionState.AwaitingAuth;
 
-        return [BuildPacket(head, GcpCommand.Ack, GcpMessages.BuildAckSection(sessionKey, head.PackingVersion), GcpMessages.BuildAckBody())];
+        return [BuildPacket(head, GcpCommand.Ack, GcpMessages.BuildAckSection(sessionKey, head.PackingVersion, compression), GcpMessages.BuildAckBody())];
     }
 
     private async Task AcceptAuthAsync(GcpHead head, ReadOnlyMemory<byte> packet)
@@ -141,11 +230,30 @@ public sealed class GcpSession(
         ContinueSvrPkgSeqUnlessReset(greetingPackets);
         await SendAsync(() =>
         [
-            BuildPacket(head, GcpCommand.AuthRsp, [], GcpMessages.BuildEmptyAuthRsp(head.HeaderVersion)),
-            BuildPacket(head, GcpCommand.Bingo, [], GcpMessages.BuildBingo(head.HeaderVersion)),
+            BuildPacket(head, GcpCommand.AuthRsp, [], BuildAuthRsp(head.HeaderVersion)),
+            BuildPacket(head, GcpCommand.Bingo, [], BuildBingo(head.HeaderVersion)),
             .. greetingPackets.Select(packet => BuildGamePacket(head, packet)),
             .. transDataReplies.Select(packet => BuildGamePacket(head, packet)),
         ]);
+        if (authenticatedUid != 0)
+        {
+            authenticatedNotified = true;
+            await hooks.Authenticated(authenticatedUid, this);
+        }
+    }
+
+    private byte[] BuildAuthRsp(int headerVersion) => style.EchoesAccountInAuthRsp
+        ? GcpMessages.BuildAccountAuthRsp(headerVersion, synAccount.Span)
+        : GcpMessages.BuildEmptyAuthRsp(headerVersion);
+
+    private byte[] BuildBingo(int headerVersion) => style.SendsBingoSession
+        ? GcpMessages.BuildSessionBingo(headerVersion, compression)
+        : GcpMessages.BuildBingo(headerVersion, compression);
+
+    private Task AcceptClientStopAsync()
+    {
+        logger.LogInformation("Client stopped the GCP session");
+        return StopAsync(GcpStopReason.GameServerClose, NoStopExCode);
     }
 
     private void ContinueSvrPkgSeqUnlessReset(GamePacket[] greetingPackets)
@@ -160,21 +268,25 @@ public sealed class GcpSession(
 
     private async Task AcceptDataAsync(GcpHead head, ReadOnlyMemory<byte> packet)
     {
-        var body = cipher!.Decrypt(packet.Span[(int)head.HeadLength..]);
-        var data = GcpMessages.ReadClientData(body);
-        if (GcpMessages.IsCompressedData(packet.Span[GcpHead.Size..(int)head.HeadLength]))
-        {
-            data = Lz4Block.Decompress(data.Span, GcpHead.MaxPacketSize);
-        }
-
-        var replies = await DispatchGamePacketAsync(data);
+        var compressed = GcpMessages.IsCompressedData(packet.Span[GcpHead.Size..(int)head.HeadLength]);
+        var replies = await DispatchGamePacketAsync(ReadClientPayload(packet.Span[(int)head.HeadLength..], compressed));
         await SendAsync(() => [.. replies.Select(reply => BuildGamePacket(head, reply))]);
+    }
+
+    private ReadOnlyMemory<byte> ReadClientPayload(ReadOnlySpan<byte> encryptedBody, bool compressed)
+    {
+        var data = GcpMessages.ReadClientData(cipher!.Decrypt(encryptedBody));
+        return compression.Compresses && compressed ? Lz4Block.Decompress(data.Span, GcpHead.MaxClientMessageSize) : data;
     }
 
     private async Task<GamePacket[]> DispatchGamePacketAsync(ReadOnlyMemory<byte> data)
     {
         var request = ParseGamePacket(data) with { Uid = gameAcntUid != 0 ? gameAcntUid : authenticatedUid };
         packetLog.ReceivedGame(request);
+        if (request.ClientSeq != NoClientSeq)
+        {
+            Volatile.Write(ref latestClientSeq, request.ClientSeq);
+        }
 
         try
         {
@@ -189,7 +301,7 @@ public sealed class GcpSession(
                     await hooks.RepliesSending(gameAcntUid, replies);
                 }
 
-                return replies;
+                return [.. replies.Select(reply => StampClientSeq(reply, request.ClientSeq))];
             }
         }
         catch (Exception exception) when (exception is InvalidProtocolBufferException or InvalidDataException)
@@ -199,7 +311,7 @@ public sealed class GcpSession(
 
         packetLog.Unhandled(serverType, request);
         return serverType == eNetEventServerType.LobbyServer && DefaultReplies.TryBuild(request) is { } defaultReply
-            ? [defaultReply]
+            ? [StampClientSeq(defaultReply, request.ClientSeq)]
             : [];
     }
 
@@ -229,11 +341,19 @@ public sealed class GcpSession(
         reply.MsgID == (int)PB_ENUM_CS_MSGID_DEF.PbScidLoginFinishNtf
         || reply.MsgID == (int)PB_ENUM_CS_MSGID_DEF.PbScidOffingRestartRsp && reply.Uid != 0;
 
+    private static GamePacket StampClientSeq(GamePacket packet, int clientSeq) =>
+        packet.ClientSeq == NoClientSeq && clientSeq != NoClientSeq ? packet with { ClientSeq = clientSeq } : packet;
+
+    private bool WritesIsPkgMem(GamePacket packet) =>
+        serverType == eNetEventServerType.LobbyServer && !PacketsWithoutIsPkgMem.Contains(packet.MsgID);
+
     private byte[] BuildGamePacket(GcpHead head, GamePacket packet)
     {
         packetLog.SentGame(packet);
-        var payload = packet.ToByteArray(nextSvrPkgSeq++);
-        var compressed = payload.Length >= GcpMessages.CompressMinSize ? Lz4Block.Compress(payload) : null;
+        var payload = style.WritesPkgHeadUidAndSvrPkgSeq
+            ? packet.ToByteArray(nextSvrPkgSeq++, WritesIsPkgMem(packet))
+            : packet.ToByteArrayWithoutUidAndSvrPkgSeq();
+        var compressed = compression.Compresses && payload.Length >= compression.MinSize ? Lz4Block.Compress(payload) : null;
         return compressed is not null && compressed.Length < payload.Length
             ? BuildPacket(head, GcpCommand.Data, GcpMessages.BuildDataSection(head.PackingVersion, compressed: true, sessionRoute), compressed)
             : BuildPacket(head, GcpCommand.Data, GcpMessages.BuildDataSection(head.PackingVersion, compressed: false, sessionRoute), payload);
@@ -263,9 +383,9 @@ public sealed class GcpSession(
         logger.LogDebug("Trans data begins {Hex}", Convert.ToHexString(loggedBytes));
     }
 
-    private byte[] BuildPacket(GcpHead request, GcpCommand command, ReadOnlySpan<byte> section, ReadOnlySpan<byte> body)
+    private byte[] BuildPacket(GcpHead request, GcpCommand command, ReadOnlySpan<byte> section, ReadOnlySpan<byte> body, bool encryptsBody = true)
     {
-        var encrypted = cipher is not null && !body.IsEmpty;
+        var encrypted = encryptsBody && cipher is not null && !body.IsEmpty;
         ReadOnlySpan<byte> sentBody = encrypted ? cipher!.Encrypt(body) : body;
         var headLength = GcpHead.Size + section.Length;
         var packet = new byte[headLength + sentBody.Length];

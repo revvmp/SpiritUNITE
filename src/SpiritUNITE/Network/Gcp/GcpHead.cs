@@ -9,7 +9,15 @@ public enum GcpCommand : ushort
     AuthReq = 0x2001,
     AuthRsp = 0x2002,
     Data = 0x4013,
+    ClientStop = 0x5001,
+    ServerStop = 0x5002,
     Bingo = 0x6002,
+}
+
+public enum GcpStopReason
+{
+    IdleClose = 1,
+    GameServerClose = 7,
 }
 
 public enum KeyMaking : byte
@@ -33,7 +41,8 @@ public readonly record struct GcpHead(
     uint BodyLength)
 {
     public const int Size = 21;
-    public const int MaxPacketSize = 64 * 1024;
+    public const int MaxClientMessageSize = 100 * 1024;
+    public const int MaxPacketSize = 128 * 1024;
 
     private const ushort Magic = 0x3366;
     private const ushort MaxPackingVersion = 11;

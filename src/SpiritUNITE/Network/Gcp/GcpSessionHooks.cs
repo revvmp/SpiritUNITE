@@ -6,6 +6,10 @@ public sealed class GcpSessionHooks
 {
     public static readonly GcpSessionHooks None = new();
 
+    public Func<ulong, GcpSession, Task> Authenticated { get; init; } = (_, _) => Task.CompletedTask;
+
+    public Func<ulong, GcpSession, Task> AuthenticatedSessionClosed { get; init; } = (_, _) => Task.CompletedTask;
+
     public Func<ulong, GcpSession, Task> LoginCompleted { get; init; } = (_, _) => Task.CompletedTask;
 
     public Func<ulong, GcpSession, Task> SessionClosed { get; init; } = (_, _) => Task.CompletedTask;

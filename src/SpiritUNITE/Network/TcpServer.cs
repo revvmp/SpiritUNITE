@@ -59,6 +59,8 @@ public abstract class TcpServer(
 
     protected virtual GcpSessionHooks SessionHooks => GcpSessionHooks.None;
 
+    protected virtual GcpCompression Compression => GcpCompression.Lz4;
+
     private void Accept(TcpClient client, TcpServerOptions settings, CancellationToken stoppingToken)
     {
         if (Interlocked.Increment(ref activeConnections) > settings.MaxConnections)
@@ -72,7 +74,7 @@ public abstract class TcpServer(
 
         var idleTimeout = TimeSpan.FromSeconds(settings.IdleTimeoutSeconds);
         var registrationIdleTimeout = TimeSpan.FromSeconds(settings.RegistrationIdleTimeoutSeconds);
-        _ = ServeAsync(new Connection(client, idleTimeout, registrationIdleTimeout, serverType, BuildGreeting, dispatcher, AuthenticateAsync, SessionHooks, connectionLogger), stoppingToken);
+        _ = ServeAsync(new Connection(client, idleTimeout, registrationIdleTimeout, serverType, BuildGreeting, dispatcher, AuthenticateAsync, SessionHooks, Compression, connectionLogger), stoppingToken);
     }
 
     private async Task ServeAsync(Connection connection, CancellationToken stoppingToken)

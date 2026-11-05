@@ -61,7 +61,7 @@ public static class Lz4Block
         while (true)
         {
             var token = ReadByte(source, ref position);
-            var literalLength = ReadLength(source, ref position, token >> LiteralLengthShift);
+            var literalLength = ReadLength(source, ref position, token >> LiteralLengthShift, maxOutputLength);
             if (literalLength > source.Length - position || output.Count + literalLength > maxOutputLength)
             {
                 throw new GcpProtocolException("Compressed data has an invalid literal run");
@@ -85,7 +85,7 @@ public static class Lz4Block
 
             int offset = BinaryPrimitives.ReadUInt16LittleEndian(source[position..]);
             position += sizeof(ushort);
-            var matchLength = ReadLength(source, ref position, token & RunMask) + MinMatch;
+            var matchLength = ReadLength(source, ref position, token & RunMask, maxOutputLength) + MinMatch;
             if (offset == 0 || offset > output.Count || output.Count + matchLength > maxOutputLength)
             {
                 throw new GcpProtocolException("Compressed data has an invalid match");
@@ -134,7 +134,7 @@ public static class Lz4Block
         output.Add((byte)remaining);
     }
 
-    private static int ReadLength(ReadOnlySpan<byte> source, ref int position, int initialLength)
+    private static int ReadLength(ReadOnlySpan<byte> source, ref int position, int initialLength, int maxLength)
     {
         var length = initialLength;
         if (initialLength != RunMask)
@@ -147,9 +147,9 @@ public static class Lz4Block
         {
             next = ReadByte(source, ref position);
             length += next;
-            if (length > GcpHead.MaxPacketSize)
+            if (length > maxLength)
             {
-                throw new GcpProtocolException("Compressed data declares a run longer than a packet");
+                throw new GcpProtocolException("Compressed data declares a run longer than the output limit");
             }
         }
         while (next == LengthByteLimit);

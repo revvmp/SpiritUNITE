@@ -20,6 +20,8 @@ public sealed class RoleSessions(ILogger<RoleSessions> logger)
 
     public IReadOnlyList<ulong> OnlineUids => [.. sessions.Keys];
 
+    public TimeSpan? Rtt(ulong uid) => sessions.TryGetValue(uid, out var session) ? session.Rtt : null;
+
     public async Task<bool> PushAsync(ulong uid, params GamePacket[] packets)
     {
         if (packets.Length == 0 || !sessions.TryGetValue(uid, out var session))

@@ -7,8 +7,17 @@ public sealed record GamePacket(int MsgID, ulong Uid, int ClientSeq, byte[] PkgD
 {
     private const int MsgIDField = 1;
     private const int UidField = 2;
+    private const int VersionField = 3;
     private const int SvrPkgSeqField = 4;
     private const int ClientSeqField = 5;
+    private const int IsPkgMemField = 7;
+    private const int PkgMem = 1;
+    private const int MsgIDFromBody = 0;
+    private const ulong NoUid = 0;
+    private const int NoClientSeq = 0;
+    private const int NoVersion = 0;
+
+    public int Version { get; init; }
 
     public static GamePacket Create(PB_ENUM_CS_MSGID_DEF msgID, IMessage message) =>
         new((int)msgID, Uid: 0, ClientSeq: 0, message.ToByteArray());
@@ -21,8 +30,9 @@ public sealed record GamePacket(int MsgID, ulong Uid, int ClientSeq, byte[] PkgD
         try
         {
             var input = new CodedInputStream(data.ToArray());
-            var (msgID, uid, clientSeq) = ParseHead(input.ReadBytes());
-            return new GamePacket(msgID, uid, clientSeq, ParseBody(input.ReadBytes(), msgID));
+            var (headMsgID, uid, clientSeq) = ParseHead(input.ReadBytes());
+            var (msgID, pkgData) = ParseBody(input.ReadBytes(), headMsgID);
+            return new GamePacket(msgID, uid, clientSeq, pkgData);
         }
         catch (InvalidProtocolBufferException exception)
         {
@@ -30,11 +40,21 @@ public sealed record GamePacket(int MsgID, ulong Uid, int ClientSeq, byte[] PkgD
         }
     }
 
-    public byte[] ToByteArray(int svrPkgSeq)
+    public byte[] ToByteArray(int svrPkgSeq, bool isPkgMem = false)
     {
         using var buffer = new MemoryStream();
         using var output = new CodedOutputStream(buffer, leaveOpen: true);
-        output.WriteBytes(BuildHead(svrPkgSeq));
+        output.WriteBytes(BuildHead(svrPkgSeq, isPkgMem));
+        output.WriteBytes(BuildBody());
+        output.Flush();
+        return buffer.ToArray();
+    }
+
+    public byte[] ToByteArrayWithoutUidAndSvrPkgSeq()
+    {
+        using var buffer = new MemoryStream();
+        using var output = new CodedOutputStream(buffer, leaveOpen: true);
+        output.WriteBytes(BuildHeadWithoutUidAndSvrPkgSeq());
         output.WriteBytes(BuildBody());
         output.Flush();
         return buffer.ToArray();
@@ -67,37 +87,84 @@ public sealed record GamePacket(int MsgID, ulong Uid, int ClientSeq, byte[] PkgD
         return (msgID, uid, clientSeq);
     }
 
-    private static byte[] ParseBody(ByteString body, int msgID)
+    private static (int MsgID, byte[] PkgData) ParseBody(ByteString body, int headMsgID)
     {
         var input = body.CreateCodedInput();
 
         for (var tag = input.ReadTag(); tag != 0; tag = input.ReadTag())
         {
-            if (WireFormat.GetTagFieldNumber(tag) == msgID)
+            var fieldNumber = WireFormat.GetTagFieldNumber(tag);
+            if (headMsgID == MsgIDFromBody && WireFormat.GetTagWireType(tag) == WireFormat.WireType.LengthDelimited)
             {
-                return input.ReadBytes().ToByteArray();
+                return (fieldNumber, input.ReadBytes().ToByteArray());
+            }
+
+            if (fieldNumber == headMsgID)
+            {
+                return (headMsgID, input.ReadBytes().ToByteArray());
             }
 
             input.SkipLastField();
         }
 
-        return [];
+        return (headMsgID, []);
     }
 
-    private ByteString BuildHead(int svrPkgSeq)
+    private ByteString BuildHead(int svrPkgSeq, bool isPkgMem)
     {
         using var buffer = new MemoryStream();
         using var output = new CodedOutputStream(buffer, leaveOpen: true);
         output.WriteTag(MsgIDField, WireFormat.WireType.Varint);
         output.WriteInt32(MsgID);
-        output.WriteTag(UidField, WireFormat.WireType.Varint);
-        output.WriteUInt64(Uid);
+        if (Uid != NoUid)
+        {
+            output.WriteTag(UidField, WireFormat.WireType.Varint);
+            output.WriteUInt64(Uid);
+        }
+
+        WriteVersion(output);
         output.WriteTag(SvrPkgSeqField, WireFormat.WireType.Varint);
         output.WriteInt32(svrPkgSeq);
-        output.WriteTag(ClientSeqField, WireFormat.WireType.Varint);
-        output.WriteInt32(ClientSeq);
+        if (ClientSeq != NoClientSeq)
+        {
+            output.WriteTag(ClientSeqField, WireFormat.WireType.Varint);
+            output.WriteInt32(ClientSeq);
+        }
+
+        if (isPkgMem)
+        {
+            output.WriteTag(IsPkgMemField, WireFormat.WireType.Varint);
+            output.WriteInt32(PkgMem);
+        }
+
         output.Flush();
         return ByteString.CopyFrom(buffer.ToArray());
+    }
+
+    private ByteString BuildHeadWithoutUidAndSvrPkgSeq()
+    {
+        using var buffer = new MemoryStream();
+        using var output = new CodedOutputStream(buffer, leaveOpen: true);
+        output.WriteTag(MsgIDField, WireFormat.WireType.Varint);
+        output.WriteInt32(MsgID);
+        WriteVersion(output);
+        if (ClientSeq != NoClientSeq)
+        {
+            output.WriteTag(ClientSeqField, WireFormat.WireType.Varint);
+            output.WriteInt32(ClientSeq);
+        }
+
+        output.Flush();
+        return ByteString.CopyFrom(buffer.ToArray());
+    }
+
+    private void WriteVersion(CodedOutputStream output)
+    {
+        if (Version != NoVersion)
+        {
+            output.WriteTag(VersionField, WireFormat.WireType.Varint);
+            output.WriteInt32(Version);
+        }
     }
 
     private ByteString BuildBody()
