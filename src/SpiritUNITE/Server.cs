@@ -28,6 +28,7 @@ using SpiritUNITE.Game.FightHistory;
 using SpiritUNITE.Game.Profile;
 using SpiritUNITE.Game.PveChallenge;
 using SpiritUNITE.Game.Role;
+using SpiritUNITE.Game.Settings;
 using SpiritUNITE.Game.Shop;
 using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Logging;
@@ -147,6 +148,7 @@ public static class Server
         builder.Services.AddSingleton<StarRoadRepository>();
         builder.Services.AddSingleton<TrainerExpGiftRepository>();
         builder.Services.AddSingleton<ProfileRepository>();
+        builder.Services.AddSingleton<SettingsRepository>();
     }
 
     private static void AddGameData(IHostApplicationBuilder builder) =>
@@ -177,6 +179,7 @@ public static class Server
         builder.Services.AddSingleton<AppearanceGift>();
         builder.Services.AddSingleton<FightHistoryRecords>();
         builder.Services.AddSingleton<ProfileManager>();
+        builder.Services.AddSingleton<SettingsManager>();
         builder.Services.AddSingleton<LoginThrottle>();
         builder.Services.AddSingleton<AccountManager>();
         builder.Services.AddSingleton<AuthorizationCodeStore>();
@@ -195,6 +198,7 @@ public static class Server
     {
         builder.Services.AddHostedService<DirServer>();
         builder.Services.AddHostedService<LobbyServer>();
+        builder.Services.AddHostedService<RedDotRecorder>();
         HttpServer.AddServices(builder.Services);
     }
 }

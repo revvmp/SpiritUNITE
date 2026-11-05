@@ -250,6 +250,23 @@ CREATE TABLE IF NOT EXISTS `role_card_face_wear` (
     PRIMARY KEY (game_ulong_uid, pokemon_id),
     CONSTRAINT fk_role_card_face_wear_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_setting` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    client_bit_state VARBINARY(64) NOT NULL,
+    red_dot_switch_info VARBINARY(64) NOT NULL,
+    lobby_menu_sort_info VARBINARY(128) NOT NULL,
+    quick_speak_info VARBINARY(64) NULL,
+    game_setting_info VARBINARY(4096) NOT NULL,
+    ab_mode INT NOT NULL DEFAULT 1,
+    country_code INT NOT NULL DEFAULT 0,
+    red_dot_info VARBINARY(4096) NOT NULL,
+    bub_tip_info VARBINARY(256) NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT ck_role_setting_ab_mode CHECK (ab_mode IN (1, 2)),
+    CONSTRAINT fk_role_setting_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `role_pokemon_used` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL,
     pokemon_id INT NOT NULL,

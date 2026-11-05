@@ -44,6 +44,7 @@ public static class DatabaseManager
             await database.GetTable<RoleMail>().FirstOrDefaultAsync();
             await database.GetTable<RoleProfileStyle>().AnyAsync();
             await database.GetTable<RoleCardFaceWear>().AnyAsync();
+            await database.GetTable<RoleSetting>().AnyAsync();
         }
         catch (MySqlException exception)
         {
