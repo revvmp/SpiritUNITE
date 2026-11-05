@@ -1,4 +1,35 @@
 {
+  "LobbyRules": {
+    "CompetitionOpen": {
+      "IsOpen": 1,
+      "BeginTime": 1626825600,
+      "EndTime": 1904688000
+    },
+    "StartingCreditPoint": 100,
+    "SubscriptionIsOpen": 1,
+    "AcntSysPlat": 1,
+    "NewSaleShopIDs": [130339, 130340, 130341, 130342, 130343, 130344, 130345, 130346, 130347, 130348, 130349, 130350, 130351, 130352],
+    "UserSchemes": [
+      { "BusinessType": 1, "SchemeId": 4 },
+      { "BusinessType": 2, "SchemeId": 5 },
+      { "BusinessType": 4, "SchemeId": 3 },
+      { "BusinessType": 5, "SchemeId": 2 },
+      { "BusinessType": 6, "SchemeId": 2 },
+      { "BusinessType": 7, "SchemeId": 2 },
+      { "BusinessType": 3, "SchemeId": 1 }
+    ],
+    "RegistBubTips": [
+      { "BubTipID": 10, "BubTipBadgeNum": 1 }
+    ],
+    "SubscriptionFree": {
+      "FreePokemonList": [54, 816],
+      "FreePasterList": [1006005403, 1006081803]
+    },
+    "SubscriptionInterfaceVarints": [
+      { "FieldNumber": 9, "Value": 200 },
+      { "FieldNumber": 10, "Value": 30 }
+    ]
+  },
   "Pokemon": {
     "FreePokemonList": [77, 557, 845, 957]
   },

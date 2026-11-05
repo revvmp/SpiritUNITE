@@ -19,6 +19,7 @@ using SpiritUNITE.Game.Chat;
 using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Game.Badge;
 using SpiritUNITE.Game.HeldItem;
+using SpiritUNITE.Game.Lobby;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Friend;
 using SpiritUNITE.Game.Mail;
@@ -105,6 +106,11 @@ public static class Server
             .Validate(options => options.IsValid(), "TcpServer settings are invalid")
             .ValidateOnStart();
 
+        builder.Services.AddOptions<LobbyOptions>()
+            .BindConfiguration(LobbyOptions.SectionName)
+            .Validate(options => options.IsValid(), "LobbyRules settings are invalid")
+            .ValidateOnStart();
+
         builder.Services.AddOptions<WalletOptions>()
             .BindConfiguration(WalletOptions.SectionName)
             .Validate(options => options.IsValid(), "Wallet settings are invalid")
@@ -169,6 +175,7 @@ public static class Server
     {
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<RoleSessions>();
+        builder.Services.AddSingleton<LobbyNotices>();
         builder.Services.AddSingleton<FriendPresence>();
         builder.Services.AddSingleton<RoleBriefBuilder>();
         builder.Services.AddSingleton<FriendManager>();
@@ -211,6 +218,7 @@ public static class Server
     {
         builder.Services.AddHostedService<DirServer>();
         builder.Services.AddHostedService<LobbyServer>();
+        builder.Services.AddHostedService<LobbyRefreshTick>();
         builder.Services.AddHostedService<RedDotRecorder>();
         HttpServer.AddServices(builder.Services);
     }
