@@ -41,6 +41,7 @@ public static class DatabaseManager
             await database.GetTable<RoleFriendRequest>().AnyAsync();
             await database.GetTable<RoleFriendBlack>().AnyAsync();
             await database.GetTable<RoleChatOffline>().AnyAsync();
+            await database.GetTable<RoleMail>().FirstOrDefaultAsync();
             await database.GetTable<RoleProfileStyle>().AnyAsync();
             await database.GetTable<RoleCardFaceWear>().AnyAsync();
         }

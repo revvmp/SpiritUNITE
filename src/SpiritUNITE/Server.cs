@@ -21,6 +21,7 @@ using SpiritUNITE.Game.Badge;
 using SpiritUNITE.Game.HeldItem;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Friend;
+using SpiritUNITE.Game.Mail;
 using SpiritUNITE.Game.Newbie;
 using SpiritUNITE.Game.MSDKNotice;
 using SpiritUNITE.Game.FightHistory;
@@ -130,6 +131,7 @@ public static class Server
         builder.Services.AddSingleton(databaseOptions);
         builder.Services.AddSingleton<RoleRepository>();
         builder.Services.AddSingleton<FriendRepository>();
+        builder.Services.AddSingleton<MailRepository>();
         builder.Services.AddSingleton<ChatRepository>();
         builder.Services.AddSingleton<WalletRepository>();
         builder.Services.AddSingleton<ShopRepository>();
@@ -157,6 +159,7 @@ public static class Server
         builder.Services.AddSingleton<FriendPresence>();
         builder.Services.AddSingleton<RoleBriefBuilder>();
         builder.Services.AddSingleton<FriendManager>();
+        builder.Services.AddSingleton<MailManager>();
         builder.Services.AddSingleton<ChatManager>();
         builder.Services.AddSingleton<RoleInfoStore>();
         builder.Services.AddSingleton<WalletManager>();

@@ -206,6 +206,29 @@ CREATE TABLE IF NOT EXISTS `role_chat_offline` (
     CONSTRAINT fk_role_chat_offline_dest FOREIGN KEY (dest_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE,
     CONSTRAINT fk_role_chat_offline_from FOREIGN KEY (from_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_mail` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    mail_index INT NOT NULL,
+    mail_type INT NOT NULL,
+    mail_sub_type INT NOT NULL,
+    mail_id INT NOT NULL DEFAULT 0,
+    mail_state INT NOT NULL,
+    from_uid BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    from_name VARCHAR(64) NOT NULL DEFAULT '',
+    subject VARCHAR(64) NOT NULL,
+    content VARCHAR(400) NOT NULL,
+    send_time BIGINT NOT NULL,
+    expire_time BIGINT NOT NULL,
+    access_info VARBINARY(1024) NOT NULL,
+    access_state INT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, mail_index),
+    KEY ix_role_mail_type (game_ulong_uid, mail_type),
+    CONSTRAINT ck_role_mail_state CHECK (mail_state IN (1, 2)),
+    CONSTRAINT ck_role_mail_access_state CHECK (access_state IN (0, 1, 2)),
+    CONSTRAINT fk_role_mail_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `role_profile_style` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     cur_head_icon_id INT NOT NULL,
