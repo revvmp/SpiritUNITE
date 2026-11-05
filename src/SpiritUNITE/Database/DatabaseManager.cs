@@ -36,6 +36,10 @@ public static class DatabaseManager
             await database.GetTable<AccountToken>().AnyAsync();
             await database.GetTable<RoleLoginDay>().AnyAsync();
             await database.GetTable<RoleActivityTaskReward>().AnyAsync();
+            await database.GetTable<RoleSocial>().AnyAsync();
+            await database.GetTable<RoleFriend>().AnyAsync();
+            await database.GetTable<RoleFriendRequest>().AnyAsync();
+            await database.GetTable<RoleFriendBlack>().AnyAsync();
             await database.GetTable<RoleProfileStyle>().AnyAsync();
             await database.GetTable<RoleCardFaceWear>().AnyAsync();
         }

@@ -153,6 +153,48 @@ CREATE TABLE IF NOT EXISTS `role_achievement` (
     CONSTRAINT fk_role_achievement_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `role_social` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    deny_all_request_flag INT NOT NULL DEFAULT 0,
+    accept_chat_convention INT NOT NULL DEFAULT 0,
+    last_logout_time BIGINT NOT NULL DEFAULT 0,
+    CONSTRAINT fk_role_social_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_friend` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    friend_uid BIGINT UNSIGNED NOT NULL,
+    add_friend_time BIGINT NOT NULL,
+    ban_chat_flag INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid, friend_uid),
+    KEY ix_role_friend_friend (friend_uid),
+    CONSTRAINT ck_role_friend_not_self CHECK (game_ulong_uid <> friend_uid),
+    CONSTRAINT fk_role_friend_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE,
+    CONSTRAINT fk_role_friend_friend FOREIGN KEY (friend_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_friend_request` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    request_uid BIGINT UNSIGNED NOT NULL,
+    from_type INT NOT NULL,
+    self_camp INT NOT NULL DEFAULT 0,
+    request_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, request_uid),
+    KEY ix_role_friend_request_requester (request_uid),
+    CONSTRAINT ck_role_friend_request_not_self CHECK (game_ulong_uid <> request_uid),
+    CONSTRAINT fk_role_friend_request_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE,
+    CONSTRAINT fk_role_friend_request_requester FOREIGN KEY (request_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_friend_black` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    black_uid BIGINT UNSIGNED NOT NULL,
+    add_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, black_uid),
+    CONSTRAINT ck_role_friend_black_not_self CHECK (game_ulong_uid <> black_uid),
+    CONSTRAINT fk_role_friend_black_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE,
+    CONSTRAINT fk_role_friend_black_black FOREIGN KEY (black_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
 CREATE TABLE IF NOT EXISTS `role_profile_style` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     cur_head_icon_id INT NOT NULL,
