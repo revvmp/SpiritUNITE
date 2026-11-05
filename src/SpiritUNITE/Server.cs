@@ -20,6 +20,7 @@ using SpiritUNITE.Game.Badge;
 using SpiritUNITE.Game.HeldItem;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.MSDKNotice;
+using SpiritUNITE.Game.FightHistory;
 using SpiritUNITE.Game.Profile;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Shop;
@@ -160,6 +161,7 @@ public static class Server
         builder.Services.AddSingleton<StarRoadManager>();
         builder.Services.AddSingleton<TrainerExpGifts>();
         builder.Services.AddSingleton<AppearanceGift>();
+        builder.Services.AddSingleton<FightHistoryRecords>();
         builder.Services.AddSingleton<ProfileManager>();
         builder.Services.AddSingleton<LoginThrottle>();
         builder.Services.AddSingleton<AccountManager>();

@@ -1,4 +1,7 @@
-using SpiritUNITE.Game.Data;
+using SpiritUNITE.Databin;
+using SpiritUNITE.Tools;
+using SpiritUNITE.Game.Lobby;
+using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Ranked;
@@ -8,6 +11,13 @@ public readonly record struct RankedMatchSeasonState(pbRankedMatchSeason Season,
 public static class RankedMatch
 {
     public const PB_ENUM_RES_RANK_DIVISION StartingRankedDivision = PB_ENUM_RES_RANK_DIVISION.PbResRankDivisionBeginner5;
+    public const int AllSeasonTaskAwards = -1;
+
+    public static bool IsRankedMatchUnlocked(GameData gameData, LobbyNotices notices, LMNRoleInfo role) =>
+        gameData.SystemUnlock.Find(pbSystemUnlock.Key(
+            (int)PB_ENUM_RES_SYSTEM_UNLOCK_TYPE.PbResSystemUnlockTypeRank,
+            notices.GetBusinessSchemeId(PB_ENUM_RES_USER_SCHEME_BUSINESS_TYPE.PbResUserSchemeBusinessTypeSystemUnlock))) is { } unlock
+        && role.RoleTotalExp >= unlock.TrainerExp;
 
     public static RankedMatchSeasonState FindCurrentSeason(GameData gameData, DateTimeOffset now)
     {
@@ -43,4 +53,9 @@ public static class RankedMatch
             AwardedInfo = new pbCOMDT_RANKED_MATCH_AWARDED_INFO(),
         };
     }
+
+    public static PB_ENUM_RES_ERROR_CODE RefuseSeasonTaskAward(int rankedDivision) =>
+        rankedDivision == AllSeasonTaskAwards || Enum.IsDefined((PB_ENUM_RES_RANK_DIVISION)rankedDivision)
+            ? PB_ENUM_RES_ERROR_CODE.PbErrCommonFailed
+            : PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
 }
