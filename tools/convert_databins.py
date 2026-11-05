@@ -43,6 +43,12 @@ LUA_ONLY_FIELDS = {
         282277: Field("JumpID", "int32"),
         297667: Field("TransmuteNum", "int32"),
     },
+    "pbNewbieChallengeTask": {
+        211327: Field("TaskDay", "int32"),
+        257394: Field("DayTaskID", "int32"),
+        259562: Field("SubTaskID", "int32", repeated=True),
+        269998: Field("SchemeId", "int32"),
+    },
     "pbNewbieGift": {
         256687: Field("SDropID", "int32"),
         269998: Field("SchemeId", "int32"),
@@ -148,12 +154,26 @@ LUA_ONLY_FIELDS = {
         266754: Field("BadgeColor", "int32"),
         299143: Field("LvNeedCount", "int32"),
     },
+    "pbDrop_Base": {
+        224348: Field("DropSeq", "int32"),
+        246521: Field("DropPackID", "int32"),
+        269784: Field("DropID", "int32"),
+    },
+    "pbDrop_Pack": {
+        203263: Field("ResID", "int32"),
+        209248: Field("Weight", "int32"),
+        211808: Field("MinDropCount", "int32"),
+        232538: Field("MaxDropCount", "int32"),
+        246521: Field("DropPackID", "int32"),
+        290483: Field("DropPackSeq", "int32"),
+    },
 }
 
 SERVER_FIELD_SUBSETS = {
     "pbActivity_Base": {
         229558: Field("ValidEndTime", "int64"),
         230959: Field("TaskGroupIDList", "int32", repeated=True),
+        231174: Field("NewbieShownTime", "int32"),
         239066: Field("NationGroupList", "int32", repeated=True),
         244760: Field("ActivityID", "int32"),
         256887: Field("ActivityType", "int32"),
@@ -178,14 +198,24 @@ SERVER_FIELD_SUBSETS = {
         297667: Field("TransmuteNum", "int32"),
     },
     "pbPokemon_Base": {
+        229827: Field("OccupationType", "int32"),
         232524: Field("PokemonId", "int32"),
+        238850: Field("BranchRecommend", "int32", repeated=True),
+        240544: Field("HideInBox", "int32"),
+        241002: Field("MainUnitId", "int32"),
         250599: Field("RecommendEquips", "int32", repeated=True),
+    },
+    "pbUnit_Base": {
+        259263: Field("UnitId", "int32"),
+        271778: Field("MonsterClassType", "int32"),
     },
 }
 
 NESTED_MESSAGE_FIELDS = {
     "pbFinishCondition": {
         266127: Field("ID", "int32"),
+        270541: Field("ParamB", "int32", repeated=True),
+        270544: Field("ParamA", "int32", repeated=True),
         288334: Field("TargetProcess", "int32"),
     },
     "pbUpgradeCost": {
@@ -240,6 +270,8 @@ OUT_SIDE_ITEM_SERVER_FIELDS = (
     "SellCurrency",
     "SellPrice",
     "IsCanLevelUp",
+    "Transmuteid",
+    "TransmuteNum",
 )
 
 HELD_ITEM_LEVEL_UP_DESIGN_SERVER_FIELDS = ("Id", "GroupId", "Level", "LevelUpCost", "LevelUpCostID")
@@ -259,6 +291,14 @@ PVE_CHALLENGE_STAGE_ROUTE_SERVER_FIELDS = (
     "IsNormalType",
     "NextUnLock",
     "NextUnLockHard",
+    "EnemyldList",
+    "TeamldList",
+    "TeamPickMode",
+    "OneStarDrops",
+    "TwoStarDrops",
+    "ThreeStarDrops",
+    "CompleteDrops",
+    "TaskID",
 )
 
 CONTESTANT_CARD_DECORATION_SERVER_FIELDS = ("DecorationID", "DecorationType", "IsDefault", "OnTime")
@@ -268,6 +308,8 @@ HEAD_ICON_SERVER_FIELDS = ("HeadIconID", "IsOpen", "OnTime")
 BATTLE_SIGNAL_COMMUNICATE_SERVER_FIELDS = ("Id", "SignalType", "PhraseLocation")
 
 NATION_SELECT_INFORMATION_SERVER_FIELDS = ("NationID",)
+
+POKEMON_AVATAR_BASE_SERVER_FIELDS = ("PokemonAvatarId", "PokemonId", "OnTime")
 
 SCENE_MAP_SERVER_FIELDS = (
     "SceneId",
@@ -292,6 +334,9 @@ TABLES = {
     "databin_CreateRoleShowAvatar": Table("pbCreateRoleShowAvatar"),
     "databin_DefaultAvatarItem": Table("pbDefaultAvatarItem"),
     "databin_Drop_Static": Table("pbDrop_Static"),
+    "databin_ResIDTypeMatch_Base": Table("pbResIDTypeMatch_Base"),
+    "databin_Drop_Base": Table("pbDrop_Base", LUA_ONLY_FIELDS["pbDrop_Base"]),
+    "databin_Drop_Pack": Table("pbDrop_Pack", LUA_ONLY_FIELDS["pbDrop_Pack"]),
     "databin_LobbyBg": Table("pbLobbyBg", LUA_ONLY_FIELDS["pbLobbyBg"]),
     "databin_Newbie_RewardHero": Table("pbNewbie_RewardHero"),
     "databin_OutSideItem_Base": Table(
@@ -305,6 +350,7 @@ TABLES = {
     "databin_StarRoadSite": Table("pbStarRoadSite", LUA_ONLY_FIELDS["pbStarRoadSite"]),
     "databin_StarRoadPokemon": Table("pbStarRoadPokemon", LUA_ONLY_FIELDS["pbStarRoadPokemon"]),
     "databin_NewbieGift": Table("pbNewbieGift", LUA_ONLY_FIELDS["pbNewbieGift"]),
+    "databin_NewbieChallengeTask": Table("pbNewbieChallengeTask", LUA_ONLY_FIELDS["pbNewbieChallengeTask"]),
     "databin_OridinaryTask": Table("pbTask_Base", SERVER_FIELD_SUBSETS["pbTask_Base"], key_field="TaskID"),
     "databin_Achievement": Table("pbAchievement", LUA_ONLY_FIELDS["pbAchievement"], key_field="AchievementID"),
     "databin_BattlePassSeason": Table(
@@ -354,6 +400,11 @@ TABLES = {
         "pbPveChallengeStageRoute", kept_fields=PVE_CHALLENGE_STAGE_ROUTE_SERVER_FIELDS
     ),
     "databin_AiInfoConfig": Table("pbAiInfoConfig", key_field="ID"),
+    "databin_TrainerPokemon": Table("pbTrainerPokemon", key_field="PokemonUnitId"),
+    "databin_Pokemon_Avatar_Base": Table(
+        "pbPokemon_Avatar_Base", key_field="PokemonAvatarId", kept_fields=POKEMON_AVATAR_BASE_SERVER_FIELDS
+    ),
+    "databin_Monster_Base_Monster": Table("pbUnit_Base", SERVER_FIELD_SUBSETS["pbUnit_Base"], key_field="UnitId"),
 }
 
 TABLE_MAGIC = b"pbc"
@@ -517,7 +568,7 @@ def decode_packed(payload, field):
 
 def decode_length_delimited(payload, field):
     if field.type in NESTED_MESSAGE_FIELDS:
-        return [convert_row(payload, NESTED_MESSAGE_FIELDS[field.type], drops_unnamed_fields=True)]
+        return [without_trailing_zeros(convert_row(payload, NESTED_MESSAGE_FIELDS[field.type], drops_unnamed_fields=True))]
     if field.type == "string":
         try:
             return [payload.decode("utf-8")]
@@ -528,6 +579,18 @@ def decode_length_delimited(payload, field):
     if field.repeated and (field.type in VARINT_TYPES or field.type in FIXED_WIDTH_TYPES):
         return decode_packed(payload, field)
     raise ConversionError(f"{field.name} has type {field.type}, which this converter cannot write")
+
+
+def without_trailing_zeros(row):
+    sparse = {}
+    for name, value in row.items():
+        if isinstance(value, list):
+            while value and value[-1] == 0:
+                value = value[:-1]
+            if not value:
+                continue
+        sparse[name] = value
+    return sparse
 
 
 def decode_field_values(reader, wire_type, field):

@@ -35,10 +35,14 @@ public sealed class GameData
         LobbyBg = LoadRecords<pbLobbyBg>(row => row.LobbyBgID);
         StarRoadSite = LoadRecords<pbStarRoadSite>(row => row.SiteID);
         NewbieGift = LoadRecords<pbNewbieGift>(row => pbNewbieGift.Key(row.GiftID, row.SchemeId));
+        NewbieChallengeTask = LoadRecords<pbNewbieChallengeTask>(row => pbNewbieChallengeTask.Key(row.SchemeId, row.TaskDay));
         StarRoadPokemon = LoadRecords<pbStarRoadPokemon>(row => row.PokemonId);
         ActivityBase = LoadMessages<pbActivity_Base>(row => row.ActivityID);
         TaskBase = LoadMessages<pbTask_Base>(row => row.TaskID);
         DropStatic = LoadMessages<pbDrop_Static>(row => pbDrop_Static.Key(row.SDropID, row.SDropSeq));
+        ResIDTypeMatchBase = LoadMessages<pbResIDTypeMatch_Base>(row => row.ResIDMin);
+        DropBase = LoadRecords<pbDrop_Base>(row => pbDrop_Base.Key(row.DropID, row.DropSeq));
+        DropPack = LoadRecords<pbDrop_Pack>(row => pbDrop_Pack.Key(row.DropPackID, row.DropPackSeq));
         Shop = LoadMessages<pbShop>(row => row.ShopID);
         AvatarItem = LoadMessages<pbAvatarItem>(row => row.AvatarItemId);
         AvatarSuit = LoadMessages<pbAvatarSuit>(row => row.AvatarSuitId);
@@ -70,6 +74,9 @@ public sealed class GameData
         PveChallengeStageRoute = LoadMessages<pbPveChallengeStageRoute>(row =>
             pbPveChallengeStageRoute.Key(row.StageID, row.NodeID, row.DifficultyLevel));
         AiInfoConfig = LoadMessages<pbAiInfoConfig>(row => row.ID);
+        TrainerPokemon = LoadMessages<pbTrainerPokemon>(row => row.PokemonUnitId);
+        PokemonAvatarBase = LoadMessages<pbPokemon_Avatar_Base>(row => row.PokemonAvatarId);
+        UnitBase = LoadMessages<pbUnit_Base>(row => row.UnitId);
         NationGroup = LoadRecords<pbNationGroup>(row => row.NationGroupID);
         TowerDefenseBase = LoadRecords<pbTowerDefenseBase>(row => row.PeriodID);
         SubScriptionPeriod = LoadRecords<pbSubScriptionPeriod>(row => row.ID);
@@ -87,6 +94,7 @@ public sealed class GameData
     public DatabinTable<pbLobbyBg> LobbyBg { get; }
     public DatabinTable<pbStarRoadSite> StarRoadSite { get; }
     public DatabinTable<pbNewbieGift> NewbieGift { get; }
+    public DatabinTable<pbNewbieChallengeTask> NewbieChallengeTask { get; }
     public DatabinTable<pbStarRoadPokemon> StarRoadPokemon { get; }
     public DatabinTable<pbActivity_Base> ActivityBase { get; }
     public DatabinTable<pbNationGroup> NationGroup { get; }
@@ -97,6 +105,9 @@ public sealed class GameData
     public DatabinTable<pbPasterSpray> PasterSpray { get; }
     public DatabinTable<pbTask_Base> TaskBase { get; }
     public DatabinTable<pbDrop_Static> DropStatic { get; }
+    public DatabinTable<pbResIDTypeMatch_Base> ResIDTypeMatchBase { get; }
+    public DatabinTable<pbDrop_Base> DropBase { get; }
+    public DatabinTable<pbDrop_Pack> DropPack { get; }
     public DatabinTable<pbShop> Shop { get; }
     public DatabinTable<pbAvatarItem> AvatarItem { get; }
     public DatabinTable<pbAvatarSuit> AvatarSuit { get; }
@@ -127,6 +138,9 @@ public sealed class GameData
     public DatabinTable<pbNewbieGuideSteps> NewbieGuideSteps { get; }
     public DatabinTable<pbPveChallengeStageRoute> PveChallengeStageRoute { get; }
     public DatabinTable<pbAiInfoConfig> AiInfoConfig { get; }
+    public DatabinTable<pbTrainerPokemon> TrainerPokemon { get; }
+    public DatabinTable<pbPokemon_Avatar_Base> PokemonAvatarBase { get; }
+    public DatabinTable<pbUnit_Base> UnitBase { get; }
     public int DefaultLobbyBgId { get; }
 
     public static GameData Load(string directory) => new(directory);

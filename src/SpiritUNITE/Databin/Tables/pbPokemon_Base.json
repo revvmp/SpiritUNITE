@@ -1,6 +1,13 @@
 [
   {
+    "OccupationType": 8,
     "PokemonId": 1,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100001,
     "RecommendEquips": [
       7,
       9,
@@ -8,7 +15,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 4,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100004,
     "RecommendEquips": [
       3,
       2,
@@ -16,7 +30,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 6004,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 106004,
     "RecommendEquips": [
       3,
       2,
@@ -24,7 +45,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 7004,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 106004,
     "RecommendEquips": [
       3,
       2,
@@ -32,7 +60,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 8004,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 108004,
     "RecommendEquips": [
       3,
       2,
@@ -40,7 +75,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 9004,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 108004,
     "RecommendEquips": [
       3,
       2,
@@ -48,7 +90,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 448,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100448,
     "RecommendEquips": [
       3,
       2,
@@ -56,7 +105,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 8448,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 108448,
     "RecommendEquips": [
       3,
       2,
@@ -64,7 +120,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 9448,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 108448,
     "RecommendEquips": [
       3,
       2,
@@ -72,7 +135,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 129,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100129,
     "RecommendEquips": [
       15,
       14,
@@ -80,7 +150,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 9129,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 109129,
     "RecommendEquips": [
       15,
       14,
@@ -88,7 +165,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 8129,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 109129,
     "RecommendEquips": [
       15,
       14,
@@ -96,7 +180,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 892,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100892,
     "RecommendEquips": [
       3,
       2,
@@ -104,7 +195,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 1892,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100892,
     "RecommendEquips": [
       3,
       2,
@@ -112,7 +210,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 679,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100679,
     "RecommendEquips": [
       6,
       4,
@@ -120,7 +225,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 1679,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100679,
     "RecommendEquips": [
       6,
       4,
@@ -128,7 +240,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 150,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100150,
     "RecommendEquips": [
       7,
       9,
@@ -136,7 +255,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 7150,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100150,
     "RecommendEquips": [
       7,
       9,
@@ -144,7 +270,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 9150,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 109150,
     "RecommendEquips": [
       7,
       9,
@@ -152,7 +285,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 8150,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 109150,
     "RecommendEquips": [
       7,
       9,
@@ -160,7 +300,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 888,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100888,
     "RecommendEquips": [
       3,
       2,
@@ -168,7 +315,14 @@
     ]
   },
   {
+    "OccupationType": 9,
     "PokemonId": 7,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 180007,
     "RecommendEquips": [
       7,
       9,
@@ -176,7 +330,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 25,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100025,
     "RecommendEquips": [
       7,
       9,
@@ -184,7 +345,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 37,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 190037,
     "RecommendEquips": [
       7,
       9,
@@ -192,7 +360,14 @@
     ]
   },
   {
+    "OccupationType": 6,
     "PokemonId": 39,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100039,
     "RecommendEquips": [
       15,
       14,
@@ -200,7 +375,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 66,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 190066,
     "RecommendEquips": [
       3,
       2,
@@ -208,7 +390,14 @@
     ]
   },
   {
+    "OccupationType": 9,
     "PokemonId": 79,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 190079,
     "RecommendEquips": [
       11,
       12,
@@ -216,7 +405,14 @@
     ]
   },
   {
+    "OccupationType": 10,
     "PokemonId": 92,
+    "BranchRecommend": [
+      2,
+      0,
+      0
+    ],
+    "MainUnitId": 190092,
     "RecommendEquips": [
       7,
       9,
@@ -224,7 +420,14 @@
     ]
   },
   {
+    "OccupationType": 6,
     "PokemonId": 113,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100113,
     "RecommendEquips": [
       15,
       14,
@@ -232,7 +435,14 @@
     ]
   },
   {
+    "OccupationType": 6,
     "PokemonId": 122,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 190122,
     "RecommendEquips": [
       15,
       14,
@@ -240,7 +450,14 @@
     ]
   },
   {
+    "OccupationType": 9,
     "PokemonId": 143,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 190143,
     "RecommendEquips": [
       11,
       12,
@@ -248,7 +465,14 @@
     ]
   },
   {
+    "OccupationType": 9,
     "PokemonId": 220,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100220,
     "RecommendEquips": [
       11,
       12,
@@ -256,7 +480,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 280,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 190280,
     "RecommendEquips": [
       7,
       9,
@@ -264,7 +495,14 @@
     ]
   },
   {
+    "OccupationType": 10,
     "PokemonId": 359,
+    "BranchRecommend": [
+      2,
+      0,
+      0
+    ],
+    "MainUnitId": 190359,
     "RecommendEquips": [
       6,
       4,
@@ -272,7 +510,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 443,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 190443,
     "RecommendEquips": [
       3,
       2,
@@ -280,7 +525,14 @@
     ]
   },
   {
+    "OccupationType": 9,
     "PokemonId": 557,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100557,
     "RecommendEquips": [
       7,
       9,
@@ -288,7 +540,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 656,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 190656,
     "RecommendEquips": [
       3,
       2,
@@ -296,7 +555,14 @@
     ]
   },
   {
+    "OccupationType": 10,
     "PokemonId": 661,
+    "BranchRecommend": [
+      2,
+      0,
+      0
+    ],
+    "MainUnitId": 100661,
     "RecommendEquips": [
       6,
       4,
@@ -304,7 +570,14 @@
     ]
   },
   {
+    "OccupationType": 10,
     "PokemonId": 807,
+    "BranchRecommend": [
+      2,
+      0,
+      0
+    ],
+    "MainUnitId": 190807,
     "RecommendEquips": [
       6,
       4,
@@ -312,7 +585,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 700,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100700,
     "RecommendEquips": [
       7,
       9,
@@ -320,7 +600,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 724,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100724,
     "RecommendEquips": [
       3,
       2,
@@ -328,7 +615,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 813,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100813,
     "RecommendEquips": [
       3,
       2,
@@ -336,7 +630,14 @@
     ]
   },
   {
+    "OccupationType": 6,
     "PokemonId": 829,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100829,
     "RecommendEquips": [
       7,
       9,
@@ -344,7 +645,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 845,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 190845,
     "RecommendEquips": [
       7,
       9,
@@ -352,7 +660,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 763,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100763,
     "RecommendEquips": [
       3,
       2,
@@ -360,7 +675,14 @@
     ]
   },
   {
+    "OccupationType": 9,
     "PokemonId": 820,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 190820,
     "RecommendEquips": [
       7,
       9,
@@ -368,7 +690,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 147,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100147,
     "RecommendEquips": [
       3,
       2,
@@ -376,7 +705,14 @@
     ]
   },
   {
+    "OccupationType": 9,
     "PokemonId": 708,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100708,
     "RecommendEquips": [
       11,
       12,
@@ -384,7 +720,14 @@
     ]
   },
   {
+    "OccupationType": 6,
     "PokemonId": 720,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100720,
     "RecommendEquips": [
       3,
       2,
@@ -392,7 +735,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 1720,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100720,
     "RecommendEquips": [
       3,
       2,
@@ -400,7 +750,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 884,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100884,
     "RecommendEquips": [
       3,
       2,
@@ -408,7 +765,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 183,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100183,
     "RecommendEquips": [
       15,
       14,
@@ -416,7 +780,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 196,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100196,
     "RecommendEquips": [
       7,
       9,
@@ -424,7 +795,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 653,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100653,
     "RecommendEquips": [
       7,
       9,
@@ -432,7 +810,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 471,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100471,
     "RecommendEquips": [
       7,
       9,
@@ -440,7 +825,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 794,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100794,
     "RecommendEquips": [
       3,
       2,
@@ -448,7 +840,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 246,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100246,
     "RecommendEquips": [
       3,
       2,
@@ -456,7 +855,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 151,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100151,
     "RecommendEquips": [
       6,
       4,
@@ -464,7 +870,14 @@
     ]
   },
   {
+    "OccupationType": 10,
     "PokemonId": 84,
+    "BranchRecommend": [
+      2,
+      0,
+      0
+    ],
+    "MainUnitId": 100084,
     "RecommendEquips": [
       6,
       4,
@@ -472,7 +885,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 123,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100123,
     "RecommendEquips": [
       3,
       2,
@@ -480,7 +900,14 @@
     ]
   },
   {
+    "OccupationType": 6,
     "PokemonId": 35,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100035,
     "RecommendEquips": [
       15,
       14,
@@ -488,7 +915,14 @@
     ]
   },
   {
+    "OccupationType": 10,
     "PokemonId": 570,
+    "BranchRecommend": [
+      2,
+      0,
+      0
+    ],
+    "MainUnitId": 100570,
     "RecommendEquips": [
       6,
       4,
@@ -496,7 +930,14 @@
     ]
   },
   {
+    "OccupationType": 6,
     "PokemonId": 302,
+    "BranchRecommend": [
+      2,
+      0,
+      0
+    ],
+    "MainUnitId": 100302,
     "RecommendEquips": [
       15,
       14,
@@ -504,7 +945,14 @@
     ]
   },
   {
+    "OccupationType": 6,
     "PokemonId": 764,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100764,
     "RecommendEquips": [
       15,
       14,
@@ -512,7 +960,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 885,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100885,
     "RecommendEquips": [
       3,
       2,
@@ -520,7 +975,15 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 20443,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "HideInBox": 1,
+    "MainUnitId": 290443,
     "RecommendEquips": [
       3,
       2,
@@ -528,7 +991,14 @@
     ]
   },
   {
+    "OccupationType": 9,
     "PokemonId": 706,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100706,
     "RecommendEquips": [
       11,
       12,
@@ -536,7 +1006,14 @@
     ]
   },
   {
+    "OccupationType": 9,
     "PokemonId": 131,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100131,
     "RecommendEquips": [
       11,
       12,
@@ -544,7 +1021,14 @@
     ]
   },
   {
+    "OccupationType": 9,
     "PokemonId": 197,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100197,
     "RecommendEquips": [
       11,
       12,
@@ -552,7 +1036,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 609,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100609,
     "RecommendEquips": [
       7,
       9,
@@ -560,7 +1051,14 @@
     ]
   },
   {
+    "OccupationType": 10,
     "PokemonId": 470,
+    "BranchRecommend": [
+      2,
+      0,
+      0
+    ],
+    "MainUnitId": 100470,
     "RecommendEquips": [
       6,
       4,
@@ -568,7 +1066,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 816,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100816,
     "RecommendEquips": [
       7,
       9,
@@ -576,7 +1081,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 255,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100255,
     "RecommendEquips": [
       3,
       2,
@@ -584,7 +1096,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 778,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100778,
     "RecommendEquips": [
       3,
       2,
@@ -592,7 +1111,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 374,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100374,
     "RecommendEquips": [
       3,
       2,
@@ -600,7 +1126,14 @@
     ]
   },
   {
+    "OccupationType": 10,
     "PokemonId": 906,
+    "BranchRecommend": [
+      2,
+      0,
+      0
+    ],
+    "MainUnitId": 100906,
     "RecommendEquips": [
       6,
       4,
@@ -608,7 +1141,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 870,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100870,
     "RecommendEquips": [
       3,
       2,
@@ -616,7 +1156,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 1008,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 101008,
     "RecommendEquips": [
       7,
       9,
@@ -624,7 +1171,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 937,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100937,
     "RecommendEquips": [
       3,
       2,
@@ -632,7 +1186,14 @@
     ]
   },
   {
+    "OccupationType": 9,
     "PokemonId": 250,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100250,
     "RecommendEquips": [
       3,
       2,
@@ -640,7 +1201,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 936,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100936,
     "RecommendEquips": [
       3,
       2,
@@ -648,7 +1216,14 @@
     ]
   },
   {
+    "OccupationType": 10,
     "PokemonId": 491,
+    "BranchRecommend": [
+      2,
+      0,
+      0
+    ],
+    "MainUnitId": 100491,
     "RecommendEquips": [
       3,
       2,
@@ -656,7 +1231,14 @@
     ]
   },
   {
+    "OccupationType": 6,
     "PokemonId": 54,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100054,
     "RecommendEquips": [
       7,
       9,
@@ -664,7 +1246,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 957,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100957,
     "RecommendEquips": [
       3,
       2,
@@ -672,7 +1261,14 @@
     ]
   },
   {
+    "OccupationType": 10,
     "PokemonId": 77,
+    "BranchRecommend": [
+      2,
+      0,
+      0
+    ],
+    "MainUnitId": 100077,
     "RecommendEquips": [
       7,
       9,
@@ -680,7 +1276,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 245,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100245,
     "RecommendEquips": [
       7,
       9,
@@ -688,7 +1291,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 26,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100026,
     "RecommendEquips": [
       7,
       9,
@@ -696,7 +1306,14 @@
     ]
   },
   {
+    "OccupationType": 6,
     "PokemonId": 868,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100868,
     "RecommendEquips": [
       7,
       9,
@@ -704,7 +1321,14 @@
     ]
   },
   {
+    "OccupationType": 6,
     "PokemonId": 380,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100380,
     "RecommendEquips": [
       7,
       9,
@@ -712,7 +1336,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 381,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100381,
     "RecommendEquips": [
       7,
       9,
@@ -720,7 +1351,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 923,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100923,
     "RecommendEquips": [
       3,
       2,
@@ -728,7 +1366,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 781,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100781,
     "RecommendEquips": [
       15,
       14,
@@ -736,7 +1381,14 @@
     ]
   },
   {
+    "OccupationType": 9,
     "PokemonId": 134,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100134,
     "RecommendEquips": [
       11,
       12,
@@ -744,7 +1396,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 395,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100395,
     "RecommendEquips": [
       3,
       2,
@@ -752,7 +1411,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 865,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100865,
     "RecommendEquips": [
       3,
       2,
@@ -760,7 +1426,14 @@
     ]
   },
   {
+    "OccupationType": 10,
     "PokemonId": 52,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100052,
     "RecommendEquips": [
       6,
       4,
@@ -768,7 +1441,14 @@
     ]
   },
   {
+    "OccupationType": 9,
     "PokemonId": 144,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100144,
     "RecommendEquips": [
       11,
       12,
@@ -776,7 +1456,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 145,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100145,
     "RecommendEquips": [
       15,
       14,
@@ -784,7 +1471,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 146,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100146,
     "RecommendEquips": [
       3,
       2,
@@ -792,7 +1486,14 @@
     ]
   },
   {
+    "OccupationType": 6,
     "PokemonId": 154,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100154,
     "RecommendEquips": [
       7,
       9,
@@ -800,7 +1501,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 157,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100157,
     "RecommendEquips": [
       7,
       9,
@@ -808,7 +1516,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 158,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100158,
     "RecommendEquips": [
       3,
       2,
@@ -816,7 +1531,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 911,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100911,
     "RecommendEquips": [
       7,
       9,
@@ -824,7 +1546,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 914,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100914,
     "RecommendEquips": [
       7,
       9,
@@ -832,7 +1561,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 484,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100484,
     "RecommendEquips": [
       3,
       2,
@@ -840,7 +1576,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 717,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100717,
     "RecommendEquips": [
       7,
       9,
@@ -848,7 +1591,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 643,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100643,
     "RecommendEquips": [
       7,
       9,
@@ -856,7 +1606,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 791,
+    "BranchRecommend": [
+      2,
+      0,
+      0
+    ],
+    "MainUnitId": 100791,
     "RecommendEquips": [
       7,
       9,
@@ -864,7 +1621,14 @@
     ]
   },
   {
+    "OccupationType": 8,
     "PokemonId": 849,
+    "BranchRecommend": [
+      3,
+      0,
+      0
+    ],
+    "MainUnitId": 100849,
     "RecommendEquips": [
       7,
       9,
@@ -872,7 +1636,14 @@
     ]
   },
   {
+    "OccupationType": 10,
     "PokemonId": 877,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100877,
     "RecommendEquips": [
       3,
       2,
@@ -880,7 +1651,14 @@
     ]
   },
   {
+    "OccupationType": 10,
     "PokemonId": 9877,
+    "BranchRecommend": [
+      1,
+      0,
+      0
+    ],
+    "MainUnitId": 100877,
     "RecommendEquips": [
       3,
       2,
@@ -888,7 +1666,14 @@
     ]
   },
   {
+    "OccupationType": 10,
     "PokemonId": 135,
+    "BranchRecommend": [
+      2,
+      0,
+      0
+    ],
+    "MainUnitId": 100135,
     "RecommendEquips": [
       3,
       2,
@@ -896,7 +1681,14 @@
     ]
   },
   {
+    "OccupationType": 7,
     "PokemonId": 136,
+    "BranchRecommend": [
+      2,
+      0,
+      0
+    ],
+    "MainUnitId": 100136,
     "RecommendEquips": [
       6,
       4,

@@ -1,0 +1,92 @@
+[
+  {
+    "ResType": 1,
+    "ResIDMin": 1,
+    "ResIDMax": 999999
+  },
+  {
+    "ResType": 2,
+    "ResIDMin": 1000000001,
+    "ResIDMax": 1000000100
+  },
+  {
+    "ResType": 6,
+    "ResIDMin": 1000000101,
+    "ResIDMax": 1000010000
+  },
+  {
+    "ResType": 3,
+    "ResIDMin": 1002000001,
+    "ResIDMax": 1004000000
+  },
+  {
+    "ResType": 4,
+    "ResIDMin": 1004000001,
+    "ResIDMax": 1006000000
+  },
+  {
+    "ResType": 5,
+    "ResIDMin": 1006000001,
+    "ResIDMax": 1007000000
+  },
+  {
+    "ResType": 7,
+    "ResIDMin": 1007000001,
+    "ResIDMax": 1007001000
+  },
+  {
+    "ResType": 8,
+    "ResIDMin": 1007001001,
+    "ResIDMax": 1007011001
+  },
+  {
+    "ResType": 9,
+    "ResIDMin": 1007012001,
+    "ResIDMax": 1007013001
+  },
+  {
+    "ResType": 10,
+    "ResIDMin": 1007100001,
+    "ResIDMax": 1007500000
+  },
+  {
+    "ResType": 11,
+    "ResIDMin": 1007500001,
+    "ResIDMax": 1007600000
+  },
+  {
+    "ResType": 12,
+    "ResIDMin": 1007600001,
+    "ResIDMax": 1007700000
+  },
+  {
+    "ResType": 13,
+    "ResIDMin": 1007700001,
+    "ResIDMax": 1007800000
+  },
+  {
+    "ResType": 20,
+    "ResIDMin": 1009600001,
+    "ResIDMax": 1010000000
+  },
+  {
+    "ResType": 24,
+    "ResIDMin": 1010200001,
+    "ResIDMax": 1010300000
+  },
+  {
+    "ResType": 27,
+    "ResIDMin": 1010500001,
+    "ResIDMax": 1010600000
+  },
+  {
+    "ResType": 29,
+    "ResIDMin": 1010700001,
+    "ResIDMax": 1010800000
+  },
+  {
+    "ResType": 21,
+    "ResIDMin": 1010000001,
+    "ResIDMax": 1010100000
+  }
+]

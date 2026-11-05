@@ -1,6 +1,18 @@
 [
   {
     "NodeID": 1,
+    "TwoStarDrops": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -15,7 +27,26 @@
       0
     ],
     "IsUnLock": 1,
+    "EnemyldList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "BattleId": 1,
     "NextUnLock": [
       2,
@@ -29,11 +60,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      0,
+      0,
+      0,
+      0
+    ],
     "SceneId": 20302,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      0,
+      0,
+      0
+    ]
   },
   {
     "NodeID": 2,
+    "TwoStarDrops": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -47,7 +125,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "BattleId": 2,
     "NextUnLock": [
       3,
@@ -61,11 +158,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      0,
+      0,
+      0,
+      0
+    ],
     "SceneId": 20301,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      0,
+      0,
+      0
+    ]
   },
   {
     "NodeID": 3,
+    "TwoStarDrops": [
+      204001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -79,7 +223,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      829,
+      359,
+      448,
+      79,
+      25
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       4,
       0,
@@ -92,11 +255,59 @@
       0,
       0
     ],
+    "TeamPickMode": 1,
+    "TeamldList": [
+      35,
+      763,
+      807,
+      143
+    ],
     "SceneId": 8081101,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000083,
+      27000084
+    ]
   },
   {
     "NodeID": 4,
+    "TwoStarDrops": [
+      204002,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -110,7 +321,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      35,
+      4,
+      661,
+      813,
+      131
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203002,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       5,
       9,
@@ -123,11 +353,59 @@
       0,
       0
     ],
+    "TeamPickMode": 1,
+    "TeamldList": [
+      113,
+      359,
+      280,
+      7
+    ],
     "SceneId": 80809,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205002,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202002,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000014,
+      27000084
+    ]
   },
   {
     "NodeID": 5,
+    "TwoStarDrops": [
+      204006,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -141,7 +419,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      845,
+      246,
+      359,
+      884,
+      197
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203006,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       6,
       0,
@@ -154,11 +451,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      35,
+      84,
+      724,
+      131
+    ],
     "SceneId": 80809,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205006,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202006,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000031,
+      27000085
+    ]
   },
   {
     "NodeID": 6,
+    "TwoStarDrops": [
+      204007,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -172,7 +516,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      113,
+      66,
+      570,
+      653,
+      220
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203007,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       7,
       0,
@@ -185,11 +548,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      113,
+      679,
+      280,
+      708
+    ],
     "SceneId": 80809,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205007,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202007,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000014,
+      27000085
+    ]
   },
   {
     "NodeID": 7,
+    "TwoStarDrops": [
+      204008,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -203,7 +613,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      845,
+      763,
+      661,
+      196,
+      79
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203008,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       6,
       8,
@@ -216,11 +645,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      4,
+      359,
+      656,
+      820
+    ],
     "SceneId": 80809,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205008,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202008,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000014,
+      27000031
+    ]
   },
   {
     "NodeID": 8,
+    "TwoStarDrops": [
+      204009,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -234,7 +710,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203009,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       0,
       0,
@@ -247,11 +742,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      246,
+      829,
+      724,
+      79
+    ],
     "SceneId": 802521,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205009,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202009,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000031,
+      27000191,
+      27000192
+    ]
   },
   {
     "NodeID": 9,
+    "TwoStarDrops": [
+      204005,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -265,7 +807,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      122,
+      92,
+      448,
+      816,
+      706
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203005,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       0,
       0,
@@ -278,11 +839,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      794,
+      807,
+      196,
+      220
+    ],
     "SceneId": 8081102,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205005,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202005,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000014,
+      27000081
+    ]
   },
   {
     "NodeID": 10,
+    "TwoStarDrops": [
+      204003,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -296,7 +904,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      4,
+      813,
+      79,
+      0,
+      0
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203003,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       11,
       0,
@@ -309,11 +936,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      246,
+      724,
+      0,
+      0
+    ],
     "SceneId": 80413,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205003,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202003,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000173,
+      27000065
+    ]
   },
   {
     "NodeID": 11,
+    "TwoStarDrops": [
+      204004,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -327,7 +1001,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      183,
+      470,
+      37,
+      557,
+      0
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203004,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       12,
       0,
@@ -340,11 +1033,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      147,
+      661,
+      197,
+      0
+    ],
     "SceneId": 80310,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205004,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202004,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000027,
+      27000065
+    ]
   },
   {
     "NodeID": 12,
+    "TwoStarDrops": [
+      204010,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -358,7 +1098,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      764,
+      700,
+      7,
+      906,
+      885
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203010,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       7,
       11,
@@ -371,11 +1130,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      829,
+      183,
+      470,
+      197
+    ],
     "SceneId": 8081103,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205010,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202010,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000081,
+      27000066
+    ]
   },
   {
     "NodeID": 13,
+    "TwoStarDrops": [
+      204011,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -389,7 +1195,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      35,
+      794,
+      661,
+      653,
+      708
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203011,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       14,
       0,
@@ -402,11 +1227,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      35,
+      255,
+      807,
+      196
+    ],
     "SceneId": 80810,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205011,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202011,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000032,
+      27000022
+    ]
   },
   {
     "NodeID": 14,
+    "TwoStarDrops": [
+      204012,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -420,7 +1292,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      380,
+      183,
+      906,
+      1,
+      134
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203012,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       15,
       16,
@@ -433,11 +1324,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      380,
+      4,
+      724,
+      708
+    ],
     "SceneId": 80810,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205012,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202012,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000061,
+      27000015
+    ]
   },
   {
     "NodeID": 15,
+    "TwoStarDrops": [
+      204013,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -451,7 +1389,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      147,
+      280,
+      706,
+      0,
+      0
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203013,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       0,
       0,
@@ -464,11 +1421,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      820,
+      196,
+      0,
+      0
+    ],
     "SceneId": 80606,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205013,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202013,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000042,
+      27000025
+    ]
   },
   {
     "NodeID": 16,
+    "TwoStarDrops": [
+      204014,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -482,7 +1486,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      35,
+      778,
+      359,
+      609,
+      557
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203014,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       17,
       0,
@@ -495,11 +1518,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      147,
+      661,
+      37,
+      7
+    ],
     "SceneId": 80810,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205014,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202014,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000062,
+      27000022
+    ]
   },
   {
     "NodeID": 17,
+    "TwoStarDrops": [
+      204015,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -513,7 +1583,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      122,
+      778,
+      470,
+      37,
+      197
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203015,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       18,
       0,
@@ -526,11 +1615,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      764,
+      147,
+      471,
+      143
+    ],
     "SceneId": 80810,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205015,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202015,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000011,
+      27000062
+    ]
   },
   {
     "NodeID": 18,
+    "TwoStarDrops": [
+      204016,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -544,7 +1680,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      54,
+      700,
+      884,
+      77,
+      706
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203016,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       19,
       20,
@@ -557,11 +1712,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      829,
+      892,
+      816,
+      250
+    ],
     "SceneId": 8081104,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205016,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202016,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000012,
+      27000021
+    ]
   },
   {
     "NodeID": 19,
+    "TwoStarDrops": [
+      204017,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -575,7 +1777,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      868,
+      448,
+      7,
+      884,
+      470
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203017,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       0,
       0,
@@ -588,11 +1809,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      54,
+      763,
+      661,
+      197
+    ],
     "SceneId": 8081105,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205017,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202017,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000033,
+      27000061
+    ]
   },
   {
     "NodeID": 20,
+    "TwoStarDrops": [
+      204018,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -606,7 +1874,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      764,
+      150,
+      92,
+      1,
+      708
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203018,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       21,
       0,
@@ -619,11 +1906,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      8448,
+      570,
+      280,
+      7
+    ],
     "SceneId": 80807,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205018,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202018,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000022,
+      27000012
+    ]
   },
   {
     "NodeID": 21,
+    "TwoStarDrops": [
+      204019,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -637,7 +1971,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      764,
+      794,
+      359,
+      724,
+      143
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203019,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       22,
       23,
@@ -650,11 +2003,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      35,
+      123,
+      92,
+      197
+    ],
     "SceneId": 80807,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205019,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202019,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000127,
+      27000023
+    ]
   },
   {
     "NodeID": 22,
+    "TwoStarDrops": [
+      204020,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -668,7 +2068,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      147,
+      84,
+      724,
+      280,
+      0
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203020,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       0,
       0,
@@ -681,11 +2100,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      246,
+      661,
+      653,
+      0
+    ],
     "SceneId": 80403,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205020,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202020,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000062,
+      27000022
+    ]
   },
   {
     "NodeID": 23,
+    "TwoStarDrops": [
+      204021,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       1,
@@ -699,7 +2165,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      35,
+      937,
+      906,
+      653,
+      131
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203021,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       24,
       0,
@@ -712,11 +2197,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      829,
+      892,
+      661,
+      196
+    ],
     "SceneId": 80807,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205021,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202021,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000011,
+      27000128
+    ]
   },
   {
     "NodeID": 24,
+    "TwoStarDrops": [
+      204022,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -730,7 +2262,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      39,
+      763,
+      77,
+      885,
+      134
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203022,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       25,
       0,
@@ -743,11 +2294,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      54,
+      129,
+      609,
+      820
+    ],
     "SceneId": 80807,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205022,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202022,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000082,
+      27000063
+    ]
   },
   {
     "NodeID": 25,
+    "TwoStarDrops": [
+      204023,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -761,7 +2359,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      113,
+      470,
+      20443,
+      724,
+      131
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203023,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       26,
       27,
@@ -774,11 +2391,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      374,
+      807,
+      813,
+      197
+    ],
     "SceneId": 8081106,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205023,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202023,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000033,
+      27000071
+    ]
   },
   {
     "NodeID": 26,
+    "TwoStarDrops": [
+      204024,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -792,7 +2456,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203024,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       0,
       0,
@@ -805,11 +2488,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      448,
+      113,
+      884,
+      820
+    ],
     "SceneId": 802522,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205024,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202024,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000191,
+      27000192,
+      27000193
+    ]
   },
   {
     "NodeID": 27,
+    "TwoStarDrops": [
+      204025,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -823,7 +2553,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      54,
+      700,
+      470,
+      471,
+      220
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203025,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       28,
       0,
@@ -836,11 +2585,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      39,
+      906,
+      653,
+      250
+    ],
     "SceneId": 80809,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205025,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202025,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000062,
+      27000071
+    ]
   },
   {
     "NodeID": 28,
+    "TwoStarDrops": [
+      204026,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -854,7 +2650,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      39,
+      957,
+      92,
+      1008,
+      79
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203026,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       29,
       32,
@@ -867,11 +2682,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      54,
+      374,
+      885,
+      134
+    ],
     "SceneId": 80809,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205026,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202026,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000023,
+      27000071
+    ]
   },
   {
     "NodeID": 29,
+    "TwoStarDrops": [
+      204030,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -885,7 +2747,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      380,
+      679,
+      661,
+      813,
+      708
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203030,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       30,
       0,
@@ -898,11 +2779,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      829,
+      66,
+      359,
+      884
+    ],
     "SceneId": 80810,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205030,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202030,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000123,
+      27000072
+    ]
   },
   {
     "NodeID": 30,
+    "TwoStarDrops": [
+      204031,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -916,7 +2844,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      868,
+      937,
+      84,
+      653,
+      706
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203031,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       31,
       0,
@@ -929,11 +2876,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      35,
+      763,
+      77,
+      557
+    ],
     "SceneId": 80810,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205031,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202031,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000062,
+      27000123
+    ]
   },
   {
     "NodeID": 31,
+    "TwoStarDrops": [
+      204032,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -947,7 +2941,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      113,
+      147,
+      92,
+      653,
+      250
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203032,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       30,
       34,
@@ -960,11 +2973,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      380,
+      470,
+      280,
+      143
+    ],
     "SceneId": 80810,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205032,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202032,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000063,
+      27000125
+    ]
   },
   {
     "NodeID": 32,
+    "TwoStarDrops": [
+      204027,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -978,7 +3038,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      66,
+      280,
+      708,
+      0,
+      0
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203027,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       33,
       0,
@@ -991,11 +3070,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      131,
+      724,
+      0,
+      0
+    ],
     "SceneId": 80606,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205027,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202027,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000062,
+      27000063
+    ]
   },
   {
     "NodeID": 33,
+    "TwoStarDrops": [
+      204028,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1009,7 +3135,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      7,
+      143,
+      813,
+      0,
+      0
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203028,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       34,
       0,
@@ -1022,11 +3167,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      79,
+      557,
+      0,
+      0
+    ],
     "SceneId": 80413,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205028,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202028,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000171,
+      27000172
+    ]
   },
   {
     "NodeID": 34,
+    "TwoStarDrops": [
+      204033,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1040,7 +3232,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      122,
+      92,
+      4,
+      471,
+      134
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203033,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       31,
       33,
@@ -1053,11 +3264,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      39,
+      807,
+      37,
+      220
+    ],
     "SceneId": 8081107,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205033,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202033,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000064,
+      27000091
+    ]
   },
   {
     "NodeID": 35,
+    "TwoStarDrops": [
+      204029,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1071,7 +3329,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      380,
+      150,
+      888,
+      381,
+      250
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203029,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       0,
       0,
@@ -1084,11 +3361,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      380,
+      150,
+      381,
+      250
+    ],
     "SceneId": 80807,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205029,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202029,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000121,
+      27000071
+    ]
   },
   {
     "NodeID": 36,
+    "TwoStarDrops": [
+      204034,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1102,7 +3426,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      113,
+      448,
+      7,
+      884,
+      661
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203034,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       37,
       0,
@@ -1115,11 +3458,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      829,
+      763,
+      807,
+      7
+    ],
     "SceneId": 8081108,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205034,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202034,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000129,
+      27000072
+    ]
   },
   {
     "NodeID": 37,
+    "TwoStarDrops": [
+      204035,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1133,7 +3523,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      609,
+      359,
+      20443,
+      4,
+      820
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203035,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       38,
       0,
@@ -1146,11 +3555,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      122,
+      778,
+      570,
+      197
+    ],
     "SceneId": 8081109,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205035,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202035,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000111,
+      27000024
+    ]
   },
   {
     "NodeID": 38,
+    "TwoStarDrops": [
+      204036,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1164,7 +3620,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      4,
+      448,
+      20443,
+      884,
+      7
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      203036,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       0,
       0,
@@ -1177,11 +3652,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      39,
+      84,
+      724,
+      557
+    ],
     "SceneId": 8081110,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      205036,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      202036,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000024,
+      27000072
+    ]
   },
   {
     "NodeID": 1,
+    "TwoStarDrops": [
+      214001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1196,7 +3718,26 @@
       0
     ],
     "IsUnLock": 1,
+    "EnemyldList": [
+      246,
+      84,
+      653,
+      820,
+      0
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       2,
       0,
@@ -1209,11 +3750,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      92,
+      700,
+      134,
+      0
+    ],
     "SceneId": 80310,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000023,
+      27000062
+    ]
   },
   {
     "NodeID": 2,
+    "TwoStarDrops": [
+      214002,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1227,7 +3815,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      888,
+      570,
+      151,
+      197,
+      0
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213002,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       3,
       0,
@@ -1240,11 +3847,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      794,
+      906,
+      656,
+      0
+    ],
     "SceneId": 80301,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215002,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212002,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000013,
+      27000023
+    ]
   },
   {
     "NodeID": 3,
+    "TwoStarDrops": [
+      214003,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1258,7 +3912,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      829,
+      359,
+      448,
+      79,
+      25
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213003,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       4,
       0,
@@ -1271,11 +3944,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      35,
+      763,
+      807,
+      143
+    ],
     "SceneId": 8081101,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215003,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212003,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000122,
+      27000091
+    ]
   },
   {
     "NodeID": 4,
+    "TwoStarDrops": [
+      214004,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1289,7 +4009,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      35,
+      4,
+      661,
+      813,
+      131
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213004,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       5,
       9,
@@ -1302,11 +4041,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      113,
+      359,
+      280,
+      7
+    ],
     "SceneId": 80809,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215004,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212004,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000062,
+      27000063
+    ]
   },
   {
     "NodeID": 5,
+    "TwoStarDrops": [
+      214008,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1320,7 +4106,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      845,
+      246,
+      359,
+      884,
+      197
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213008,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       6,
       0,
@@ -1333,11 +4138,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      35,
+      84,
+      724,
+      131
+    ],
     "SceneId": 80809,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215008,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212008,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000063,
+      27000072
+    ]
   },
   {
     "NodeID": 6,
+    "TwoStarDrops": [
+      214009,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1351,7 +4203,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      113,
+      66,
+      570,
+      653,
+      220
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213009,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       7,
       0,
@@ -1364,11 +4235,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      113,
+      679,
+      280,
+      708
+    ],
     "SceneId": 80809,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215009,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212009,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000091,
+      27000130
+    ]
   },
   {
     "NodeID": 7,
+    "TwoStarDrops": [
+      214010,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1382,7 +4300,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      845,
+      763,
+      661,
+      196,
+      79
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213010,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       6,
       8,
@@ -1395,11 +4332,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      4,
+      359,
+      656,
+      820
+    ],
     "SceneId": 80809,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215010,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212010,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000063,
+      27000064
+    ]
   },
   {
     "NodeID": 8,
+    "TwoStarDrops": [
+      214011,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1413,7 +4397,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213011,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       0,
       0,
@@ -1426,11 +4429,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      246,
+      829,
+      724,
+      79
+    ],
     "SceneId": 802521,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215011,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212011,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000191,
+      27000192,
+      27000193
+    ]
   },
   {
     "NodeID": 9,
+    "TwoStarDrops": [
+      214007,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1444,7 +4494,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      122,
+      92,
+      448,
+      816,
+      706
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213007,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       0,
       0,
@@ -1457,11 +4526,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      794,
+      807,
+      196,
+      220
+    ],
     "SceneId": 8081102,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215007,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212007,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000111,
+      27000082
+    ]
   },
   {
     "NodeID": 10,
+    "TwoStarDrops": [
+      214005,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1475,7 +4591,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      4,
+      813,
+      79,
+      0,
+      0
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213005,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       11,
       0,
@@ -1488,11 +4623,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      246,
+      724,
+      0,
+      0
+    ],
     "SceneId": 80413,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215005,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212005,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000172,
+      27000111
+    ]
   },
   {
     "NodeID": 11,
+    "TwoStarDrops": [
+      214006,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1506,7 +4688,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      183,
+      470,
+      37,
+      557,
+      0
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213006,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       12,
       0,
@@ -1519,11 +4720,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      147,
+      661,
+      197,
+      0
+    ],
     "SceneId": 80310,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215006,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212006,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000024,
+      27000072
+    ]
   },
   {
     "NodeID": 12,
+    "TwoStarDrops": [
+      214012,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1537,7 +4785,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      764,
+      700,
+      7,
+      906,
+      885
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213012,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       7,
       11,
@@ -1550,11 +4817,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      829,
+      183,
+      470,
+      197
+    ],
     "SceneId": 8081103,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215012,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212012,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000128,
+      27000091
+    ]
   },
   {
     "NodeID": 13,
+    "TwoStarDrops": [
+      214013,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1568,7 +4882,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      35,
+      794,
+      661,
+      653,
+      708
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213013,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       14,
       0,
@@ -1581,11 +4914,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      35,
+      255,
+      807,
+      196
+    ],
     "SceneId": 80810,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215013,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212013,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000061,
+      27000112
+    ]
   },
   {
     "NodeID": 14,
+    "TwoStarDrops": [
+      214014,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1599,7 +4979,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      380,
+      183,
+      906,
+      1,
+      134
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213014,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       15,
       16,
@@ -1612,11 +5011,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      380,
+      4,
+      724,
+      708
+    ],
     "SceneId": 80810,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215014,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212014,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000064,
+      27000072
+    ]
   },
   {
     "NodeID": 15,
+    "TwoStarDrops": [
+      214015,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1630,7 +5076,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      147,
+      280,
+      706,
+      0,
+      0
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213015,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       0,
       0,
@@ -1643,11 +5108,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      820,
+      196,
+      0,
+      0
+    ],
     "SceneId": 80606,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215015,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212015,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000111,
+      27000026
+    ]
   },
   {
     "NodeID": 16,
+    "TwoStarDrops": [
+      214016,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1661,7 +5173,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      35,
+      778,
+      359,
+      609,
+      557
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213016,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       17,
       0,
@@ -1674,11 +5205,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      147,
+      661,
+      37,
+      7
+    ],
     "SceneId": 80810,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215016,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212016,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000013,
+      27000024
+    ]
   },
   {
     "NodeID": 17,
+    "TwoStarDrops": [
+      214017,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1692,7 +5270,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      122,
+      778,
+      470,
+      37,
+      197
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213017,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       18,
       0,
@@ -1705,11 +5302,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      764,
+      147,
+      471,
+      143
+    ],
     "SceneId": 80810,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215017,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212017,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000091,
+      27000064
+    ]
   },
   {
     "NodeID": 18,
+    "TwoStarDrops": [
+      214018,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1723,7 +5367,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      54,
+      700,
+      884,
+      77,
+      706
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213018,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       19,
       20,
@@ -1736,11 +5399,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      829,
+      892,
+      816,
+      250
+    ],
     "SceneId": 8081104,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215018,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212018,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000129,
+      27000064
+    ]
   },
   {
     "NodeID": 19,
+    "TwoStarDrops": [
+      214019,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1754,7 +5464,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      868,
+      448,
+      7,
+      884,
+      470
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213019,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       0,
       0,
@@ -1767,11 +5496,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      54,
+      763,
+      661,
+      197
+    ],
     "SceneId": 8081105,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215019,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212019,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000121,
+      27000093
+    ]
   },
   {
     "NodeID": 20,
+    "TwoStarDrops": [
+      214020,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1785,7 +5561,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      764,
+      150,
+      92,
+      1,
+      708
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213020,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       21,
       0,
@@ -1798,11 +5593,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      8448,
+      570,
+      280,
+      7
+    ],
     "SceneId": 80807,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215020,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212020,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000101,
+      27000103
+    ]
   },
   {
     "NodeID": 21,
+    "TwoStarDrops": [
+      214021,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1816,7 +5658,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      764,
+      794,
+      359,
+      724,
+      143
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213021,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       22,
       23,
@@ -1829,11 +5690,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      35,
+      123,
+      92,
+      197
+    ],
     "SceneId": 80807,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215021,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212021,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000063,
+      27000194
+    ]
   },
   {
     "NodeID": 22,
+    "TwoStarDrops": [
+      214022,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1847,7 +5755,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      147,
+      84,
+      724,
+      280,
+      0
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213022,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       0,
       0,
@@ -1860,11 +5787,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      246,
+      661,
+      653,
+      0
+    ],
     "SceneId": 80403,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215022,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212022,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000013,
+      27000064
+    ]
   },
   {
     "NodeID": 23,
+    "TwoStarDrops": [
+      214023,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1878,7 +5852,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      35,
+      937,
+      906,
+      653,
+      131
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213023,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       24,
       0,
@@ -1891,11 +5884,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      829,
+      892,
+      661,
+      196
+    ],
     "SceneId": 80807,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215023,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212023,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000082,
+      27000113
+    ]
   },
   {
     "NodeID": 24,
+    "TwoStarDrops": [
+      214024,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1909,7 +5949,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      39,
+      763,
+      77,
+      885,
+      134
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213024,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       25,
       0,
@@ -1922,11 +5981,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      54,
+      129,
+      609,
+      820
+    ],
     "SceneId": 80807,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215024,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212024,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000130,
+      27000072
+    ]
   },
   {
     "NodeID": 25,
+    "TwoStarDrops": [
+      214025,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1940,7 +6046,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      113,
+      470,
+      20443,
+      724,
+      131
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213025,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       26,
       27,
@@ -1953,11 +6078,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      374,
+      807,
+      813,
+      197
+    ],
     "SceneId": 8081106,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215025,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212025,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000082,
+      27000113
+    ]
   },
   {
     "NodeID": 26,
+    "TwoStarDrops": [
+      214026,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -1971,7 +6143,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213026,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       0,
       0,
@@ -1984,11 +6175,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      448,
+      113,
+      884,
+      820
+    ],
     "SceneId": 802522,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215026,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212026,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000191,
+      27000192,
+      27000193
+    ]
   },
   {
     "NodeID": 27,
+    "TwoStarDrops": [
+      214027,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -2002,7 +6240,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      54,
+      700,
+      470,
+      471,
+      220
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213027,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       28,
       0,
@@ -2015,11 +6272,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      39,
+      906,
+      653,
+      250
+    ],
     "SceneId": 80809,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215027,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212027,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000122,
+      27000064
+    ]
   },
   {
     "NodeID": 28,
+    "TwoStarDrops": [
+      214028,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -2033,7 +6337,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      39,
+      957,
+      92,
+      1008,
+      79
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213028,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       29,
       32,
@@ -2046,11 +6369,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      54,
+      374,
+      885,
+      134
+    ],
     "SceneId": 80809,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215028,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212028,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000194,
+      27000073
+    ]
   },
   {
     "NodeID": 29,
+    "TwoStarDrops": [
+      214032,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -2064,7 +6434,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      380,
+      679,
+      661,
+      813,
+      708
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213032,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       30,
       0,
@@ -2077,11 +6466,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      829,
+      66,
+      359,
+      884
+    ],
     "SceneId": 80810,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215032,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212032,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000113,
+      27000013
+    ]
   },
   {
     "NodeID": 30,
+    "TwoStarDrops": [
+      214033,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -2095,7 +6531,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      868,
+      937,
+      84,
+      653,
+      706
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213033,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       31,
       0,
@@ -2108,11 +6563,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      35,
+      763,
+      77,
+      557
+    ],
     "SceneId": 80810,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215033,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212033,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000093,
+      27000064
+    ]
   },
   {
     "NodeID": 31,
+    "TwoStarDrops": [
+      214034,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -2126,7 +6628,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      113,
+      147,
+      92,
+      653,
+      250
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213034,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       30,
       34,
@@ -2139,11 +6660,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      380,
+      470,
+      280,
+      143
+    ],
     "SceneId": 80810,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215034,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212034,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000064,
+      27000123
+    ]
   },
   {
     "NodeID": 32,
+    "TwoStarDrops": [
+      214029,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -2157,7 +6725,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      66,
+      280,
+      708,
+      0,
+      0
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213029,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       33,
       0,
@@ -2170,11 +6757,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      131,
+      724,
+      0,
+      0
+    ],
     "SceneId": 80606,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215029,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212029,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000161,
+      27000092
+    ]
   },
   {
     "NodeID": 33,
+    "TwoStarDrops": [
+      214030,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -2188,7 +6822,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      7,
+      143,
+      813,
+      0,
+      0
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213030,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       34,
       0,
@@ -2201,11 +6854,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      79,
+      557,
+      0,
+      0
+    ],
     "SceneId": 80413,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215030,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212030,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000064,
+      27000072
+    ]
   },
   {
     "NodeID": 34,
+    "TwoStarDrops": [
+      214035,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -2219,7 +6919,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      122,
+      92,
+      4,
+      471,
+      134
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213035,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       31,
       33,
@@ -2232,11 +6951,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      39,
+      807,
+      37,
+      220
+    ],
     "SceneId": 8081107,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215035,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212035,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000128,
+      27000093
+    ]
   },
   {
     "NodeID": 35,
+    "TwoStarDrops": [
+      214031,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -2250,7 +7016,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      380,
+      150,
+      888,
+      381,
+      250
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213031,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       0,
       0,
@@ -2263,11 +7048,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      380,
+      150,
+      381,
+      250
+    ],
     "SceneId": 80807,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215031,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212031,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000121,
+      27000129
+    ]
   },
   {
     "NodeID": 36,
+    "TwoStarDrops": [
+      214036,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -2281,7 +7113,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      113,
+      448,
+      7,
+      884,
+      661
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213036,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       37,
       0,
@@ -2294,11 +7145,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      829,
+      66,
+      807,
+      7
+    ],
     "SceneId": 8081108,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215036,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212036,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000093,
+      27000073
+    ]
   },
   {
     "NodeID": 37,
+    "TwoStarDrops": [
+      214037,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -2312,7 +7210,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      609,
+      359,
+      20443,
+      4,
+      820
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213037,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       38,
       0,
@@ -2325,11 +7242,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      122,
+      778,
+      570,
+      197
+    ],
     "SceneId": 8081109,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215037,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212037,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000112,
+      27000113
+    ]
   },
   {
     "NodeID": 38,
+    "TwoStarDrops": [
+      214038,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "IsNormalType": 1,
     "NextUnLockHard": [
       0,
@@ -2343,7 +7307,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      4,
+      448,
+      20443,
+      884,
+      7
+    ],
     "StageID": 1,
+    "OneStarDrops": [
+      213038,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       0,
       0,
@@ -2356,11 +7339,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      39,
+      84,
+      724,
+      557
+    ],
     "SceneId": 8081110,
-    "DifficultyLevel": 2
+    "ThreeStarDrops": [
+      215038,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      212038,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 2,
+    "TaskID": [
+      27000001,
+      27000024,
+      27000074
+    ]
   },
   {
     "NodeID": 1,
+    "TwoStarDrops": [
+      224001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLockHard": [
       0,
       0,
@@ -2374,7 +7404,26 @@
       0
     ],
     "IsUnLock": 1,
+    "EnemyldList": [
+      25,
+      914,
+      906,
+      911,
+      302
+    ],
     "StageID": 101,
+    "OneStarDrops": [
+      223001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       2,
       0,
@@ -2387,11 +7436,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      35,
+      763,
+      807,
+      143
+    ],
     "SceneId": 8081113,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      225001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      222001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000124,
+      27000011
+    ]
   },
   {
     "NodeID": 2,
+    "TwoStarDrops": [
+      224001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLockHard": [
       0,
       0,
@@ -2404,7 +7500,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      25,
+      914,
+      906,
+      911,
+      302
+    ],
     "StageID": 101,
+    "OneStarDrops": [
+      223002,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       3,
       0,
@@ -2417,11 +7532,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      113,
+      359,
+      280,
+      7
+    ],
     "SceneId": 8081114,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      225001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      222002,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000061,
+      27000091
+    ]
   },
   {
     "NodeID": 3,
+    "TwoStarDrops": [
+      224001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLockHard": [
       0,
       0,
@@ -2434,7 +7596,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      25,
+      914,
+      906,
+      911,
+      302
+    ],
     "StageID": 101,
+    "OneStarDrops": [
+      223003,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       4,
       0,
@@ -2447,11 +7628,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      829,
+      183,
+      470,
+      197
+    ],
     "SceneId": 8081115,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      225001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      222003,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000021,
+      27000022
+    ]
   },
   {
     "NodeID": 4,
+    "TwoStarDrops": [
+      224001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLockHard": [
       0,
       0,
@@ -2464,7 +7692,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      25,
+      914,
+      906,
+      911,
+      302
+    ],
     "StageID": 101,
+    "OneStarDrops": [
+      223004,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       5,
       0,
@@ -2477,11 +7724,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      380,
+      4,
+      724,
+      708
+    ],
     "SceneId": 8081116,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      225001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      222004,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000091,
+      27000022
+    ]
   },
   {
     "NodeID": 5,
+    "TwoStarDrops": [
+      224001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLockHard": [
       0,
       0,
@@ -2494,7 +7788,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      25,
+      914,
+      906,
+      911,
+      302
+    ],
     "StageID": 101,
+    "OneStarDrops": [
+      223005,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       6,
       0,
@@ -2507,11 +7820,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      54,
+      129,
+      609,
+      820
+    ],
     "SceneId": 8081117,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      225001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      222005,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000062,
+      27000022
+    ]
   },
   {
     "NodeID": 6,
+    "TwoStarDrops": [
+      224001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLockHard": [
       0,
       0,
@@ -2524,7 +7884,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      25,
+      914,
+      906,
+      911,
+      302
+    ],
     "StageID": 101,
+    "OneStarDrops": [
+      223006,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       7,
       0,
@@ -2537,11 +7916,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      39,
+      906,
+      653,
+      250
+    ],
     "SceneId": 8081118,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      225001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      222006,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000126,
+      27000022
+    ]
   },
   {
     "NodeID": 7,
+    "TwoStarDrops": [
+      224001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLockHard": [
       0,
       0,
@@ -2554,7 +7980,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      25,
+      914,
+      906,
+      911,
+      302
+    ],
     "StageID": 101,
+    "OneStarDrops": [
+      223007,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       8,
       0,
@@ -2567,11 +8012,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      794,
+      807,
+      196,
+      220
+    ],
     "SceneId": 8081119,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      225001,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      222007,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000128,
+      27000102
+    ]
   },
   {
     "NodeID": 8,
+    "TwoStarDrops": [
+      224002,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLockHard": [
       0,
       0,
@@ -2584,7 +8076,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      25,
+      914,
+      906,
+      911,
+      302
+    ],
     "StageID": 101,
+    "OneStarDrops": [
+      223008,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       9,
       0,
@@ -2597,11 +8108,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      147,
+      661,
+      37,
+      7
+    ],
     "SceneId": 8081120,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      225002,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      222008,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000011,
+      27000103
+    ]
   },
   {
     "NodeID": 9,
+    "TwoStarDrops": [
+      224002,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLockHard": [
       0,
       0,
@@ -2614,7 +8172,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      25,
+      914,
+      906,
+      911,
+      302
+    ],
     "StageID": 101,
+    "OneStarDrops": [
+      223009,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       10,
       0,
@@ -2627,11 +8204,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      54,
+      374,
+      885,
+      134
+    ],
     "SceneId": 8081121,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      225002,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      222009,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000092,
+      27000063
+    ]
   },
   {
     "NodeID": 10,
+    "TwoStarDrops": [
+      224002,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLockHard": [
       0,
       0,
@@ -2644,7 +8268,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      25,
+      914,
+      906,
+      911,
+      302
+    ],
     "StageID": 101,
+    "OneStarDrops": [
+      223010,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       11,
       0,
@@ -2657,11 +8300,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      122,
+      778,
+      570,
+      197
+    ],
     "SceneId": 8081122,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      225002,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      222010,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000128,
+      27000022
+    ]
   },
   {
     "NodeID": 11,
+    "TwoStarDrops": [
+      224002,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLockHard": [
       0,
       0,
@@ -2674,7 +8364,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      25,
+      914,
+      906,
+      911,
+      302
+    ],
     "StageID": 101,
+    "OneStarDrops": [
+      223011,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       12,
       0,
@@ -2687,11 +8396,58 @@
       0,
       0
     ],
+    "TeamldList": [
+      35,
+      84,
+      724,
+      131
+    ],
     "SceneId": 8081123,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      225002,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      222011,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000012,
+      27000024
+    ]
   },
   {
     "NodeID": 12,
+    "TwoStarDrops": [
+      224002,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLockHard": [
       0,
       0,
@@ -2704,7 +8460,26 @@
       0,
       0
     ],
+    "EnemyldList": [
+      25,
+      914,
+      906,
+      911,
+      302
+    ],
     "StageID": 101,
+    "OneStarDrops": [
+      223012,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "NextUnLock": [
       0,
       0,
@@ -2717,7 +8492,42 @@
       0,
       0
     ],
+    "TeamldList": [
+      764,
+      147,
+      471,
+      143
+    ],
     "SceneId": 8081124,
-    "DifficultyLevel": 1
+    "ThreeStarDrops": [
+      225002,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CompleteDrops": [
+      222012,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "DifficultyLevel": 1,
+    "TaskID": [
+      27000001,
+      27000120,
+      27000071
+    ]
   }
 ]
