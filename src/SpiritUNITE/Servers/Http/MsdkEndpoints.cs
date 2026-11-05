@@ -32,6 +32,8 @@ public static class MsdkEndpoints
     private const string ChannelInfoKey = "channel_info";
     private const string GuestIdKey = "uuid";
     private const string GuestDisplayName = "guest";
+    private const string InstallRegChannelDis = "00000000";
+    private const string GuestPfPrefix = "guest_gs-00000000-android-00000000-gs-00-";
 
     public static void Map(WebApplication app)
     {
@@ -177,18 +179,24 @@ public static class MsdkEndpoints
 
     private static bool IsLoginChannel(int channelId) => channelId is GuestChannelId or PokemonChannelId or Nintendo_Unite;
 
-    private static IResult Succeed(MsdkQuery query, AccountSession session) => Results.Json(new MsdkLoginReply
+    private static IResult Succeed(MsdkQuery query, AccountSession session)
     {
-        Ret = Succeeded,
-        Msg = "success",
-        Seq = query.Seq,
-        ChannelId = query.ChannelId,
-        OpenId = AccountSessionManager.ToOpenId(session.Account.AccountId),
-        Token = session.Token,
-        TokenExpireTime = session.ExpiresAt,
-        First = session.IsNewAccount ? FirstLogin : ReturningLogin,
-        UserName = session.Account.UserName ?? string.Empty,
-    });
+        var openId = AccountSessionManager.ToOpenId(session.Account.AccountId);
+        return Results.Json(new MsdkLoginReply
+        {
+            Ret = Succeeded,
+            Msg = "success",
+            Seq = query.Seq,
+            ChannelId = query.ChannelId,
+            OpenId = openId,
+            Token = session.Token,
+            TokenExpireTime = session.ExpiresAt,
+            First = session.IsNewAccount ? FirstLogin : ReturningLogin,
+            UserName = session.Account.UserName ?? string.Empty,
+            Pf = query.ChannelId == GuestChannelId ? GuestPfPrefix + openId : string.Empty,
+            RegChannelDis = InstallRegChannelDis,
+        });
+    }
 
     private static IResult Refuse(MsdkQuery query, string message) => Results.Json(new MsdkLoginReply
     {
