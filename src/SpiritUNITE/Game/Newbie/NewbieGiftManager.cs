@@ -1,7 +1,9 @@
 using Microsoft.Extensions.Logging;
 using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Databin;
+using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Game.Lobby;
+using SpiritUNITE.Game.Pokemon;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.StarRoad;
 using SpiritUNITE.Game.Tasks;
@@ -28,13 +30,11 @@ public sealed class NewbieGiftManager(
     ILogger<NewbieGiftManager> logger)
 {
     public const int NewbieGiftReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonNewbieGift;
+    public const int FourteenDayRedDotID = (int)PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdFourteenDay;
 
     private const int FirstNewbieGiftID = 1;
     private const int CanFetchGift = 1;
     private const int GiftFetched = 1;
-    private const int Replaced = 1;
-    private const int LicensePokemonParamIndex = 0;
-    private const int FourteenDayRedDotID = (int)PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdFourteenDay;
 
     private readonly ILookup<int, pbDrop_Static> dropsById = gameData.DropStatic.Rows
         .OrderBy(drop => drop.SDropSeq)
@@ -49,6 +49,13 @@ public sealed class NewbieGiftManager(
             CurrDayGiftID = currDayGiftID,
             GiftInfo = BuildGiftInfo(currDayGiftID, fetched),
         };
+    }
+
+    public async Task<pbCOMDT_RED_DOT_DETAIL?> FindFourteenDayRedDotAsync(LMNRoleInfo role)
+    {
+        var currDayGiftID = await GetCurrDayGiftIDAsync(role);
+        var fetched = await repository.LoadFetchedGiftIDsAsync(role.GameUlongUID);
+        return BuildFourteenDayRedDotDetail(currDayGiftID, fetched);
     }
 
     public async Task<(PB_ENUM_RES_ERROR_CODE Result, GamePacket[] Grants, pbCSDT_NEWBIE_GIFT_INFO? GiftInfo)> FetchNewbieGiftAsync(
@@ -93,13 +100,16 @@ public sealed class NewbieGiftManager(
         logger.LogInformation("Newbie gift {GiftID} fetched by uid {Uid}", giftID, role.GameUlongUID);
         var fetched = await repository.LoadFetchedGiftIDsAsync(role.GameUlongUID);
         var grants = new List<GamePacket>();
-        foreach (var (coinID, amount) in grant.Coins.Where(coin => CoinID.IsSpecialCoin(coin.Key)))
+        foreach (var coinID in grant.Coins.Keys.Where(CoinID.IsSpecialCoin))
         {
-            var beforeCoinNum = commit.BeforeCoinNums.GetValueOrDefault(coinID);
             grants.Add(GamePacket.Create(
                 PB_ENUM_CS_MSGID_DEF.PbScidSpecialCoinChangeNtf,
-                SpecialCoin.BuildSpecialCoinChangeNtf(coinID, beforeCoinNum, commit.Wallet.GetCoinVal(coinID))));
-            grants.AddRange(await starRoad.BuildSpecialCoinChangePacketsAsync(role, beforeCoinNum));
+                SpecialCoin.BuildSpecialCoinChangeNtf(coinID, commit.BeforeCoinNums.GetValueOrDefault(coinID), commit.Wallet.GetCoinVal(coinID))));
+        }
+
+        if (grant.PokemonIds.Count == 0 && commit.BeforeCoinNums.TryGetValue(CoinID.UNIVERSAL_SHARDS_TOKEN_ID, out var licensePointsBefore))
+        {
+            grants.AddRange(await starRoad.BuildSpecialCoinChangePacketsAsync(role, licensePointsBefore));
         }
 
         if (grant.Coins.Keys.Any(coinID => !CoinID.IsSpecialCoin(coinID)))
@@ -144,28 +154,16 @@ public sealed class NewbieGiftManager(
         var awards = new List<pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO>();
         foreach (var drop in dropsById[gift.SDropID])
         {
-            if (CoinID.IsSpecialCoin(drop.ResID) || CoinID.WalletCoins.Contains(drop.ResID))
+            if (CoinID.IsGrantableCoin(drop.ResID))
             {
                 coins[drop.ResID] = coins.GetValueOrDefault(drop.ResID) + drop.ResNum;
-                awards.Add(BuildAward(drop.ResID, drop.ResNum, CoinID.IsSpecialCoin(drop.ResID)
-                    ? PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesResattr
-                    : PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesCoin));
+                awards.Add(BagManager.BuildCoinAward(drop.ResID, drop.ResNum));
                 continue;
             }
 
-            if (gameData.OutSideItemBase.Find(drop.ResID) is { OutSideItemType: (int)PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypeEos } license
-                && license.ItemParam.Count > LicensePokemonParamIndex
-                && license.ItemParam[LicensePokemonParamIndex] is var pokemonId
-                && !role.OwnsPokemon(pokemonId)
-                && !pokemonIds.Contains(pokemonId))
+            if (UniteLicense.PlanGrant(gameData, role, drop.ResID, drop.ResNum, pokemonIds) is { } license)
             {
-                pokemonIds.Add(pokemonId);
-                awards.Add(new pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO
-                {
-                    IsReplaced = Replaced,
-                    FinallyAwardInfo = BuildAwardInfo(pokemonId, 1, PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesPokemon),
-                    OriginAwardInfo = BuildAwardInfo(drop.ResID, drop.ResNum, PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem),
-                });
+                license.AddTo(pokemonIds, coins, awards);
                 continue;
             }
 
@@ -203,21 +201,18 @@ public sealed class NewbieGiftManager(
         },
     };
 
-    private GamePacket BuildFourteenDayRedDot(int currDayGiftID, IReadOnlySet<int> fetched)
+    private GamePacket BuildFourteenDayRedDot(int currDayGiftID, IReadOnlySet<int> fetched) =>
+        BuildFourteenDayRedDotDetail(currDayGiftID, fetched) is { } redDot
+            ? GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidRedDotReplaceNtf, new pbSCRedDotReplaceNtf
+            {
+                RedDotInfo = new pbCOMDT_RED_DOT_INFO { RedDotDetail = { redDot } },
+            })
+            : GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidRedDotClearNtf, new pbSCRedDotClearNtf { RedDotID = FourteenDayRedDotID });
+
+    private pbCOMDT_RED_DOT_DETAIL? BuildFourteenDayRedDotDetail(int currDayGiftID, IReadOnlySet<int> fetched)
     {
         var unfetched = GetSchemeGifts().Count(gift => gift.GiftID <= currDayGiftID && !fetched.Contains(gift.GiftID));
-        if (unfetched == 0)
-        {
-            return GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidRedDotClearNtf, new pbSCRedDotClearNtf { RedDotID = FourteenDayRedDotID });
-        }
-
-        return GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidRedDotReplaceNtf, new pbSCRedDotReplaceNtf
-        {
-            RedDotInfo = new pbCOMDT_RED_DOT_INFO
-            {
-                RedDotDetail = { new pbCOMDT_RED_DOT_DETAIL { RedDotID = FourteenDayRedDotID, RedDotBadgeNum = unfetched } },
-            },
-        });
+        return unfetched == 0 ? null : new pbCOMDT_RED_DOT_DETAIL { RedDotID = FourteenDayRedDotID, RedDotBadgeNum = unfetched };
     }
 
     private int GetSchemeId() => notices.GetBusinessSchemeId(PB_ENUM_RES_USER_SCHEME_BUSINESS_TYPE.PbResUserSchemeBusinessTypeNewbieGift);
@@ -229,17 +224,4 @@ public sealed class NewbieGiftManager(
     }
 
     private int GetLastGiftID() => GetSchemeGifts().Select(gift => gift.GiftID).DefaultIfEmpty(FirstNewbieGiftID).Max();
-
-    private static pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO BuildAward(int resID, int resCnt, PB_ENUM_RES_RESOURCES_TYPE resType) => new()
-    {
-        FinallyAwardInfo = BuildAwardInfo(resID, resCnt, resType),
-        OriginAwardInfo = new pbCOMDT_ONE_RESOURCE_AWARD_INFO(),
-    };
-
-    private static pbCOMDT_ONE_RESOURCE_AWARD_INFO BuildAwardInfo(int resID, int resCnt, PB_ENUM_RES_RESOURCES_TYPE resType) => new()
-    {
-        ResID = resID,
-        ResCnt = resCnt,
-        ResType = (int)resType,
-    };
 }

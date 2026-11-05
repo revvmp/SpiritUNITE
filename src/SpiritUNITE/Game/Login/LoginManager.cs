@@ -234,6 +234,7 @@ public sealed class LoginManager(
         replies.Add(await starRoad.BuildStarRoadInfoNtfAsync(role, route, isLoginNtf: true));
         replies.Add(PbScidQuickSpeakCfgNtf, new pbSCQuickSpeakCfgNtf { QuickSpeakInfo = settings.BuildQuickSpeakInfo(clientSettings) });
         await AddLobbyStateAsync(replies, role, canopyList);
+        replies.AddRange(await wallets.GrantFirstLoginSpecialCoinsAsync(uid));
         replies.Add(PbScidUpdateTaskInfoNtf, ownershipTasks);
         foreach (var gain in laterGains)
         {

@@ -35,7 +35,10 @@
   "Wallet": {
     "StartingCookies": 0,
     "StartingPokeCoins": 0,
-    "StartingCoupons": 0
+    "StartingCoupons": 0,
+    "FirstLoginSpecialCoins": {
+      "1000000118": 1
+    }
   },
   "MSDKNotice": {
     "NoticeInfoList": [

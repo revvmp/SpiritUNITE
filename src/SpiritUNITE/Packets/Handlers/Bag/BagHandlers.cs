@@ -1,12 +1,22 @@
 using Microsoft.Extensions.Logging;
 using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Game.Role;
+using SpiritUNITE.Game.StarRoad;
+using SpiritUNITE.Game.Tasks;
+using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers.Bag;
 
-public sealed class BagHandlers(RoleInfoStore roles, BagManager bag, ILogger<BagHandlers> logger)
+public sealed class BagHandlers(
+    RoleInfoStore roles,
+    BagManager bag,
+    StarRoadManager starRoad,
+    TaskUpdates taskUpdates,
+    ILogger<BagHandlers> logger)
 {
+    private const int OpenAwardBoxReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonOpenawardbox;
+
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidOutSideItemPackageAllInfoReq)]
     public async Task<GamePacket[]> OnOutSideItemPackageAllInfoReq(GamePacket request)
     {
@@ -47,23 +57,88 @@ public sealed class BagHandlers(RoleInfoStore roles, BagManager bag, ILogger<Bag
     {
         var role = roles.Require(request.Uid);
         var use = pbCSUseOutSideItemReq.Parser.ParseFrom(request.PkgData);
-        var result = await bag.ValidateUseOutSideItemAsync(role.GameUlongUID, use.ResID, use.GridUniqueID, use.ResCnt);
+        var outcome = await bag.UseOutSideItemAsync(role, use.ResID, use.GridUniqueID, use.ResCnt);
         logger.LogInformation(
-            "Use of {ResCnt} outside item {ResID} refused for uid {Uid}: {Result}",
+            "Use of {ResCnt} outside item {ResID} by uid {Uid}: {Result}",
             use.ResCnt,
             use.ResID,
             role.GameUlongUID,
-            result);
-        return
-        [
-            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUseOutSideItemRsp, new pbSCUseOutSideItemRsp
+            outcome.Result);
+        var reply = request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUseOutSideItemRsp, new pbSCUseOutSideItemRsp
+        {
+            ResultInfo = new pbResultInfo { ResultId = (int)outcome.Result },
+            ResID = use.ResID,
+            GridUniqueID = use.GridUniqueID,
+            ResCnt = use.ResCnt,
+        });
+        return outcome.Succeeded ? [.. await BuildUseAwardPacketsAsync(request, role, outcome), reply] : [reply];
+    }
+
+    private async Task<GamePacket[]> BuildUseAwardPacketsAsync(GamePacket request, LMNRoleInfo role, BagOutcome outcome)
+    {
+        var packets = new List<GamePacket>();
+        if (outcome.ChangedItems.Any(item => item.ItemType == RoleItemType.OutSideItem))
+        {
+            packets.Add(request.Reply(
+                PB_ENUM_CS_MSGID_DEF.PbScidOutSideItemUpdateNotify,
+                BagManager.BuildOutSideItemUpdateNotify(outcome.ChangedItems)));
+        }
+
+        packets.Add(request.Reply(
+            PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf,
+            await taskUpdates.BuildOwnershipUpdateTaskInfoNtfAsync(role)));
+        if (outcome.Wallet is { } specialCoinWallet)
+        {
+            foreach (var specialCoinID in outcome.GrantedSpecialCoinIDs)
             {
-                ResultInfo = new pbResultInfo { ResultId = (int)result },
-                ResID = use.ResID,
-                GridUniqueID = use.GridUniqueID,
-                ResCnt = use.ResCnt,
-            }),
-        ];
+                packets.Add(request.Reply(
+                    PB_ENUM_CS_MSGID_DEF.PbScidSpecialCoinChangeNtf,
+                    SpecialCoin.BuildSpecialCoinChangeNtf(
+                        specialCoinID,
+                        outcome.BeforeCoinNums[specialCoinID],
+                        specialCoinWallet.GetCoinVal(specialCoinID))));
+            }
+
+            if (outcome.GrantedPokemonIds.Count == 0
+                && outcome.BeforeCoinNums.TryGetValue(CoinID.UNIVERSAL_SHARDS_TOKEN_ID, out var licensePointsBefore))
+            {
+                packets.AddRange(await starRoad.BuildSpecialCoinChangePacketsAsync(role, licensePointsBefore));
+            }
+        }
+
+        foreach (var pokemonId in outcome.GrantedPokemonIds)
+        {
+            packets.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdatePokemonNtf, new pbSCUpdatePokemonNtf
+            {
+                UpdateType = (int)PB_ENUM_ENM_POKEMON_UPDATETYPE.PbEnmPokemonUpdatetypeGain,
+                PokemonInfo = role.BuildPokemonInfo(pokemonId),
+            }));
+        }
+
+        if (outcome.GrantedPokemonIds.Count > 0)
+        {
+            packets.AddRange(await starRoad.BuildPokemonGainPacketsAsync(role));
+            packets.Add(StarRoadManager.BuildAddPokemonRedDot(role));
+        }
+
+        if (outcome is { GrantedWalletCoins: true, Wallet: { } wallet })
+        {
+            packets.Add(request.Reply(
+                PB_ENUM_CS_MSGID_DEF.PbScidGetCoinValNtf,
+                new pbSCGetCoinValNtf { CoinInfo = wallet.BuildCoinInfo() }));
+            packets.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAcntCouponsRsp, wallet.BuildAcntCouponsRsp()));
+        }
+
+        packets.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidResourcesAwardNotify, new pbSCResourcesAwardNotify
+        {
+            ResultInfo = new pbResultInfo(),
+            AwardReason = OpenAwardBoxReason,
+            ResourcesList = { outcome.Awards },
+        }));
+        packets.Add(request.Reply(
+            PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf,
+            await taskUpdates.BuildOwnershipUpdateTaskInfoNtfAsync(role)));
+        return [.. packets.Select(packet => packet with { Uid = request.Uid, ClientSeq = request.ClientSeq })];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidClearOutSideItemRedDotReq)]

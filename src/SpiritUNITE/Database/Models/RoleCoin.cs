@@ -15,4 +15,7 @@ public sealed class RoleCoin
 
     [Column("coin_val")]
     public long CoinVal { get; set; }
+
+    [Column("coin_seq", SkipOnInsert = true, SkipOnUpdate = true)]
+    public ulong CoinSeq { get; set; }
 }

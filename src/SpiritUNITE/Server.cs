@@ -122,7 +122,7 @@ public static class Server
 
         builder.Services.AddOptions<WalletOptions>()
             .BindConfiguration(WalletOptions.SectionName)
-            .Validate(options => options.IsValid(), "Wallet settings are invalid")
+            .Validate(options => options.IsValid(), "Wallet settings are invalid: starting balances must be 0 or more and FirstLoginSpecialCoins must map special coin ids to positive counts")
             .ValidateOnStart();
 
         builder.Services.AddOptions<PokemonOptions>()
@@ -169,6 +169,7 @@ public static class Server
         builder.Services.AddSingleton<WalletRepository>();
         builder.Services.AddSingleton<ShopRepository>();
         builder.Services.AddSingleton<NewbieGiftRepository>();
+        builder.Services.AddSingleton<NewbieDropRepository>();
         builder.Services.AddSingleton<BagRepository>();
         builder.Services.AddSingleton<PokemonUsedRepository>();
         builder.Services.AddSingleton<HeldItemRepository>();
@@ -183,8 +184,12 @@ public static class Server
         builder.Services.AddSingleton<SettingsRepository>();
     }
 
-    private static void AddGameData(IHostApplicationBuilder builder) =>
-        builder.Services.AddSingleton(GameData.Load(Path.Combine(AppContext.BaseDirectory, GameData.DirectoryName)));
+    private static void AddGameData(IHostApplicationBuilder builder)
+    {
+        var gameData = GameData.Load(Path.Combine(AppContext.BaseDirectory, GameData.DirectoryName));
+        CoinID.UseResIDTypeMatch(gameData.ResIDTypeMatchBase.Rows);
+        builder.Services.AddSingleton(gameData);
+    }
 
     private static void AddGame(IHostApplicationBuilder builder)
     {

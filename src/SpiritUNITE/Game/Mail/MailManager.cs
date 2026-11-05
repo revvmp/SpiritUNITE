@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using SpiritUNITE.Database.Models;
 using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Databin;
+using SpiritUNITE.Game.Pokemon;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Packets;
@@ -13,7 +14,7 @@ using SpiritUNITE.Network;
 
 namespace SpiritUNITE.Game.Mail;
 
-public sealed record MailClaim(RoleMail Mail, MailGrant Grant, RoleWallet Wallet);
+public sealed record MailClaim(RoleMail Mail, MailGrant Grant, RoleWallet Wallet, IReadOnlyDictionary<int, long> BeforeCoinNums);
 
 public sealed class MailManager(
     MailRepository repository,
@@ -237,9 +238,7 @@ public sealed class MailManager(
             ResultInfo = new pbResultInfo(),
             AwardReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonMail,
         };
-        notify.ResourcesList.Add(claims
-            .SelectMany(claim => BuildAccessInfo(claim.Mail).Access)
-            .Select(access => new pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO { FinallyAwardInfo = access.ResInfo }));
+        notify.ResourcesList.Add(claims.SelectMany(claim => claim.Grant.Awards));
         return notify;
     }
 
@@ -257,8 +256,13 @@ public sealed class MailManager(
             return (PB_ENUM_RES_ERROR_CODE.PbErrMailNoAccess, null);
         }
 
-        var grant = BuildGrant(role, pbCOMDT_MAILACCESS_INFO.Parser.ParseFrom(mail.AccessInfo), now);
-        var (result, wallet) = await repository.ClaimAsync(uid, mail.MailIndex, grant, now);
+        if (BuildGrant(role, pbCOMDT_MAILACCESS_INFO.Parser.ParseFrom(mail.AccessInfo), now) is not { } grant)
+        {
+            logger.LogWarning("Mail {MailIndex} claim refused for uid {Uid}: a Unite license attachment has no grant rule", mailIndex, uid);
+            return (PB_ENUM_RES_ERROR_CODE.PbErrMailGetAccessFail, null);
+        }
+
+        var (result, wallet, beforeCoinNums) = await repository.ClaimAsync(uid, mail.MailIndex, grant, now);
         if (result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc || wallet is null)
         {
             logger.LogInformation("Mail {MailIndex} claim refused for uid {Uid}: {Result}", mailIndex, uid, result);
@@ -284,16 +288,29 @@ public sealed class MailManager(
             string.Join(',', grant.Coins.Select(coin => $"{coin.Key}x{coin.Value}")),
             grant.Items.Count,
             string.Join(',', grant.PokemonIds));
-        return (result, new MailClaim(mail, grant, wallet));
+        return (result, new MailClaim(mail, grant, wallet, beforeCoinNums));
     }
 
-    private MailGrant BuildGrant(LMNRoleInfo role, pbCOMDT_MAILACCESS_INFO accessInfo, long now)
+    private MailGrant? BuildGrant(LMNRoleInfo role, pbCOMDT_MAILACCESS_INFO accessInfo, long now)
     {
         var coins = new Dictionary<int, long>();
         var items = new List<RoleItemInfo>();
         var pokemonIds = new List<int>();
+        var awards = new List<pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO>();
         foreach (var award in accessInfo.Access.Select(access => access.ResInfo).OfType<pbCOMDT_ONE_RESOURCE_AWARD_INFO>())
         {
+            if ((PB_ENUM_RES_RESOURCES_TYPE)award.ResType == PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem)
+            {
+                if (UniteLicense.PlanGrant(gameData, role, award.ResID, award.ResCnt, pokemonIds) is not { } license)
+                {
+                    return null;
+                }
+
+                license.AddTo(pokemonIds, coins, awards);
+                continue;
+            }
+
+            awards.Add(new pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO { FinallyAwardInfo = award });
             switch ((PB_ENUM_RES_RESOURCES_TYPE)award.ResType)
             {
                 case PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesCoin:
@@ -315,7 +332,7 @@ public sealed class MailManager(
             }
         }
 
-        return new MailGrant(coins, items, pokemonIds);
+        return new MailGrant(coins, items, pokemonIds, awards);
     }
 
     private static void AddItemGrant(LMNRoleInfo role, RoleItemType itemType, int itemId, long now, List<RoleItemInfo> items)
@@ -347,6 +364,7 @@ public sealed class MailManager(
                 PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesLobbyBackground =>
                     gameData.LobbyBg.Contains(award.ResID) && award.ResID != gameData.DefaultLobbyBgId,
                 PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesPokemon => award.ResID > 0 && award.ResCnt == AwardedPokemonCount,
+                PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem => UniteLicense.IsUniteLicense(gameData, award.ResID),
                 _ => false,
             };
             if (!valid)

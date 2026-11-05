@@ -11,9 +11,33 @@ public static class CoinID
 
     public static IReadOnlyList<int> WalletCoins { get; } = [Cookies, PokeCoins, Coupons];
 
-    public static IReadOnlyList<int> SpecialCoins { get; } = [UNIVERSAL_SHARDS_TOKEN_ID];
+    private static readonly int[] AttributeResIDsTrackedOutsideWallet =
+    [
+        (int)PB_ENUM_ENM_RESOURCES_ID.PbEnmResourcesIdAcntExp,
+        (int)PB_ENUM_ENM_RESOURCES_ID.PbEnmResourcesIdBpExp,
+    ];
 
-    public static bool IsSpecialCoin(int coinID) => SpecialCoins.Contains(coinID);
+    private static pbResIDTypeMatch_Base[]? resIDTypeMatch;
+
+    public static void UseResIDTypeMatch(IEnumerable<pbResIDTypeMatch_Base> rows) => resIDTypeMatch = [.. rows];
+
+    public static PB_ENUM_RES_RESOURCES_TYPE GetResIDType(int resID)
+    {
+        var rows = resIDTypeMatch ?? throw new InvalidOperationException("CoinID.UseResIDTypeMatch was not called at startup");
+        return rows.FirstOrDefault(row => resID >= row.ResIDMin && resID <= row.ResIDMax) is { } row
+            ? (PB_ENUM_RES_RESOURCES_TYPE)row.ResType
+            : PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesMin;
+    }
+
+    public static bool IsSpecialCoin(int coinID) =>
+        GetResIDType(coinID) == PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesResattr
+        && !AttributeResIDsTrackedOutsideWallet.Contains(coinID);
+
+    public static bool IsGrantableCoin(int coinID) => WalletCoins.Contains(coinID) || IsSpecialCoin(coinID);
+
+    public static PB_ENUM_RES_RESOURCES_TYPE GetCoinResourceType(int coinID) => IsSpecialCoin(coinID)
+        ? PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesResattr
+        : PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesCoin;
 
     public static int? GetCoinID(PB_ENUM_RES_COIN_TYPE coinType) => coinType switch
     {

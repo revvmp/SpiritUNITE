@@ -17,6 +17,8 @@ public sealed class MailRepository(DataOptions options)
     private const int FirstMailIndex = 0;
     private const int MaxInsertAttempts = 3;
 
+    private static readonly IReadOnlyDictionary<int, long> NoCoinNums = new Dictionary<int, long>();
+
     public async Task<RoleMail> InsertAsync(RoleMail mail)
     {
         await using var database = new DataConnection(options);
@@ -101,7 +103,7 @@ public sealed class MailRepository(DataOptions options)
             .DeleteAsync();
     }
 
-    public async Task<(PB_ENUM_RES_ERROR_CODE Result, RoleWallet? Wallet)> ClaimAsync(
+    public async Task<(PB_ENUM_RES_ERROR_CODE Result, RoleWallet? Wallet, IReadOnlyDictionary<int, long> BeforeCoinNums)> ClaimAsync(
         ulong gameUlongUID,
         int mailIndex,
         MailGrant grant,
@@ -120,14 +122,14 @@ public sealed class MailRepository(DataOptions options)
         if (claimed != OneRow)
         {
             await transaction.RollbackAsync();
-            return (PB_ENUM_RES_ERROR_CODE.PbErrMailGetAccessFail, null);
+            return (PB_ENUM_RES_ERROR_CODE.PbErrMailGetAccessFail, null, NoCoinNums);
         }
 
+        var beforeCoinNums = new Dictionary<int, long>();
         foreach (var (coinID, coinCnt) in grant.Coins)
         {
-            await database.GetTable<RoleCoin>().InsertOrUpdateAsync(
-                () => new RoleCoin { GameUlongUID = gameUlongUID, CoinID = coinID, CoinVal = coinCnt },
-                coin => new RoleCoin { CoinVal = coin.CoinVal + coinCnt });
+            beforeCoinNums[coinID] = await WalletRepository.ReadCoinValAsync(database, gameUlongUID, coinID);
+            await WalletRepository.CreditAsync(database, gameUlongUID, coinID, coinCnt);
         }
 
         try
@@ -149,11 +151,11 @@ public sealed class MailRepository(DataOptions options)
         catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
         {
             await transaction.RollbackAsync();
-            return (PB_ENUM_RES_ERROR_CODE.PbErrMailGetAccessFail, null);
+            return (PB_ENUM_RES_ERROR_CODE.PbErrMailGetAccessFail, null, NoCoinNums);
         }
 
         var wallet = await WalletRepository.ReadAsync(database, gameUlongUID);
         await transaction.CommitAsync();
-        return (PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, wallet);
+        return (PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, wallet, beforeCoinNums);
     }
 }

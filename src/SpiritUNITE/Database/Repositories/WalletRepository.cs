@@ -35,6 +35,24 @@ public sealed class WalletRepository(DataOptions options)
         return await ReadAsync(database, gameUlongUID);
     }
 
+    public async Task<(IReadOnlyDictionary<int, long> BeforeCoinNums, RoleWallet Wallet)> CreditAsync(
+        ulong gameUlongUID,
+        IReadOnlyDictionary<int, long> grants)
+    {
+        await using var database = new DataConnection(options);
+        await using var transaction = await database.BeginTransactionAsync();
+        var beforeCoinNums = new Dictionary<int, long>();
+        foreach (var (coinID, amount) in grants)
+        {
+            beforeCoinNums[coinID] = await ReadCoinValAsync(database, gameUlongUID, coinID);
+            await CreditAsync(database, gameUlongUID, coinID, amount);
+        }
+
+        var wallet = await ReadAsync(database, gameUlongUID);
+        await transaction.CommitAsync();
+        return (beforeCoinNums, wallet);
+    }
+
     internal static Task CreditAsync(DataConnection database, ulong gameUlongUID, int coinID, long amount) =>
         database.GetTable<RoleCoin>().InsertOrUpdateAsync(
             () => new RoleCoin { GameUlongUID = gameUlongUID, CoinID = coinID, CoinVal = amount },
@@ -54,9 +72,10 @@ public sealed class WalletRepository(DataOptions options)
 
     internal static async Task<RoleWallet> ReadAsync(DataConnection database, ulong gameUlongUID)
     {
-        var balances = await database.GetTable<RoleCoin>()
+        var balancesInGrantOrder = await database.GetTable<RoleCoin>()
             .Where(coin => coin.GameUlongUID == gameUlongUID)
-            .ToDictionaryAsync(coin => coin.CoinID, coin => coin.CoinVal);
-        return new RoleWallet(balances);
+            .OrderBy(coin => coin.CoinSeq)
+            .ToArrayAsync();
+        return new RoleWallet([.. balancesInGrantOrder.Select(coin => KeyValuePair.Create(coin.CoinID, coin.CoinVal))]);
     }
 }

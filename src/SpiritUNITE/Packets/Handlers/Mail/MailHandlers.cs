@@ -2,12 +2,18 @@ using Microsoft.Extensions.Logging;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Mail;
 using SpiritUNITE.Game.Role;
+using SpiritUNITE.Game.StarRoad;
 using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers.Mail;
 
-public sealed class MailHandlers(RoleInfoStore roles, MailManager mails, GameData gameData, ILogger<MailHandlers> logger)
+public sealed class MailHandlers(
+    RoleInfoStore roles,
+    MailManager mails,
+    StarRoadManager starRoad,
+    GameData gameData,
+    ILogger<MailHandlers> logger)
 {
     private const int BatchDel = 1;
 
@@ -130,7 +136,7 @@ public sealed class MailHandlers(RoleInfoStore roles, MailManager mails, GameDat
         response.MailAccessDetail = MailManager.BuildAccessDetail(claim.Mail);
         return
         [
-            .. BuildClaimUpdates(request, role, [claim]),
+            .. await BuildClaimUpdatesAsync(request, role, [claim]),
             .. await BuildUnreadRedDotsAsync(request, getAccess.MailType),
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidMailGetAccessRsp, response),
         ];
@@ -153,7 +159,7 @@ public sealed class MailHandlers(RoleInfoStore roles, MailManager mails, GameDat
         response.MailAccessDetail.Add(claims.Select(claim => MailManager.BuildAccessDetail(claim.Mail)));
         return
         [
-            .. BuildClaimUpdates(request, role, claims),
+            .. await BuildClaimUpdatesAsync(request, role, claims),
             .. claims.Length > 0 ? await BuildUnreadRedDotsAsync(request, mailType) : Array.Empty<GamePacket>(),
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidMailBatchGetAccessRsp, response),
         ];
@@ -179,51 +185,83 @@ public sealed class MailHandlers(RoleInfoStore roles, MailManager mails, GameDat
                 .Select(packet => packet with { Uid = request.Uid, ClientSeq = request.ClientSeq }),
         ];
 
-    private IEnumerable<GamePacket> BuildClaimUpdates(GamePacket request, LMNRoleInfo role, IReadOnlyList<MailClaim> claims)
+    private async Task<GamePacket[]> BuildClaimUpdatesAsync(GamePacket request, LMNRoleInfo role, IReadOnlyList<MailClaim> claims)
     {
         if (claims.Count == 0)
         {
-            yield break;
+            return [];
         }
 
+        var packets = new List<GamePacket>();
         foreach (var item in claims.SelectMany(claim => claim.Grant.Items).Where(item => item.ItemType == RoleItemType.AvatarItem))
         {
-            yield return request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdateAvatarNtf, new pbSCUpdateAvatarNtf
+            packets.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdateAvatarNtf, new pbSCUpdateAvatarNtf
             {
                 UpdateType = (int)PB_ENUM_ENM_AVATAR_UPDATETYPE.PbEnmAvatarUpdatetypeGain,
                 AvatarInfo = item.ToAvatarInfo(),
-            });
+            }));
         }
 
         if (claims.SelectMany(claim => claim.Grant.Items).Any(item => item.ItemType == RoleItemType.LobbyBg))
         {
-            yield return request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetLobbyBackgroundInfoRsp, new pbSCGetLobbyBackgroundInfoRsp
+            packets.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetLobbyBackgroundInfoRsp, new pbSCGetLobbyBackgroundInfoRsp
             {
                 ResultInfo = new pbResultInfo(),
                 LobbyBackgroundInfo = role.BuildLobbyBackgroundInfo(gameData),
-            });
-        }
-
-        foreach (var pokemonId in claims.SelectMany(claim => claim.Grant.PokemonIds))
-        {
-            yield return request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdatePokemonNtf, new pbSCUpdatePokemonNtf
-            {
-                UpdateType = (int)PB_ENUM_ENM_POKEMON_UPDATETYPE.PbEnmPokemonUpdatetypeGain,
-                PokemonInfo = role.BuildPokemonInfo(pokemonId),
-            });
+            }));
         }
 
         var wallet = claims[^1].Wallet;
-        if (claims.Any(claim => claim.Grant.Coins.Count > 0))
+        var specialCoinsBefore = FindSpecialCoinsBefore(claims);
+        foreach (var (coinID, beforeCoinNum) in specialCoinsBefore)
         {
-            yield return request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetCoinValNtf, new pbSCGetCoinValNtf { CoinInfo = wallet.BuildCoinInfo() });
+            packets.Add(request.Reply(
+                PB_ENUM_CS_MSGID_DEF.PbScidSpecialCoinChangeNtf,
+                SpecialCoin.BuildSpecialCoinChangeNtf(coinID, beforeCoinNum, wallet.GetCoinVal(coinID))));
+        }
+
+        var pokemonIds = claims.SelectMany(claim => claim.Grant.PokemonIds).ToArray();
+        foreach (var pokemonId in pokemonIds)
+        {
+            packets.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdatePokemonNtf, new pbSCUpdatePokemonNtf
+            {
+                UpdateType = (int)PB_ENUM_ENM_POKEMON_UPDATETYPE.PbEnmPokemonUpdatetypeGain,
+                PokemonInfo = role.BuildPokemonInfo(pokemonId),
+            }));
+        }
+
+        if (pokemonIds.Length > 0)
+        {
+            packets.AddRange(await starRoad.BuildPokemonGainPacketsAsync(role));
+            packets.Add(StarRoadManager.BuildAddPokemonRedDot(role));
+        }
+        else if (specialCoinsBefore.TryGetValue(CoinID.UNIVERSAL_SHARDS_TOKEN_ID, out var licensePointsBefore))
+        {
+            packets.AddRange(await starRoad.BuildSpecialCoinChangePacketsAsync(role, licensePointsBefore));
+        }
+
+        if (claims.Any(claim => claim.Grant.Coins.Keys.Any(CoinID.WalletCoins.Contains)))
+        {
+            packets.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetCoinValNtf, new pbSCGetCoinValNtf { CoinInfo = wallet.BuildCoinInfo() }));
         }
 
         if (claims.Any(claim => claim.Grant.Coins.ContainsKey(CoinID.Coupons)))
         {
-            yield return request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAcntCouponsRsp, wallet.BuildAcntCouponsRsp());
+            packets.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAcntCouponsRsp, wallet.BuildAcntCouponsRsp()));
         }
 
-        yield return request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidResourcesAwardNotify, MailManager.BuildResourcesAwardNotify(claims));
+        packets.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidResourcesAwardNotify, MailManager.BuildResourcesAwardNotify(claims)));
+        return [.. packets.Select(packet => packet with { Uid = request.Uid, ClientSeq = request.ClientSeq })];
+    }
+
+    private static Dictionary<int, long> FindSpecialCoinsBefore(IEnumerable<MailClaim> claims)
+    {
+        var specialCoinsBefore = new Dictionary<int, long>();
+        foreach (var (coinID, beforeCoinNum) in claims.SelectMany(claim => claim.BeforeCoinNums).Where(coin => CoinID.IsSpecialCoin(coin.Key)))
+        {
+            specialCoinsBefore.TryAdd(coinID, beforeCoinNum);
+        }
+
+        return specialCoinsBefore;
     }
 }

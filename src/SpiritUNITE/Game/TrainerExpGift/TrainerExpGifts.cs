@@ -5,6 +5,7 @@ using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Lobby;
+using SpiritUNITE.Game.Pokemon;
 using SpiritUNITE.Game.Ranked;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.StarRoad;
@@ -36,9 +37,6 @@ public sealed class TrainerExpGifts(
     private const int ReachedMaxSeasonGift = 1;
     private const int NotReachedMaxSeasonGift = 0;
     private const int NoDrop = 0;
-    private const int Replaced = 1;
-    private const int SinglePokemon = 1;
-    private const int LicensePokemonParamIndex = 0;
     private const int TrainerLavelGiftRedDotID = (int)PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdTrainerLavelGift;
     private const int LevelGiftReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonLevelGift;
 
@@ -237,38 +235,21 @@ public sealed class TrainerExpGifts(
 
         foreach (var drop in GetAwardItemParams(gift).SelectMany(sDropID => dropsById[sDropID]))
         {
-            if (CoinID.IsSpecialCoin(drop.ResID) || CoinID.WalletCoins.Contains(drop.ResID))
+            if (CoinID.IsGrantableCoin(drop.ResID))
             {
                 coins[drop.ResID] = coins.GetValueOrDefault(drop.ResID) + drop.ResNum;
-                awards.Add(Award(drop.ResID, drop.ResNum, CoinID.IsSpecialCoin(drop.ResID)
-                    ? PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesResattr
-                    : PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesCoin));
+                awards.Add(BagManager.BuildCoinAward(drop.ResID, drop.ResNum));
                 continue;
             }
 
-            if (gameData.OutSideItemBase.Find(drop.ResID) is { OutSideItemType: (int)PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypeEos } license
-                && license.ItemParam.Count > LicensePokemonParamIndex
-                && license.ItemParam[LicensePokemonParamIndex] is var pokemonId and > 0
-                && !role.OwnsPokemon(pokemonId)
-                && !pokemonIds.Contains(pokemonId))
+            if (UniteLicense.IsUniteLicense(gameData, drop.ResID))
             {
-                pokemonIds.Add(pokemonId);
-                awards.Add(new pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO
+                if (UniteLicense.PlanGrant(gameData, role, drop.ResID, drop.ResNum, pokemonIds) is not { } license)
                 {
-                    IsReplaced = Replaced,
-                    FinallyAwardInfo = new pbCOMDT_ONE_RESOURCE_AWARD_INFO
-                    {
-                        ResID = pokemonId,
-                        ResCnt = SinglePokemon,
-                        ResType = (int)PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesPokemon,
-                    },
-                    OriginAwardInfo = new pbCOMDT_ONE_RESOURCE_AWARD_INFO
-                    {
-                        ResID = drop.ResID,
-                        ResCnt = drop.ResNum,
-                        ResType = (int)PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem,
-                    },
-                });
+                    return null;
+                }
+
+                license.AddTo(pokemonIds, coins, awards);
                 continue;
             }
 
@@ -278,17 +259,11 @@ public sealed class TrainerExpGifts(
             }
 
             grants.Add(grant);
-            awards.Add(Award(drop.ResID, drop.ResNum, PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem));
+            awards.Add(BagManager.BuildAward(drop.ResID, drop.ResNum, PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem));
         }
 
         return new TrainerExpGiftReward(new BagChange { Grants = grants, CoinGrants = coins }, pokemonIds, awards);
     }
-
-    private static pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO Award(int resID, int resCnt, PB_ENUM_RES_RESOURCES_TYPE resType) => new()
-    {
-        FinallyAwardInfo = new pbCOMDT_ONE_RESOURCE_AWARD_INFO { ResID = resID, ResCnt = resCnt, ResType = (int)resType },
-        OriginAwardInfo = new pbCOMDT_ONE_RESOURCE_AWARD_INFO(),
-    };
 
     private IEnumerable<pbTrainerExpGift> FindGifts()
     {

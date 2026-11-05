@@ -80,8 +80,10 @@ CREATE TABLE IF NOT EXISTS `role_coin` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL,
     coin_id INT NOT NULL,
     coin_val BIGINT NOT NULL DEFAULT 0,
+    coin_seq BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (game_ulong_uid, coin_id),
+    UNIQUE KEY uk_role_coin_seq (coin_seq),
     CONSTRAINT ck_role_coin_val CHECK (coin_val >= 0),
     CONSTRAINT fk_role_coin_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;

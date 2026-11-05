@@ -12,6 +12,8 @@ namespace SpiritUNITE.Database.Repositories;
 
 public sealed record BagCommit(PB_ENUM_RES_ERROR_CODE Result, IReadOnlyList<BagItem> ChangedItems, RoleWallet? Wallet)
 {
+    public IReadOnlyDictionary<int, long> BeforeCoinNums { get; init; } = new Dictionary<int, long>();
+
     public static BagCommit Refused(PB_ENUM_RES_ERROR_CODE result) => new(result, [], null);
 }
 
@@ -54,6 +56,12 @@ public sealed class BagRepository(DataOptions options)
     {
         await using var database = new DataConnection(options);
         await using var transaction = await database.BeginTransactionAsync();
+        var beforeCoinNums = new Dictionary<int, long>();
+        foreach (var coinID in change.CoinGrants.Keys)
+        {
+            beforeCoinNums[coinID] = await WalletRepository.ReadCoinValAsync(database, gameUlongUID, coinID);
+        }
+
         var result = await ApplyAsync(database, gameUlongUID, change, now);
         if (result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
         {
@@ -64,7 +72,7 @@ public sealed class BagRepository(DataOptions options)
         var changedItems = await ReadItemsAsync(database, gameUlongUID, change.TouchedItems);
         var wallet = change.ChangesCoins ? await WalletRepository.ReadAsync(database, gameUlongUID) : null;
         await transaction.CommitAsync();
-        return new BagCommit(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, changedItems, wallet);
+        return new BagCommit(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, changedItems, wallet) { BeforeCoinNums = beforeCoinNums };
     }
 
     public async Task<BagCommit> UseRenameCardAsync(ulong gameUlongUID, int renameCardId, string newUserName)
@@ -160,6 +168,18 @@ public sealed class BagRepository(DataOptions options)
         foreach (var (coinID, grant) in change.CoinGrants)
         {
             await WalletRepository.CreditAsync(database, gameUlongUID, coinID, grant);
+        }
+
+        try
+        {
+            foreach (var pokemon in change.PokemonGrants)
+            {
+                await database.InsertAsync(RoleRepository.ToEntity(gameUlongUID, pokemon));
+            }
+        }
+        catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrCommonFailed;
         }
 
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;

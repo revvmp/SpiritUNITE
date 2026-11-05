@@ -3,9 +3,9 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Wallet;
 
-public sealed class RoleWallet(IReadOnlyDictionary<int, long> balances)
+public sealed class RoleWallet(IReadOnlyList<KeyValuePair<int, long>> balancesInGrantOrder)
 {
-    private readonly FrozenDictionary<int, long> balances = balances.ToFrozenDictionary();
+    private readonly FrozenDictionary<int, long> balances = balancesInGrantOrder.ToFrozenDictionary();
 
     public long GetCoinVal(int coinID) => balances.GetValueOrDefault(coinID);
 
@@ -30,9 +30,8 @@ public sealed class RoleWallet(IReadOnlyDictionary<int, long> balances)
     {
         CoinInfo =
         {
-            balances
+            balancesInGrantOrder
                 .Where(balance => CoinID.IsSpecialCoin(balance.Key) && balance.Value > 0)
-                .OrderBy(balance => balance.Key)
                 .Select(balance => SpecialCoin.BuildSpecialCoinDetail(balance.Key, balance.Value)),
         },
     };

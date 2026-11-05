@@ -10,6 +10,7 @@ using SpiritUNITE.Game.Settings;
 using SpiritUNITE.Game.StarRoad;
 using SpiritUNITE.Game.Tasks;
 using SpiritUNITE.Game.TrainerExpGift;
+using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
 
@@ -26,6 +27,7 @@ public sealed class NewbieManager(
     StarRoadManager starRoad,
     SettingsManager settings,
     RoleRepository roleRepository,
+    NewbieDropRepository newbieDrops,
     TimeProvider clock,
     ILogger<NewbieManager> logger)
 {
@@ -64,8 +66,9 @@ public sealed class NewbieManager(
             return [];
         }
 
+        var archive = new NewbieArchive(newbie, role.BuildNewbieState());
         logger.LogInformation("Newbie {Newbie} archived for uid {Uid}", newbie, role.GameUlongUID);
-        return [.. CompletePveChallenge(role, newbie), .. await GrantGuideOrderDropAsync(role, newbie)];
+        return [.. CompletePveChallenge(role, newbie), .. await GrantGuideOrderDropAsync(role, archive)];
     }
 
     public async Task<GamePacket[]> SkipTutorialAsync(LMNRoleInfo role)
@@ -122,19 +125,79 @@ public sealed class NewbieManager(
         ];
     }
 
-    private async Task<IEnumerable<GamePacket>> GrantGuideOrderDropAsync(LMNRoleInfo role, int newbie)
+    private async Task<IEnumerable<GamePacket>> GrantGuideOrderDropAsync(LMNRoleInfo role, NewbieArchive archive)
     {
-        if (!dropByNewbie.TryGetValue(newbie, out var sDropID))
+        if (!dropByNewbie.TryGetValue(archive.Newbie, out var sDropID))
         {
             return [];
         }
 
+        var drops = dropsById[sDropID].ToArray();
         var grants = new List<GamePacket>();
-        foreach (var drop in dropsById[sDropID])
+        var specialCoins = drops
+            .Where(drop => CoinID.IsSpecialCoin(drop.ResID))
+            .GroupBy(drop => drop.ResID)
+            .ToDictionary(group => group.Key, group => group.Sum(drop => (long)drop.ResNum));
+        if (specialCoins.Count > 0)
+        {
+            grants.AddRange(await GrantSpecialCoinsAsync(role, sDropID, archive, specialCoins));
+        }
+
+        foreach (var drop in drops.Where(drop => !CoinID.IsSpecialCoin(drop.ResID)))
         {
             grants.AddRange(await GrantDropAsync(role, drop));
         }
 
+        return grants;
+    }
+
+    private async Task<IEnumerable<GamePacket>> GrantSpecialCoinsAsync(
+        LMNRoleInfo role,
+        int sDropID,
+        NewbieArchive archive,
+        IReadOnlyDictionary<int, long> specialCoins)
+    {
+        var commit = await newbieDrops.ArchiveWithCoinsAsync(role.GameUlongUID, archive.NewbieStateAfter, specialCoins);
+        if (commit is null)
+        {
+            logger.LogError(
+                "Newbie drop {SDropID} for uid {Uid} is not granted: newbie {Newbie} has no stored role to archive into",
+                sDropID,
+                role.GameUlongUID,
+                archive.Newbie);
+            return [];
+        }
+
+        var grants = new List<GamePacket>();
+        var awards = new List<pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO>();
+        foreach (var (coinID, amount) in specialCoins.OrderBy(coin => coin.Key))
+        {
+            var beforeCoinNum = commit.BeforeCoinNums.GetValueOrDefault(coinID);
+            logger.LogInformation(
+                "Newbie drop {SDropID} gives uid {Uid} {Amount} of special coin {CoinID}, total {CoinVal}",
+                sDropID,
+                role.GameUlongUID,
+                amount,
+                coinID,
+                commit.Wallet.GetCoinVal(coinID));
+            grants.Add(GamePacket.Create(
+                PB_ENUM_CS_MSGID_DEF.PbScidSpecialCoinChangeNtf,
+                SpecialCoin.BuildSpecialCoinChangeNtf(coinID, beforeCoinNum, commit.Wallet.GetCoinVal(coinID))));
+            grants.AddRange(await starRoad.BuildSpecialCoinChangePacketsAsync(role, beforeCoinNum));
+            awards.Add(new pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO
+            {
+                FinallyAwardInfo = new pbCOMDT_ONE_RESOURCE_AWARD_INFO
+                {
+                    ResID = coinID,
+                    ResCnt = (int)amount,
+                    ResType = (int)PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesResattr,
+                },
+                OriginAwardInfo = new pbCOMDT_ONE_RESOURCE_AWARD_INFO(),
+            });
+        }
+
+        grants.Add(BuildTutorialRewardNotify([.. awards]));
+        grants.Add(await BuildOwnershipUpdateTaskInfoNtfAsync(role));
         return grants;
     }
 
@@ -306,11 +369,13 @@ public sealed class NewbieManager(
         })
         : GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidRedDotClearNtf, new pbSCRedDotClearNtf { RedDotID = redDotID });
 
-    private static GamePacket BuildTutorialRewardNotify(pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO award) =>
+    private static GamePacket BuildTutorialRewardNotify(params pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO[] awards) =>
         GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidResourcesAwardNotify, new pbSCResourcesAwardNotify
         {
             ResultInfo = new pbResultInfo(),
             AwardReason = TutorialRewardReason,
-            ResourcesList = { award },
+            ResourcesList = { awards },
         });
+
+    private sealed record NewbieArchive(int Newbie, pbCOMDT_NEWBIE_STATE_INFO NewbieStateAfter);
 }
