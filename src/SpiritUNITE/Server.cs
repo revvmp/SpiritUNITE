@@ -36,11 +36,13 @@ using SpiritUNITE.Game.Shop;
 using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Logging;
 using SpiritUNITE.Network;
+using SpiritUNITE.Network.Lwip;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Handlers.Session;
 using SpiritUNITE.Servers.Http;
 using SpiritUNITE.Servers.Dir;
 using SpiritUNITE.Servers.Lobby;
+using SpiritUNITE.Servers.Relay;
 
 namespace SpiritUNITE;
 
@@ -139,6 +141,11 @@ public static class Server
             .Validate(options => options.IsValid(), "LobbyServer settings are invalid")
             .ValidateOnStart();
 
+        builder.Services.AddOptions<RelayAddressOptions>()
+            .BindConfiguration(RelayAddressOptions.SectionName, options => options.ErrorOnUnknownConfiguration = true)
+            .Validate(options => options.IsValid(), "RelayServer settings are invalid: Host must be empty or an address without spaces, Port 1-65535")
+            .ValidateOnStart();
+
         builder.Services.AddOptions<RoomOptions>()
             .BindConfiguration(RoomOptions.SectionName)
             .Validate(options => options.IsValid(), "Room settings are invalid")
@@ -183,6 +190,8 @@ public static class Server
     {
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<RoleSessions>();
+        builder.Services.AddSingleton<RelaySessions>();
+        builder.Services.AddSingleton<LwipTickets>();
         builder.Services.AddSingleton<OffingRestartSessions>();
         builder.Services.AddSingleton<PendingLoginFinishes>();
         builder.Services.AddSingleton<LobbyNotices>();
@@ -229,6 +238,7 @@ public static class Server
     {
         builder.Services.AddHostedService<DirServer>();
         builder.Services.AddHostedService<LobbyServer>();
+        builder.Services.AddHostedService<RelayServer>();
         builder.Services.AddHostedService<LobbyRefreshTick>();
         builder.Services.AddHostedService<RedDotRecorder>();
         HttpServer.AddServices(builder.Services);
