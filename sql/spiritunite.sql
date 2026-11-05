@@ -95,6 +95,14 @@ CREATE TABLE IF NOT EXISTS `role_shop_buy` (
     CONSTRAINT fk_role_shop_buy_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `role_newbie_gift` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    gift_id INT NOT NULL,
+    fetch_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, gift_id),
+    CONSTRAINT fk_role_newbie_gift_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `role_login_day` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL,
     login_day DATE NOT NULL,

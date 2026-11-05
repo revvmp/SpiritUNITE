@@ -19,9 +19,11 @@ using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Game.Badge;
 using SpiritUNITE.Game.HeldItem;
 using SpiritUNITE.Databin;
+using SpiritUNITE.Game.Newbie;
 using SpiritUNITE.Game.MSDKNotice;
 using SpiritUNITE.Game.FightHistory;
 using SpiritUNITE.Game.Profile;
+using SpiritUNITE.Game.PveChallenge;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Shop;
 using SpiritUNITE.Game.Wallet;
@@ -127,6 +129,7 @@ public static class Server
         builder.Services.AddSingleton<RoleRepository>();
         builder.Services.AddSingleton<WalletRepository>();
         builder.Services.AddSingleton<ShopRepository>();
+        builder.Services.AddSingleton<NewbieGiftRepository>();
         builder.Services.AddSingleton<BagRepository>();
         builder.Services.AddSingleton<PokemonUsedRepository>();
         builder.Services.AddSingleton<HeldItemRepository>();
@@ -167,6 +170,10 @@ public static class Server
         builder.Services.AddSingleton<AccountManager>();
         builder.Services.AddSingleton<AuthorizationCodeStore>();
         builder.Services.AddSingleton<AccountSessionManager>();
+        builder.Services.AddSingleton<PveChallengeProgress>();
+        builder.Services.AddSingleton<NewbieManager>();
+        builder.Services.AddSingleton<NewbieGiftManager>();
+        builder.Services.AddSingleton<NewbieChallengeManager>();
     }
 
     private static void AddPackets(IHostApplicationBuilder builder) =>
