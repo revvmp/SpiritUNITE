@@ -29,6 +29,7 @@ public sealed class NewbieChallengeTasks(
     NewbieChallengeManager challenges,
     LobbyNotices notices,
     NewbieChallengeRepository repository,
+    TaskProcessRepository taskProcesses,
     BagManager bag,
     StarRoadManager starRoad,
     TaskUpdates taskUpdates,
@@ -44,6 +45,7 @@ public sealed class NewbieChallengeTasks(
     private const int CompletedOnce = 1;
     private const int ShowNewTag = 1;
     private const int NotStarted = 0;
+    private const long NoResetPeriod = 0;
 
     private readonly ILookup<int, pbDrop_Static> dropsById = gameData.DropStatic.Rows
         .OrderBy(drop => drop.SDropSeq)
@@ -51,6 +53,23 @@ public sealed class NewbieChallengeTasks(
 
     public async Task<pbCOMDT_TASK_INFO[]> BuildTaskInfoListAsync(LMNRoleInfo role) =>
         [.. (await LoadTasksAsync(role)).Select(task => task.Info)];
+
+    public async Task<pbCOMDT_TASK_INFO[]> RecordBattleAsync(LMNRoleInfo role, BattleTaskEvent battle)
+    {
+        var increments = (await LoadTasksAsync(role))
+            .Select(task => task.Task.FinishCondition.FirstOrDefault() is { } condition && BattleTasks.MeasureBattle(condition, battle) is { } delta
+                ? new TaskProcessIncrement(task.Task.TaskID, NoResetPeriod, delta, condition.TargetProcess)
+                : null)
+            .OfType<TaskProcessIncrement>()
+            .ToArray();
+        if (increments.Length == 0 || !await taskProcesses.AddAsync(role.GameUlongUID, increments, clock.GetUtcNow().ToUnixTimeSeconds()))
+        {
+            return [];
+        }
+
+        var touchedTaskIds = increments.Select(increment => increment.TaskId).ToHashSet();
+        return [.. (await LoadTasksAsync(role)).Where(task => touchedTaskIds.Contains(task.Task.TaskID)).Select(task => task.Info)];
+    }
 
     public async Task<NewbieChallengeUnlock> BuildUnlockAsync(LMNRoleInfo role)
     {
@@ -278,6 +297,7 @@ public sealed class NewbieChallengeTasks(
         var recvTime = await repository.ReceiveAsync(role.GameUlongUID, clock.GetUtcNow().ToUnixTimeSeconds());
         var rewardTimes = await repository.FindRewardTimesAsync(role.GameUlongUID);
         var unlockDays = (await challenges.BuildUnlockInfoAsync(role)).UnlockDays;
+        var storedProcesses = await taskProcesses.FindAsync(role.GameUlongUID);
         var schemeId = GetSchemeId();
         return
         [
@@ -290,8 +310,8 @@ public sealed class NewbieChallengeTasks(
                 .OfType<pbTask_Base>()
                 .Select(task => new ChallengeTask(
                     task,
-                    BuildTaskInfo(role, task, recvTime, rewardTimes, countsSubTasks: true),
-                    BuildTaskInfo(role, task, recvTime, rewardTimes, countsSubTasks: false))),
+                    BuildTaskInfo(role, task, recvTime, rewardTimes, storedProcesses, countsSubTasks: true),
+                    BuildTaskInfo(role, task, recvTime, rewardTimes, storedProcesses, countsSubTasks: false))),
         ];
     }
 
@@ -300,11 +320,14 @@ public sealed class NewbieChallengeTasks(
         pbTask_Base task,
         long recvTime,
         IReadOnlyDictionary<int, long> rewardTimes,
+        IReadOnlyDictionary<(int TaskId, long PeriodStart), StoredTaskProcess> storedProcesses,
         bool countsSubTasks)
     {
         var condition = task.FinishCondition.FirstOrDefault();
         var target = condition?.TargetProcess ?? 0;
-        var process = condition is null ? NotStarted : Math.Min(target, Evaluate(role, condition, countsSubTasks));
+        var process = condition is null
+            ? NotStarted
+            : Math.Min(target, MeasureProcess(role, task, condition, storedProcesses, countsSubTasks));
         var complete = target > 0 && process >= target;
         var rewarded = rewardTimes.TryGetValue(task.TaskID, out var rewardTime);
         var info = new pbCOMDT_TASK_INFO
@@ -328,22 +351,36 @@ public sealed class NewbieChallengeTasks(
         return info;
     }
 
-    private int Evaluate(LMNRoleInfo role, pbFinishCondition condition, bool countsSubTasks) => (PB_ENUM_RES_CONDITION_ID)condition.ID switch
-    {
-        PB_ENUM_RES_CONDITION_ID.PbResConditionIdCompleteNewbie =>
-            condition.ParamA.Count > NewbieParamIndex
-            && LMNRoleInfo.IsNewbieInRange(condition.ParamA[NewbieParamIndex])
-            && role.IsNewbieStateSet(condition.ParamA[NewbieParamIndex])
-                ? CompletedOnce
-                : NotStarted,
-        PB_ENUM_RES_CONDITION_ID.PbResConditionIdFinishTask when countsSubTasks => condition.ParamA
-            .Select(taskId => gameData.TaskBase.Find(taskId))
-            .OfType<pbTask_Base>()
-            .Count(subTask => subTask.FinishCondition.FirstOrDefault() is { ID: not (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdFinishTask } subCondition
-                && subCondition.TargetProcess > 0
-                && Evaluate(role, subCondition, countsSubTasks) >= subCondition.TargetProcess),
-        _ => NotStarted,
-    };
+    private int MeasureProcess(
+        LMNRoleInfo role,
+        pbTask_Base task,
+        pbFinishCondition condition,
+        IReadOnlyDictionary<(int TaskId, long PeriodStart), StoredTaskProcess> storedProcesses,
+        bool countsSubTasks) =>
+        BattleTasks.IsBattleCondition(condition)
+            ? BattleTasks.FindStoredProcess(storedProcesses, task.TaskID, NoResetPeriod)
+            : Evaluate(role, condition, storedProcesses, countsSubTasks);
+
+    private int Evaluate(
+        LMNRoleInfo role,
+        pbFinishCondition condition,
+        IReadOnlyDictionary<(int TaskId, long PeriodStart), StoredTaskProcess> storedProcesses,
+        bool countsSubTasks) => (PB_ENUM_RES_CONDITION_ID)condition.ID switch
+        {
+            PB_ENUM_RES_CONDITION_ID.PbResConditionIdCompleteNewbie =>
+                condition.ParamA.Count > NewbieParamIndex
+                && LMNRoleInfo.IsNewbieInRange(condition.ParamA[NewbieParamIndex])
+                && role.IsNewbieStateSet(condition.ParamA[NewbieParamIndex])
+                    ? CompletedOnce
+                    : NotStarted,
+            PB_ENUM_RES_CONDITION_ID.PbResConditionIdFinishTask when countsSubTasks => condition.ParamA
+                .Select(taskId => gameData.TaskBase.Find(taskId))
+                .OfType<pbTask_Base>()
+                .Count(subTask => subTask.FinishCondition.FirstOrDefault() is { ID: not (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdFinishTask } subCondition
+                    && subCondition.TargetProcess > 0
+                    && MeasureProcess(role, subTask, subCondition, storedProcesses, countsSubTasks) >= subCondition.TargetProcess),
+            _ => NotStarted,
+        };
 
     private sealed record ChallengeTask(pbTask_Base Task, pbCOMDT_TASK_INFO Info, pbCOMDT_TASK_INFO Received);
 }

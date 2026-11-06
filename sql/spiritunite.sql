@@ -307,6 +307,12 @@ CREATE TABLE IF NOT EXISTS `role_pokemon_used` (
     pokemon_total_point INT NOT NULL DEFAULT 0,
     pokemon_season_point INT NOT NULL DEFAULT 0,
     last_battle_win_time BIGINT NOT NULL DEFAULT 0,
+    statistic_info VARBINARY(64) NOT NULL DEFAULT '',
+    current_season_id INT NOT NULL DEFAULT 0,
+    current_season_statistic_info VARBINARY(64) NOT NULL DEFAULT '',
+    current_week_start BIGINT NOT NULL DEFAULT 0,
+    current_week_statistic_info VARBINARY(64) NOT NULL DEFAULT '',
+    last_battle_time BIGINT NOT NULL DEFAULT 0,
     PRIMARY KEY (game_ulong_uid, pokemon_id),
     CONSTRAINT fk_role_pokemon_used_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;

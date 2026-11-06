@@ -11,7 +11,8 @@ public sealed record UsedPokemonInfo(
     int WearPasterID = 0,
     int PokemonTotalPoint = 0,
     int PokemonSeasonPoint = 0,
-    long LastBattleWinTime = 0)
+    long LastBattleWinTime = 0,
+    UsedPokemonStatistics? Statistics = null)
 {
     public const long NeverWon = 0;
 
@@ -21,24 +22,30 @@ public sealed record UsedPokemonInfo(
 
     public pbCOMDT_HELDITEM_DESIGN_INFO BuildHeldItemDesignInfo() => new() { HeldItemID = { HeldItemID } };
 
+    public UsedPokemonStatistics BattleStatistics => Statistics ?? UsedPokemonStatistics.None;
+
     public pbCOMDT_USED_POKEMON_INFO ToUsedPokemonInfo(IEnumerable<int> recommendEquips) => new()
     {
         PokemonId = PokemonId,
         HeldItemDesignInfo = BuildHeldItemDesignInfo(),
-        StatisticInfo = new pbCOMDT_USED_POKEMON_STATISTIC_INFO(),
+        StatisticInfo = BattleStatistics.Total.Clone(),
+        LastBattleTime = ToBattleTime(BattleStatistics.LastBattleTime),
+        CurrentSeasonID = BattleStatistics.CurrentSeasonID,
         WearPasterID = WearPasterID,
         CarryEquipmentPlanInfo = { new pbCOMDT_CARRYEQUIPMENT_PLAN_INFO { EquipmentID = { recommendEquips } } },
         SpecialEffectInfo = new pbCOMDT_POKEMON_SPECIALEFFECT_INFO(),
         LastCarryTrainerItemID = LastCarryTrainerItemID,
         LastHeldItemDesignInfo = new pbCOMDT_HELDITEM_DESIGN_INFO(),
-        CurrentSeasonStatisticInfo = new pbCOMDT_USED_POKEMON_STATISTIC_INFO(),
+        CurrentSeasonStatisticInfo = BattleStatistics.CurrentSeason.Clone(),
         RankedMatchInfoInSeason = new pbCOMDT_RANKED_MATCH_USED_POKEMON_INFO(),
         PokemonTotalPoint = PokemonTotalPoint,
         PokemonSeasonPoint = PokemonSeasonPoint,
-        LastBattleWinTime = LastBattleWinTime == NeverWon ? 0 : (int)(LastBattleWinTime - BattleTimeEpoch),
+        LastBattleWinTime = ToBattleTime(LastBattleWinTime),
         LastSchedueId = LastSchedueId,
         BattleNotUseBadge = BattleNotUseBadge,
-        CurrentWeekStatisticInfo = new pbCOMDT_USED_POKEMON_STATISTIC_INFO(),
+        CurrentWeekStatisticInfo = BattleStatistics.CurrentWeek.Clone(),
         SkillWayInfo = new pbCOMDT_SKILL_WAY_INFO { UnlockInfo = new pbCOMDT_SKILL_UNLOCK_WAY_LIST() },
     };
+
+    private static int ToBattleTime(long unixTime) => unixTime == NeverWon ? 0 : (int)(unixTime - BattleTimeEpoch);
 }

@@ -84,7 +84,17 @@ public sealed class PokemonUsedRepository(DataOptions options)
         row.WearPasterID,
         row.PokemonTotalPoint,
         row.PokemonSeasonPoint,
-        row.LastBattleWinTime);
+        row.LastBattleWinTime,
+        new UsedPokemonStatistics(
+            ParseStatistic(row.StatisticInfo),
+            row.CurrentSeasonID,
+            ParseStatistic(row.CurrentSeasonStatisticInfo),
+            row.CurrentWeekStart,
+            ParseStatistic(row.CurrentWeekStatisticInfo),
+            row.LastBattleTime));
+
+    private static pbCOMDT_USED_POKEMON_STATISTIC_INFO ParseStatistic(byte[] statistic) =>
+        pbCOMDT_USED_POKEMON_STATISTIC_INFO.Parser.ParseFrom(statistic);
 
     private static RolePokemonUsed NewRow(ulong gameUlongUID, UsedPokemonInfo used) => new()
     {
@@ -98,5 +108,11 @@ public sealed class PokemonUsedRepository(DataOptions options)
         PokemonTotalPoint = used.PokemonTotalPoint,
         PokemonSeasonPoint = used.PokemonSeasonPoint,
         LastBattleWinTime = used.LastBattleWinTime,
+        StatisticInfo = used.BattleStatistics.Total.ToByteArray(),
+        CurrentSeasonID = used.BattleStatistics.CurrentSeasonID,
+        CurrentSeasonStatisticInfo = used.BattleStatistics.CurrentSeason.ToByteArray(),
+        CurrentWeekStart = used.BattleStatistics.CurrentWeekStart,
+        CurrentWeekStatisticInfo = used.BattleStatistics.CurrentWeek.ToByteArray(),
+        LastBattleTime = used.BattleStatistics.LastBattleTime,
     };
 }

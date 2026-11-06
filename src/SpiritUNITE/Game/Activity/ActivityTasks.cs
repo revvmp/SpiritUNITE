@@ -90,13 +90,36 @@ public sealed class ActivityTasks(
         }
 
         var after = await LoadProgressAsync(role, tasks, now);
-        var states = tasks.Select(after.Evaluate).ToArray();
+        var completeCountAfter = tasks.Count(task => after.Evaluate(task).Status == PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusComplete);
+        var autoClaim = await ClaimCompletedAutoClaimTasksAsync(role, tasks.Where(IsAutoClaimed).Select(after.Evaluate), now);
+        var final = autoClaim is null ? after : await LoadProgressAsync(role, tasks, now);
         var touchedTaskIds = increments.Select(increment => increment.TaskId).ToHashSet();
         return new ActivityBattleProgress(
-            [.. states.Where(state => touchedTaskIds.Contains(state.Task.TaskID)).Select(state => state.ToTaskInfo())],
+            [.. tasks.Where(task => touchedTaskIds.Contains(task.Task.TaskID)).Select(task => final.Evaluate(task).ToTaskInfo())],
             completeCountBefore,
-            states.Count(state => state.Status == PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusComplete));
+            completeCountAfter,
+            autoClaim);
     }
+
+    private async Task<ActivityTaskClaim?> ClaimCompletedAutoClaimTasksAsync(LMNRoleInfo role, IEnumerable<ActivityTaskState> states, DateTimeOffset now)
+    {
+        var claimed = new List<pbCOMDT_TASK_INFO>();
+        var grants = new List<ActivityTaskGrantResult>();
+        foreach (var state in states.Where(state => state.Status == PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusComplete))
+        {
+            var claim = await ClaimEvaluatedAsync(role, state, now);
+            if (claim.Result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+            {
+                claimed.Add(claim.State!.ToTaskInfo());
+                grants.Add(claim.Grant!);
+            }
+        }
+
+        return claimed.Count == 0 ? null : await BuildClaimedAsync(role, [.. claimed], grants, now);
+    }
+
+    private static bool IsAutoClaimed(ActiveActivityTask task) =>
+        task.Activity.Row.ActivityType == (int)PB_ENUM_RES_ACTIVITY_TYPE.PbResActivityTypeCatchTask;
 
     private async Task<ActiveActivityTask[]> FindRoleTasksAsync(LMNRoleInfo role, DateTimeOffset now)
     {
@@ -349,6 +372,7 @@ public sealed class ActivityTasks(
         {
             Status = PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusRewarded,
             RewardTime = rewardTime,
+            AutoClaimed = IsAutoClaimed(state.Source),
         };
         return (PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, claimed, new ActivityTaskGrantResult(grant, commit));
     }
@@ -480,13 +504,14 @@ public sealed class ActivityTasks(
                     ? Math.Max(recvTime, stored.CompleteTime)
                     : FindCompleteTime(conditions, countedLoginDays, recvTime);
             return new ActivityTaskState(
-                task.Task,
+                task,
                 periodStartSeconds,
                 process,
                 status,
                 recvTime,
                 completeTime,
-                reward?.RewardTime ?? 0);
+                reward?.RewardTime ?? 0,
+                reward is not null && IsAutoClaimed(task));
         }
 
         private int MeasureProcess(pbFinishCondition condition, int loginDayCount, int storedProcess) =>
@@ -522,15 +547,18 @@ public sealed class ActivityTasks(
     }
 
     private sealed record ActivityTaskState(
-        pbTask_Base Task,
+        ActiveActivityTask Source,
         long PeriodStart,
         int[] Process,
         PB_ENUM_ENM_TASKSTATUS Status,
         long RecvTime,
         long CompleteTime,
-        long RewardTime)
+        long RewardTime,
+        bool AutoClaimed)
     {
-        public pbCOMDT_TASK_INFO ToTaskInfo() => new()
+        public pbTask_Base Task => Source.Task;
+
+        public pbCOMDT_TASK_INFO ToTaskInfo() => AutoClaimed ? ToAutoClaimedTaskInfo() : new()
         {
             TaskId = Task.TaskID,
             TaskSystem = (int)PB_ENUM_ENM_TASKSYSTEM.PbEnmTasksystemActivity,
@@ -541,12 +569,27 @@ public sealed class ActivityTasks(
             RewardTime = RewardTime,
             CompleteNum = Status == PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusRecved ? NotCompleted : CompletedOnce,
         };
+
+        private pbCOMDT_TASK_INFO ToAutoClaimedTaskInfo() => new()
+        {
+            TaskId = Task.TaskID,
+            TaskSystem = (int)PB_ENUM_ENM_TASKSYSTEM.PbEnmTasksystemActivity,
+            TaskProcess = { Process.Select(_ => UntrackedProcess) },
+            Status = (int)PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusRecved,
+            RecvTime = RecvTime,
+            CompleteTime = CompleteTime,
+            CompleteNum = CompletedOnce,
+        };
     }
 }
 
 public sealed record ActivityTaskReward(int TaskId, long PeriodStart, long RewardTime);
 
-public sealed record ActivityBattleProgress(pbCOMDT_TASK_INFO[] UpdatedTasks, int CompleteCountBefore, int CompleteCountAfter);
+public sealed record ActivityBattleProgress(
+    pbCOMDT_TASK_INFO[] UpdatedTasks,
+    int CompleteCountBefore,
+    int CompleteCountAfter,
+    ActivityTaskClaim? AutoClaim = null);
 
 public sealed record ActivityTaskGrant(
     IReadOnlyList<RoleItemInfo> Items,

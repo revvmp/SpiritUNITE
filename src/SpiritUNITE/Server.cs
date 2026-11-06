@@ -272,12 +272,14 @@ public static class Server
         builder.Services.AddSingleton<RoomInvites>();
         builder.Services.AddSingleton<MatchScheduler>();
         builder.Services.AddSingleton<SettleTeamPresence>();
+        builder.Services.AddSingleton<ActivityRewardNotices>();
         builder.Services.AddSingleton<DeskManager>();
         builder.Services.AddSingleton<PveChallengeProgress>();
         builder.Services.AddSingleton<NewbieManager>();
         builder.Services.AddSingleton<NewbieGiftManager>();
         builder.Services.AddSingleton<NewbieChallengeManager>();
         builder.Services.AddSingleton<NewbieChallengeTasks>();
+        builder.Services.AddSingleton<MvpScore>();
         builder.Services.AddSingleton<BattleSettlement>();
         builder.Services.AddSingleton<RelayManager>();
     }

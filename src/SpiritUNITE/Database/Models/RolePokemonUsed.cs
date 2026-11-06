@@ -36,4 +36,22 @@ public sealed class RolePokemonUsed
 
     [Column("last_battle_win_time")]
     public long LastBattleWinTime { get; set; }
+
+    [Column("statistic_info")]
+    public byte[] StatisticInfo { get; set; } = [];
+
+    [Column("current_season_id")]
+    public int CurrentSeasonID { get; set; }
+
+    [Column("current_season_statistic_info")]
+    public byte[] CurrentSeasonStatisticInfo { get; set; } = [];
+
+    [Column("current_week_start")]
+    public long CurrentWeekStart { get; set; }
+
+    [Column("current_week_statistic_info")]
+    public byte[] CurrentWeekStatisticInfo { get; set; } = [];
+
+    [Column("last_battle_time")]
+    public long LastBattleTime { get; set; }
 }

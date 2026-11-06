@@ -38,25 +38,40 @@ public sealed class TaskUpdates(ActivityTasks activityTasks, AchievementTasks ac
             .. await achievementTasks.BuildTaskInfoListAsync(role, TrainerLevelConditions),
         ]);
 
-    public async Task<GamePacket[]> BuildBattleProgressPacketsAsync(
+    public async Task<BattleTaskUpdate> RecordBattleAsync(
         LMNRoleInfo role,
         BattleTaskEvent battle,
-        IReadOnlyCollection<pbCOMDT_TASK_INFO> battleStarTasks)
+        IReadOnlyCollection<pbCOMDT_TASK_INFO> otherBattleTasks)
     {
         var activity = await activityTasks.RecordBattleAsync(role, battle);
         var achievements = await achievementTasks.RecordBattleAsync(role, battle);
-        pbCOMDT_TASK_INFO[] updatedTasks = [.. activity.UpdatedTasks, .. achievements, .. battleStarTasks];
-        return updatedTasks.Length == 0
-            ? []
-            :
-            [
-                GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf, ToUpdateTaskInfoNtf(updatedTasks)),
-                .. TaskRedDots.BuildBattleProgressRedDots(activity.CompleteCountBefore, activity.CompleteCountAfter),
-            ];
+        return new BattleTaskUpdate(
+            [.. activity.UpdatedTasks, .. achievements, .. otherBattleTasks],
+            activity.CompleteCountBefore,
+            activity.CompleteCountAfter,
+            activity.AutoClaim);
     }
+
+    public static GamePacket BuildUpdateTaskInfoNtf(IEnumerable<pbCOMDT_TASK_INFO> tasks) =>
+        GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf, ToUpdateTaskInfoNtf(tasks));
 
     private static pbSCUpdateTaskInfoNtf ToUpdateTaskInfoNtf(IEnumerable<pbCOMDT_TASK_INFO> tasks) => new()
     {
         TaskInfoList = { tasks.OrderBy(task => task.TaskId) },
     };
+}
+
+public sealed record BattleTaskUpdate(
+    pbCOMDT_TASK_INFO[] UpdatedTasks,
+    int ActivityCompleteCountBefore,
+    int ActivityCompleteCountAfter,
+    ActivityTaskClaim? AutoClaim)
+{
+    public GamePacket[] BuildProgressRedDots() => UpdatedTasks.Length == 0
+        ? []
+        :
+        [
+            .. TaskRedDots.BuildBattleProgressRedDots(ActivityCompleteCountBefore, ActivityCompleteCountAfter),
+            .. AutoClaim is { } claim ? new[] { TaskRedDots.BuildCount(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdActivityReward, claim.CompleteTaskCount) } : [],
+        ];
 }

@@ -5,6 +5,7 @@ using LinqToDB.Data;
 using LinqToDB.DataProvider.MySql;
 using SpiritUNITE.Database.Models;
 using SpiritUNITE.Game.Bag;
+using SpiritUNITE.Game.Energy;
 using SpiritUNITE.Game.Pokemon;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Wallet;
@@ -24,9 +25,16 @@ public sealed record BattleSettlementChange(
     IReadOnlyList<BagGrant> Grants,
     IReadOnlyDictionary<int, long> Coins,
     RoleFightHistory FightHistory,
-    int MaxFightHistoryNumPerMapSubMode);
+    int MaxFightHistoryNumPerMapSubMode,
+    int? EnergyGain,
+    UsedPokemonBattle? CountedBattle = null);
 
 public sealed record ChallengeTrainerMapLevel(int MapId, int LevelType);
+
+public sealed record BattleEnergyChange(RoleEnergyInfo Before, RoleEnergyInfo After)
+{
+    public int EnergyGain => After.Energy - Before.Energy;
+}
 
 public sealed record BattleSettlementCommit(
     IReadOnlyList<BagItem> ChangedItems,
@@ -34,7 +42,8 @@ public sealed record BattleSettlementCommit(
     IReadOnlyDictionary<int, long> BeforeCoinNums,
     RoleWallet Wallet,
     UsedPokemonInfo? UsedPokemon,
-    ChallengeTrainerRecord? HeavenTrainerRecord);
+    ChallengeTrainerRecord? HeavenTrainerRecord,
+    BattleEnergyChange? Energy);
 
 public sealed class BattleSettlementRepository(DataOptions options)
 {
@@ -82,6 +91,9 @@ public sealed class BattleSettlementRepository(DataOptions options)
             await WalletRepository.CreditAsync(database, gameUlongUID, coinID, amount);
         }
 
+        var energy = change.EnergyGain is { } energyGain
+            ? await GainEnergyAsync(database, gameUlongUID, energyGain, DateTimeOffset.FromUnixTimeSeconds(now))
+            : null;
         if (change.PveChallengeStar is { } star && star.StarNum > storedStarNum)
         {
             await RecordPveChallengeStarAsync(database, gameUlongUID, star, now);
@@ -97,7 +109,15 @@ public sealed class BattleSettlementRepository(DataOptions options)
             change.Grants.Select(grant => (grant.ItemType, grant.ItemId)).Distinct());
         var wallet = await WalletRepository.ReadAsync(database, gameUlongUID);
         await transaction.CommitAsync();
-        return new BattleSettlementCommit(changedItems, clampedGrants, beforeCoinNums, wallet, usedPokemon, heavenTrainerRecord);
+        return new BattleSettlementCommit(changedItems, clampedGrants, beforeCoinNums, wallet, usedPokemon, heavenTrainerRecord, energy);
+    }
+
+    private static async Task<BattleEnergyChange> GainEnergyAsync(DataConnection database, ulong gameUlongUID, int energyGain, DateTimeOffset now)
+    {
+        var before = (await EnergyRepository.ReadForUpdateAsync(database, gameUlongUID))?.FlushedAt(now) ?? EnergyCenter.Starting(now);
+        var after = before.Gain(energyGain);
+        await EnergyRepository.SaveAsync(database, gameUlongUID, after);
+        return new BattleEnergyChange(before, after);
     }
 
     private static async Task<bool> LockRoleAsync(DataConnection database, ulong gameUlongUID) =>
@@ -191,7 +211,22 @@ public sealed class BattleSettlementRepository(DataOptions options)
             });
         var row = await database.GetTable<RolePokemonUsed>()
             .FirstAsync(used => used.GameUlongUID == gameUlongUID && used.PokemonId == change.PokemonId);
-        return PokemonUsedRepository.ToUsedPokemonInfo(row);
+        if (change.CountedBattle is not { } battle)
+        {
+            return PokemonUsedRepository.ToUsedPokemonInfo(row);
+        }
+
+        var statistics = PokemonUsedRepository.ToUsedPokemonInfo(row).BattleStatistics.Record(battle);
+        await database.GetTable<RolePokemonUsed>()
+            .Where(used => used.GameUlongUID == gameUlongUID && used.PokemonId == change.PokemonId)
+            .Set(used => used.StatisticInfo, statistics.Total.ToByteArray())
+            .Set(used => used.CurrentSeasonID, statistics.CurrentSeasonID)
+            .Set(used => used.CurrentSeasonStatisticInfo, statistics.CurrentSeason.ToByteArray())
+            .Set(used => used.CurrentWeekStart, statistics.CurrentWeekStart)
+            .Set(used => used.CurrentWeekStatisticInfo, statistics.CurrentWeek.ToByteArray())
+            .Set(used => used.LastBattleTime, statistics.LastBattleTime)
+            .UpdateAsync();
+        return PokemonUsedRepository.ToUsedPokemonInfo(row) with { Statistics = statistics };
     }
 
     private static async Task<ChallengeTrainerRecord> AddChallengeCntAsync(
