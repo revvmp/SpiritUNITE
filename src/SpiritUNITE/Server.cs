@@ -182,6 +182,7 @@ public static class Server
         builder.Services.AddSingleton<TrainerExpGiftRepository>();
         builder.Services.AddSingleton<ProfileRepository>();
         builder.Services.AddSingleton<SettingsRepository>();
+        builder.Services.AddSingleton<NewbieChallengeRepository>();
         builder.Services.AddSingleton<TaskProcessRepository>();
     }
 
@@ -234,6 +235,7 @@ public static class Server
         builder.Services.AddSingleton<NewbieManager>();
         builder.Services.AddSingleton<NewbieGiftManager>();
         builder.Services.AddSingleton<NewbieChallengeManager>();
+        builder.Services.AddSingleton<NewbieChallengeTasks>();
     }
 
     private static void AddPackets(IHostApplicationBuilder builder) =>

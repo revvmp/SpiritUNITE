@@ -1,6 +1,7 @@
 using SpiritUNITE.Game.Achievement;
 using SpiritUNITE.Game.Activity;
 using SpiritUNITE.Game.Bag;
+using SpiritUNITE.Game.Newbie;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Tasks;
 using SpiritUNITE.Packets.Messages;
@@ -11,6 +12,7 @@ public sealed class TaskHandlers(
     RoleInfoStore roles,
     ActivityTasks activityTasks,
     AchievementTasks achievementTasks,
+    NewbieChallengeTasks newbieChallengeTasks,
     TaskUpdates taskUpdates)
 {
     private const int SingleTask = 0;
@@ -24,7 +26,8 @@ public sealed class TaskHandlers(
             ResultInfo = new pbResultInfo(),
             ModuleType = query.ModuleType,
         };
-        switch ((PB_ENUM_ENM_CLIENT_TASKMODULE)query.ModuleType)
+        var moduleType = (PB_ENUM_ENM_CLIENT_TASKMODULE)query.ModuleType;
+        switch (moduleType)
         {
             case PB_ENUM_ENM_CLIENT_TASKMODULE.PbEnmClientTaskmoduleActivity:
                 var role = roles.Require(request.Uid);
@@ -34,9 +37,17 @@ public sealed class TaskHandlers(
             case PB_ENUM_ENM_CLIENT_TASKMODULE.PbEnmClientTaskmoduleAchievement:
                 response.TaskInfoList.Add(await achievementTasks.BuildTaskInfoListAsync(roles.Require(request.Uid)));
                 break;
+            case PB_ENUM_ENM_CLIENT_TASKMODULE.PbEnmClientTaskmoduleNewbiechallenge:
+                response.TaskInfoList.Add(await newbieChallengeTasks.BuildTaskInfoListAsync(roles.Require(request.Uid)));
+                break;
         }
 
-        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetTaskInfoRsp, response)];
+        return
+        [
+            .. TaskRedDots.BuildTaskInfoRedDots(moduleType, response.TaskInfoList)
+                .Select(redDot => redDot with { Uid = request.Uid, ClientSeq = request.ClientSeq }),
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetTaskInfoRsp, response),
+        ];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetTaskRewardReq)]
@@ -47,6 +58,11 @@ public sealed class TaskHandlers(
         if (claimRequest.ModuleType == (int)PB_ENUM_ENM_TASKSYSTEM.PbEnmTasksystemAchievement)
         {
             return await ClaimAchievementAsync(request, claimRequest, role);
+        }
+
+        if (claimRequest.ModuleType == (int)PB_ENUM_ENM_TASKSYSTEM.PbEnmTasksystemNewbiechallenge)
+        {
+            return await ClaimNewbieChallengeAsync(request, claimRequest, role);
         }
 
         var claim = claimRequest.IsBatch == SingleTask
@@ -146,6 +162,21 @@ public sealed class TaskHandlers(
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetCoinValNtf, new pbSCGetCoinValNtf { CoinInfo = wallet.BuildCoinInfo() }),
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidResourcesAwardNotify, reward.BuildResourcesAwardNotify()),
             response,
+        ];
+    }
+
+    private async Task<GamePacket[]> ClaimNewbieChallengeAsync(
+        GamePacket request,
+        pbCSGetTaskRewardReq claimRequest,
+        LMNRoleInfo role)
+    {
+        var claim = claimRequest.IsBatch == SingleTask
+            ? await newbieChallengeTasks.ClaimAsync(role, claimRequest.TaskId)
+            : NewbieChallengeClaim.Refused(PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid);
+        return
+        [
+            .. claim.Pushes.Select(push => push with { Uid = request.Uid, ClientSeq = request.ClientSeq }),
+            BuildRewardResponse(request, claimRequest, claim.Result),
         ];
     }
 
