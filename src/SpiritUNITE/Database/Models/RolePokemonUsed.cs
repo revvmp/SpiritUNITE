@@ -33,4 +33,7 @@ public sealed class RolePokemonUsed
 
     [Column("pokemon_season_point")]
     public int PokemonSeasonPoint { get; set; }
+
+    [Column("last_battle_win_time")]
+    public long LastBattleWinTime { get; set; }
 }

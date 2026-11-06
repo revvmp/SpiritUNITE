@@ -75,7 +75,7 @@ public sealed class PokemonUsedRepository(DataOptions options)
         return ToUsedPokemonInfo(row);
     }
 
-    private static UsedPokemonInfo ToUsedPokemonInfo(RolePokemonUsed row) => new(
+    internal static UsedPokemonInfo ToUsedPokemonInfo(RolePokemonUsed row) => new(
         row.PokemonId,
         [.. pbCOMDT_HELDITEM_DESIGN_INFO.Parser.ParseFrom(row.HeldItemDesignInfo).HeldItemID],
         row.LastCarryTrainerItemID,
@@ -83,7 +83,8 @@ public sealed class PokemonUsedRepository(DataOptions options)
         row.BattleNotUseBadge,
         row.WearPasterID,
         row.PokemonTotalPoint,
-        row.PokemonSeasonPoint);
+        row.PokemonSeasonPoint,
+        row.LastBattleWinTime);
 
     private static RolePokemonUsed NewRow(ulong gameUlongUID, UsedPokemonInfo used) => new()
     {
@@ -96,5 +97,6 @@ public sealed class PokemonUsedRepository(DataOptions options)
         WearPasterID = used.WearPasterID,
         PokemonTotalPoint = used.PokemonTotalPoint,
         PokemonSeasonPoint = used.PokemonSeasonPoint,
+        LastBattleWinTime = used.LastBattleWinTime,
     };
 }

@@ -307,6 +307,7 @@ CREATE TABLE IF NOT EXISTS `role_pokemon_used` (
     wear_paster_id INT NOT NULL DEFAULT 0,
     pokemon_total_point INT NOT NULL DEFAULT 0,
     pokemon_season_point INT NOT NULL DEFAULT 0,
+    last_battle_win_time BIGINT NOT NULL DEFAULT 0,
     PRIMARY KEY (game_ulong_uid, pokemon_id),
     CONSTRAINT fk_role_pokemon_used_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;

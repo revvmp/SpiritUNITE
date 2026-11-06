@@ -47,6 +47,7 @@ public static class DatabaseManager
             await database.GetTable<RoleProfileStyle>().AnyAsync();
             await database.GetTable<RoleCardFaceWear>().AnyAsync();
             await database.GetTable<RoleSetting>().FirstOrDefaultAsync();
+            await database.GetTable<RolePokemonUsed>().FirstOrDefaultAsync();
             await database.GetTable<RolePveChallengeNode>().AnyAsync();
             await database.GetTable<RoleChallengeTrainerRecord>().FirstOrDefaultAsync();
             await database.GetTable<RoleNewbieChallenge>().AnyAsync();

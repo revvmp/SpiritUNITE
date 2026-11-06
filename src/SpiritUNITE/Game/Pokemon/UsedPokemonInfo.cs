@@ -10,8 +10,13 @@ public sealed record UsedPokemonInfo(
     int BattleNotUseBadge = 0,
     int WearPasterID = 0,
     int PokemonTotalPoint = 0,
-    int PokemonSeasonPoint = 0)
+    int PokemonSeasonPoint = 0,
+    long LastBattleWinTime = 0)
 {
+    public const long NeverWon = 0;
+
+    private const long BattleTimeEpoch = 1577808000;
+
     public static UsedPokemonInfo Unused(int pokemonId) => new(pokemonId, []);
 
     public pbCOMDT_HELDITEM_DESIGN_INFO BuildHeldItemDesignInfo() => new() { HeldItemID = { HeldItemID } };
@@ -30,6 +35,7 @@ public sealed record UsedPokemonInfo(
         RankedMatchInfoInSeason = new pbCOMDT_RANKED_MATCH_USED_POKEMON_INFO(),
         PokemonTotalPoint = PokemonTotalPoint,
         PokemonSeasonPoint = PokemonSeasonPoint,
+        LastBattleWinTime = LastBattleWinTime == NeverWon ? 0 : (int)(LastBattleWinTime - BattleTimeEpoch),
         LastSchedueId = LastSchedueId,
         BattleNotUseBadge = BattleNotUseBadge,
         CurrentWeekStatisticInfo = new pbCOMDT_USED_POKEMON_STATISTIC_INFO(),
