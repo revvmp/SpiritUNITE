@@ -30,7 +30,7 @@ public sealed class RoomHandlers
     private readonly AccountManager accounts;
     private readonly RoleInfoStore roles;
     private readonly ActivitySchedule activitySchedule;
-    private readonly ActivityTasks activityTasks;
+    private readonly ActivityManager activityManager;
     private readonly CreditManager credit;
     private readonly SettleTeamPresence teamPresence;
     private readonly GVoiceOptions gVoice;
@@ -50,7 +50,7 @@ public sealed class RoomHandlers
         AccountManager accounts,
         RoleInfoStore roles,
         ActivitySchedule activitySchedule,
-        ActivityTasks activityTasks,
+        ActivityManager activityManager,
         CreditManager credit,
         SettleTeamPresence teamPresence,
         IOptions<GVoiceOptions> gVoice,
@@ -68,7 +68,7 @@ public sealed class RoomHandlers
         this.accounts = accounts;
         this.roles = roles;
         this.activitySchedule = activitySchedule;
-        this.activityTasks = activityTasks;
+        this.activityManager = activityManager;
         this.credit = credit;
         this.teamPresence = teamPresence;
         this.gVoice = gVoice.Value;
@@ -128,7 +128,7 @@ public sealed class RoomHandlers
     }
 
     private Task<pbCSDT_ROOM_DAILY_ACTIVITY_INFO> BuildDailyActivityInfoAsync(ulong uid) =>
-        RoomDailyActivity.BuildDailyActivityInfoAsync(activitySchedule, activityTasks, roles.Require(uid), clock.GetUtcNow());
+        RoomDailyActivity.BuildDailyActivityInfoAsync(activitySchedule, activityManager, roles.Require(uid), clock.GetUtcNow());
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidShowidJoinRoomReq)]
     public async Task<GamePacket[]> OnShowidJoinRoomReq(GamePacket request)

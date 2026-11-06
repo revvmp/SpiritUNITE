@@ -10,7 +10,7 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Activity;
 
-public sealed class ActivityTasks(
+public sealed class ActivityManager(
     ActivitySchedule schedule,
     ActivityRepository repository,
     TaskProcessRepository taskProcesses,
@@ -20,7 +20,7 @@ public sealed class ActivityTasks(
     BagManager bag,
     GameData gameData,
     TimeProvider clock,
-    ILogger<ActivityTasks> logger)
+    ILogger<ActivityManager> logger)
 {
     private const int NoCondition = 0;
     private const int GrantableRewardCount = 1;
@@ -129,7 +129,7 @@ public sealed class ActivityTasks(
         var drawnEeveeTasks = openEeveeChallenges.Count == 0
             ? []
             : (await eeveeChallenges.FindAsync(role.GameUlongUID))
-                .Where(period => period.EeveeID != EeveeChallenge.NoEevee && openEeveeChallenges.ContainsKey(period.ActivityID))
+                .Where(period => period.EeveeID != EeveeChallengeManager.NoEevee && openEeveeChallenges.ContainsKey(period.ActivityID))
                 .SelectMany(period => FindDrawnEeveeTasks(openEeveeChallenges[period.ActivityID], period));
         return [.. schedule.FindActiveTasks(now).Concat(drawnEeveeTasks).DistinctBy(task => task.Task.TaskID)];
     }

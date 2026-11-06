@@ -8,7 +8,7 @@ namespace SpiritUNITE.Packets.Handlers.Activity;
 public sealed class EventStatusHandlers(
     ActivitySchedule schedule,
     RoleInfoStore roles,
-    EeveeChallenge eeveeChallenge,
+    EeveeChallengeManager eeveeChallengeManager,
     TimeProvider clock,
     ILogger<EventStatusHandlers> logger)
 {
@@ -98,7 +98,7 @@ public sealed class EventStatusHandlers(
     public async Task<GamePacket[]> OnEeveeChallengeStatusReq(GamePacket request)
     {
         pbCSEeveeChallengeStatusReq.Parser.ParseFrom(request.PkgData);
-        var response = await eeveeChallenge.BuildStatusRspAsync(roles.Require(request.Uid));
+        var response = await eeveeChallengeManager.BuildStatusRspAsync(roles.Require(request.Uid));
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidEeveeChallengeStatusRsp, response)];
     }
 
@@ -106,7 +106,7 @@ public sealed class EventStatusHandlers(
     public async Task<GamePacket[]> OnEeveeChallengeDrawReq(GamePacket request)
     {
         var period = pbCSEeveeChallengeDrawReq.Parser.ParseFrom(request.PkgData).Period;
-        var outcome = await eeveeChallenge.DrawAsync(roles.Require(request.Uid), period);
+        var outcome = await eeveeChallengeManager.DrawAsync(roles.Require(request.Uid), period);
         var response = new pbSCEeveeChallengeDrawRsp
         {
             ResultInfo = new pbResultInfo { ResultId = (int)outcome.Result },
@@ -119,7 +119,7 @@ public sealed class EventStatusHandlers(
     public async Task<GamePacket[]> OnEeveeChallengeClickReq(GamePacket request)
     {
         var period = pbCSEeveeChallengeClickReq.Parser.ParseFrom(request.PkgData).Period;
-        var outcome = await eeveeChallenge.ClickAsync(roles.Require(request.Uid), period);
+        var outcome = await eeveeChallengeManager.ClickAsync(roles.Require(request.Uid), period);
         var response = new pbSCEeveeChallengeClickRsp { ResultInfo = new pbResultInfo { ResultId = (int)outcome.Result } };
         return [.. AsReplies(request, outcome), request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidEeveeChallengeClickRsp, response)];
     }

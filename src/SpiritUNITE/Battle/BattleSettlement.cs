@@ -92,15 +92,15 @@ public sealed class BattleSettlement
     private readonly HeldItemManager heldItems;
     private readonly PokemonManager pokemon;
     private readonly TaskUpdates taskUpdates;
-    private readonly TrainerExpGifts trainerExpGifts;
+    private readonly TrainerExpGiftManager trainerExpGiftManager;
     private readonly StarRoadManager starRoad;
     private readonly SettingsManager settings;
     private readonly LobbyNotices notices;
     private readonly NewbieChallengeManager newbieChallenges;
-    private readonly NewbieChallengeTasks newbieChallengeTasks;
+    private readonly NewbieChallengeTaskManager newbieChallengeTaskManager;
     private readonly BattleSettlementRepository repository;
     private readonly ActivitySchedule activities;
-    private readonly ActivityTasks activityTasks;
+    private readonly ActivityManager activityManager;
     private readonly MvpScore mvpScore;
     private readonly RoleRepository roleRepository;
     private readonly LobbyRoles lobbyRoles;
@@ -125,15 +125,15 @@ public sealed class BattleSettlement
         HeldItemManager heldItems,
         PokemonManager pokemon,
         TaskUpdates taskUpdates,
-        TrainerExpGifts trainerExpGifts,
+        TrainerExpGiftManager trainerExpGiftManager,
         StarRoadManager starRoad,
         SettingsManager settings,
         LobbyNotices notices,
         NewbieChallengeManager newbieChallenges,
-        NewbieChallengeTasks newbieChallengeTasks,
+        NewbieChallengeTaskManager newbieChallengeTaskManager,
         BattleSettlementRepository repository,
         ActivitySchedule activities,
-        ActivityTasks activityTasks,
+        ActivityManager activityManager,
         MvpScore mvpScore,
         RoleRepository roleRepository,
         LobbyRoles lobbyRoles,
@@ -154,15 +154,15 @@ public sealed class BattleSettlement
         this.heldItems = heldItems;
         this.pokemon = pokemon;
         this.taskUpdates = taskUpdates;
-        this.trainerExpGifts = trainerExpGifts;
+        this.trainerExpGiftManager = trainerExpGiftManager;
         this.starRoad = starRoad;
         this.settings = settings;
         this.notices = notices;
         this.newbieChallenges = newbieChallenges;
-        this.newbieChallengeTasks = newbieChallengeTasks;
+        this.newbieChallengeTaskManager = newbieChallengeTaskManager;
         this.repository = repository;
         this.activities = activities;
-        this.activityTasks = activityTasks;
+        this.activityManager = activityManager;
         this.mvpScore = mvpScore;
         this.roleRepository = roleRepository;
         this.lobbyRoles = lobbyRoles;
@@ -204,7 +204,7 @@ public sealed class BattleSettlement
         var newbieBenefitActive = await IsNewbieBenefitActiveAsync(uid, utcNow);
         var mvp = ComputeMvp(result);
         var fightRecordNtf = BuildFightRecordNtf(result, mvp);
-        var fightHistory = FightHistoryRecords.CreateRecord(
+        var fightHistory = FightHistoryManager.CreateRecord(
             uid,
             fightRecordNtf.FightRecord,
             result.Gameover.GameoverSummary?.BattleReviewInfo,
@@ -225,7 +225,7 @@ public sealed class BattleSettlement
                 [.. heldItemGrants, .. plan.Grants],
                 plan.Coins,
                 fightHistory,
-                FightHistoryRecords.MaxRecordNumPerMapSubMode,
+                FightHistoryManager.MaxRecordNumPerMapSubMode,
                 plan.IsMatch ? plan.EnergyGains.Sum(gain => gain.EnergyGain) : null,
                 plan.IsMatch && result.Desk.DeskInfo.ManMachine != CpuMatch.ManMachine ? BuildCountedBattle(result, plan, mvp, utcNow) : null);
         }, now);
@@ -271,7 +271,7 @@ public sealed class BattleSettlement
         settleGains[uid] = gain;
         _ = ForgetSettleGainAsync(uid, gain);
         var battleTaskEvent = BuildBattleTaskEvent(result, plan);
-        var newbieChallengeProgress = await newbieChallengeTasks.RecordBattleAsync(role, battleTaskEvent);
+        var newbieChallengeProgress = await newbieChallengeTaskManager.RecordBattleAsync(role, battleTaskEvent);
         var battleTasks = await taskUpdates.RecordBattleAsync(
             role,
             battleTaskEvent,
@@ -614,7 +614,7 @@ public sealed class BattleSettlement
         }
 
         var challengeUnlock = !challengeUnlockedBefore && newbieChallenges.IsUnlocked(role)
-            ? await newbieChallengeTasks.BuildUnlockAsync(role)
+            ? await newbieChallengeTaskManager.BuildUnlockAsync(role)
             : null;
         if (challengeUnlock is not null)
         {
@@ -647,13 +647,13 @@ public sealed class BattleSettlement
             CurToTalExp = role.RoleTotalExp,
             ReachMaxLevel = RoleProfile.HasReachedMaxLevel(gameData, role) ? 1 : 0,
             NextLevelToTalExp = RoleProfile.GetNextLevelTotalExp(gameData, role),
-            SeasonPoint = TrainerExpGifts.GetSeasonPoint(role),
-            ReachMaxSeasonGift = trainerExpGifts.GetReachMaxSeasonGift(role),
+            SeasonPoint = TrainerExpGiftManager.GetSeasonPoint(role),
+            ReachMaxSeasonGift = trainerExpGiftManager.GetReachMaxSeasonGift(role),
         }));
         packets.Add(BuildRedDotReplaceNtf(
             PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdTrainerLavelGift,
-            trainerExpGifts.CountAbleToGet(role) > 0 ? HasTrainerLevelGift : 0));
-        packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidTrainerExpNextGiftInfoNtf, trainerExpGifts.BuildTrainerExpNextGiftInfoNtf(role)));
+            trainerExpGiftManager.CountAbleToGet(role) > 0 ? HasTrainerLevelGift : 0));
+        packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidTrainerExpNextGiftInfoNtf, trainerExpGiftManager.BuildTrainerExpNextGiftInfoNtf(role)));
         packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf, await taskUpdates.BuildOwnershipUpdateTaskInfoNtfAsync(role)));
         if (commit.Energy is { } energy)
         {
@@ -696,7 +696,7 @@ public sealed class BattleSettlement
         {
             packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidRoomDailyActivityRewardNtf, new pbSCRoomDailyActivityRewardNtf
             {
-                DailyActivityInfo = await RoomDailyActivity.BuildDailyActivityInfoAsync(activities, activityTasks, role, clock.GetUtcNow()),
+                DailyActivityInfo = await RoomDailyActivity.BuildDailyActivityInfoAsync(activities, activityManager, role, clock.GetUtcNow()),
             }));
         }
 

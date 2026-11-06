@@ -12,9 +12,9 @@ namespace SpiritUNITE.Packets.Handlers.Tasks;
 
 public sealed class TaskHandlers(
     RoleInfoStore roles,
-    ActivityTasks activityTasks,
-    AchievementTasks achievementTasks,
-    NewbieChallengeTasks newbieChallengeTasks,
+    ActivityManager activityManager,
+    AchievementManager achievementManager,
+    NewbieChallengeTaskManager newbieChallengeTaskManager,
     TaskUpdates taskUpdates,
     ActivityRewardNotices rewardNotices)
 {
@@ -34,14 +34,14 @@ public sealed class TaskHandlers(
         {
             case PB_ENUM_ENM_CLIENT_TASKMODULE.PbEnmClientTaskmoduleActivity:
                 var role = roles.Require(request.Uid);
-                await activityTasks.RecordLoginDayAsync(role.GameUlongUID);
-                response.TaskInfoList.Add(await activityTasks.BuildTaskInfoListAsync(role));
+                await activityManager.RecordLoginDayAsync(role.GameUlongUID);
+                response.TaskInfoList.Add(await activityManager.BuildTaskInfoListAsync(role));
                 break;
             case PB_ENUM_ENM_CLIENT_TASKMODULE.PbEnmClientTaskmoduleAchievement:
-                response.TaskInfoList.Add(await achievementTasks.BuildTaskInfoListAsync(roles.Require(request.Uid)));
+                response.TaskInfoList.Add(await achievementManager.BuildTaskInfoListAsync(roles.Require(request.Uid)));
                 break;
             case PB_ENUM_ENM_CLIENT_TASKMODULE.PbEnmClientTaskmoduleNewbiechallenge:
-                response.TaskInfoList.Add(await newbieChallengeTasks.BuildTaskInfoListAsync(roles.Require(request.Uid)));
+                response.TaskInfoList.Add(await newbieChallengeTaskManager.BuildTaskInfoListAsync(roles.Require(request.Uid)));
                 break;
         }
 
@@ -68,10 +68,10 @@ public sealed class TaskHandlers(
             return await ClaimNewbieChallengeAsync(request, claimRequest, role);
         }
 
-        var achievementCompleteCountBefore = await achievementTasks.CountCompleteTasksAsync(role);
+        var achievementCompleteCountBefore = await achievementManager.CountCompleteTasksAsync(role);
         var claim = claimRequest.IsBatch == SingleTask
-            ? await activityTasks.ClaimAsync(role, claimRequest.TaskId)
-            : await activityTasks.ClaimGroupAsync(role, claimRequest.GroupID);
+            ? await activityManager.ClaimAsync(role, claimRequest.TaskId)
+            : await activityManager.ClaimGroupAsync(role, claimRequest.GroupID);
         var response = BuildRewardResponse(request, claimRequest, claim.Result);
         if (claim.UpdatedTasks.Length == 0)
         {
@@ -123,7 +123,7 @@ public sealed class TaskHandlers(
 
     private async Task<GamePacket[]> BuildAchievementRedDotAsync(GamePacket request, LMNRoleInfo role, int completeCountBefore)
     {
-        var completeCount = await achievementTasks.CountCompleteTasksAsync(role);
+        var completeCount = await achievementManager.CountCompleteTasksAsync(role);
         return completeCount > completeCountBefore
             ? [TaskRedDots.BuildCount(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdAchievement, completeCount) with { Uid = request.Uid, ClientSeq = request.ClientSeq }]
             : [];
@@ -171,7 +171,7 @@ public sealed class TaskHandlers(
         LMNRoleInfo role)
     {
         var claim = claimRequest.IsBatch == SingleTask
-            ? await achievementTasks.ClaimAsync(role, claimRequest.TaskId)
+            ? await achievementManager.ClaimAsync(role, claimRequest.TaskId)
             : AchievementClaim.Refused(PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid);
         var response = BuildRewardResponse(request, claimRequest, claim.Result);
         if (claim is not { TaskInfo: { } taskInfo, Reward: { } reward, Wallet: { } wallet })
@@ -199,7 +199,7 @@ public sealed class TaskHandlers(
         LMNRoleInfo role)
     {
         var claim = claimRequest.IsBatch == SingleTask
-            ? await newbieChallengeTasks.ClaimAsync(role, claimRequest.TaskId)
+            ? await newbieChallengeTaskManager.ClaimAsync(role, claimRequest.TaskId)
             : NewbieChallengeClaim.Refused(PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid);
         return
         [

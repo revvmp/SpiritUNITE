@@ -8,7 +8,7 @@ namespace SpiritUNITE.Packets.Handlers.Room;
 public sealed class MatchRoomHandlers(
     RoleInfoStore roles,
     ActivitySchedule schedule,
-    ActivityTasks activityTasks,
+    ActivityManager activityManager,
     TimeProvider clock)
 {
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidRoomDailyActivityRewardReq)]
@@ -17,7 +17,7 @@ public sealed class MatchRoomHandlers(
         pbCSRoomDailyActivityRewardReq.Parser.ParseFrom(request.PkgData);
         var dailyActivityInfo = await RoomDailyActivity.BuildDailyActivityInfoAsync(
             schedule,
-            activityTasks,
+            activityManager,
             roles.Require(request.Uid),
             clock.GetUtcNow());
         return

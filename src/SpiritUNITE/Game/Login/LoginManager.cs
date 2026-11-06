@@ -33,8 +33,8 @@ namespace SpiritUNITE.Game.Login;
 public sealed class LoginManager(
     RoleInfoStore roles,
     GameData gameData,
-    ActivityTasks activityTasks,
-    EeveeChallenge eeveeChallenge,
+    ActivityManager activityManager,
+    EeveeChallengeManager eeveeChallengeManager,
     BagManager bag,
     BadgeManager badges,
     ChatManager chat,
@@ -49,7 +49,7 @@ public sealed class LoginManager(
     NewbieGiftManager newbieGifts,
     LobbyNotices notices,
     StarRoadManager starRoad,
-    TrainerExpGifts trainerExpGifts,
+    TrainerExpGiftManager trainerExpGiftManager,
     TaskUpdates taskUpdates,
     WalletManager wallets,
     AccountManager accounts,
@@ -79,7 +79,7 @@ public sealed class LoginManager(
     public async Task RecordAcntLoginAsync(ulong uid, int loginCountryCode)
     {
         await settings.AdoptLoginCountryCodeAsync(uid, loginCountryCode);
-        await activityTasks.RecordLoginDayAsync(uid);
+        await activityManager.RecordLoginDayAsync(uid);
     }
 
     public void RememberLoginCountry(ulong unregisteredUid, int loginCountryCode) =>
@@ -95,10 +95,10 @@ public sealed class LoginManager(
         await pokemon.CreateRegistUsedPokemonAsync(uid);
         logger.LogInformation("Trainer registration completed for uid {Uid}", uid);
         await mail.SendWelcomeMailAsync(uid);
-        await activityTasks.RecordLoginDayAsync(uid);
+        await activityManager.RecordLoginDayAsync(uid);
     }
 
-    public Task RecordLoginDayAsync(ulong uid) => activityTasks.RecordLoginDayAsync(uid);
+    public Task RecordLoginDayAsync(ulong uid) => activityManager.RecordLoginDayAsync(uid);
 
     public async Task<pbSCAcntLoginRsp> BuildAcntLoginRspAsync(LMNRoleInfo role)
     {
@@ -108,7 +108,7 @@ public sealed class LoginManager(
         var buyRecords = await shop.GetBuyRecordsAsync(role.GameUlongUID);
         var style = await profiles.LoadAsync(role.GameUlongUID);
         var clientSettings = await settings.LoadAsync(role.GameUlongUID);
-        await trainerExpGifts.LoadAsync(role.GameUlongUID);
+        await trainerExpGiftManager.LoadAsync(role.GameUlongUID);
         var registerTime = await newbies.GetRegisterTimeAsync(role);
 
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
@@ -136,8 +136,8 @@ public sealed class LoginManager(
             ABTestID = ShippedDatabinABTestID,
             UsingLobbyBgId = role.GetUsingLobbyBgId(gameData),
             SeasonId = RankedMatch.FindCurrentSeason(gameData, clock.GetUtcNow()).Season.SeasonId,
-            SeasonPoint = TrainerExpGifts.GetSeasonPoint(role),
-            ReachMaxSeasonGift = trainerExpGifts.GetReachMaxSeasonGift(role),
+            SeasonPoint = TrainerExpGiftManager.GetSeasonPoint(role),
+            ReachMaxSeasonGift = trainerExpGiftManager.GetReachMaxSeasonGift(role),
             RankedDivision = RankedMatch.IsRankedMatchUnlocked(gameData, notices, role)
                 ? (int)RankedMatch.StartingRankedDivision
                 : NoRankedDivision,
@@ -303,7 +303,7 @@ public sealed class LoginManager(
         replies.Add(PbScidGetAvatarListRsp, BuildGetAvatarListRsp(role));
         replies.Add(PbScidBattlePassNtf, BattlePassSeasons.BuildBattlePassNtf(gameData, now));
         replies.Add(PbScidEnergyInfoNtf, EnergyCenter.BuildEnergyInfoNtf(await energies.LoadAsync(uid)));
-        replies.Add(PbScidTrainerExpNextGiftInfoNtf, trainerExpGifts.BuildTrainerExpNextGiftInfoNtf(role));
+        replies.Add(PbScidTrainerExpNextGiftInfoNtf, trainerExpGiftManager.BuildTrainerExpNextGiftInfoNtf(role));
         replies.Add(PbScidCreditPointNtf, await credit.BuildCreditPointNtfAsync(uid));
         replies.Add(PbScidBossRushPeriodNtf, new pbSCBossRushPeriodNtf { PeriodID = NoActiveBossRushPeriodID });
         replies.Add(PbScidShopNewSaleInfoNtf, notices.BuildShopNewSaleInfoNtf());
@@ -322,7 +322,7 @@ public sealed class LoginManager(
     {
         var uid = role.GameUlongUID;
         var fourteenDay = await newbieGifts.FindFourteenDayRedDotAsync(role);
-        var eeveeChallengeRedDot = await eeveeChallenge.FindRedDotAsync(role);
+        var eeveeChallengeRedDot = await eeveeChallengeManager.FindRedDotAsync(role);
         await settings.ReplaceRedDotsAsync(uid,
         [
             .. await mail.BuildUnreadRedDotDetailsAsync(uid),
@@ -347,13 +347,13 @@ public sealed class LoginManager(
 
     private async Task StoreEeveeChallengeRedDotAsync(LMNRoleInfo role)
     {
-        if (await eeveeChallenge.FindRedDotAsync(role) is { } eeveeChallengeRedDot)
+        if (await eeveeChallengeManager.FindRedDotAsync(role) is { } eeveeChallengeRedDot)
         {
             await settings.ReplaceRedDotsAsync(role.GameUlongUID, [eeveeChallengeRedDot]);
         }
         else
         {
-            await settings.ClearRedDotAsync(role.GameUlongUID, EeveeChallenge.EeveeChallengeRedDotID);
+            await settings.ClearRedDotAsync(role.GameUlongUID, EeveeChallengeManager.EeveeChallengeRedDotID);
         }
     }
 

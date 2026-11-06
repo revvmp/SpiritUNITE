@@ -6,7 +6,7 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.FightHistory;
 
-public sealed class FightHistoryRecords(RoleInfoStore roles, FightHistoryRepository repository)
+public sealed class FightHistoryManager(RoleInfoStore roles, FightHistoryRepository repository)
 {
     public const int MaxRecordNumPerMapSubMode = (int)PB_MACRO_COMDT_FIGHT_HISTORY_RECORD_NUM.PbComdtFightHistoryRecordNum;
 

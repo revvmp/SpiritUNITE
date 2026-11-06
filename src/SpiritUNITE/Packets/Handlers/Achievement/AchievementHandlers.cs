@@ -7,7 +7,7 @@ namespace SpiritUNITE.Packets.Handlers.Achievement;
 
 public sealed class AchievementHandlers(
     RoleInfoStore roles,
-    AchievementTasks achievementTasks,
+    AchievementManager achievementManager,
     ILogger<AchievementHandlers> logger)
 {
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetAchievementInfoReq)]
@@ -18,7 +18,7 @@ public sealed class AchievementHandlers(
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetAchievementInfoRsp, new pbSCGetAchievementInfoRsp
         {
             ResultInfo = new pbResultInfo(),
-            Score = await achievementTasks.GetScoreAsync(role.GameUlongUID),
+            Score = await achievementManager.GetScoreAsync(role.GameUlongUID),
             AchievementInfo = AchievementScoreReward.BuildDetailList(),
         })];
     }
@@ -28,7 +28,7 @@ public sealed class AchievementHandlers(
     {
         var claim = pbCSAchievementScoreRewardGetReq.Parser.ParseFrom(request.PkgData);
         var role = roles.Require(request.Uid);
-        var result = AchievementScoreReward.RefuseClaim(claim.Score, await achievementTasks.GetScoreAsync(role.GameUlongUID));
+        var result = AchievementScoreReward.RefuseClaim(claim.Score, await achievementManager.GetScoreAsync(role.GameUlongUID));
         logger.LogInformation(
             "Achievement score reward {Score} refused for uid {Uid}: {Result}; the score reward contents are not in the client tables",
             claim.Score, request.Uid, result);

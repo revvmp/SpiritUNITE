@@ -12,7 +12,7 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Achievement;
 
-public sealed class AchievementTasks
+public sealed class AchievementManager
 {
     private const int NoCondition = 0;
     private const int SingleRewardCount = 1;
@@ -29,19 +29,19 @@ public sealed class AchievementTasks
     private readonly RoleRepository roleRepository;
     private readonly BadgeManager badges;
     private readonly TimeProvider clock;
-    private readonly ILogger<AchievementTasks> logger;
+    private readonly ILogger<AchievementManager> logger;
     private readonly AchievementDefinition[] definitions;
     private readonly FrozenDictionary<int, AchievementDefinition> definitionsByTaskId;
     private readonly ILookup<int, pbDrop_Static> dropsById;
 
-    public AchievementTasks(
+    public AchievementManager(
         GameData gameData,
         AchievementRepository repository,
         TaskProcessRepository taskProcesses,
         RoleRepository roleRepository,
         BadgeManager badges,
         TimeProvider clock,
-        ILogger<AchievementTasks> logger)
+        ILogger<AchievementManager> logger)
     {
         this.gameData = gameData;
         this.repository = repository;
@@ -212,7 +212,7 @@ public sealed class AchievementTasks
             await roleRepository.FindCreateTimeAsync(role.GameUlongUID),
             ownedBadges,
             seasonId,
-            TrainerExpGifts.GetSeasonPoint(role),
+            TrainerExpGiftManager.GetSeasonPoint(role),
             await taskProcesses.FindAsync(role.GameUlongUID));
     }
 

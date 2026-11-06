@@ -23,7 +23,7 @@ public sealed class NewbieManager(
     PokemonManager pokemon,
     HeldItemManager heldItems,
     TaskUpdates taskUpdates,
-    TrainerExpGifts trainerExpGifts,
+    TrainerExpGiftManager trainerExpGiftManager,
     StarRoadManager starRoad,
     SettingsManager settings,
     RoleRepository roleRepository,
@@ -319,12 +319,12 @@ public sealed class NewbieManager(
             CurToTalExp = curToTalExp,
             ReachMaxLevel = RoleProfile.HasReachedMaxLevel(gameData, role) ? 1 : 0,
             NextLevelToTalExp = RoleProfile.GetNextLevelTotalExp(gameData, role),
-            SeasonPoint = TrainerExpGifts.GetSeasonPoint(role),
-            ReachMaxSeasonGift = trainerExpGifts.GetReachMaxSeasonGift(role),
+            SeasonPoint = TrainerExpGiftManager.GetSeasonPoint(role),
+            ReachMaxSeasonGift = trainerExpGiftManager.GetReachMaxSeasonGift(role),
         }));
         grants.AddRange(await heldItems.BuildHeldItemSlotUnlockPacketsAsync(role, slotUnlockNumBefore));
-        var nextGift = trainerExpGifts.BuildTrainerExpNextGiftInfoNtf(role);
-        if (trainerExpGifts.CountAbleToGet(role) > 0)
+        var nextGift = trainerExpGiftManager.BuildTrainerExpNextGiftInfoNtf(role);
+        if (trainerExpGiftManager.CountAbleToGet(role) > 0)
         {
             grants.Add(BuildRedDotReplaceNtf(TrainerLavelGiftRedDotID, HasTrainerLevelGift));
         }

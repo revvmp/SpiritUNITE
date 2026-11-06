@@ -11,19 +11,19 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Activity;
 
-public sealed record EeveeChallengeOutcome(PB_ENUM_RES_ERROR_CODE Result, GamePacket[] BeforeRsp, int EeveeID = EeveeChallenge.NoEevee)
+public sealed record EeveeChallengeOutcome(PB_ENUM_RES_ERROR_CODE Result, GamePacket[] BeforeRsp, int EeveeID = EeveeChallengeManager.NoEevee)
 {
     public static EeveeChallengeOutcome Refused(PB_ENUM_RES_ERROR_CODE result) => new(result, []);
 }
 
-public sealed class EeveeChallenge(
+public sealed class EeveeChallengeManager(
     ActivitySchedule schedule,
     EeveeChallengePool pool,
     EeveeChallengeRepository repository,
-    ActivityTasks activityTasks,
+    ActivityManager activityManager,
     TaskUpdates taskUpdates,
     TimeProvider clock,
-    ILogger<EeveeChallenge> logger)
+    ILogger<EeveeChallengeManager> logger)
 {
     public const int NoEevee = 0;
     public const int EeveeChallengeRedDotID = (int)PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdEeveechallenge;
@@ -147,7 +147,7 @@ public sealed class EeveeChallenge(
         [
             GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf, new pbSCUpdateTaskInfoNtf
             {
-                TaskInfoList = { await activityTasks.BuildTaskInfoListAsync(role, drawn.TaskIDList) },
+                TaskInfoList = { await activityManager.BuildTaskInfoListAsync(role, drawn.TaskIDList) },
             }),
             GamePacket.Create(
                 PB_ENUM_CS_MSGID_DEF.PbScidOutSideItemUpdateNotify,

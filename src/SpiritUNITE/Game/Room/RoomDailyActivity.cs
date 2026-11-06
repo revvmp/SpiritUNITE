@@ -42,10 +42,10 @@ public static class RoomDailyActivity
 
     public static async Task<pbCSDT_ROOM_DAILY_ACTIVITY_INFO> BuildDailyActivityInfoAsync(
         ActivitySchedule schedule,
-        ActivityTasks activityTasks,
+        ActivityManager activityManager,
         LMNRoleInfo role,
         DateTimeOffset now) =>
-        BuildDailyActivityInfo(schedule, now, await activityTasks.BuildTaskInfoListAsync(role));
+        BuildDailyActivityInfo(schedule, now, await activityManager.BuildTaskInfoListAsync(role));
 
     private static pbCSDT_ROOM_DAILY_ACTIVITY_INFO BuildDailyActivityInfo(
         ActivitySchedule schedule,

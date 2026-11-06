@@ -24,7 +24,7 @@ public sealed record NewbieChallengeGrant(
     BagChange Change,
     IReadOnlyList<pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO> Awards);
 
-public sealed class NewbieChallengeTasks(
+public sealed class NewbieChallengeTaskManager(
     GameData gameData,
     NewbieChallengeManager challenges,
     LobbyNotices notices,
@@ -34,7 +34,7 @@ public sealed class NewbieChallengeTasks(
     StarRoadManager starRoad,
     TaskUpdates taskUpdates,
     TimeProvider clock,
-    ILogger<NewbieChallengeTasks> logger)
+    ILogger<NewbieChallengeTaskManager> logger)
 {
     private const int TaskSystem = (int)PB_ENUM_ENM_TASKSYSTEM.PbEnmTasksystemNewbiechallenge;
     private const int TaskAwardReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonTaskaward;

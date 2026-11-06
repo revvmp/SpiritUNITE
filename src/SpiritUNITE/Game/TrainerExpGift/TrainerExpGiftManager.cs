@@ -21,7 +21,7 @@ public sealed record TrainerExpGiftClaim(PB_ENUM_RES_ERROR_CODE Result, GamePack
     public static TrainerExpGiftClaim Refused(PB_ENUM_RES_ERROR_CODE result) => new(result, [], []);
 }
 
-public sealed class TrainerExpGifts(
+public sealed class TrainerExpGiftManager(
     GameData gameData,
     LobbyNotices notices,
     BagManager bag,
@@ -29,7 +29,7 @@ public sealed class TrainerExpGifts(
     StarRoadManager starRoad,
     TaskUpdates taskUpdates,
     TimeProvider clock,
-    ILogger<TrainerExpGifts> logger)
+    ILogger<TrainerExpGiftManager> logger)
 {
     private const int NormalGiftType = (int)PB_ENUM_ENM_TRAINER_EXP_GIFT_TYPE.PbEnmTrainerExpGiftTypeNormal;
     private const int HasReward = 1;

@@ -6,7 +6,7 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Tasks;
 
-public sealed class TaskUpdates(ActivityTasks activityTasks, AchievementTasks achievementTasks)
+public sealed class TaskUpdates(ActivityManager activityManager, AchievementManager achievementManager)
 {
     private static readonly IReadOnlySet<PB_ENUM_RES_CONDITION_ID> OwnershipConditions = new HashSet<PB_ENUM_RES_CONDITION_ID>
     {
@@ -26,16 +26,16 @@ public sealed class TaskUpdates(ActivityTasks activityTasks, AchievementTasks ac
     };
 
     public async Task<pbSCUpdateTaskInfoNtf> BuildBadgeGroupUpdateTaskInfoNtfAsync(LMNRoleInfo role) =>
-        ToUpdateTaskInfoNtf(await achievementTasks.BuildTaskInfoListAsync(role, BadgeGroupConditions));
+        ToUpdateTaskInfoNtf(await achievementManager.BuildTaskInfoListAsync(role, BadgeGroupConditions));
 
     public async Task<pbSCUpdateTaskInfoNtf> BuildOwnershipUpdateTaskInfoNtfAsync(LMNRoleInfo role) =>
-        ToUpdateTaskInfoNtf(await achievementTasks.BuildTaskInfoListAsync(role, OwnershipConditions));
+        ToUpdateTaskInfoNtf(await achievementManager.BuildTaskInfoListAsync(role, OwnershipConditions));
 
     public async Task<pbSCUpdateTaskInfoNtf> BuildTrainerLevelUpdateTaskInfoNtfAsync(LMNRoleInfo role) =>
         ToUpdateTaskInfoNtf(
         [
-            .. await activityTasks.BuildTaskInfoListAsync(role, PB_ENUM_RES_CONDITION_ID.PbResConditionTypeTrainerLevelReach),
-            .. await achievementTasks.BuildTaskInfoListAsync(role, TrainerLevelConditions),
+            .. await activityManager.BuildTaskInfoListAsync(role, PB_ENUM_RES_CONDITION_ID.PbResConditionTypeTrainerLevelReach),
+            .. await achievementManager.BuildTaskInfoListAsync(role, TrainerLevelConditions),
         ]);
 
     public async Task<BattleTaskUpdate> RecordBattleAsync(
@@ -43,8 +43,8 @@ public sealed class TaskUpdates(ActivityTasks activityTasks, AchievementTasks ac
         BattleTaskEvent battle,
         IReadOnlyCollection<pbCOMDT_TASK_INFO> otherBattleTasks)
     {
-        var activity = await activityTasks.RecordBattleAsync(role, battle);
-        var achievements = await achievementTasks.RecordBattleAsync(role, battle);
+        var activity = await activityManager.RecordBattleAsync(role, battle);
+        var achievements = await achievementManager.RecordBattleAsync(role, battle);
         return new BattleTaskUpdate(
             [.. activity.UpdatedTasks, .. achievements, .. otherBattleTasks],
             activity.CompleteCountBefore,

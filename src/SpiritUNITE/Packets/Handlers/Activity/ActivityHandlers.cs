@@ -5,14 +5,14 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers.Activity;
 
-public sealed class ActivityHandlers(RoleInfoStore roles, ActivityTasks activityTasks, ILogger<ActivityHandlers> logger)
+public sealed class ActivityHandlers(RoleInfoStore roles, ActivityManager activityManager, ILogger<ActivityHandlers> logger)
 {
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidRefreshActivityTaskReq)]
     public async Task<GamePacket[]> OnRefreshActivityTaskReq(GamePacket request)
     {
         pbCSRefreshActivityTaskReq.Parser.ParseFrom(request.PkgData);
         var role = roles.Require(request.Uid);
-        await activityTasks.RecordLoginDayAsync(role.GameUlongUID);
+        await activityManager.RecordLoginDayAsync(role.GameUlongUID);
         return [];
     }
 
