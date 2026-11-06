@@ -32,6 +32,11 @@ class Table:
 
 
 LUA_ONLY_FIELDS = {
+    "pbMvp_Conf": {
+        244570: Field("GameType", "int32"),
+        284285: Field("ParamVec", "int32", repeated=True),
+        299811: Field("ParamType", "int32"),
+    },
     "pbSystemMenuList": {
         239936: Field("MenuItem", "int32"),
     },
@@ -203,10 +208,13 @@ SERVER_FIELD_SUBSETS = {
         238850: Field("BranchRecommend", "int32", repeated=True),
         240544: Field("HideInBox", "int32"),
         241002: Field("MainUnitId", "int32"),
+        201545: Field("OriginalForm", "int32"),
+        211739: Field("IsMultiform", "int32"),
         250599: Field("RecommendEquips", "int32", repeated=True),
     },
     "pbUnit_Base": {
         259263: Field("UnitId", "int32"),
+        269633: Field("HeroMode", "int32", repeated=True),
         271778: Field("MonsterClassType", "int32"),
     },
 }
@@ -322,7 +330,20 @@ SCENE_MAP_SERVER_FIELDS = (
     "GameType",
     "GameLevel",
     "SortPriority",
+    "PickTimeOut",
+    "PickReminderSec",
+    "MapBaseId",
+    "HangupSchemeID",
+    "OpenHeroMode",
+    "SurrenderStartTime",
+    "SurrenderCDTime",
+    "SurrenderInvalidTime",
+    "SurrenderTimesLimit",
 )
+
+MAP_BASE_SERVER_FIELDS = ("MapBaseId", "MatchTime")
+
+POKEMON_RELEASE_SERVER_FIELDS = ("PokemonId", "OnTime", "Order")
 
 TABLES = {
     "databin_ActivityTask": Table("pbTask_Base", SERVER_FIELD_SUBSETS["pbTask_Base"], key_field="TaskID"),
@@ -345,6 +366,8 @@ TABLES = {
     "databin_RankedMatchSeason": Table("pbRankedMatchSeason", key_field="SeasonId"),
     "databin_RoleImage": Table("pbRoleImage"),
     "databin_Scene_Map": Table("pbScene_Map", key_field="SceneId", kept_fields=SCENE_MAP_SERVER_FIELDS),
+    "databin_MapBase": Table("pbMapBase", key_field="MapBaseId", kept_fields=MAP_BASE_SERVER_FIELDS),
+    "databin_Mvp_Conf": Table("pbMvp_Conf", LUA_ONLY_FIELDS["pbMvp_Conf"]),
     "databin_TrainerLevel": Table("pbTrainerLevel", key_field="Level"),
     "databin_Shop.group.1": Table("pbShop", key_field="ShopID", kept_fields=SHOP_SERVER_FIELDS),
     "databin_StarRoadSite": Table("pbStarRoadSite", LUA_ONLY_FIELDS["pbStarRoadSite"]),
@@ -382,7 +405,11 @@ TABLES = {
         "pbHeldItemSystemConfig", LUA_ONLY_FIELDS["pbHeldItemSystemConfig"], key_field="Id"
     ),
     "databin_SystemUnlock": Table("pbSystemUnlock", kept_fields=SYSTEM_UNLOCK_SERVER_FIELDS),
+    "databin_HangupScheme": Table("pbHangupScheme"),
     "databin_Pokemon_Base": Table("pbPokemon_Base", SERVER_FIELD_SUBSETS["pbPokemon_Base"], key_field="PokemonId"),
+    "databin_Pokemon_Release": Table(
+        "pbPokemon_Release", key_field="PokemonId", kept_fields=POKEMON_RELEASE_SERVER_FIELDS
+    ),
     "databin_Badge_Base": Table("pbBadge_Base", SERVER_FIELD_SUBSETS["pbBadge_Base"], key_field="BadgeId"),
     "databin_BadgeUnlock": Table("pbBadgeUnlock", LUA_ONLY_FIELDS["pbBadgeUnlock"], key_field="BadgeSchemeID"),
     "databin_BadgeColor": Table("pbBadgeColor", LUA_ONLY_FIELDS["pbBadgeColor"]),
@@ -404,6 +431,7 @@ TABLES = {
     "databin_Pokemon_Avatar_Base": Table(
         "pbPokemon_Avatar_Base", key_field="PokemonAvatarId", kept_fields=POKEMON_AVATAR_BASE_SERVER_FIELDS
     ),
+    "databin_Pokemon_Hero": Table("pbUnit_Base", SERVER_FIELD_SUBSETS["pbUnit_Base"], key_field="UnitId"),
     "databin_Monster_Base_Monster": Table("pbUnit_Base", SERVER_FIELD_SUBSETS["pbUnit_Base"], key_field="UnitId"),
 }
 

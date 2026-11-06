@@ -49,6 +49,8 @@ public sealed class GameData
         OutSideItemBase = LoadMessages<pbOutSideItem_Base>(row => row.OutSideItemId);
         RankedMatchSeason = LoadMessages<pbRankedMatchSeason>(row => row.SeasonId);
         SceneMap = LoadMessages<pbScene_Map>(row => row.SceneId);
+        MapBase = LoadMessages<pbMapBase>(row => row.MapBaseId);
+        MvpConf = LoadRecords<pbMvp_Conf>(row => pbMvp_Conf.Key(row.GameType, row.ParamType));
         Achievement = LoadRecords<pbAchievement>(row => row.AchievementID);
         BattlePassSeason = LoadMessages<pbBattlePassSeason>(row => row.SeasonID);
         RewardPool = LoadRecords<pbReward_Pool>(row => row.LotteryPoolId);
@@ -65,8 +67,10 @@ public sealed class GameData
         HeldItemLevelUpDesign = LoadMessages<pbHeldItemLevelUpDesign>(row => row.Id);
         HeldItemSystemConfig = LoadRecords<pbHeldItemSystemConfig>(row => row.Id);
         SystemUnlock = LoadMessages<pbSystemUnlock>(row => pbSystemUnlock.Key(row.ID, row.SchemeId));
+        HangupScheme = LoadMessages<pbHangupScheme>(row => pbHangupScheme.Key(row.HangupSchemeID, row.KeyID));
         BadgeBase = LoadMessages<pbBadge_Base>(row => row.BadgeId);
         PokemonBase = LoadMessages<pbPokemon_Base>(row => row.PokemonId);
+        PokemonRelease = LoadMessages<pbPokemon_Release>(row => row.PokemonId);
         BadgeUnlock = LoadRecords<pbBadgeUnlock>(row => row.BadgeSchemeID);
         BadgeColor = LoadRecords<pbBadgeColor>(row => pbBadgeColor.Key(row.BadgeColor, row.BadgeColorLv));
         NewbieGuideOrder = LoadMessages<pbNewbieGuideOrder>(row => row.ID);
@@ -114,6 +118,8 @@ public sealed class GameData
     public DatabinTable<pbOutSideItem_Base> OutSideItemBase { get; }
     public DatabinTable<pbRankedMatchSeason> RankedMatchSeason { get; }
     public DatabinTable<pbScene_Map> SceneMap { get; }
+    public DatabinTable<pbMapBase> MapBase { get; }
+    public DatabinTable<pbMvp_Conf> MvpConf { get; }
     public DatabinTable<pbAchievement> Achievement { get; }
     public DatabinTable<pbBattlePassSeason> BattlePassSeason { get; }
     public DatabinTable<pbReward_Pool> RewardPool { get; }
@@ -130,8 +136,10 @@ public sealed class GameData
     public DatabinTable<pbHeldItemLevelUpDesign> HeldItemLevelUpDesign { get; }
     public DatabinTable<pbHeldItemSystemConfig> HeldItemSystemConfig { get; }
     public DatabinTable<pbSystemUnlock> SystemUnlock { get; }
+    public DatabinTable<pbHangupScheme> HangupScheme { get; }
     public DatabinTable<pbBadge_Base> BadgeBase { get; }
     public DatabinTable<pbPokemon_Base> PokemonBase { get; }
+    public DatabinTable<pbPokemon_Release> PokemonRelease { get; }
     public DatabinTable<pbBadgeUnlock> BadgeUnlock { get; }
     public DatabinTable<pbBadgeColor> BadgeColor { get; }
     public DatabinTable<pbNewbieGuideOrder> NewbieGuideOrder { get; }

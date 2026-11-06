@@ -1,0 +1,374 @@
+[
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 20805
+  },
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 10000
+  },
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 20806
+  },
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 10001
+  },
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 20807
+  },
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 20808
+  },
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 20809
+  },
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 20810
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 301
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 304
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 310
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 319
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 402
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 403
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 404
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 405
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 411
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 412
+  },
+  {
+    "MatchTime": 2100000000,
+    "MapBaseId": 20302
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 20301
+  },
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 20900
+  },
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 20901
+  },
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 20890
+  },
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 20902
+  },
+  {
+    "MatchTime": 2100000000,
+    "MapBaseId": 9999
+  },
+  {
+    "MatchTime": 2100000000,
+    "MapBaseId": 20896
+  },
+  {
+    "MatchTime": 2100000000,
+    "MapBaseId": 20895
+  },
+  {
+    "MatchTime": 2100000000,
+    "MapBaseId": 20894
+  },
+  {
+    "MatchTime": 2100000000,
+    "MapBaseId": 20892
+  },
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 90001
+  },
+  {
+    "MatchTime": 3600000,
+    "MapBaseId": 900011
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 90002
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 90003
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 90004
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 90006
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 90007
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 90011
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 90012
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 501
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 502
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 503
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 1501
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 1502
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 1503
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 2501
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 2502
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 2503
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 511
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 512
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 513
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 1511
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 1512
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 1513
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 2511
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 2512
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 2513
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 521
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 522
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 523
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 1521
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 1522
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 1523
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 2521
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 2522
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 2523
+  },
+  {
+    "MatchTime": 2900000,
+    "MapBaseId": 601
+  },
+  {
+    "MatchTime": 2900000,
+    "MapBaseId": 602
+  },
+  {
+    "MatchTime": 2900000,
+    "MapBaseId": 603
+  },
+  {
+    "MatchTime": 2900000,
+    "MapBaseId": 604
+  },
+  {
+    "MatchTime": 2900000,
+    "MapBaseId": 611
+  },
+  {
+    "MatchTime": 2900000,
+    "MapBaseId": 612
+  },
+  {
+    "MatchTime": 2900000,
+    "MapBaseId": 613
+  },
+  {
+    "MatchTime": 2900000,
+    "MapBaseId": 614
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 413
+  },
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 802
+  },
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 920805
+  },
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 920807
+  },
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 920809
+  },
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 920810
+  },
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 920811
+  },
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 920812
+  },
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 920813
+  },
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 920814
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 9301
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 9304
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 9310
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 9319
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 9403
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 9413
+  },
+  {
+    "MatchTime": 600000,
+    "MapBaseId": 9802
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 92521
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 92522
+  },
+  {
+    "MatchTime": 300000,
+    "MapBaseId": 92523
+  }
+]

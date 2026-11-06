@@ -1,0 +1,1069 @@
+[
+  {
+    "GameType": 1,
+    "ParamVec": [
+      10000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 1
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      60000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 2
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      40000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 3
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      500000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 4
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      10000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 5
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      10000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 6
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      20000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 7
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      200000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 8
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      100000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 9
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      40000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 10
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      40000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 11
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      200000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 12
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      100000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 13
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      7500,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 14
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      5000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 15
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 16
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 17
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 18
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      700000,
+      700000,
+      700000,
+      700000,
+      700000
+    ],
+    "ParamType": 19
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 20
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 21
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 22
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      300000,
+      300000,
+      300000,
+      300000,
+      300000
+    ],
+    "ParamType": 23
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      150000,
+      150000,
+      150000,
+      150000,
+      150000
+    ],
+    "ParamType": 24
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 25
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 26
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      140000,
+      140000,
+      140000,
+      140000,
+      140000
+    ],
+    "ParamType": 27
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 28
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      350000000,
+      350000000,
+      350000000,
+      350000000,
+      350000000
+    ],
+    "ParamType": 29
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 30
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      350000000,
+      350000000,
+      350000000,
+      350000000,
+      350000000
+    ],
+    "ParamType": 31
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 32
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      100000,
+      100000,
+      100000,
+      100000,
+      100000
+    ],
+    "ParamType": 33
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      320000,
+      320000,
+      320000,
+      320000,
+      320000
+    ],
+    "ParamType": 34
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      30000,
+      30000,
+      30000,
+      30000,
+      30000
+    ],
+    "ParamType": 35
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 36
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      200000000,
+      200000000,
+      200000000,
+      200000000,
+      200000000
+    ],
+    "ParamType": 37
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 38
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      50000,
+      50000,
+      50000,
+      50000,
+      50000
+    ],
+    "ParamType": 39
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 40
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      100000,
+      100000,
+      100000,
+      100000,
+      100000
+    ],
+    "ParamType": 41
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      200000,
+      200000,
+      200000,
+      200000,
+      200000
+    ],
+    "ParamType": 42
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      120000,
+      120000,
+      120000,
+      120000,
+      120000
+    ],
+    "ParamType": 43
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      100000,
+      100000,
+      100000,
+      100000,
+      100000
+    ],
+    "ParamType": 44
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      20000,
+      20000,
+      20000,
+      20000,
+      20000
+    ],
+    "ParamType": 45
+  },
+  {
+    "GameType": 1,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 46
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      10000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 1
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      60000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 2
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      40000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 3
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      500000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 4
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      10000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 5
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      10000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 6
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      20000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 7
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      200000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 8
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      100000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 9
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      40000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 10
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      40000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 11
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      200000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 12
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      100000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 13
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      7500,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 14
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      5000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 15
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 16
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 17
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 18
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      700000,
+      700000,
+      700000,
+      700000,
+      700000
+    ],
+    "ParamType": 19
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 20
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 21
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 22
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      300000,
+      300000,
+      300000,
+      300000,
+      300000
+    ],
+    "ParamType": 23
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      150000,
+      150000,
+      150000,
+      150000,
+      150000
+    ],
+    "ParamType": 24
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 25
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 26
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      140000,
+      140000,
+      140000,
+      140000,
+      140000
+    ],
+    "ParamType": 27
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 28
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      350000000,
+      350000000,
+      350000000,
+      350000000,
+      350000000
+    ],
+    "ParamType": 29
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 30
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      350000000,
+      350000000,
+      350000000,
+      350000000,
+      350000000
+    ],
+    "ParamType": 31
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 32
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      100000,
+      100000,
+      100000,
+      100000,
+      100000
+    ],
+    "ParamType": 33
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      320000,
+      320000,
+      320000,
+      320000,
+      320000
+    ],
+    "ParamType": 34
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      30000,
+      30000,
+      30000,
+      30000,
+      30000
+    ],
+    "ParamType": 35
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 36
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      200000000,
+      200000000,
+      200000000,
+      200000000,
+      200000000
+    ],
+    "ParamType": 37
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 38
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      50000,
+      50000,
+      50000,
+      50000,
+      50000
+    ],
+    "ParamType": 39
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 40
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      100000,
+      100000,
+      100000,
+      100000,
+      100000
+    ],
+    "ParamType": 41
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      200000,
+      200000,
+      200000,
+      200000,
+      200000
+    ],
+    "ParamType": 42
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      120000,
+      120000,
+      120000,
+      120000,
+      120000
+    ],
+    "ParamType": 43
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      100000,
+      100000,
+      100000,
+      100000,
+      100000
+    ],
+    "ParamType": 44
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      20000,
+      20000,
+      20000,
+      20000,
+      20000
+    ],
+    "ParamType": 45
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 46
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      6000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 47
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      6000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 48
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      30000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 49
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      25000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 50
+  },
+  {
+    "GameType": 2,
+    "ParamVec": [
+      30000,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ParamType": 51
+  }
+]

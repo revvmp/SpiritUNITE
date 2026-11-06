@@ -30,6 +30,8 @@
     ]
   },
   {
+    "OriginalForm": 6004,
+    "IsMultiform": 7004,
     "OccupationType": 7,
     "PokemonId": 6004,
     "BranchRecommend": [
@@ -45,6 +47,8 @@
     ]
   },
   {
+    "OriginalForm": 6004,
+    "IsMultiform": 6004,
     "OccupationType": 7,
     "PokemonId": 7004,
     "BranchRecommend": [
@@ -60,6 +64,8 @@
     ]
   },
   {
+    "OriginalForm": 8004,
+    "IsMultiform": 9004,
     "OccupationType": 7,
     "PokemonId": 8004,
     "BranchRecommend": [
@@ -75,6 +81,8 @@
     ]
   },
   {
+    "OriginalForm": 8004,
+    "IsMultiform": 8004,
     "OccupationType": 7,
     "PokemonId": 9004,
     "BranchRecommend": [
@@ -105,6 +113,8 @@
     ]
   },
   {
+    "OriginalForm": 8448,
+    "IsMultiform": 9448,
     "OccupationType": 7,
     "PokemonId": 8448,
     "BranchRecommend": [
@@ -120,6 +130,8 @@
     ]
   },
   {
+    "OriginalForm": 8448,
+    "IsMultiform": 8448,
     "OccupationType": 7,
     "PokemonId": 9448,
     "BranchRecommend": [
@@ -150,6 +162,8 @@
     ]
   },
   {
+    "OriginalForm": 9129,
+    "IsMultiform": 8129,
     "OccupationType": 7,
     "PokemonId": 9129,
     "BranchRecommend": [
@@ -165,6 +179,8 @@
     ]
   },
   {
+    "OriginalForm": 9129,
+    "IsMultiform": 9129,
     "OccupationType": 7,
     "PokemonId": 8129,
     "BranchRecommend": [
@@ -180,6 +196,8 @@
     ]
   },
   {
+    "OriginalForm": 892,
+    "IsMultiform": 1892,
     "OccupationType": 7,
     "PokemonId": 892,
     "BranchRecommend": [
@@ -195,6 +213,8 @@
     ]
   },
   {
+    "OriginalForm": 892,
+    "IsMultiform": 892,
     "OccupationType": 7,
     "PokemonId": 1892,
     "BranchRecommend": [
@@ -210,6 +230,8 @@
     ]
   },
   {
+    "OriginalForm": 679,
+    "IsMultiform": 1679,
     "OccupationType": 7,
     "PokemonId": 679,
     "BranchRecommend": [
@@ -225,6 +247,8 @@
     ]
   },
   {
+    "OriginalForm": 679,
+    "IsMultiform": 679,
     "OccupationType": 7,
     "PokemonId": 1679,
     "BranchRecommend": [
@@ -240,6 +264,8 @@
     ]
   },
   {
+    "OriginalForm": 150,
+    "IsMultiform": 7150,
     "OccupationType": 7,
     "PokemonId": 150,
     "BranchRecommend": [
@@ -255,6 +281,8 @@
     ]
   },
   {
+    "OriginalForm": 150,
+    "IsMultiform": 150,
     "OccupationType": 7,
     "PokemonId": 7150,
     "BranchRecommend": [
@@ -270,6 +298,8 @@
     ]
   },
   {
+    "OriginalForm": 9150,
+    "IsMultiform": 8150,
     "OccupationType": 8,
     "PokemonId": 9150,
     "BranchRecommend": [
@@ -285,6 +315,8 @@
     ]
   },
   {
+    "OriginalForm": 9150,
+    "IsMultiform": 9150,
     "OccupationType": 8,
     "PokemonId": 8150,
     "BranchRecommend": [
@@ -720,6 +752,8 @@
     ]
   },
   {
+    "OriginalForm": 720,
+    "IsMultiform": 1720,
     "OccupationType": 6,
     "PokemonId": 720,
     "BranchRecommend": [
@@ -735,6 +769,8 @@
     ]
   },
   {
+    "OriginalForm": 720,
+    "IsMultiform": 720,
     "OccupationType": 8,
     "PokemonId": 1720,
     "BranchRecommend": [
@@ -1636,6 +1672,8 @@
     ]
   },
   {
+    "OriginalForm": 877,
+    "IsMultiform": 9877,
     "OccupationType": 10,
     "PokemonId": 877,
     "BranchRecommend": [
@@ -1651,6 +1689,8 @@
     ]
   },
   {
+    "OriginalForm": 877,
+    "IsMultiform": 877,
     "OccupationType": 10,
     "PokemonId": 9877,
     "BranchRecommend": [
