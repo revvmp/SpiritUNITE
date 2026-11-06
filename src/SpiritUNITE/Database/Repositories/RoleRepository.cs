@@ -33,10 +33,18 @@ public sealed class RoleRepository(DataOptions options, TimeProvider clock)
         var items = await database.GetTable<RoleItem>()
             .Where(item => item.GameUlongUID == gameUlongUID && !BagRepository.BagItemTypes.Contains(item.ItemType))
             .ToArrayAsync();
+        var pveChallengeStars = await database.GetTable<RolePveChallengeNode>()
+            .Where(node => node.GameUlongUID == gameUlongUID)
+            .ToArrayAsync();
+        var heavenTrainerRecords = await database.GetTable<RoleChallengeTrainerRecord>()
+            .Where(record => record.GameUlongUID == gameUlongUID)
+            .ToArrayAsync();
         return ToLMNRoleInfo(
             role,
             pokemon.Select(ToRolePokemonInfo),
             items.Select(ToRoleItemInfo),
+            pveChallengeStars.Select(node => new RolePveChallengeStar(node.StageID, node.NodeID, node.DifficultyLevel, node.StarNum)),
+            heavenTrainerRecords.Select(record => new ChallengeTrainerRecord(record.MapId, record.LevelType, record.ChallengeCnt)),
             timeLimitedPokemon.Select(ToRolePokemonInfo));
     }
 
@@ -169,6 +177,8 @@ public sealed class RoleRepository(DataOptions options, TimeProvider clock)
         Role role,
         IEnumerable<RolePokemonInfo> pokemon,
         IEnumerable<RoleItemInfo> items,
+        IEnumerable<RolePveChallengeStar> pveChallengeStars,
+        IEnumerable<ChallengeTrainerRecord> heavenTrainerRecords,
         IEnumerable<RolePokemonInfo> timeLimitedPokemon) => new(
         role.GameUlongUID,
         role.InGameUsrName,
@@ -182,6 +192,8 @@ public sealed class RoleRepository(DataOptions options, TimeProvider clock)
         role.RoleTotalExp,
         role.RoleHistoryMaxTotalExp,
         role.FirstPokemonId,
+        pveChallengeStars,
+        heavenTrainerRecords,
         timeLimitedPokemon);
 
     private static RoleItemInfo ToRoleItemInfo(RoleItem item) => new(

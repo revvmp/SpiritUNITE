@@ -28,6 +28,7 @@ public sealed class PveChallengeProgress
     private const int UnlockedByTable = 1;
     private const int NormalType = 1;
     private const int TutorialBattleStarNum = 3;
+    private const int NotCompletedStarNum = 0;
 
     private readonly GameData gameData;
     private readonly IReadOnlyDictionary<int, int> newbieByBattleId;
@@ -53,7 +54,7 @@ public sealed class PveChallengeProgress
 
     public IReadOnlyList<PveChallengeNode> Load(LMNRoleInfo role)
     {
-        var completed = gameData.PveChallengeStageRoute.Rows.Where(route => IsCompleted(role, route)).ToArray();
+        var completed = gameData.PveChallengeStageRoute.Rows.Where(route => GetStarNum(role, route) > NotCompletedStarNum).ToArray();
         var unlocked = gameData.PveChallengeStageRoute.Rows
             .Where(IsUnlockedFromStart)
             .Concat(completed.SelectMany(NextUnLockRoutes))
@@ -65,9 +66,27 @@ public sealed class PveChallengeProgress
                 .OrderBy(route => route.StageID)
                 .ThenBy(route => route.DifficultyLevel)
                 .ThenBy(route => route.NodeID)
-                .Select(route => ToNode(route, completed.Contains(route))),
+                .Select(route => ToNode(route, GetStarNum(role, route))),
         ];
     }
+
+    public int CountOpenNormalNodes(LMNRoleInfo role) =>
+        Load(role).Count(node => node.DiffLevel == NormalDifficultyLevel && !node.IsComplete);
+
+    public int GetStarNum(LMNRoleInfo role, pbPveChallengeStageRoute route)
+    {
+        var storedStarNum = role.GetPveChallengeStarNum(route.StageID, route.NodeID, route.DifficultyLevel);
+        return storedStarNum > NotCompletedStarNum || !IsCompletedByNewbie(role, route) ? storedStarNum : TutorialBattleStarNum;
+    }
+
+    public pbSCPveChallengeStageInfoNtf BuildCompletionNtf(LMNRoleInfo role, pbPveChallengeStageRoute route) => new()
+    {
+        PveChallengeInfo = BuildInfo(
+        [
+            .. NextUnLockRoutes(route).Select(next => ToNode(next, GetStarNum(role, next))),
+            ToNode(route, GetStarNum(role, route)),
+        ]),
+    };
 
     public bool IsUnlocked(LMNRoleInfo role, pbPveChallengeStageRoute route) =>
         Load(role).Any(node => node.StageID == route.StageID
@@ -79,16 +98,19 @@ public sealed class PveChallengeProgress
     [
         .. routesByNewbie[newbie].Select(route => new pbSCPveChallengeStageInfoNtf
         {
-            PveChallengeInfo = BuildInfo([.. NextUnLockRoutes(route).Select(next => ToNode(next, false)), ToNode(route, true)]),
+            PveChallengeInfo = BuildInfo([.. NextUnLockRoutes(route).Select(next => ToNode(next, NotCompletedStarNum)), ToNode(route, TutorialBattleStarNum)]),
         }),
     ];
 
-    public static pbSCPveChallengeStageInfoNtf[] BuildCompletedNodeNtfs(IEnumerable<PveChallengeNode> nodes) =>
+    public static pbSCPveChallengeStageInfoNtf[] BuildNewbieCompletedNodeNtfs(LMNRoleInfo role, IEnumerable<PveChallengeNode> nodes) =>
     [
-        .. nodes.Where(node => node.IsComplete).Select(node => new pbSCPveChallengeStageInfoNtf
-        {
-            PveChallengeInfo = BuildInfo([node]),
-        }),
+        .. nodes
+            .Where(node => node.IsComplete
+                && role.GetPveChallengeStarNum(node.StageID, node.NodeID, node.DiffLevel) == NotCompletedStarNum)
+            .Select(node => new pbSCPveChallengeStageInfoNtf
+            {
+                PveChallengeInfo = BuildInfo([node]),
+            }),
     ];
 
     public static pbCOMDT_PVE_CHALLENGE_INFO BuildInfo(IReadOnlyList<PveChallengeNode> nodes)
@@ -114,7 +136,7 @@ public sealed class PveChallengeProgress
         return info;
     }
 
-    private bool IsCompleted(LMNRoleInfo role, pbPveChallengeStageRoute route) =>
+    private bool IsCompletedByNewbie(LMNRoleInfo role, pbPveChallengeStageRoute route) =>
         route.BattleId != NoBattleId
         && newbieByBattleId.TryGetValue(route.BattleId, out var newbie)
         && role.IsNewbieStateSet(newbie);
@@ -134,11 +156,11 @@ public sealed class PveChallengeProgress
             .Select(nodeID => FindRoute(stageID, nodeID, difficultyLevel))
             .OfType<pbPveChallengeStageRoute>();
 
-    private static PveChallengeNode ToNode(pbPveChallengeStageRoute route, bool isComplete) => new(
+    private static PveChallengeNode ToNode(pbPveChallengeStageRoute route, int starNum) => new(
         route.StageID,
         route.NodeID,
         route.DifficultyLevel,
-        isComplete ? TutorialBattleStarNum : 0,
+        starNum,
         IsUnLock: true,
-        isComplete);
+        starNum > NotCompletedStarNum);
 }

@@ -10,7 +10,8 @@ public sealed class PveChallengeHandlers(RoleInfoStore roles, PveChallengeProgre
     public GamePacket[] OnPveChallengeStageInfoReq(GamePacket request)
     {
         var stageID = pbCSPveChallengeStageInfoReq.Parser.ParseFrom(request.PkgData).StageID;
-        var nodes = pveChallenge.Load(roles.Require(request.Uid));
+        var role = roles.Require(request.Uid);
+        var nodes = pveChallenge.Load(role);
         var response = new pbSCPveChallengeStageInfoRsp
         {
             ResultInfo = new pbResultInfo(),
@@ -22,7 +23,7 @@ public sealed class PveChallengeHandlers(RoleInfoStore roles, PveChallengeProgre
         };
         return
         [
-            .. PveChallengeProgress.BuildCompletedNodeNtfs(nodes)
+            .. PveChallengeProgress.BuildNewbieCompletedNodeNtfs(role, nodes)
                 .Select(ntf => request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidPveChallengeStageInfoNtf, ntf)),
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidPveChallengeStageInfoRsp, response),
         ];

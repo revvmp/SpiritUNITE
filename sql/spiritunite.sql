@@ -311,6 +311,26 @@ CREATE TABLE IF NOT EXISTS `role_pokemon_used` (
     CONSTRAINT fk_role_pokemon_used_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `role_pve_challenge_node` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    stage_id INT NOT NULL,
+    node_id INT NOT NULL,
+    difficulty_level INT NOT NULL,
+    star_num INT NOT NULL,
+    complete_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, stage_id, node_id, difficulty_level),
+    CONSTRAINT fk_role_pve_challenge_node_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_challenge_trainer_record` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    map_id INT NOT NULL,
+    level_type INT NOT NULL,
+    challenge_cnt INT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, map_id, level_type),
+    CONSTRAINT fk_role_challenge_trainer_record_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `role_newbie_challenge` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL,
     recv_time BIGINT NOT NULL,

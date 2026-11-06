@@ -116,8 +116,7 @@ public sealed class NewbieManager(
             return [];
         }
 
-        var openNormalNodes = pveChallenge.Load(role)
-            .Count(node => node.DiffLevel == PveChallengeProgress.NormalDifficultyLevel && !node.IsComplete);
+        var openNormalNodes = pveChallenge.CountOpenNormalNodes(role);
         return
         [
             BuildRedDotReplaceNtf(PveChallengeNormalRedDotID, openNormalNodes),

@@ -17,6 +17,8 @@ public sealed class LMNRoleInfo(
     int roleTotalExp,
     int roleHistoryMaxTotalExp,
     int firstPokemonId = LMNRoleInfo.NoFirstPokemonId,
+    IEnumerable<RolePveChallengeStar>? pveChallengeStars = null,
+    IEnumerable<ChallengeTrainerRecord>? heavenTrainerRecords = null,
     IEnumerable<RolePokemonInfo>? timeLimitedPokemon = null)
 {
     public const int NoFirstPokemonId = 0;
@@ -47,6 +49,52 @@ public sealed class LMNRoleInfo(
 
     private readonly Dictionary<(RoleItemType ItemType, int ItemId), RoleItemInfo> items =
         ownedItems.ToDictionary(item => (item.ItemType, item.ItemId));
+
+    private readonly Dictionary<(int StageID, int NodeID, int DifficultyLevel), int> pveChallengeStarNums =
+        (pveChallengeStars ?? []).ToDictionary(star => (star.StageID, star.NodeID, star.DifficultyLevel), star => star.StarNum);
+
+    private readonly Dictionary<(int MapId, int LevelType), int> heavenTrainerChallengeCnts =
+        (heavenTrainerRecords ?? []).ToDictionary(record => (record.MapId, record.LevelType), record => record.ChallengeCnt);
+
+    public ChallengeTrainerRecord[] GetHeavenTrainerRecords()
+    {
+        lock (gate)
+        {
+            return
+            [
+                .. heavenTrainerChallengeCnts
+                    .OrderBy(record => record.Key.MapId)
+                    .ThenBy(record => record.Key.LevelType)
+                    .Select(record => new ChallengeTrainerRecord(record.Key.MapId, record.Key.LevelType, record.Value)),
+            ];
+        }
+    }
+
+    public void RecordHeavenTrainerChallengeCnt(ChallengeTrainerRecord record)
+    {
+        lock (gate)
+        {
+            var key = (record.MapId, record.LevelType);
+            heavenTrainerChallengeCnts[key] = Math.Max(heavenTrainerChallengeCnts.GetValueOrDefault(key), record.ChallengeCnt);
+        }
+    }
+
+    public int GetPveChallengeStarNum(int stageID, int nodeID, int difficultyLevel)
+    {
+        lock (gate)
+        {
+            return pveChallengeStarNums.GetValueOrDefault((stageID, nodeID, difficultyLevel));
+        }
+    }
+
+    public void RecordPveChallengeStarNum(RolePveChallengeStar star)
+    {
+        lock (gate)
+        {
+            var key = (star.StageID, star.NodeID, star.DifficultyLevel);
+            pveChallengeStarNums[key] = Math.Max(pveChallengeStarNums.GetValueOrDefault(key), star.StarNum);
+        }
+    }
 
     public LMNRoleInfo(ulong gameUlongUID, string inGameUsrName)
         : this(gameUlongUID, inGameUsrName, 0, new pbCOMDT_ROLE_AVATAR_INFO(), [], [], [], NoFollowPokemonId, NoUsingLobbyBgId, 0, 0)
