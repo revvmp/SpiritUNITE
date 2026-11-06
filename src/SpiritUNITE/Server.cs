@@ -181,6 +181,7 @@ public static class Server
         builder.Services.AddSingleton<StarRoadRepository>();
         builder.Services.AddSingleton<TrainerExpGiftRepository>();
         builder.Services.AddSingleton<ProfileRepository>();
+        builder.Services.AddSingleton<FightHistoryRepository>();
         builder.Services.AddSingleton<SettingsRepository>();
         builder.Services.AddSingleton<NewbieChallengeRepository>();
         builder.Services.AddSingleton<TaskProcessRepository>();

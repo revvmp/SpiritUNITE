@@ -1,31 +1,98 @@
+using Google.Protobuf;
+using SpiritUNITE.Database.Models;
+using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.FightHistory;
 
-public sealed class FightHistoryRecords(RoleInfoStore roles)
+public sealed class FightHistoryRecords(RoleInfoStore roles, FightHistoryRepository repository)
 {
-    public async Task<pbSCFightHistoryListRsp> BuildListAsync(pbCSFightHistoryListReq query)
+    public const int MaxRecordNumPerMapSubMode = (int)PB_MACRO_COMDT_FIGHT_HISTORY_RECORD_NUM.PbComdtFightHistoryRecordNum;
+
+    private const int AllMapSubModes = (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeInvalid;
+    private const int FirstMapSubMode = (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceNormal;
+    private const int MapSubModeMax = (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeMax;
+
+    public async Task<pbSCFightHistoryListRsp[]> BuildListAsync(pbCSFightHistoryListReq query)
     {
-        var response = new pbSCFightHistoryListRsp
+        if (!IsListedMapSubMode(query.MapSubMode) && query.MapSubMode != AllMapSubModes)
         {
-            ResultInfo = new pbResultInfo(),
-            QueryUid = query.QueryUid,
-            MapSubMode = query.MapSubMode,
-        };
-        if (await roles.FindAsync(query.QueryUid) is null)
-        {
-            response.ResultInfo.ResultId = (int)PB_ENUM_RES_ERROR_CODE.PbErrAcntFightHistoryListNotExist;
-            return response;
+            return [BuildMissingList(query.QueryUid, query.MapSubMode)];
         }
 
-        response.FightHistoryList = new pbCOMDT_FIGHT_HISTORY_LIST();
-        return response;
+        int[] mapSubModes = query.MapSubMode == AllMapSubModes
+            ? [.. Enumerable.Range(FirstMapSubMode, MapSubModeMax - FirstMapSubMode)]
+            : [query.MapSubMode];
+        if (await roles.FindAsync(query.QueryUid) is null)
+        {
+            return [.. mapSubModes.Select(mapSubMode => BuildMissingList(query.QueryUid, mapSubMode))];
+        }
+
+        var records = (await repository.ListAsync(query.QueryUid))
+            .GroupBy(stored => stored.MapSubMode)
+            .SelectMany(subModeRecords => subModeRecords.Select((stored, fightRecordIndex) => new pbCOMDT_FIGHT_HISTORY_ONE_DATA
+            {
+                FightHistoryRecord = pbCOMDT_FIGHT_HISTORY_RECORD.Parser.ParseFrom(stored.FightHistoryRecord),
+                FightHistoryIndex = fightRecordIndex,
+            }))
+            .Where(data => data.FightHistoryRecord.MapMode == query.MapMode)
+            .ToLookup(data => data.FightHistoryRecord.MapSubMode);
+        return [.. mapSubModes.Select(mapSubMode => new pbSCFightHistoryListRsp
+        {
+            ResultInfo = new pbResultInfo(),
+            FightHistoryList = new pbCOMDT_FIGHT_HISTORY_LIST
+            {
+                FightHistoryRecord = { records[mapSubMode] },
+            },
+            QueryUid = query.QueryUid,
+            MapSubMode = mapSubMode,
+        })];
     }
 
-    public static pbSCFightHistoryDetailRsp BuildMissingDetail(pbCSFightHistoryDetailReq query) => new()
+    public async Task<pbSCFightHistoryDetailRsp> BuildDetailAsync(pbCSFightHistoryDetailReq query)
+    {
+        if (!IsListedMapSubMode(query.MapSubMode)
+            || query.FightRecordIndex is < 0 or >= MaxRecordNumPerMapSubMode
+            || await repository.FindBattleReviewInfoAsync(query.QueryUid, query.MapSubMode, query.FightRecordIndex) is not { } battleReviewInfo)
+        {
+            return new pbSCFightHistoryDetailRsp
+            {
+                ResultInfo = new pbResultInfo { ResultId = (int)PB_ENUM_RES_ERROR_CODE.PbErrAcntFightHistoryListNotExist },
+                FightRecordIndex = query.FightRecordIndex,
+            };
+        }
+
+        return new pbSCFightHistoryDetailRsp
+        {
+            ResultInfo = new pbResultInfo(),
+            FightRecordIndex = query.FightRecordIndex,
+            FightHistoryRecordDetail = new pbCOMDT_FIGHT_HISTORY_RECORD_DETAIL
+            {
+                BattleReviewInfo = pbCOMDT_BATTLE_REVIEW_INFO.Parser.ParseFrom(battleReviewInfo),
+            },
+        };
+    }
+
+    public static RoleFightHistory CreateRecord(
+        ulong gameUlongUID,
+        pbCOMDT_FIGHT_HISTORY_RECORD fightHistoryRecord,
+        pbCOMDT_BATTLE_REVIEW_INFO? battleReviewInfo,
+        long recordTime) => new()
+        {
+            GameUlongUID = gameUlongUID,
+            MapSubMode = fightHistoryRecord.MapSubMode,
+            FightHistoryRecord = fightHistoryRecord.ToByteArray(),
+            BattleReviewInfo = (battleReviewInfo ?? new pbCOMDT_BATTLE_REVIEW_INFO()).ToByteArray(),
+            RecordTime = recordTime,
+        };
+
+    private static bool IsListedMapSubMode(int mapSubMode) => mapSubMode is >= FirstMapSubMode and < MapSubModeMax;
+
+    private static pbSCFightHistoryListRsp BuildMissingList(ulong queryUid, int mapSubMode) => new()
     {
         ResultInfo = new pbResultInfo { ResultId = (int)PB_ENUM_RES_ERROR_CODE.PbErrAcntFightHistoryListNotExist },
-        FightRecordIndex = query.FightRecordIndex,
+        QueryUid = queryUid,
+        MapSubMode = mapSubMode,
     };
 }

@@ -336,6 +336,17 @@ CREATE TABLE IF NOT EXISTS `role_task_process` (
     CONSTRAINT fk_role_task_process_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `role_fight_history` (
+    fight_history_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    map_sub_mode INT NOT NULL,
+    fight_history_record MEDIUMBLOB NOT NULL,
+    battle_review_info MEDIUMBLOB NOT NULL,
+    record_time BIGINT NOT NULL,
+    KEY ix_role_fight_history_mode (game_ulong_uid, map_sub_mode, fight_history_id),
+    CONSTRAINT fk_role_fight_history_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `role_held_item_slot` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL,
     held_item_slot_index INT NOT NULL,
