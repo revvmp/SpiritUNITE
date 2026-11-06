@@ -9,6 +9,7 @@ using Serilog.Events;
 using SpiritUNITE.Battle;
 using SpiritUNITE.Database;
 using SpiritUNITE.Database.Repositories;
+using SpiritUNITE.Game.Credit;
 using SpiritUNITE.Game.Achievement;
 using SpiritUNITE.Game.Login;
 using SpiritUNITE.Game.Pokemon;
@@ -18,6 +19,7 @@ using SpiritUNITE.Game.StarRoad;
 using SpiritUNITE.Game.Activity;
 using SpiritUNITE.Auth;
 using SpiritUNITE.Game.Chat;
+using SpiritUNITE.Game.Energy;
 using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Game.Badge;
 using SpiritUNITE.Game.HeldItem;
@@ -210,7 +212,9 @@ public static class Server
         builder.Services.AddSingleton<NewbieChallengeRepository>();
         builder.Services.AddSingleton<TaskProcessRepository>();
         builder.Services.AddSingleton<BattleSettlementRepository>();
+        builder.Services.AddSingleton<EnergyRepository>();
         builder.Services.AddSingleton<EeveeChallengeRepository>();
+        builder.Services.AddSingleton<CreditRepository>();
     }
 
     private static void AddGameData(IHostApplicationBuilder builder)
@@ -234,9 +238,11 @@ public static class Server
         builder.Services.AddSingleton<RoleBriefBuilder>();
         builder.Services.AddSingleton<FriendManager>();
         builder.Services.AddSingleton<MailManager>();
+        builder.Services.AddSingleton<CreditManager>();
         builder.Services.AddSingleton<ChatManager>();
         builder.Services.AddSingleton<RoleInfoStore>();
         builder.Services.AddSingleton<WalletManager>();
+        builder.Services.AddSingleton<EnergyManager>();
         builder.Services.AddSingleton<ShopManager>();
         builder.Services.AddSingleton<BagManager>();
         builder.Services.AddSingleton<HeldItemManager>();

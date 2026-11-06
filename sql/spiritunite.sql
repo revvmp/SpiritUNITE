@@ -367,6 +367,15 @@ CREATE TABLE IF NOT EXISTS `role_fight_history` (
     CONSTRAINT fk_role_fight_history_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `role_energy` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    energy INT NOT NULL,
+    energy_free_capacity INT NOT NULL,
+    next_flush_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid),
+    CONSTRAINT fk_role_energy_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `role_held_item_slot` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL,
     held_item_slot_index INT NOT NULL,
@@ -388,4 +397,13 @@ CREATE TABLE IF NOT EXISTS `role_badge_schedue` (
     unlock_time_stamp BIGINT NOT NULL DEFAULT 0,
     PRIMARY KEY (game_ulong_uid, badge_schedue_id),
     CONSTRAINT fk_role_badge_schedue_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_credit` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    credit_point INT NOT NULL,
+    unconfirmed_day BIGINT NOT NULL DEFAULT 0,
+    unconfirmed_count INT NOT NULL DEFAULT 0,
+    ban_end_time BIGINT NOT NULL DEFAULT 0,
+    CONSTRAINT fk_role_credit_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;

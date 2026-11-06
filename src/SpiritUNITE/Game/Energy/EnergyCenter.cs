@@ -6,14 +6,18 @@ namespace SpiritUNITE.Game.Energy;
 
 public static class EnergyCenter
 {
+    public const int WeeklyEnergyFreeCapacity = 1400;
+
     private const int StartingRaffleTicket = 1;
-    private const int WeeklyEnergyFreeCapacity = 1400;
     private const int DaysPerWeek = 7;
 
-    public static pbCOMDT_ENERGY_INFO BuildStartingEnergyInfo() => new()
+    public static RoleEnergyInfo Starting(DateTimeOffset now) => new(0, WeeklyEnergyFreeCapacity, FindNextFlushTime(now));
+
+    public static pbCOMDT_ENERGY_INFO BuildEnergyInfo(RoleEnergyInfo energy) => new()
     {
+        Energy = energy.Energy,
         RaffleTicket = StartingRaffleTicket,
-        EnergyFreeCapacity = WeeklyEnergyFreeCapacity,
+        EnergyFreeCapacity = energy.EnergyFreeCapacity,
     };
 
     public static long FindNextFlushTime(DateTimeOffset now)
@@ -23,10 +27,10 @@ public static class EnergyCenter
         return today.AddDays(daysUntilMonday == 0 ? DaysPerWeek : daysUntilMonday).ToUnixTimeSeconds();
     }
 
-    public static pbSCEnergyInfoNtf BuildEnergyInfoNtf(DateTimeOffset now) => new()
+    public static pbSCEnergyInfoNtf BuildEnergyInfoNtf(RoleEnergyInfo energy) => new()
     {
-        EnergyInfo = BuildStartingEnergyInfo(),
-        NextFlushTime = FindNextFlushTime(now),
+        EnergyInfo = BuildEnergyInfo(energy),
+        NextFlushTime = energy.NextFlushTime,
     };
 
     public static bool IsKnownPoolType(int poolType) => Enum.IsDefined((PB_ENUM_ENUM_ENERGY_POOL_TYPE)poolType);

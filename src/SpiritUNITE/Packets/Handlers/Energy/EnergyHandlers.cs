@@ -8,20 +8,22 @@ namespace SpiritUNITE.Packets.Handlers.Energy;
 
 public sealed class EnergyHandlers(
     RoleInfoStore roles,
+    EnergyManager energies,
     GameData gameData,
     TimeProvider clock,
     ILogger<EnergyHandlers> logger)
 {
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetEnergyInfoReq)]
-    public GamePacket[] OnGetEnergyInfoReq(GamePacket request)
+    public async Task<GamePacket[]> OnGetEnergyInfoReq(GamePacket request)
     {
         pbCSGetEnergyInfoReq.Parser.ParseFrom(request.PkgData);
         roles.Require(request.Uid);
+        var energy = await energies.LoadAsync(request.Uid);
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetEnergyInfoRsp, new pbSCGetEnergyInfoRsp
         {
             ResultInfo = new pbResultInfo(),
-            EnergyInfo = EnergyCenter.BuildStartingEnergyInfo(),
-            NextFlushTime = EnergyCenter.FindNextFlushTime(clock.GetUtcNow()),
+            EnergyInfo = EnergyCenter.BuildEnergyInfo(energy),
+            NextFlushTime = energy.NextFlushTime,
         })];
     }
 

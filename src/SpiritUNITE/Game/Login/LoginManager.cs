@@ -8,6 +8,7 @@ using SpiritUNITE.Game.BattlePass;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Energy;
 using SpiritUNITE.Game.Chat;
+using SpiritUNITE.Game.Credit;
 using SpiritUNITE.Game.Friend;
 using SpiritUNITE.Game.HeldItem;
 using SpiritUNITE.Game.Lobby;
@@ -53,6 +54,8 @@ public sealed class LoginManager(
     WalletManager wallets,
     AccountManager accounts,
     MailManager mail,
+    EnergyManager energies,
+    CreditManager credit,
     TimeProvider clock,
     ILogger<LoginManager> logger)
 {
@@ -66,6 +69,8 @@ public sealed class LoginManager(
 
     private readonly ConcurrentDictionary<ulong, int> loginCountryCodeByUnregisteredUid = new();
     private readonly ConcurrentDictionary<ulong, ulong> relayMD5ByUid = new();
+
+    public Func<ulong, GamePacket?>? ConnRelayRecover { get; set; }
 
     public void RememberRelayMD5(ulong uid, ulong relayMD5) => relayMD5ByUid[uid] = relayMD5;
 
@@ -211,6 +216,11 @@ public sealed class LoginManager(
             replies.Add(PbScidOffingRestartRsp, new pbSCOffingRestartRsp { ResultInfo = new pbResultInfo() });
         }
 
+        if (ConnRelayRecover?.Invoke(role.GameUlongUID) is { } connRelayRecover)
+        {
+            replies.Add(connRelayRecover);
+        }
+
         replies.Add(PbScidNewbieGiftInfoNtf, await newbieGifts.BuildNewbieGiftInfoNtfAsync(role));
         replies.Add(PbScidGetCanopyListNtf, canopyList);
         replies.Add(PbScidWeeklySettleCookieNtf, LobbyNotices.BuildWeeklySettleCookieNtf());
@@ -233,7 +243,7 @@ public sealed class LoginManager(
         var clientSettings = await settings.LoadAsync(uid);
         var route = await SyncStarRoadAsync(role);
         var ownershipTasks = await taskUpdates.BuildOwnershipUpdateTaskInfoNtfAsync(role);
-        var energyInfo = EnergyCenter.BuildEnergyInfoNtf(clock.GetUtcNow());
+        var energyInfo = EnergyCenter.BuildEnergyInfoNtf(await energies.LoadAsync(uid));
         var boundChannels = await accounts.FindBoundChannelsAsync(uid);
         var canopyList = BuildCanopyListNtf(role);
         var firstGain = registGains[0];
@@ -292,9 +302,9 @@ public sealed class LoginManager(
         replies.Add(PbScidLimitTimeReddotNtf, LobbyNotices.BuildLimitTimeReddotNtf());
         replies.Add(PbScidGetAvatarListRsp, BuildGetAvatarListRsp(role));
         replies.Add(PbScidBattlePassNtf, BattlePassSeasons.BuildBattlePassNtf(gameData, now));
-        replies.Add(PbScidEnergyInfoNtf, EnergyCenter.BuildEnergyInfoNtf(now));
+        replies.Add(PbScidEnergyInfoNtf, EnergyCenter.BuildEnergyInfoNtf(await energies.LoadAsync(uid)));
         replies.Add(PbScidTrainerExpNextGiftInfoNtf, trainerExpGifts.BuildTrainerExpNextGiftInfoNtf(role));
-        replies.Add(PbScidCreditPointNtf, notices.BuildCreditPointNtf());
+        replies.Add(PbScidCreditPointNtf, await credit.BuildCreditPointNtfAsync(uid));
         replies.Add(PbScidBossRushPeriodNtf, new pbSCBossRushPeriodNtf { PeriodID = NoActiveBossRushPeriodID });
         replies.Add(PbScidShopNewSaleInfoNtf, notices.BuildShopNewSaleInfoNtf());
         replies.Add(PbScidGetBadgeAllInfoRsp, await badges.BuildGetBadgeAllInfoRspAsync(uid));

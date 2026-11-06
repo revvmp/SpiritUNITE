@@ -63,8 +63,6 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
 
     public static pbSCLimitTimeReddotNtf BuildLimitTimeReddotNtf() => new();
 
-    public pbSCCreditPointNtf BuildCreditPointNtf() => new() { CurrentCreditPoint = rules.StartingCreditPoint };
-
     public pbCOMDT_SHOP_NEW_SALE_INFO_LIST BuildShopNewSaleInfo() => new()
     {
         NewSaleList =
@@ -76,6 +74,27 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
     };
 
     public pbSCShopNewSaleInfoNtf BuildShopNewSaleInfoNtf() => new() { ShopNewSaleInfo = BuildShopNewSaleInfo() };
+
+    public pbSCShopNewSaleInfoNtf? BuildLevelUpShopNewSaleInfoNtf(int levelBefore, int levelAfter)
+    {
+        var now = UTCTimeUtil.ServerTime2CfgTime(clock.GetUtcNow());
+        var unlockedShopIDs = gameData.Shop.Rows
+            .Where(shop => shop.ShopType == (int)PB_ENUM_RES_SHOP_TYPE.PbResShopTypeGeneralStore
+                && shop.Level > levelBefore
+                && shop.Level <= levelAfter
+                && UTCTimeUtil.IsInTime(shop.OnTime, shop.OffTime, now))
+            .Select(shop => shop.ShopID)
+            .ToArray();
+        if (unlockedShopIDs.Length == 0)
+        {
+            return null;
+        }
+
+        var info = BuildShopNewSaleInfo();
+        info.NewSaleList.Add(unlockedShopIDs.Select(shopID => new pbCOMDT_SHOP_NEW_SALE_INFO { ShopID = shopID, NewTag = NewSaleTag }));
+        info.PromotionList.Add(unlockedShopIDs.Select(shopID => new pbCOMDT_SHOP_PROMOTION_INFO { ShopID = shopID, NewTag = NewSaleTag }));
+        return new pbSCShopNewSaleInfoNtf { ShopNewSaleInfo = info };
+    }
 
     public pbSCQueryTowerDefenseNtf BuildQueryTowerDefenseNtf()
     {

@@ -1,10 +1,9 @@
 using System.Collections.Concurrent;
 using System.Globalization;
 using SpiritUNITE.Database.Repositories;
-using Microsoft.Extensions.Options;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Tools;
-using SpiritUNITE.Game.Lobby;
+using SpiritUNITE.Game.Credit;
 using SpiritUNITE.Game.Pokemon;
 using SpiritUNITE.Game.Ranked;
 using SpiritUNITE.Game.Role;
@@ -17,7 +16,7 @@ public sealed class ProfileManager(
     ProfileRepository repository,
     GameData gameData,
     PokemonManager pokemon,
-    IOptions<LobbyOptions> lobbyOptions,
+    CreditManager credit,
     TimeProvider clock)
 {
     private const int FlagOff = 0;
@@ -239,7 +238,7 @@ public sealed class ProfileManager(
             PokemonList = { pokemonList.PokemonList },
             UsedPokemonList = { usedPokemonList },
             HeadID = RoleImage.GetHeadID(gameData, role),
-            CreditPoint = lobbyOptions.Value.StartingCreditPoint,
+            CreditPoint = await credit.GetCreditPointAsync(role.GameUlongUID),
             PlayerContestantInfo = BuildPlayerContestantInfo(role, style),
             UserShortId = RoleProfile.BuildShortId(role),
             RankedMatchSeasonID = RankedMatch.FindCurrentSeason(gameData, clock.GetUtcNow()).Season.SeasonId,
