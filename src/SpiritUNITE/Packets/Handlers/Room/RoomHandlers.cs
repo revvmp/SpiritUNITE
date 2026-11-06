@@ -1,7 +1,11 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SpiritUNITE.Auth;
+using SpiritUNITE.Battle;
+using SpiritUNITE.Game.Activity;
 using SpiritUNITE.Game.Friend;
 using SpiritUNITE.Game.Profile;
+using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Room;
 using SpiritUNITE.Game.Settings;
 using SpiritUNITE.Packets.Messages;
@@ -16,35 +20,53 @@ public sealed class RoomHandlers
 
     private readonly RoomManager rooms;
     private readonly RoomInvites invites;
+    private readonly DeskManager desks;
     private readonly RoleSessions sessions;
     private readonly FriendPresence presence;
     private readonly ProfileManager profiles;
     private readonly SettingsManager settings;
     private readonly AccountManager accounts;
+    private readonly RoleInfoStore roles;
+    private readonly ActivitySchedule activitySchedule;
+    private readonly ActivityTasks activityTasks;
+    private readonly GVoiceOptions gVoice;
     private readonly TimeProvider clock;
     private readonly ILogger<RoomHandlers> logger;
 
     public RoomHandlers(
         RoomManager rooms,
         RoomInvites invites,
+        DeskManager desks,
+        RelayManager relays,
         RoleSessions sessions,
         FriendPresence presence,
         ProfileManager profiles,
         SettingsManager settings,
         AccountManager accounts,
+        RoleInfoStore roles,
+        ActivitySchedule activitySchedule,
+        ActivityTasks activityTasks,
+        IOptions<GVoiceOptions> gVoice,
         TimeProvider clock,
         ILogger<RoomHandlers> logger)
     {
         this.rooms = rooms;
         this.invites = invites;
+        this.desks = desks;
         this.sessions = sessions;
         this.presence = presence;
         this.profiles = profiles;
         this.settings = settings;
         this.accounts = accounts;
+        this.roles = roles;
+        this.activitySchedule = activitySchedule;
+        this.activityTasks = activityTasks;
+        this.gVoice = gVoice.Value;
         this.clock = clock;
         this.logger = logger;
         sessions.RoleOffline += OnRoleOfflineAsync;
+        desks.DeskClosed += presence.LeaveGameAsync;
+        relays.RelayFinished += presence.LeaveGameAsync;
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidCreateRoomReq)]
@@ -72,17 +94,20 @@ public sealed class RoomHandlers
             outcome.Result);
         if (!outcome.Succeeded)
         {
-            return
-            [
-                request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidJoinRoomNtf, EmptyChildren.Fill(new pbSCJoinRoomNtf
-                {
-                    ResultInfo = Result(outcome),
-                })),
-            ];
+            return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidJoinRoomNtf, RoomNotices.JoinRefused(outcome.Result))];
         }
 
         await MarkInRoomAsync(request.Uid);
-        return await DeliverAsync(request, outcome);
+        var dailyActivityInfo = await RoomDailyActivity.BuildDailyActivityInfoAsync(
+            activitySchedule,
+            activityTasks,
+            roles.Require(request.Uid),
+            clock.GetUtcNow());
+        return await DeliverAsync(
+            request,
+            outcome,
+            [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomDailyActivityRewardNtf, RoomNotices.DailyActivityReward(dailyActivityInfo))],
+            [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomRttNtf, RoomNotices.RoomRtt(gVoice, sessions.Rtt(request.Uid)))]);
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidShowidJoinRoomReq)]
@@ -173,7 +198,7 @@ public sealed class RoomHandlers
         if (outcome.Succeeded && rooms.FindMatchConfirm(request.Uid) is { } ticket)
         {
             logger.LogInformation(
-                "Room {RoomID} matched against bots; waiting {ConfirmTimeoutMs} ms for the battle hand-off",
+                "Room {RoomID} matched against bots; waiting {ConfirmTimeoutMs} ms for every member to confirm",
                 ticket.RoomID,
                 PveMatch.ConfirmTimeoutMs);
             _ = ExpireMatchConfirmAsync(ticket);
@@ -200,13 +225,25 @@ public sealed class RoomHandlers
                 request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomConfirmRsp, new pbSCRoomConfirmRsp
                 {
                     Uid = request.Uid,
-                    FromGameEntity = MatchRoom.RoomEntity,
+                    FromGameEntity = MatchRoom.GameEntity,
                     ResultInfo = Result(outcome),
                 }),
             ];
         }
 
-        return await DeliverAsync(request, outcome);
+        var confirmReplies = await DeliverAsync(request, outcome);
+        if (outcome.StartedGame is not { } room)
+        {
+            return confirmReplies;
+        }
+
+        var deskOutcome = await desks.BeginPveDeskAsync(room);
+        foreach (var member in room.Members)
+        {
+            await (deskOutcome.Succeeded ? MarkInGameAsync(member.Uid) : MarkIdleAsync(member.Uid));
+        }
+
+        return [.. confirmReplies, .. await DeliverAsync(request, deskOutcome)];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidCancelMatchReq)]
@@ -395,7 +432,7 @@ public sealed class RoomHandlers
             }
 
             logger.LogInformation(
-                "Room {RoomID} match aborted after the confirm window: no battle server took it over",
+                "Room {RoomID} match aborted: not every member confirmed within the confirm window",
                 ticket.RoomID);
             await PushAllAsync(outcome);
             foreach (var uid in removedUids)
@@ -432,7 +469,14 @@ public sealed class RoomHandlers
         await PushAllAsync(outcome);
     }
 
-    private async Task<GamePacket[]> DeliverAsync(GamePacket request, RoomOutcome outcome, params GamePacket[] leading)
+    private Task<GamePacket[]> DeliverAsync(GamePacket request, RoomOutcome outcome, params GamePacket[] leading) =>
+        DeliverAsync(request, outcome, leading, []);
+
+    private async Task<GamePacket[]> DeliverAsync(
+        GamePacket request,
+        RoomOutcome outcome,
+        GamePacket[] leading,
+        GamePacket[] afterReplies)
     {
         await PushAllAsync(outcome, except: request.Uid);
         var ownPushes = outcome.Pushes
@@ -444,6 +488,7 @@ public sealed class RoomHandlers
             .. ownPushes.Take(outcome.RequesterPushesBeforeResponse),
             .. leading,
             .. outcome.Replies.Select(reply => request.Reply(reply.MsgID, reply.Message)),
+            .. afterReplies,
             .. ownPushes.Skip(outcome.RequesterPushesBeforeResponse),
         ];
     }
@@ -470,6 +515,9 @@ public sealed class RoomHandlers
 
     private Task MarkInRoomAsync(ulong uid) =>
         presence.SetGameStateAsync(uid, PB_ENUM_E_ACNT_GAMESTATE.PbEacntGameroom, clock.GetUtcNow().ToUnixTimeSeconds());
+
+    private Task MarkInGameAsync(ulong uid) =>
+        presence.SetGameStateAsync(uid, PB_ENUM_E_ACNT_GAMESTATE.PbEacntGamemulti, clock.GetUtcNow().ToUnixTimeSeconds());
 
     private Task MarkIdleAsync(ulong uid) => presence.SetGameStateAsync(uid, PB_ENUM_E_ACNT_GAMESTATE.PbEacntGameidle, 0);
 

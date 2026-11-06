@@ -65,6 +65,11 @@ public sealed class LoginManager(
     private const int FirstpayTotalCoupons = 60;
 
     private readonly ConcurrentDictionary<ulong, int> loginCountryCodeByUnregisteredUid = new();
+    private readonly ConcurrentDictionary<ulong, ulong> relayMD5ByUid = new();
+
+    public void RememberRelayMD5(ulong uid, ulong relayMD5) => relayMD5ByUid[uid] = relayMD5;
+
+    public ulong FindRelayMD5(ulong uid) => relayMD5ByUid.GetValueOrDefault(uid);
 
     public async Task RecordAcntLoginAsync(ulong uid, int loginCountryCode)
     {

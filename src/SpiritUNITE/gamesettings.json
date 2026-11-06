@@ -32,6 +32,10 @@
     ],
     "HiddenMapIds": [92001, 92002, 92003, 92004, 601, 602, 603, 604, 611, 612, 613, 614]
   },
+  "BattleSettlement": {
+    "PveChallengeWinBaseExp": 150,
+    "PveChallengeLoseBaseExp": 0
+  },
   "HeldItem": {
     "UnlockGrantItemIds": [1002001014]
   },

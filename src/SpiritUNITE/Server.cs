@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
+using SpiritUNITE.Battle;
 using SpiritUNITE.Database;
 using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Game.Achievement;
@@ -151,6 +152,11 @@ public static class Server
             .Validate(options => options.IsValid(), "Room settings are invalid")
             .ValidateOnStart();
 
+        builder.Services.AddOptions<BattleSettlementOptions>()
+            .BindConfiguration(BattleSettlementOptions.SectionName)
+            .Validate(options => options.IsValid(), "BattleSettlement settings are invalid")
+            .ValidateOnStart();
+
         builder.Services.AddOptions<HeldItemOptions>()
             .BindConfiguration(HeldItemOptions.SectionName)
             .Validate(options => options.IsValid(), "HeldItem settings are invalid")
@@ -190,6 +196,7 @@ public static class Server
         builder.Services.AddSingleton<SettingsRepository>();
         builder.Services.AddSingleton<NewbieChallengeRepository>();
         builder.Services.AddSingleton<TaskProcessRepository>();
+        builder.Services.AddSingleton<BattleSettlementRepository>();
         builder.Services.AddSingleton<EeveeChallengeRepository>();
     }
 
@@ -240,11 +247,14 @@ public static class Server
         builder.Services.AddSingleton<AccountSessionManager>();
         builder.Services.AddSingleton<RoomManager>();
         builder.Services.AddSingleton<RoomInvites>();
+        builder.Services.AddSingleton<DeskManager>();
         builder.Services.AddSingleton<PveChallengeProgress>();
         builder.Services.AddSingleton<NewbieManager>();
         builder.Services.AddSingleton<NewbieGiftManager>();
         builder.Services.AddSingleton<NewbieChallengeManager>();
         builder.Services.AddSingleton<NewbieChallengeTasks>();
+        builder.Services.AddSingleton<BattleSettlement>();
+        builder.Services.AddSingleton<RelayManager>();
     }
 
     private static void AddPackets(IHostApplicationBuilder builder) =>

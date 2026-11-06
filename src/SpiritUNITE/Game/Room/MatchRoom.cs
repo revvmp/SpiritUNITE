@@ -29,6 +29,13 @@ public sealed class MatchRoom(int roomID, long roomSeq, int roomShowId, ulong ma
     public const int JudgeCamp = (int)PB_ENUM_COM_CAMP_CLIENT.PbCampClientJudge1;
     public const int JudgeCampCapacity = (int)PB_MACRO_COM_MAX_JUDGE_NUM.PbComMaxJudgeNum;
 
+    private const int GameEntityTypeBits = 12;
+    private const int LobbyGameEntityType = 0x008;
+    private const int FirstGameEntityInstance = 1;
+    private const int GameEntityInstanceCount = 1 << (31 - GameEntityTypeBits);
+
+    public static readonly int GameEntity = BuildLobbyGameEntity();
+
     private readonly List<RoomMember> members = [];
 
     public int RoomID { get; } = roomID;
@@ -49,10 +56,14 @@ public sealed class MatchRoom(int roomID, long roomSeq, int roomShowId, ulong ma
     public pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE? PveChallengeSelectNode { get; set; }
     public int MatchSeq { get; set; }
     public HashSet<ulong> ConfirmedUids { get; } = [];
+    public pbCOMDT_MATCH_SUCC_DETAIL? MatchSucc { get; set; }
+    public IReadOnlyDictionary<ulong, pbAiInfoConfig> MatchNpcConfigs { get; set; } = new Dictionary<ulong, pbAiInfoConfig>();
 
     public IReadOnlyList<RoomMember> Members => members;
 
     public bool IsMatching => State == PB_ENUM_COM_ROOMSVR_ROOM_STATE.PbComRoomsvrRoomStateReq;
+
+    public bool IsMatchConfirmed => members.All(member => ConfirmedUids.Contains(member.Uid));
 
     public RoomMember? FindMember(ulong uid) => members.Find(member => member.Uid == uid);
 
@@ -103,4 +114,7 @@ public sealed class MatchRoom(int roomID, long roomSeq, int roomShowId, ulong ma
 
         return common;
     }
+
+    private static int BuildLobbyGameEntity() =>
+        (Random.Shared.Next(FirstGameEntityInstance, GameEntityInstanceCount) << GameEntityTypeBits) | LobbyGameEntityType;
 }

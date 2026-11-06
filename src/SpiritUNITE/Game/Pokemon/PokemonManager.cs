@@ -53,6 +53,10 @@ public sealed class PokemonManager(
         UsedPokemonInfo = BuildUsedPokemonInfo(used),
     };
 
+    public IReadOnlyList<int> FreePokemonList => options.Value.FreePokemonList;
+
+    public Task<IReadOnlyList<UsedPokemonInfo>> LoadUsedPokemonAsync(LMNRoleInfo role) => usedPokemon.LoadAsync(role.GameUlongUID);
+
     public Task<UsedPokemonInfo> FindUsedPokemonAsync(LMNRoleInfo role, int pokemonId) =>
         usedPokemon.FindAsync(role.GameUlongUID, pokemonId);
 

@@ -1,6 +1,7 @@
 using SpiritUNITE.Game.Achievement;
 using SpiritUNITE.Game.Activity;
 using SpiritUNITE.Game.Role;
+using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Tasks;
@@ -36,6 +37,23 @@ public sealed class TaskUpdates(ActivityTasks activityTasks, AchievementTasks ac
             .. await activityTasks.BuildTaskInfoListAsync(role, PB_ENUM_RES_CONDITION_ID.PbResConditionTypeTrainerLevelReach),
             .. await achievementTasks.BuildTaskInfoListAsync(role, TrainerLevelConditions),
         ]);
+
+    public async Task<GamePacket[]> BuildBattleProgressPacketsAsync(
+        LMNRoleInfo role,
+        BattleTaskEvent battle,
+        IReadOnlyCollection<pbCOMDT_TASK_INFO> battleStarTasks)
+    {
+        var activity = await activityTasks.RecordBattleAsync(role, battle);
+        var achievements = await achievementTasks.RecordBattleAsync(role, battle);
+        pbCOMDT_TASK_INFO[] updatedTasks = [.. activity.UpdatedTasks, .. achievements, .. battleStarTasks];
+        return updatedTasks.Length == 0
+            ? []
+            :
+            [
+                GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf, ToUpdateTaskInfoNtf(updatedTasks)),
+                .. TaskRedDots.BuildBattleProgressRedDots(activity.CompleteCountBefore, activity.CompleteCountAfter),
+            ];
+    }
 
     private static pbSCUpdateTaskInfoNtf ToUpdateTaskInfoNtf(IEnumerable<pbCOMDT_TASK_INFO> tasks) => new()
     {

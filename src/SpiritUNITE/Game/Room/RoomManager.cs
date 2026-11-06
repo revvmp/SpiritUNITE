@@ -116,7 +116,7 @@ public sealed class RoomManager(
             pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE? pveChallengeSelectNode = null;
             if (scene.MapSubMode == (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModePveChallenge)
             {
-                if (request.PveChallengeSelectNode is not { } selectNode || !IsSelectableNode(role, scene, selectNode))
+                if (request.PveChallengeSelectNode is not { } selectNode || !IsSelectableNode(role, scene.SceneId, selectNode))
                 {
                     return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomMapInvalid);
                 }
@@ -222,9 +222,16 @@ public sealed class RoomManager(
                 return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomInvalidPlayerNum);
             }
 
-            if (room.PveChallengeSelectNode is not null)
+            if (room.PveChallengeSelectNode is { } selectNode)
             {
-                return StartPveChallengeMatch(room);
+                return room.Members.All(member => roles.Find(member.Uid) is { } role && IsSelectableNode(role, room.MapId, selectNode))
+                    ? StartPveChallengeMatch(room)
+                    : RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomSomeoneHasNoMap);
+            }
+
+            if (room.MapSubMode == (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModePveChallenge)
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomMapInvalid);
             }
 
             var outcome = new RoomOutcome();
@@ -267,12 +274,24 @@ public sealed class RoomManager(
                 return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomStateInvalid);
             }
 
-            return new RoomOutcome().PushAll(MemberUids(room), PB_ENUM_CS_MSGID_DEF.PbScidRoomConfirmRsp, new pbSCRoomConfirmRsp
+            var uids = MemberUids(room).ToArray();
+            var outcome = new RoomOutcome().PushAll(uids, PB_ENUM_CS_MSGID_DEF.PbScidRoomConfirmRsp, new pbSCRoomConfirmRsp
             {
                 Uid = uid,
-                FromGameEntity = MatchRoom.RoomEntity,
+                FromGameEntity = MatchRoom.GameEntity,
                 ResultInfo = new pbResultInfo(),
             });
+            if (!room.IsMatchConfirmed || room.MatchSucc is null)
+            {
+                return outcome;
+            }
+
+            outcome.PushAll(
+                uids,
+                PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf,
+                RoomNotices.Dismiss(room, PB_ENUM_ENUM_ROOM_DISMISS_REASON.PbEnumRoomDismissReasonGamestart));
+            Dissolve(room);
+            return outcome.StartGame(room);
         }
     }
 
@@ -289,9 +308,6 @@ public sealed class RoomManager(
                 return new RoomOutcome();
             }
 
-            var abortResult = room.Members.All(member => room.ConfirmedUids.Contains(member.Uid))
-                ? PB_ENUM_RES_ERROR_CODE.PbErrRoomGameAbort
-                : PB_ENUM_RES_ERROR_CODE.PbErrRoomUnconfirm;
             removedUids = [.. MemberUids(room)];
             var outcome = new RoomOutcome();
             foreach (var memberUid in removedUids)
@@ -299,14 +315,12 @@ public sealed class RoomManager(
                 outcome
                     .Push(memberUid, PB_ENUM_CS_MSGID_DEF.PbScidMultGameAbortNtf, new pbSCMultGameAbortNtf
                     {
-                        ResultInfo = new pbResultInfo { ResultId = (int)abortResult },
+                        ResultInfo = new pbResultInfo { ResultId = (int)PB_ENUM_RES_ERROR_CODE.PbErrRoomUnconfirm },
                     })
                     .Push(memberUid, PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf, RoomNotices.SelfBeKick(room));
-                roomsByUid.Remove(memberUid);
             }
 
-            roomsById.Remove(room.RoomID);
-            roomsByShowId.Remove(room.RoomShowId);
+            Dissolve(room);
             return outcome;
         }
     }
@@ -655,9 +669,14 @@ public sealed class RoomManager(
 
         var (campClient, posOfCamp) = seat;
 
-        if (roles.Find(uid) is null)
+        if (roles.Find(uid) is not { } role)
         {
             return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomAcntInvalid);
+        }
+
+        if (room.PveChallengeSelectNode is { } selectNode && !IsSelectableNode(role, room.MapId, selectNode))
+        {
+            return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomMapInvalid);
         }
 
         var before = BuildCanUseMap(room);
@@ -742,17 +761,31 @@ public sealed class RoomManager(
             .Select((member, index) => BuildMatchMemberDT(member, RoomMemberDetail.FirstAnonymousUserNameID + index))
             .OfType<pbCOMDT_ROOMMEMBER_DT>()
             .ToArray();
-        var aiLevel = roles.Find(room.MasterUid) is { } master ? RoleProfile.GetLevel(gameData, master) : PveMatch.MinAILevel;
-        return outcome.PushAll(
-            uids,
-            PB_ENUM_CS_MSGID_DEF.PbScidMatchRsp,
-            PveMatch.MatchSucc(gameData, room, members, aiLevel, room.MatchStartedAt));
+        var masterTrainerLevel = roles.Find(room.MasterUid) is { } master ? RoleProfile.GetLevel(gameData, master) : PveMatch.MinAILevel;
+        var matchSucc = PveMatch.MatchSucc(gameData, room, members, masterTrainerLevel, room.MatchStartedAt);
+        room.MatchSucc = matchSucc.MatchRsp.MatchResult.MatchResDetail.MatchSucc;
+        room.MatchNpcConfigs = matchSucc.NpcConfigs;
+        return outcome.PushAll(uids, PB_ENUM_CS_MSGID_DEF.PbScidMatchRsp, matchSucc.MatchRsp);
     }
 
-    private bool IsSelectableNode(LMNRoleInfo role, pbScene_Map scene, pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE selectNode) =>
-        pveChallenge.FindRoute(selectNode.StageID, selectNode.NodeID, selectNode.DifficultyLevel) is { } route
-        && route.SceneId == scene.SceneId
+    private void Dissolve(MatchRoom room)
+    {
+        foreach (var member in room.Members)
+        {
+            roomsByUid.Remove(member.Uid);
+        }
+
+        roomsById.Remove(room.RoomID);
+        roomsByShowId.Remove(room.RoomShowId);
+    }
+
+    private bool IsSelectableNode(LMNRoleInfo role, int mapId, pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE selectNode) =>
+        IsNodeOnMap(mapId, selectNode)
+        && pveChallenge.FindRoute(selectNode.StageID, selectNode.NodeID, selectNode.DifficultyLevel) is { } route
         && pveChallenge.IsUnlocked(role, route);
+
+    private bool IsNodeOnMap(int mapId, pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE selectNode) =>
+        pveChallenge.FindRoute(selectNode.StageID, selectNode.NodeID, selectNode.DifficultyLevel)?.SceneId == mapId;
 
     private RoomOutcome? FindMasterRoom(ulong uid, out MatchRoom room)
     {
@@ -793,7 +826,7 @@ public sealed class RoomManager(
                 RoomID = room.RoomID,
                 RoomSeq = room.RoomSeq,
                 SelfUid = selfUid,
-                SelfGameEntity = MatchRoom.RoomEntity,
+                SelfGameEntity = MatchRoom.GameEntity,
                 RoomMaster = RoomNotices.BuildMaster(room),
                 RoomAttr = new pbCOMDT_ROOM_ATTR
                 {
@@ -810,12 +843,7 @@ public sealed class RoomManager(
                 },
                 AllMemInfo = allMemInfo,
                 CanUseMap = BuildCanUseMap(room),
-                GVoiceInfo = new pbCOMDT_GVOICE_INFO
-                {
-                    IdcTag = gVoice.IdcTag,
-                    GVoiceHost = gVoice.GVoiceHost,
-                    GVoicePort = gVoice.GVoicePort,
-                },
+                GVoiceInfo = gVoice.BuildGVoiceInfo(),
             },
             AcntLocalSvrInfo = new pbCOMDT_LOCAL_SVR_ACNT_INFO(),
         };
@@ -863,12 +891,16 @@ public sealed class RoomManager(
     private static HashSet<int> UsableMapsOf(pbCOMDT_ACNTMAP_INFO acntMapInfo) =>
         [.. acntMapInfo.MapList.Where(map => map.CanUseType == RoomOptions.CanUseMap).Select(map => map.MapId)];
 
-    private static void ApplyMap(MatchRoom room, pbScene_Map scene)
+    private void ApplyMap(MatchRoom room, pbScene_Map scene)
     {
         room.MapId = scene.SceneId;
         room.MapMode = scene.MapMode;
         room.MapSubMode = scene.MapSubMode;
         room.CampPlayerNum = scene.CampPlayerNum;
+        if (room.PveChallengeSelectNode is { } selectNode && !IsNodeOnMap(scene.SceneId, selectNode))
+        {
+            room.PveChallengeSelectNode = null;
+        }
     }
 
     private static int CapacityAfter(MatchRoom room, pbScene_Map scene, int campClient) =>

@@ -1,3 +1,5 @@
+using SpiritUNITE.Packets.Messages;
+
 namespace SpiritUNITE.Game.Room;
 
 public sealed class RoomMapCanUseType
@@ -37,4 +39,11 @@ public sealed class GVoiceOptions
     public int GVoicePort { get; init; } = 8700;
 
     public bool IsValid() => IdcTag >= 0 && GVoicePort is >= 0 and <= ushort.MaxValue && GVoiceHost is not null;
+
+    public pbCOMDT_GVOICE_INFO BuildGVoiceInfo() => new()
+    {
+        IdcTag = IdcTag,
+        GVoiceHost = GVoiceHost,
+        GVoicePort = GVoicePort,
+    };
 }

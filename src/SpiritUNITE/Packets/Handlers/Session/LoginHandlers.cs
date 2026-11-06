@@ -19,6 +19,7 @@ public sealed class LoginHandlers(
     {
         var acntLogin = pbCSAcntLoginReq.Parser.ParseFrom(request.PkgData);
         var uid = RequireAuthenticatedUid(request.Uid);
+        login.RememberRelayMD5(uid, acntLogin.RelayMD5);
         var role = await roles.FindAsync(uid);
         var session = request with { Uid = uid };
         if (role is null)
@@ -77,6 +78,7 @@ public sealed class LoginHandlers(
             ];
         }
 
+        login.RememberRelayMD5(uid, restart.RelayMD5);
         var session = request with { Uid = uid };
         if (restart.NeedLoginRsp == 0)
         {

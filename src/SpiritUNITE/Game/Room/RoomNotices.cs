@@ -7,6 +7,28 @@ public static class RoomNotices
 {
     public const int NotReady = 0;
 
+    private const int ClientDefaultRoomDelayMs = 80;
+    private const int MinRoomDelayMs = 1;
+    private const int JoinRoomTypeNormal = (int)PB_ENUM_ENM_JOIN_ROOM_TYPE.PbEnmJoinRoomTypeNormal;
+
+    public static pbSCJoinRoomNtf JoinRefused(PB_ENUM_RES_ERROR_CODE result) => new()
+    {
+        ResultInfo = new pbResultInfo { ResultId = (int)result },
+        JoinRoomType = JoinRoomTypeNormal,
+        AcntLocalSvrInfo = new pbCOMDT_LOCAL_SVR_ACNT_INFO(),
+    };
+
+    public static pbSCRoomRttNtf RoomRtt(GVoiceOptions gVoice, TimeSpan? lobbyRtt) => new()
+    {
+        Rtt = lobbyRtt is { } rtt ? Math.Max(MinRoomDelayMs, (int)Math.Ceiling(rtt.TotalMilliseconds)) : ClientDefaultRoomDelayMs,
+        IdcTag = gVoice.IdcTag,
+    };
+
+    public static pbSCRoomDailyActivityRewardNtf DailyActivityReward(pbCSDT_ROOM_DAILY_ACTIVITY_INFO dailyActivityInfo) => new()
+    {
+        DailyActivityInfo = dailyActivityInfo,
+    };
+
     public static pbSCRoomChgNtf ChgNtf(MatchRoom room, PB_ENUM_COM_ROOMCHGTYPE chgType, pbCOMDT_ROOMCHG_DT? chgInfo) => new()
     {
         RoomID = room.RoomID,
@@ -47,6 +69,12 @@ public static class RoomNotices
             },
         });
 
+    public static pbSCRoomChgNtf Dismiss(MatchRoom room, PB_ENUM_ENUM_ROOM_DISMISS_REASON dismissReason) =>
+        ChgNtf(room, PB_ENUM_COM_ROOMCHGTYPE.PbComRoomchgDismiss, new pbCOMDT_ROOMCHG_DT
+        {
+            DismissChg = new pbCOMDT_ROOMCHG_DISMISS { DismissReason = (int)dismissReason },
+        });
+
     public static pbSCRoomChgNtf SelfBeKick(MatchRoom room) =>
         ChgNtf(room, PB_ENUM_COM_ROOMCHGTYPE.PbComRoomchgSelfbekick, null);
 
@@ -84,7 +112,7 @@ public static class RoomNotices
     public static pbCOMDT_CHGMEMBERPOS_DATA PosData(RoomMember member, int oldCampClient, int oldPosOfCamp) => new()
     {
         MemberUid = member.Uid,
-        MemberGameEntity = MatchRoom.RoomEntity,
+        MemberGameEntity = MatchRoom.GameEntity,
         OldCamp = CampIndexOf(oldCampClient),
         OldPosOfCamp = oldPosOfCamp,
         OldCampClient = oldCampClient,
@@ -189,7 +217,7 @@ public static class RoomNotices
     public static pbCOMDT_ROOM_MASTER BuildMaster(MatchRoom room) => new()
     {
         MasterUid = room.MasterUid,
-        MasterGameEntity = MatchRoom.RoomEntity,
+        MasterGameEntity = MatchRoom.GameEntity,
     };
 
     public static int CampIndexOf(int campClient) => campClient switch

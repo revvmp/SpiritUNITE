@@ -255,7 +255,7 @@ public sealed class ProfileManager(
     {
         ResultInfo = new pbResultInfo(),
         RoleAvatar = role.RoleAvatarInfo.Clone(),
-        TrainerImageInfo = style.PlayerContestantInfo.TrainerImageInfo ?? BuildDefaultTrainerImageInfo(),
+        TrainerImageInfo = BuildTrainerImageInfo(style),
         ShortId = RoleProfile.BuildShortId(role),
         QueryUid = role.GameUlongUID,
     };
@@ -266,6 +266,9 @@ public sealed class ProfileManager(
         info.ContestantResList = ContestantCard.BuildContestantResList(role);
         return info;
     }
+
+    public static pbCOMDT_TRAINER_IMAGE_INFO BuildTrainerImageInfo(ProfileStyle style) =>
+        style.PlayerContestantInfo.TrainerImageInfo ?? BuildDefaultTrainerImageInfo();
 
     private static pbCOMDT_TRAINER_IMAGE_INFO BuildDefaultTrainerImageInfo() => new()
     {

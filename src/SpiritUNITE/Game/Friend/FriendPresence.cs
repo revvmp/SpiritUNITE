@@ -74,6 +74,21 @@ public sealed class FriendPresence(RoleSessions sessions)
         }
     }
 
+    public async Task LeaveGameAsync(ulong uid)
+    {
+        if (!gameStates.TryGetValue(uid, out var state)
+            || state.GameStateType != (int)PB_ENUM_E_ACNT_GAMESTATE.PbEacntGamemulti
+            || !gameStates.TryRemove(KeyValuePair.Create(uid, state)))
+        {
+            return;
+        }
+
+        if (GameStateChanged is { } changed)
+        {
+            await changed(uid);
+        }
+    }
+
     public void Forget(ulong uid)
     {
         gameStates.TryRemove(uid, out _);

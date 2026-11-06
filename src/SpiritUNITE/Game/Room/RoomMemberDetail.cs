@@ -64,7 +64,7 @@ public static class RoomMemberDetail
                 MemberOfAcnt = new pbCOMDT_ROOMMEMBER_OF_ACNT
                 {
                     Uid = role.GameUlongUID,
-                    FromGameEntity = MatchRoom.RoomEntity,
+                    FromGameEntity = MatchRoom.GameEntity,
                     MemberName = role.InGameUsrName,
                     MemberLevel = RoleProfile.GetLevel(gameData, role),
                     MemberHeadId = RoleImage.GetHeadID(gameData, role),
@@ -79,7 +79,7 @@ public static class RoomMemberDetail
                     ChallengeTrainer = new pbCOMDT_CHALLENGE_TRAINER_INFO(),
                     BossRushUnLockGameLevelInfo = BuildBossRushUnLock(gameData, member),
                     TowerDefenseUnlockGameLevelInfo = new pbCOMDT_TOWER_DEFENSE_UNLOCK_GAME_LEVEL_INFO(),
-                    HeavenTrainer = new pbCOMDT_CHALLENGE_TRAINER_INFO(),
+                    HeavenTrainer = BuildHeavenTrainer(role),
                     UserPlantInfo = member.Profile.UserPlantInfo.Clone(),
                     TmpNameList = new pbCOMDT_TMP_NAME_LIST(),
                     BattleMemberConfigList = BuildBattleMemberConfigList(isValid: false),
@@ -101,7 +101,7 @@ public static class RoomMemberDetail
                 MemberOfAcnt = new pbCOMDT_ROOMMEMBER_OF_ACNT
                 {
                     Uid = role.GameUlongUID,
-                    FromGameEntity = MatchRoom.RoomEntity,
+                    FromGameEntity = MatchRoom.GameEntity,
                     MemberName = role.InGameUsrName,
                     MemberLevel = RoleProfile.GetLevel(gameData, role),
                     MemberHeadId = RoleImage.GetHeadID(gameData, role),
@@ -135,6 +135,26 @@ public static class RoomMemberDetail
         };
         avatar.AvatarIDList.AddRange(avatarIDs.Concat(Enumerable.Repeat(0, DefaultAvatarSlotCount - avatarIDs.Length)));
         return avatar;
+    }
+
+    private static pbCOMDT_CHALLENGE_TRAINER_INFO BuildHeavenTrainer(LMNRoleInfo role)
+    {
+        var heavenTrainer = new pbCOMDT_CHALLENGE_TRAINER_INFO();
+        heavenTrainer.ChallengeInfo.AddRange(role.GetHeavenTrainerRecords()
+            .GroupBy(record => record.MapId)
+            .Select(map => new pbCOMDT_CHALLENGE_TRAINER_MAP_RECORD_INFO
+            {
+                MapId = map.Key,
+                RecordInfo =
+                {
+                    map.Select(record => new pbCOMDT_CHALLENGE_TRAINER_RECORD_INFO
+                    {
+                        LevelType = record.LevelType,
+                        ChallengeCnt = record.ChallengeCnt,
+                    }),
+                },
+            }));
+        return heavenTrainer;
     }
 
     private static pbCOMDT_BOSS_RUSH_UNLOCK_GAME_LEVEL_INFO BuildBossRushUnLock(GameData gameData, RoomMember member)
