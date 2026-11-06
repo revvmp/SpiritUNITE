@@ -182,6 +182,7 @@ public static class Server
         builder.Services.AddSingleton<TrainerExpGiftRepository>();
         builder.Services.AddSingleton<ProfileRepository>();
         builder.Services.AddSingleton<SettingsRepository>();
+        builder.Services.AddSingleton<TaskProcessRepository>();
     }
 
     private static void AddGameData(IHostApplicationBuilder builder)

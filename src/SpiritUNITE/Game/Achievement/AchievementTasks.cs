@@ -5,6 +5,7 @@ using SpiritUNITE.Game.Badge;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Ranked;
 using SpiritUNITE.Game.Role;
+using SpiritUNITE.Game.Tasks;
 using SpiritUNITE.Game.TrainerExpGift;
 using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Packets.Messages;
@@ -20,9 +21,11 @@ public sealed class AchievementTasks
     private const int UntrackedProcess = 0;
     private const int ShowNewTag = 1;
     private const int NoNewTag = 0;
+    private const long NoPeriod = 0;
 
     private readonly GameData gameData;
     private readonly AchievementRepository repository;
+    private readonly TaskProcessRepository taskProcesses;
     private readonly RoleRepository roleRepository;
     private readonly BadgeManager badges;
     private readonly TimeProvider clock;
@@ -34,6 +37,7 @@ public sealed class AchievementTasks
     public AchievementTasks(
         GameData gameData,
         AchievementRepository repository,
+        TaskProcessRepository taskProcesses,
         RoleRepository roleRepository,
         BadgeManager badges,
         TimeProvider clock,
@@ -41,6 +45,7 @@ public sealed class AchievementTasks
     {
         this.gameData = gameData;
         this.repository = repository;
+        this.taskProcesses = taskProcesses;
         this.roleRepository = roleRepository;
         this.badges = badges;
         this.clock = clock;
@@ -65,6 +70,40 @@ public sealed class AchievementTasks
         [
             .. definitions
                 .Where(definition => conditionIds.Contains((PB_ENUM_RES_CONDITION_ID)definition.Condition.ID))
+                .Select(definition => Evaluate(role, definition, rewardTimes, measures).ToTaskInfo()),
+        ];
+    }
+
+    public async Task<int> CountCompleteTasksAsync(LMNRoleInfo role) =>
+        (await BuildTaskInfoListAsync(role)).Count(task => task.Status == (int)PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusComplete);
+
+    public async Task<pbCOMDT_TASK_INFO[]> RecordBattleAsync(LMNRoleInfo role, BattleTaskEvent battle)
+    {
+        var increments = definitions
+            .Select(definition => BattleTasks.MeasureBattle(definition.Condition, battle) is { } delta
+                ? new TaskProcessIncrement(definition.Task.TaskID, NoPeriod, delta, definition.Condition.TargetProcess)
+                : null)
+            .OfType<TaskProcessIncrement>()
+            .ToArray();
+        if (increments.Length == 0)
+        {
+            return [];
+        }
+
+        var now = clock.GetUtcNow().ToUnixTimeSeconds();
+        if (!await taskProcesses.AddAsync(role.GameUlongUID, increments, now))
+        {
+            logger.LogWarning("Battle achievement progress of uid {Uid} was not stored: the role row is missing", role.GameUlongUID);
+            return [];
+        }
+
+        var touchedTaskIds = increments.Select(increment => increment.TaskId).ToHashSet();
+        var rewardTimes = await repository.FindRewardTimesAsync(role.GameUlongUID);
+        var measures = await LoadMeasuresAsync(role);
+        return
+        [
+            .. definitions
+                .Where(definition => touchedTaskIds.Contains(definition.Task.TaskID))
                 .Select(definition => Evaluate(role, definition, rewardTimes, measures).ToTaskInfo()),
         ];
     }
@@ -163,19 +202,26 @@ public sealed class AchievementTasks
 
     private async Task<AchievementMeasures> LoadMeasuresAsync(LMNRoleInfo role)
     {
-        var ownedBadgeGroups = (await badges.GetOwnedBadgesAsync(role.GameUlongUID))
+        var ownedBadges = (await badges.GetOwnedBadgesAsync(role.GameUlongUID))
             .Where(badge => badge.IsOwned)
-            .Select(badge => gameData.BadgeBase.Find(badge.ItemId)?.BadgeGroupId)
-            .OfType<int>()
-            .Distinct()
-            .Count();
+            .Select(badge => gameData.BadgeBase.Find(badge.ItemId))
+            .OfType<pbBadge_Base>()
+            .ToArray();
         var seasonId = RankedMatch.FindCurrentSeason(gameData, clock.GetUtcNow()).Season.SeasonId;
         return new AchievementMeasures(
             await roleRepository.FindCreateTimeAsync(role.GameUlongUID),
-            ownedBadgeGroups,
+            ownedBadges,
             seasonId,
-            TrainerExpGifts.GetSeasonPoint(role));
+            TrainerExpGifts.GetSeasonPoint(role),
+            await taskProcesses.FindAsync(role.GameUlongUID));
     }
+
+    private static int CountOwnedBadgeGroups(pbFinishCondition condition, AchievementMeasures measures) =>
+        measures.OwnedBadges
+            .Where(badge => condition.ParamA.Count == 0 || condition.ParamA.Contains(badge.BadgeQuality))
+            .Select(badge => badge.BadgeGroupId)
+            .Distinct()
+            .Count();
 
     private AchievementState Evaluate(
         LMNRoleInfo role,
@@ -184,7 +230,7 @@ public sealed class AchievementTasks
         AchievementMeasures measures)
     {
         var target = definition.Condition.TargetProcess;
-        var process = Math.Min(MeasureProcess(role, definition.Condition, measures), target);
+        var process = Math.Min(MeasureProcess(role, definition.Condition, definition.Task.TaskID, measures), target);
         var status = rewardTimes.TryGetValue(definition.Row.AchievementID, out var rewardTime)
             ? PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusRewarded
             : process >= target
@@ -219,13 +265,15 @@ public sealed class AchievementTasks
             ]
             : [];
 
-    private int MeasureProcess(LMNRoleInfo role, pbFinishCondition condition, AchievementMeasures measures) =>
+    private int MeasureProcess(LMNRoleInfo role, pbFinishCondition condition, int taskId, AchievementMeasures measures) =>
         (PB_ENUM_RES_CONDITION_ID)condition.ID switch
         {
             PB_ENUM_RES_CONDITION_ID.PbResConditionTypeTrainerLevelReach => RoleProfile.GetLevel(gameData, role),
             PB_ENUM_RES_CONDITION_ID.PbResConditionIdOwnResPokemon => role.GetOwnedPokemonIds().Length,
             PB_ENUM_RES_CONDITION_ID.PbResConditionIdOwnResAvatarAny => role.GetOwnedItems(RoleItemType.AvatarItem).Length,
-            PB_ENUM_RES_CONDITION_ID.PbResConditionIdGetDiffGroupBadge => measures.OwnedBadgeGroups,
+            PB_ENUM_RES_CONDITION_ID.PbResConditionIdGetDiffGroupBadge => CountOwnedBadgeGroups(condition, measures),
+            _ when BattleTasks.IsBattleCondition(condition) =>
+                BattleTasks.FindStoredProcess(measures.StoredProcesses, taskId, NoPeriod),
             _ => UntrackedProcess,
         };
 
@@ -243,7 +291,12 @@ public sealed class AchievementTasks
 
     private sealed record AchievementDefinition(pbAchievement Row, pbTask_Base Task, pbFinishCondition Condition);
 
-    private sealed record AchievementMeasures(long RoleCreateTime, int OwnedBadgeGroups, int RankedSeasonId, int SeasonPoint);
+    private sealed record AchievementMeasures(
+        long RoleCreateTime,
+        IReadOnlyList<pbBadge_Base> OwnedBadges,
+        int RankedSeasonId,
+        int SeasonPoint,
+        IReadOnlyDictionary<(int TaskId, long PeriodStart), StoredTaskProcess> StoredProcesses);
 
     private sealed record AchievementState(
         int TaskId,
