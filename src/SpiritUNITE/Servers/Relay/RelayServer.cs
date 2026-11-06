@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SpiritUNITE.Auth;
 using SpiritUNITE.Network;
+using SpiritUNITE.Online;
 using SpiritUNITE.Network.Gcp;
 using SpiritUNITE.Network.Lwip;
 using SpiritUNITE.Packets;
@@ -16,7 +17,7 @@ public sealed class RelayServer(
     PacketDispatcher dispatcher,
     LwipTickets tickets,
     AccountSessionManager sessions,
-    RelaySessions relaySessions,
+    RelayRoles relayRoles,
     ILogger<RelayServer> relayLogger,
     ILogger<LwipServer> logger)
     : LwipServer(
@@ -32,13 +33,13 @@ public sealed class RelayServer(
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
         await base.StartAsync(cancellationToken);
-        relaySessions.Advertise(relayAddress.Value.AdvertisedHost(lobbyAddress.Value), relayAddress.Value.Port);
+        relayRoles.Advertise(relayAddress.Value.AdvertisedHost(lobbyAddress.Value), relayAddress.Value.Port);
     }
 
     protected override GcpSessionHooks SessionHooks { get; } = new()
     {
-        Authenticated = relaySessions.AttachAsync,
-        AuthenticatedSessionClosed = relaySessions.DetachAsync,
+        Authenticated = relayRoles.AttachAsync,
+        AuthenticatedSessionClosed = relayRoles.DetachAsync,
     };
 
     protected override async Task<ulong> AuthenticateAsync(GcpAuthReq request)

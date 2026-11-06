@@ -11,7 +11,7 @@ using SpiritUNITE.Game.Profile;
 using SpiritUNITE.Game.PveChallenge;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Room;
-using SpiritUNITE.Network;
+using SpiritUNITE.Online;
 using SpiritUNITE.Network.Lwip;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
@@ -86,9 +86,9 @@ public sealed class DeskManager
     private readonly BagManager bag;
     private readonly ProfileManager profiles;
     private readonly PveChallengeProgress pveChallenge;
-    private readonly RoleSessions sessions;
+    private readonly LobbyRoles lobbyRoles;
     private readonly LwipTickets relayTickets;
-    private readonly RelaySessions relaySessions;
+    private readonly RelayRoles relayRoles;
     private readonly GVoiceOptions gVoice;
     private readonly LoginManager login;
     private readonly TimeProvider clock;
@@ -112,9 +112,9 @@ public sealed class DeskManager
         BagManager bag,
         ProfileManager profiles,
         PveChallengeProgress pveChallenge,
-        RoleSessions sessions,
+        LobbyRoles lobbyRoles,
         LwipTickets relayTickets,
-        RelaySessions relaySessions,
+        RelayRoles relayRoles,
         IOptions<GVoiceOptions> gVoice,
         LoginManager login,
         TimeProvider clock,
@@ -126,9 +126,9 @@ public sealed class DeskManager
         this.bag = bag;
         this.profiles = profiles;
         this.pveChallenge = pveChallenge;
-        this.sessions = sessions;
+        this.lobbyRoles = lobbyRoles;
         this.relayTickets = relayTickets;
-        this.relaySessions = relaySessions;
+        this.relayRoles = relayRoles;
         this.gVoice = gVoice.Value;
         this.login = login;
         this.clock = clock;
@@ -141,7 +141,7 @@ public sealed class DeskManager
             .GroupBy(design => (design.GroupId, design.Level))
             .ToFrozenDictionary(group => group.Key, group => group.First().Id);
         npcHeldItems = BuildNpcHeldItems(gameData);
-        sessions.RoleOffline += OnRoleOfflineAsync;
+        lobbyRoles.RoleOffline += OnRoleOfflineAsync;
     }
 
     public async Task<RoomOutcome> BeginPveDeskAsync(MatchRoom room)
@@ -169,7 +169,7 @@ public sealed class DeskManager
         var releasedUids = new HashSet<ulong>();
         lock (gate)
         {
-            ulong[] offlineUids = [.. memberUids.Where(uid => !sessions.IsOnline(uid))];
+            ulong[] offlineUids = [.. memberUids.Where(uid => !lobbyRoles.IsOnline(uid))];
             if (offlineUids.Length > 0)
             {
                 logger.LogInformation("Room {RoomID} gets no desk: uids {Uids} went offline while it was prepared", room.RoomID, offlineUids);
@@ -905,8 +905,8 @@ public sealed class DeskManager
             logger.LogInformation(
                 "Desk {DeskID} handed to the relay at {RelayUrl}:{VPort} for uids {Uids}",
                 desk.DeskID,
-                relaySessions.AdvertisedHost,
-                relaySessions.AdvertisedPort,
+                relayRoles.AdvertisedHost,
+                relayRoles.AdvertisedPort,
                 desk.HumanUids);
             RelayHandedOff?.Invoke(desk);
             await PushAllAsync(outcome);
@@ -1049,7 +1049,7 @@ public sealed class DeskManager
         foreach (var group in outcome.Pushes.GroupBy(push => push.Uid))
         {
             var packets = group.Select(push => GamePacket.Create(push.Message.MsgID, push.Message.Message)).ToArray();
-            if (!await sessions.PushAsync(group.Key, packets))
+            if (!await lobbyRoles.PushAsync(group.Key, packets))
             {
                 logger.LogInformation("Desk notices for uid {Uid} were not delivered: the role is offline", group.Key);
             }
@@ -1073,8 +1073,8 @@ public sealed class DeskManager
         RelayTGW = new pbCOMDT_TGWINFO
         {
             IsUDP = RelayIsUDP,
-            VPort = relaySessions.AdvertisedPort,
-            RelayUrl = relaySessions.AdvertisedHost,
+            VPort = relayRoles.AdvertisedPort,
+            RelayUrl = relayRoles.AdvertisedHost,
             ZSDCode = player.RelayTicket?.ZSDCode ?? string.Empty,
             IdcTag = gVoice.IdcTag,
             Token = player.RelayTicket?.Token ?? 0,

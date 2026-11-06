@@ -6,7 +6,7 @@ using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Settings;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
-using SpiritUNITE.Network;
+using SpiritUNITE.Online;
 
 namespace SpiritUNITE.Game.Friend;
 
@@ -28,7 +28,7 @@ public sealed class FriendManager
 
     private readonly FriendRepository repository;
     private readonly RoleInfoStore roles;
-    private readonly RoleSessions sessions;
+    private readonly LobbyRoles lobbyRoles;
     private readonly FriendPresence presence;
     private readonly RoleBriefBuilder briefs;
     private readonly SettingsManager settings;
@@ -39,7 +39,7 @@ public sealed class FriendManager
     public FriendManager(
         FriendRepository repository,
         RoleInfoStore roles,
-        RoleSessions sessions,
+        LobbyRoles lobbyRoles,
         FriendPresence presence,
         RoleBriefBuilder briefs,
         SettingsManager settings,
@@ -49,15 +49,15 @@ public sealed class FriendManager
     {
         this.repository = repository;
         this.roles = roles;
-        this.sessions = sessions;
+        this.lobbyRoles = lobbyRoles;
         this.presence = presence;
         this.briefs = briefs;
         this.settings = settings;
         this.gameData = gameData;
         this.clock = clock;
         this.logger = logger;
-        sessions.RoleOnline += OnRoleOnlineAsync;
-        sessions.RoleOffline += OnRoleOfflineAsync;
+        lobbyRoles.RoleOnline += OnRoleOnlineAsync;
+        lobbyRoles.RoleOffline += OnRoleOfflineAsync;
         presence.GameStateChanged += NotifyGameStateAsync;
     }
 
@@ -147,7 +147,7 @@ public sealed class FriendManager
 
         if (await repository.DeleteBlackAsync(uid, targetUid))
         {
-            await sessions.PushAsync(uid, GamePacket.Create(
+            await lobbyRoles.PushAsync(uid, GamePacket.Create(
                 PB_ENUM_CS_MSGID_DEF.PbScidFriendBlackNodeDeletedNtf,
                 new pbSCFriendBlackNodeDeletedNtf { Uid = targetUid }));
         }
@@ -177,7 +177,7 @@ public sealed class FriendManager
         };
         await repository.SaveRequestAsync(request, MaxFriendRequestNum);
         logger.LogInformation("Uid {Uid} sent a friend request to uid {TargetUid}", uid, targetUid);
-        await sessions.PushAsync(targetUid, GamePacket.Create(
+        await lobbyRoles.PushAsync(targetUid, GamePacket.Create(
             PB_ENUM_CS_MSGID_DEF.PbScidNewFriendRequestNtf,
             new pbSCNewFriendRequestNtf { FriendRequest = BuildFriendRequest(request, role, 0) }));
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
@@ -306,7 +306,7 @@ public sealed class FriendManager
             await PushFriendDeletedAsync(uid, blackUid);
         }
 
-        await sessions.PushAsync(uid, GamePacket.Create(
+        await lobbyRoles.PushAsync(uid, GamePacket.Create(
             PB_ENUM_CS_MSGID_DEF.PbScidNewFriendBlackNodeNtf,
             new pbSCNewFriendBlackNodeNtf { NewNode = BuildBlackListInfo(blackRole) }));
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
@@ -320,7 +320,7 @@ public sealed class FriendManager
         }
 
         logger.LogInformation("Uid {Uid} unblocked uid {BlackUid}", uid, blackUid);
-        await sessions.PushAsync(uid, GamePacket.Create(
+        await lobbyRoles.PushAsync(uid, GamePacket.Create(
             PB_ENUM_CS_MSGID_DEF.PbScidFriendBlackNodeDeletedNtf,
             new pbSCFriendBlackNodeDeletedNtf { Uid = blackUid }));
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
@@ -381,23 +381,23 @@ public sealed class FriendManager
 
     private async Task PushNewFriendAsync(ulong uid, LMNRoleInfo friendRole)
     {
-        if (!sessions.IsOnline(uid) || await repository.FindFriendAsync(uid, friendRole.GameUlongUID) is not { } friend)
+        if (!lobbyRoles.IsOnline(uid) || await repository.FindFriendAsync(uid, friendRole.GameUlongUID) is not { } friend)
         {
             return;
         }
 
         var lastLogoutTimes = await repository.GetLastLogoutTimesAsync([friend.FriendUid]);
-        await sessions.PushAsync(uid, GamePacket.Create(
+        await lobbyRoles.PushAsync(uid, GamePacket.Create(
             PB_ENUM_CS_MSGID_DEF.PbScidNewFriendNtf,
             new pbSCNewFriendNtf { FriendInfo = await BuildFriendInfoAsync(friend, friendRole, lastLogoutTimes.GetValueOrDefault(friend.FriendUid)) }));
     }
 
     private async Task PushFriendDeletedAsync(ulong uid, ulong friendUid)
     {
-        await sessions.PushAsync(uid, GamePacket.Create(
+        await lobbyRoles.PushAsync(uid, GamePacket.Create(
             PB_ENUM_CS_MSGID_DEF.PbScidFriendDeletedNtf,
             new pbSCFriendDeletedNtf { Uid = friendUid }));
-        await sessions.PushAsync(friendUid, GamePacket.Create(
+        await lobbyRoles.PushAsync(friendUid, GamePacket.Create(
             PB_ENUM_CS_MSGID_DEF.PbScidFriendDeletedNtf,
             new pbSCFriendDeletedNtf { Uid = uid }));
     }
@@ -475,7 +475,7 @@ public sealed class FriendManager
             new pbSCFriendOfflinedNtf { Uid = uid, LogoutTime = logoutTime });
         foreach (var friend in await repository.GetFriendsAsync(uid))
         {
-            await sessions.PushAsync(friend.FriendUid, offlined);
+            await lobbyRoles.PushAsync(friend.FriendUid, offlined);
         }
     }
 
@@ -486,7 +486,7 @@ public sealed class FriendManager
             new pbSCFriendGameStateNtf { FriendGameStateList = { presence.BuildUidGameState(uid) } });
         foreach (var friend in await repository.GetFriendsAsync(uid))
         {
-            await sessions.PushAsync(friend.FriendUid, gameState);
+            await lobbyRoles.PushAsync(friend.FriendUid, gameState);
         }
     }
 }

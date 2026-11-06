@@ -18,7 +18,7 @@ using SpiritUNITE.Game.StarRoad;
 using SpiritUNITE.Game.Tasks;
 using SpiritUNITE.Game.TrainerExpGift;
 using SpiritUNITE.Game.Wallet;
-using SpiritUNITE.Network;
+using SpiritUNITE.Online;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
 
@@ -71,7 +71,7 @@ public sealed class BattleSettlement
     private readonly BattleSettlementRepository repository;
     private readonly ActivitySchedule activities;
     private readonly RoleRepository roleRepository;
-    private readonly RoleSessions sessions;
+    private readonly LobbyRoles lobbyRoles;
     private readonly BattleSettlementOptions options;
     private readonly TimeProvider clock;
     private readonly ILogger<BattleSettlement> logger;
@@ -96,7 +96,7 @@ public sealed class BattleSettlement
         BattleSettlementRepository repository,
         ActivitySchedule activities,
         RoleRepository roleRepository,
-        RoleSessions sessions,
+        LobbyRoles lobbyRoles,
         IOptions<BattleSettlementOptions> options,
         TimeProvider clock,
         ILogger<BattleSettlement> logger)
@@ -117,7 +117,7 @@ public sealed class BattleSettlement
         this.repository = repository;
         this.activities = activities;
         this.roleRepository = roleRepository;
-        this.sessions = sessions;
+        this.lobbyRoles = lobbyRoles;
         this.options = options.Value;
         this.clock = clock;
         this.logger = logger;
@@ -217,7 +217,7 @@ public sealed class BattleSettlement
             role,
             BuildBattleTaskEvent(result, plan),
             [.. plan.StarTasks.Select(task => BuildStarTaskInfo(task, now))]);
-        if (!sessions.IsOnline(uid))
+        if (!lobbyRoles.IsOnline(uid))
         {
             logger.LogInformation("Settlement of uid {Uid} was stored but not delivered: the role is offline", uid);
             return;
@@ -234,7 +234,7 @@ public sealed class BattleSettlement
             battleTaskPackets,
             gain,
             fightRecordNtf);
-        if (!await sessions.PushAsync(uid, packets))
+        if (!await lobbyRoles.PushAsync(uid, packets))
         {
             logger.LogInformation("Settlement of uid {Uid} was stored but not delivered: the push failed", uid);
         }

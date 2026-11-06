@@ -1,12 +1,12 @@
 using Microsoft.Extensions.Logging;
 using SpiritUNITE.Battle;
 using SpiritUNITE.Game.Room;
-using SpiritUNITE.Network;
+using SpiritUNITE.Online;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers.Battle;
 
-public sealed class HeroSelectionHandlers(DeskManager desks, RoleSessions sessions, ILogger<HeroSelectionHandlers> logger)
+public sealed class HeroSelectionHandlers(DeskManager desks, LobbyRoles lobbyRoles, ILogger<HeroSelectionHandlers> logger)
 {
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidChooseHeroReq)]
     public async Task<GamePacket[]> OnChooseHeroReq(GamePacket request)
@@ -46,7 +46,7 @@ public sealed class HeroSelectionHandlers(DeskManager desks, RoleSessions sessio
         foreach (var group in outcome.Pushes.Where(push => push.Uid != request.Uid).GroupBy(push => push.Uid))
         {
             var packets = group.Select(push => GamePacket.Create(push.Message.MsgID, push.Message.Message)).ToArray();
-            if (!await sessions.PushAsync(group.Key, packets))
+            if (!await lobbyRoles.PushAsync(group.Key, packets))
             {
                 logger.LogInformation("Pick notices for uid {Uid} were not delivered: the role is offline", group.Key);
             }

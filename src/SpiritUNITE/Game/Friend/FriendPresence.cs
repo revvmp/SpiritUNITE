@@ -1,11 +1,11 @@
 using System.Collections.Concurrent;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
-using SpiritUNITE.Network;
+using SpiritUNITE.Online;
 
 namespace SpiritUNITE.Game.Friend;
 
-public sealed class FriendPresence(RoleSessions sessions)
+public sealed class FriendPresence(LobbyRoles lobbyRoles)
 {
     private const int Online = 1;
     private const int Offline = 0;
@@ -17,7 +17,7 @@ public sealed class FriendPresence(RoleSessions sessions)
 
     public event Func<ulong, Task>? GameStateChanged;
 
-    public bool IsOnline(ulong uid) => sessions.IsOnline(uid);
+    public bool IsOnline(ulong uid) => lobbyRoles.IsOnline(uid);
 
     public void RestoreInvisible(ulong uid, bool isInvisible, long loginTime)
     {
@@ -97,7 +97,7 @@ public sealed class FriendPresence(RoleSessions sessions)
 
     public pbCOMDT_GAME_STATE_INFO BuildGameState(ulong uid)
     {
-        var online = sessions.IsOnline(uid);
+        var online = lobbyRoles.IsOnline(uid);
         var (gameStateType, gameRealStartTime) = online ? gameStates.GetValueOrDefault(uid) : default;
         return EmptyChildren.Fill(new pbCOMDT_GAME_STATE_INFO
         {

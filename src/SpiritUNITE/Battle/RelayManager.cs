@@ -1,6 +1,6 @@
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
-using SpiritUNITE.Network;
+using SpiritUNITE.Online;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
 using SpiritUNITE.Tools;
@@ -57,7 +57,7 @@ public sealed class RelayManager
 
     private readonly DeskManager desks;
     private readonly BattleSettlement settlement;
-    private readonly RelaySessions relaySessions;
+    private readonly RelayRoles relayRoles;
     private readonly TimeProvider clock;
     private readonly ILogger<RelayManager> logger;
     private readonly Lock gate = new();
@@ -66,15 +66,15 @@ public sealed class RelayManager
 
     public event Func<ulong, Task>? RelayFinished;
 
-    public RelayManager(DeskManager desks, BattleSettlement settlement, RelaySessions relaySessions, TimeProvider clock, ILogger<RelayManager> logger)
+    public RelayManager(DeskManager desks, BattleSettlement settlement, RelayRoles relayRoles, TimeProvider clock, ILogger<RelayManager> logger)
     {
         this.desks = desks;
         this.settlement = settlement;
-        this.relaySessions = relaySessions;
+        this.relayRoles = relayRoles;
         this.clock = clock;
         this.logger = logger;
-        relaySessions.RelayOnline += AttachAsync;
-        relaySessions.RelayOffline += DetachAsync;
+        relayRoles.RelayOnline += AttachAsync;
+        relayRoles.RelayOffline += DetachAsync;
         desks.RelayHandedOff += desk => _ = ExpireUnattachedAsync(desk);
     }
 
@@ -101,7 +101,7 @@ public sealed class RelayManager
         if (game is null)
         {
             logger.LogWarning("Relay session of uid {Uid} has no desk in the relay phase", uid);
-            relaySessions.Close(uid);
+            relayRoles.Close(uid);
             return;
         }
 
@@ -119,14 +119,14 @@ public sealed class RelayManager
 
         if (finished)
         {
-            relaySessions.Close(uid);
+            relayRoles.Close(uid);
             return;
         }
 
         logger.LogInformation("Uid {Uid} joined relay desk {DeskID}", uid, game.Desk.DeskID);
         if (packets.Length > 0)
         {
-            await relaySessions.PushAsync(uid, RelayChannel.Stream, packets);
+            await relayRoles.PushAsync(uid, RelayChannel.Stream, packets);
         }
 
         if (created)
@@ -195,7 +195,7 @@ public sealed class RelayManager
         var notice = BuildLoadprocessNtf(human.ObjId, request.Process);
         foreach (var other in others)
         {
-            await relaySessions.PushAsync(other, RelayChannel.Stream, notice);
+            await relayRoles.PushAsync(other, RelayChannel.Stream, notice);
         }
     }
 
@@ -251,7 +251,7 @@ public sealed class RelayManager
 
         if (echoes)
         {
-            await relaySessions.PushAsync(uid, RelayChannel.Unreliable, ping with { Uid = 0, ClientSeq = 0 });
+            await relayRoles.PushAsync(uid, RelayChannel.Unreliable, ping with { Uid = 0, ClientSeq = 0 });
         }
     }
 
@@ -479,7 +479,7 @@ public sealed class RelayManager
         try
         {
             await Task.Delay(SecondGameoverRspDelay, clock);
-            await relaySessions.PushAsync(
+            await relayRoles.PushAsync(
                 result.Human.Uid,
                 RelayChannel.Stream,
                 GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidMultgameGameoverRsp, new pbSCMultgameGameoverRsp()) with
@@ -740,7 +740,7 @@ public sealed class RelayManager
         game.Stopping.Cancel();
         foreach (var uid in connected)
         {
-            relaySessions.Close(uid);
+            relayRoles.Close(uid);
         }
     }
 
@@ -851,7 +851,7 @@ public sealed class RelayManager
     {
         foreach (var send in sends)
         {
-            await relaySessions.PushAsync(send.Uid, send.Channel, send.Packets);
+            await relayRoles.PushAsync(send.Uid, send.Channel, send.Packets);
         }
     }
 

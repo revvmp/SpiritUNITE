@@ -1,21 +1,21 @@
 using Microsoft.Extensions.Hosting;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
-using SpiritUNITE.Network;
+using SpiritUNITE.Online;
 
 namespace SpiritUNITE.Game.Settings;
 
-public sealed class RedDotRecorder(RoleSessions sessions, SettingsManager settings) : IHostedService
+public sealed class RedDotRecorder(LobbyRoles lobbyRoles, SettingsManager settings) : IHostedService
 {
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        sessions.PacketsSending += RecordAsync;
+        lobbyRoles.PacketsSending += RecordAsync;
         return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        sessions.PacketsSending -= RecordAsync;
+        lobbyRoles.PacketsSending -= RecordAsync;
         return Task.CompletedTask;
     }
 

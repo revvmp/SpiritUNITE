@@ -37,6 +37,7 @@ using SpiritUNITE.Game.Shop;
 using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Logging;
 using SpiritUNITE.Network;
+using SpiritUNITE.Online;
 using SpiritUNITE.Network.Lwip;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Handlers.Session;
@@ -210,8 +211,8 @@ public static class Server
     private static void AddGame(IHostApplicationBuilder builder)
     {
         builder.Services.AddSingleton(TimeProvider.System);
-        builder.Services.AddSingleton<RoleSessions>();
-        builder.Services.AddSingleton<RelaySessions>();
+        builder.Services.AddSingleton<LobbyRoles>();
+        builder.Services.AddSingleton<RelayRoles>();
         builder.Services.AddSingleton<LwipTickets>();
         builder.Services.AddSingleton<OffingRestartSessions>();
         builder.Services.AddSingleton<PendingLoginFinishes>();

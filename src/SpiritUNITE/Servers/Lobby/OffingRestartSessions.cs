@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using SpiritUNITE.Network;
+using SpiritUNITE.Online;
 
 namespace SpiritUNITE.Servers.Lobby;
 
@@ -8,20 +8,20 @@ public sealed class OffingRestartSessions
     private static readonly TimeSpan OffingRestartWindow = TimeSpan.FromMinutes(30);
 
     private readonly ConcurrentDictionary<ulong, DateTimeOffset?> loggedInRoles = new();
-    private readonly RoleSessions roleSessions;
+    private readonly LobbyRoles lobbyRoles;
     private readonly TimeProvider clock;
 
-    public OffingRestartSessions(RoleSessions roleSessions, TimeProvider clock)
+    public OffingRestartSessions(LobbyRoles lobbyRoles, TimeProvider clock)
     {
-        this.roleSessions = roleSessions;
+        this.lobbyRoles = lobbyRoles;
         this.clock = clock;
-        roleSessions.RoleOnline += OnRoleOnlineAsync;
-        roleSessions.RoleOffline += OnRoleOfflineAsync;
+        lobbyRoles.RoleOnline += OnRoleOnlineAsync;
+        lobbyRoles.RoleOffline += OnRoleOfflineAsync;
     }
 
     public bool CanResume(ulong uid)
     {
-        if (roleSessions.IsOnline(uid))
+        if (lobbyRoles.IsOnline(uid))
         {
             return true;
         }

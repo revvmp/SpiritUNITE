@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SpiritUNITE.Auth;
 using SpiritUNITE.Network;
+using SpiritUNITE.Online;
 using SpiritUNITE.Network.Gcp;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
@@ -13,7 +14,7 @@ public sealed class LobbyServer(
     IOptions<TcpServerOptions> options,
     PacketDispatcher dispatcher,
     AccountSessionManager sessions,
-    RoleSessions roleSessions,
+    LobbyRoles lobbyRoles,
     OffingRestartSessions offingRestarts,
     ILogger<LobbyServer> lobbyLogger,
     ILogger<TcpServer> logger,
@@ -22,10 +23,10 @@ public sealed class LobbyServer(
 {
     protected override GcpSessionHooks SessionHooks { get; } = new()
     {
-        LoginCompleted = roleSessions.AttachAsync,
-        SessionClosed = roleSessions.DetachAsync,
-        RepliesSending = roleSessions.RaiseSendingAsync,
-        FindNextSvrPkgSeq = roleSessions.FindNextSvrPkgSeq,
+        LoginCompleted = lobbyRoles.AttachAsync,
+        SessionClosed = lobbyRoles.DetachAsync,
+        RepliesSending = lobbyRoles.RaiseSendingAsync,
+        FindNextSvrPkgSeq = lobbyRoles.FindNextSvrPkgSeq,
     };
 
     protected override GamePacket[] BuildGreeting(ulong authenticatedUid) =>

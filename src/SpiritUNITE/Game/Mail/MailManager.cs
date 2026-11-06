@@ -10,7 +10,7 @@ using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
-using SpiritUNITE.Network;
+using SpiritUNITE.Online;
 
 namespace SpiritUNITE.Game.Mail;
 
@@ -18,7 +18,7 @@ public sealed record MailClaim(RoleMail Mail, MailGrant Grant, RoleWallet Wallet
 
 public sealed class MailManager(
     MailRepository repository,
-    RoleSessions sessions,
+    LobbyRoles lobbyRoles,
     GameData gameData,
     TimeProvider clock,
     ILogger<MailManager> logger)
@@ -38,7 +38,7 @@ public sealed class MailManager(
     public async Task<RoleMail> SendSystemMailAsync(ulong uid, SystemMail mail)
     {
         var saved = await InsertSystemMailAsync(uid, mail);
-        await sessions.PushAsync(uid, GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidMailNewNtf, new pbSCMailNewNtf
+        await lobbyRoles.PushAsync(uid, GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidMailNewNtf, new pbSCMailNewNtf
         {
             MailList = new pbCOMDT_MAIL_LIST { MailType = saved.MailType, MailInfo = { BuildMailItem(saved) } },
         }));

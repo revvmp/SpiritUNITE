@@ -3,9 +3,9 @@ using Microsoft.Extensions.Logging;
 using SpiritUNITE.Network.Gcp;
 using SpiritUNITE.Packets;
 
-namespace SpiritUNITE.Network;
+namespace SpiritUNITE.Online;
 
-public sealed class RoleSessions(ILogger<RoleSessions> logger)
+public sealed class LobbyRoles(ILogger<LobbyRoles> logger)
 {
     private readonly ConcurrentDictionary<ulong, GcpSession> sessions = new();
     private readonly ConcurrentDictionary<ulong, int> closedNextSvrPkgSeqs = new();

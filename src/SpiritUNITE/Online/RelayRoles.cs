@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using SpiritUNITE.Network.Gcp;
 using SpiritUNITE.Packets;
 
-namespace SpiritUNITE.Network;
+namespace SpiritUNITE.Online;
 
 public enum RelayChannel
 {
@@ -11,7 +11,7 @@ public enum RelayChannel
     Unreliable,
 }
 
-public sealed class RelaySessions(ILogger<RelaySessions> logger)
+public sealed class RelayRoles(ILogger<RelayRoles> logger)
 {
     private readonly ConcurrentDictionary<ulong, GcpSession> sessions = new();
 

@@ -9,7 +9,7 @@ using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Room;
 using SpiritUNITE.Game.Settings;
 using SpiritUNITE.Packets.Messages;
-using SpiritUNITE.Network;
+using SpiritUNITE.Online;
 
 namespace SpiritUNITE.Packets.Handlers.Room;
 
@@ -21,7 +21,7 @@ public sealed class RoomHandlers
     private readonly RoomManager rooms;
     private readonly RoomInvites invites;
     private readonly DeskManager desks;
-    private readonly RoleSessions sessions;
+    private readonly LobbyRoles lobbyRoles;
     private readonly FriendPresence presence;
     private readonly ProfileManager profiles;
     private readonly SettingsManager settings;
@@ -38,7 +38,7 @@ public sealed class RoomHandlers
         RoomInvites invites,
         DeskManager desks,
         RelayManager relays,
-        RoleSessions sessions,
+        LobbyRoles lobbyRoles,
         FriendPresence presence,
         ProfileManager profiles,
         SettingsManager settings,
@@ -53,7 +53,7 @@ public sealed class RoomHandlers
         this.rooms = rooms;
         this.invites = invites;
         this.desks = desks;
-        this.sessions = sessions;
+        this.lobbyRoles = lobbyRoles;
         this.presence = presence;
         this.profiles = profiles;
         this.settings = settings;
@@ -64,7 +64,7 @@ public sealed class RoomHandlers
         this.gVoice = gVoice.Value;
         this.clock = clock;
         this.logger = logger;
-        sessions.RoleOffline += OnRoleOfflineAsync;
+        lobbyRoles.RoleOffline += OnRoleOfflineAsync;
         desks.DeskClosed += presence.LeaveGameAsync;
         relays.RelayFinished += presence.LeaveGameAsync;
     }
@@ -107,7 +107,7 @@ public sealed class RoomHandlers
             request,
             outcome,
             [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomDailyActivityRewardNtf, RoomNotices.DailyActivityReward(dailyActivityInfo))],
-            [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomRttNtf, RoomNotices.RoomRtt(gVoice, sessions.Rtt(request.Uid)))]);
+            [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomRttNtf, RoomNotices.RoomRtt(gVoice, lobbyRoles.Rtt(request.Uid)))]);
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidShowidJoinRoomReq)]
@@ -506,7 +506,7 @@ public sealed class RoomHandlers
         foreach (var group in outcome.Pushes.Where(push => push.Uid != except).GroupBy(push => push.Uid))
         {
             var packets = group.Select(push => GamePacket.Create(push.Message.MsgID, push.Message.Message)).ToArray();
-            if (!await sessions.PushAsync(group.Key, packets))
+            if (!await lobbyRoles.PushAsync(group.Key, packets))
             {
                 logger.LogInformation("Room notices for uid {Uid} were not delivered: the role is offline", group.Key);
             }

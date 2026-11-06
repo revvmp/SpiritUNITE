@@ -2,13 +2,13 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SpiritUNITE.Game.Lobby;
 using SpiritUNITE.Game.Settings;
-using SpiritUNITE.Network;
+using SpiritUNITE.Online;
 using SpiritUNITE.Packets;
 
 namespace SpiritUNITE.Servers.Lobby;
 
 public sealed class LobbyRefreshTick(
-    RoleSessions sessions,
+    LobbyRoles lobbyRoles,
     LobbyNotices notices,
     SettingsManager settings,
     TimeProvider clock,
@@ -37,12 +37,12 @@ public sealed class LobbyRefreshTick(
 
     private async Task RefreshOnlineRolesAsync()
     {
-        var onlineUids = sessions.OnlineUids;
+        var onlineUids = lobbyRoles.OnlineUids;
         foreach (var uid in onlineUids)
         {
             try
             {
-                await sessions.PushAsync(uid, await BuildRefreshPacketsAsync(uid));
+                await lobbyRoles.PushAsync(uid, await BuildRefreshPacketsAsync(uid));
             }
             catch (Exception exception)
             {

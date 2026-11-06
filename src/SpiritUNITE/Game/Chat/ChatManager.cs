@@ -9,7 +9,7 @@ using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Room;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
-using SpiritUNITE.Network;
+using SpiritUNITE.Online;
 
 namespace SpiritUNITE.Game.Chat;
 
@@ -32,7 +32,7 @@ public sealed class ChatManager
     private readonly ChatRepository repository;
     private readonly FriendRepository friendRepository;
     private readonly RoomManager rooms;
-    private readonly RoleSessions sessions;
+    private readonly LobbyRoles lobbyRoles;
     private readonly TimeProvider clock;
     private readonly ILogger<ChatManager> logger;
     private readonly ConcurrentDictionary<ulong, DateTimeOffset> lastChatTimes = new();
@@ -41,18 +41,18 @@ public sealed class ChatManager
         ChatRepository repository,
         FriendRepository friendRepository,
         RoomManager rooms,
-        RoleSessions sessions,
+        LobbyRoles lobbyRoles,
         TimeProvider clock,
         ILogger<ChatManager> logger)
     {
         this.repository = repository;
         this.friendRepository = friendRepository;
         this.rooms = rooms;
-        this.sessions = sessions;
+        this.lobbyRoles = lobbyRoles;
         this.clock = clock;
         this.logger = logger;
-        sessions.RoleOnline += DeliverOfflineAsync;
-        sessions.RoleOffline += ForgetAsync;
+        lobbyRoles.RoleOnline += DeliverOfflineAsync;
+        lobbyRoles.RoleOffline += ForgetAsync;
     }
 
     public async Task<ChatOutcome> ChatAsync(LMNRoleInfo role, pbCOMDT_CHAT_MSG chatMsg)
@@ -142,7 +142,7 @@ public sealed class ChatManager
             return new(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, chatMsg);
         }
 
-        var delivered = await sessions.PushAsync(destUid, GamePacket.Create(
+        var delivered = await lobbyRoles.PushAsync(destUid, GamePacket.Create(
             PB_ENUM_CS_MSGID_DEF.PbScidChatMsgNtf,
             new pbSCChatMsgNtf { ChatMsg = { chatMsg }, TimeStamp = now.ToUnixTimeSeconds() }));
         if (!delivered)
@@ -194,7 +194,7 @@ public sealed class ChatManager
         ulong[] memberUids = [.. matchRoom.Members.Select(member => member.Uid).Where(memberUid => memberUid != uid)];
         foreach (var memberUid in memberUids)
         {
-            await sessions.PushAsync(memberUid, notify);
+            await lobbyRoles.PushAsync(memberUid, notify);
         }
 
         logger.LogInformation("Room chat from uid {Uid} to {Count} room members", uid, memberUids.Length);
@@ -224,7 +224,7 @@ public sealed class ChatManager
     {
         if (await TakeOfflineChatAsync(uid) is { } offline)
         {
-            await sessions.PushAsync(uid, offline);
+            await lobbyRoles.PushAsync(uid, offline);
         }
     }
 
