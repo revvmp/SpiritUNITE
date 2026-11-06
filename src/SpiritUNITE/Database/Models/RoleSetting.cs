@@ -35,4 +35,13 @@ public sealed class RoleSetting
 
     [Column("bub_tip_info")]
     public byte[] BubTipInfo { get; set; } = [];
+
+    [Column("is_close_intimacy_show")]
+    public int IsCloseIntimacyShow { get; set; }
+
+    [Column("is_invisible")]
+    public int IsInvisible { get; set; }
+
+    [Column("is_no_friend_invite_invisible")]
+    public int IsNoFriendInviteInvisible { get; set; }
 }

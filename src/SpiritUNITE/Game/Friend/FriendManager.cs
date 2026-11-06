@@ -3,6 +3,7 @@ using SpiritUNITE.Database.Models;
 using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Role;
+using SpiritUNITE.Game.Settings;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
 using SpiritUNITE.Network;
@@ -30,6 +31,7 @@ public sealed class FriendManager
     private readonly RoleSessions sessions;
     private readonly FriendPresence presence;
     private readonly RoleBriefBuilder briefs;
+    private readonly SettingsManager settings;
     private readonly GameData gameData;
     private readonly TimeProvider clock;
     private readonly ILogger<FriendManager> logger;
@@ -40,6 +42,7 @@ public sealed class FriendManager
         RoleSessions sessions,
         FriendPresence presence,
         RoleBriefBuilder briefs,
+        SettingsManager settings,
         GameData gameData,
         TimeProvider clock,
         ILogger<FriendManager> logger)
@@ -49,6 +52,7 @@ public sealed class FriendManager
         this.sessions = sessions;
         this.presence = presence;
         this.briefs = briefs;
+        this.settings = settings;
         this.gameData = gameData;
         this.clock = clock;
         this.logger = logger;
@@ -111,7 +115,7 @@ public sealed class FriendManager
                 BriefInfo = await briefs.BuildRoleBriefInfoAsync(found, lastLogoutTimes.GetValueOrDefault(foundUid)),
                 BaseOnType = baseOnType,
                 Online = online ? Online : Offline,
-                SelfInvisibleInfo = online ? new pbCOMDT_PLAYER_INVISIBLE_INFO() : null,
+                SelfInvisibleInfo = online ? presence.BuildInvisibleInfo(foundUid) : null,
             });
         }
 
@@ -456,6 +460,8 @@ public sealed class FriendManager
 
     private async Task OnRoleOnlineAsync(ulong uid)
     {
+        var saved = await settings.LoadAsync(uid);
+        presence.RestoreInvisible(uid, saved.IsInvisible == RoleSettings.On, clock.GetUtcNow().ToUnixTimeSeconds());
         await NotifyGameStateAsync(uid);
     }
 

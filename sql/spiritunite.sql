@@ -264,8 +264,14 @@ CREATE TABLE IF NOT EXISTS `role_setting` (
     country_code INT NOT NULL DEFAULT 0,
     red_dot_info VARBINARY(4096) NOT NULL,
     bub_tip_info VARBINARY(256) NOT NULL,
+    is_close_intimacy_show INT NOT NULL DEFAULT 0,
+    is_invisible INT NOT NULL DEFAULT 0,
+    is_no_friend_invite_invisible INT NOT NULL DEFAULT 0,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT ck_role_setting_ab_mode CHECK (ab_mode IN (1, 2)),
+    CONSTRAINT ck_role_setting_is_close_intimacy_show CHECK (is_close_intimacy_show IN (0, 1)),
+    CONSTRAINT ck_role_setting_is_invisible CHECK (is_invisible IN (0, 1)),
+    CONSTRAINT ck_role_setting_is_no_friend_invite_invisible CHECK (is_no_friend_invite_invisible IN (0, 1)),
     CONSTRAINT fk_role_setting_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 

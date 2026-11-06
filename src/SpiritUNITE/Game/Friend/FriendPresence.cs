@@ -10,11 +10,52 @@ public sealed class FriendPresence(RoleSessions sessions)
     private const int Online = 1;
     private const int Offline = 0;
 
+    private const int Invisible = 1;
+
     private readonly ConcurrentDictionary<ulong, (int GameStateType, long GameRealStartTime)> gameStates = new();
+    private readonly ConcurrentDictionary<ulong, pbCOMDT_PLAYER_INVISIBLE_INFO> invisibleInfos = new();
 
     public event Func<ulong, Task>? GameStateChanged;
 
     public bool IsOnline(ulong uid) => sessions.IsOnline(uid);
+
+    public void RestoreInvisible(ulong uid, bool isInvisible, long loginTime)
+    {
+        if (isInvisible)
+        {
+            invisibleInfos[uid] = new pbCOMDT_PLAYER_INVISIBLE_INFO { IsInvisible = Invisible, SelfInvisibleTime = loginTime };
+        }
+        else
+        {
+            invisibleInfos.TryRemove(uid, out _);
+        }
+    }
+
+    public async Task SetInvisibleAsync(ulong uid, PB_ENUM_ENM_INVISIBLE_TYPE invisibleType, long changeTime)
+    {
+        switch (invisibleType)
+        {
+            case PB_ENUM_ENM_INVISIBLE_TYPE.PbEnmInvisibleTypeTemp:
+                invisibleInfos[uid] = new pbCOMDT_PLAYER_INVISIBLE_INFO { IsInvisible = Invisible, SelfInvisibleTime = changeTime };
+                break;
+            case PB_ENUM_ENM_INVISIBLE_TYPE.PbEnmInvisibleTypeForever:
+                invisibleInfos[uid] = new pbCOMDT_PLAYER_INVISIBLE_INFO { IsForeverInvisible = Invisible, ForeverInvisibleTime = changeTime };
+                break;
+            case PB_ENUM_ENM_INVISIBLE_TYPE.PbEnmInvisibleTypeOnline:
+                invisibleInfos.TryRemove(uid, out _);
+                break;
+            default:
+                return;
+        }
+
+        if (GameStateChanged is { } changed)
+        {
+            await changed(uid);
+        }
+    }
+
+    public pbCOMDT_PLAYER_INVISIBLE_INFO BuildInvisibleInfo(ulong uid) =>
+        invisibleInfos.TryGetValue(uid, out var invisibleInfo) ? invisibleInfo.Clone() : new pbCOMDT_PLAYER_INVISIBLE_INFO();
 
     public async Task SetGameStateAsync(ulong uid, PB_ENUM_E_ACNT_GAMESTATE gameStateType, long gameRealStartTime)
     {
@@ -33,7 +74,11 @@ public sealed class FriendPresence(RoleSessions sessions)
         }
     }
 
-    public void Forget(ulong uid) => gameStates.TryRemove(uid, out _);
+    public void Forget(ulong uid)
+    {
+        gameStates.TryRemove(uid, out _);
+        invisibleInfos.TryRemove(uid, out _);
+    }
 
     public pbCOMDT_GAME_STATE_INFO BuildGameState(ulong uid)
     {
@@ -44,6 +89,7 @@ public sealed class FriendPresence(RoleSessions sessions)
             Online = online ? Online : Offline,
             GameStateType = gameStateType,
             GameRealStartTime = gameRealStartTime,
+            SelfInvisibleInfo = online ? BuildInvisibleInfo(uid) : null,
         });
     }
 

@@ -17,6 +17,8 @@ public sealed class SettingsManager(SettingsRepository repository, GameData game
     private const int MaxRedDotCnt = (int)PB_MACRO_COM_MAX_RED_DOT_CNT.PbComMaxRedDotCnt;
     public const int RedDotSwitchedOn = 0;
     private const int RedDotSwitchedOff = 1;
+    private const int SwitchOn = 1;
+    private const int NoFriendInviteInvisibleType = (int)PB_ENUM_ENM_INVISIBLE_TYPE.PbEnmInvisibleTypeNofriendInvite;
 
     private readonly ConcurrentDictionary<ulong, RoleSettingsEntry> entries = new();
 
@@ -158,20 +160,62 @@ public sealed class SettingsManager(SettingsRepository repository, GameData game
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
-    public async Task<PB_ENUM_RES_ERROR_CODE> SetGameSettingAsync(ulong gameUlongUID, IReadOnlyList<int> gameSettingValues)
+    public async Task<(PB_ENUM_RES_ERROR_CODE Result, bool FirstGameSetting)> SetGameSettingAsync(
+        ulong gameUlongUID,
+        IReadOnlyList<int> gameSettingValues)
     {
         if (gameSettingValues.Count > MaxGameSettingValues)
+        {
+            return (PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid, false);
+        }
+
+        var firstGameSetting = await WithSettingsAsync(gameUlongUID, settings =>
+        {
+            var first = settings.GameSettingInfo.GameSettingValue.Count == 0 && gameSettingValues.Count > 0;
+            settings.GameSettingInfo = new pbCOMDT_CLT_GAME_SETTING_INFO { GameSettingValue = { gameSettingValues } };
+            return (true, first);
+        });
+        return (PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, firstGameSetting);
+    }
+
+    public async Task<PB_ENUM_RES_ERROR_CODE> SetIntimacyShowAsync(ulong gameUlongUID, int isIntimacyShow)
+    {
+        if (!IsSwitch(isIntimacyShow))
         {
             return PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
         }
 
         await ChangeAsync(gameUlongUID, settings =>
-        {
-            settings.GameSettingInfo = new pbCOMDT_CLT_GAME_SETTING_INFO { GameSettingValue = { gameSettingValues } };
-            return true;
-        });
+            Assign(settings.IsCloseIntimacyShow, isIntimacyShow, value => settings.IsCloseIntimacyShow = value));
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
+
+    public async Task<PB_ENUM_RES_ERROR_CODE> SetSelfInvisibleAsync(ulong gameUlongUID, int isInvisible, int invisibleType)
+    {
+        if (!IsSelfInvisibleChange(isInvisible, invisibleType))
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
+        }
+
+        await ChangeAsync(gameUlongUID, settings => invisibleType == NoFriendInviteInvisibleType
+            ? Assign(settings.IsNoFriendInviteInvisible, isInvisible, value => settings.IsNoFriendInviteInvisible = value)
+            : Assign(settings.IsInvisible, isInvisible, value => settings.IsInvisible = value));
+        return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
+    }
+
+    public static int GetSelfInvisible(RoleSettings settings, int invisibleType) =>
+        invisibleType == NoFriendInviteInvisibleType ? settings.IsNoFriendInviteInvisible : settings.IsInvisible;
+
+    private static bool IsSwitch(int value) => value is RoleSettings.Off or SwitchOn;
+
+    private static bool IsSelfInvisibleChange(int isInvisible, int invisibleType) => invisibleType switch
+    {
+        (int)PB_ENUM_ENM_INVISIBLE_TYPE.PbEnmInvisibleTypeTemp or (int)PB_ENUM_ENM_INVISIBLE_TYPE.PbEnmInvisibleTypeForever =>
+            isInvisible == SwitchOn,
+        (int)PB_ENUM_ENM_INVISIBLE_TYPE.PbEnmInvisibleTypeOnline => isInvisible == RoleSettings.Off,
+        NoFriendInviteInvisibleType => IsSwitch(isInvisible),
+        _ => false,
+    };
 
     private static bool ReplaceRedDot(IList<pbCOMDT_RED_DOT_DETAIL> redDotDetails, pbCOMDT_RED_DOT_DETAIL redDotDetail)
     {

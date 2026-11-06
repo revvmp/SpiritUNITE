@@ -142,6 +142,8 @@ public sealed class LoginManager(
             MenuInfo = clientSettings.MenuInfo,
             ABMode = clientSettings.ABMode,
             CountryCode = clientSettings.CountryCode,
+            IsInvisible = clientSettings.IsInvisible,
+            IsCloseIntimacyShow = clientSettings.IsCloseIntimacyShow,
             UserSchemeSelectInfo = notices.BuildUserSchemeSelectInfo(),
             PokemonID = role.FollowPokemonId,
             LoginCountryCode = clientSettings.CountryCode,
@@ -172,6 +174,13 @@ public sealed class LoginManager(
         await roles.SaveAsync(role);
         return await BuildFirstLoginAsync(request, role, registGains);
     }
+
+    public async Task<GamePacket[]> BuildFirstClientGameSettingPacketsAsync(LMNRoleInfo role) =>
+    [
+        GamePacket.Create(PbScidNewbieGiftInfoNtf, await newbieGifts.BuildNewbieGiftInfoNtfAsync(role)),
+        GamePacket.Create(PbScidGetCanopyListNtf, BuildCanopyListNtf(role)),
+        GamePacket.Create(PbScidPrivilePlatInfoNtf, new pbSCPrivilePlatInfoNtf { PrivilePlatInfo = new pbCOMDT_PRIVILE_PLAT_INFO() }),
+    ];
 
     private async Task<GamePacket[]> BuildReturningLoginAsync(GamePacket request, LMNRoleInfo role, bool offingRestart)
     {

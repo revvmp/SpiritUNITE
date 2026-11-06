@@ -1,11 +1,19 @@
 using Microsoft.Extensions.Logging;
+using SpiritUNITE.Game.Friend;
+using SpiritUNITE.Game.Login;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Settings;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers.Settings;
 
-public sealed class SettingsHandlers(RoleInfoStore roles, SettingsManager settings, ILogger<SettingsHandlers> logger)
+public sealed class SettingsHandlers(
+    RoleInfoStore roles,
+    SettingsManager settings,
+    LoginManager login,
+    FriendPresence presence,
+    TimeProvider clock,
+    ILogger<SettingsHandlers> logger)
 {
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidSetClientBitStateReq)]
     public async Task<GamePacket[]> OnSetClientBitStateReq(GamePacket request)
@@ -73,16 +81,61 @@ public sealed class SettingsHandlers(RoleInfoStore roles, SettingsManager settin
         var gameSettingInfo = pbCSClientGameSettingReq.Parser.ParseFrom(request.PkgData).GameSettingInfo
             ?? new pbCOMDT_CLT_GAME_SETTING_INFO();
         var role = roles.Require(request.Uid);
-        var result = await settings.SetGameSettingAsync(role.GameUlongUID, gameSettingInfo.GameSettingValue);
+        var (result, firstGameSetting) = await settings.SetGameSettingAsync(role.GameUlongUID, gameSettingInfo.GameSettingValue);
         if (result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
         {
             logger.LogInformation("Client game setting with {Count} values refused for uid {Uid}: {Result}",
                 gameSettingInfo.GameSettingValue.Count, request.Uid, result);
         }
 
-        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidClientGameSettingRsp, new pbSCClientGameSettingRsp
+        var firstGameSettingPackets = firstGameSetting ? await login.BuildFirstClientGameSettingPacketsAsync(role) : [];
+        return
+        [
+            .. firstGameSettingPackets.Select(packet => packet with { Uid = request.Uid, ClientSeq = request.ClientSeq }),
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidClientGameSettingRsp, new pbSCClientGameSettingRsp
+            {
+                ResultInfo = new pbResultInfo { ResultId = (int)result },
+            }),
+        ];
+    }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidSetIntimacyShowReq)]
+    public async Task<GamePacket[]> OnSetIntimacyShowReq(GamePacket request)
+    {
+        var isIntimacyShow = pbCSSetIntimacyShowReq.Parser.ParseFrom(request.PkgData).IsIntimacyShow;
+        var role = roles.Require(request.Uid);
+        var result = await settings.SetIntimacyShowAsync(role.GameUlongUID, isIntimacyShow);
+        logger.LogInformation("Intimacy show {IsIntimacyShow} for uid {Uid}: {Result}", isIntimacyShow, request.Uid, result);
+        var saved = await settings.LoadAsync(role.GameUlongUID);
+        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidSetIntimacyShowRsp, new pbSCSetIntimacyShowRsp
         {
             ResultInfo = new pbResultInfo { ResultId = (int)result },
+            IsIntimacyShow = saved.IsCloseIntimacyShow,
+        })];
+    }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidSetSelfInvisibleReq)]
+    public async Task<GamePacket[]> OnSetSelfInvisibleReq(GamePacket request)
+    {
+        var selfInvisible = pbCSSetSelfInvisibleReq.Parser.ParseFrom(request.PkgData);
+        var role = roles.Require(request.Uid);
+        var result = await settings.SetSelfInvisibleAsync(role.GameUlongUID, selfInvisible.IsInvisible, selfInvisible.InvisibleType);
+        logger.LogInformation("Self invisible {IsInvisible} type {InvisibleType} for uid {Uid}: {Result}",
+            selfInvisible.IsInvisible, selfInvisible.InvisibleType, request.Uid, result);
+        if (result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+        {
+            await presence.SetInvisibleAsync(
+                role.GameUlongUID,
+                (PB_ENUM_ENM_INVISIBLE_TYPE)selfInvisible.InvisibleType,
+                clock.GetUtcNow().ToUnixTimeSeconds());
+        }
+
+        var saved = await settings.LoadAsync(role.GameUlongUID);
+        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidSetSelfInvisibleRsp, new pbSCSetSelfInvisibleRsp
+        {
+            ResultInfo = new pbResultInfo { ResultId = (int)result },
+            IsInvisible = SettingsManager.GetSelfInvisible(saved, selfInvisible.InvisibleType),
+            InvisibleType = selfInvisible.InvisibleType,
         })];
     }
 

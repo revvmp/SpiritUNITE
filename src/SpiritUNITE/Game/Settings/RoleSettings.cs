@@ -11,9 +11,14 @@ public sealed class RoleSettings(
     int abMode,
     int countryCode,
     pbCOMDT_RED_DOT_INFO redDotInfo,
-    pbCOMDT_BUB_TIP_INFO bubTipInfo)
+    pbCOMDT_BUB_TIP_INFO bubTipInfo,
+    int isCloseIntimacyShow,
+    int isInvisible,
+    int isNoFriendInviteInvisible)
 {
     public const int NoCountryCode = 0;
+    public const int Off = 0;
+    public const int On = 1;
 
     public pbCOMDT_NEWBIE_STATE_INFO ClientBitState { get; } = clientBitState;
     public pbCOMDT_RED_DOT_SWITCH_INFO RedDotSwitchInfo { get; } = redDotSwitchInfo;
@@ -24,6 +29,9 @@ public sealed class RoleSettings(
     public int CountryCode { get; set; } = countryCode;
     public pbCOMDT_RED_DOT_INFO RedDotInfo { get; } = redDotInfo;
     public pbCOMDT_BUB_TIP_INFO BubTipInfo { get; } = bubTipInfo;
+    public int IsCloseIntimacyShow { get; set; } = isCloseIntimacyShow;
+    public int IsInvisible { get; set; } = isInvisible;
+    public int IsNoFriendInviteInvisible { get; set; } = isNoFriendInviteInvisible;
 
     public RoleSettings Clone() => new(
         ClientBitState.Clone(),
@@ -34,7 +42,10 @@ public sealed class RoleSettings(
         ABMode,
         CountryCode,
         RedDotInfo.Clone(),
-        BubTipInfo.Clone());
+        BubTipInfo.Clone(),
+        IsCloseIntimacyShow,
+        IsInvisible,
+        IsNoFriendInviteInvisible);
 
     public static RoleSettings CreateDefault() => new(
         new pbCOMDT_NEWBIE_STATE_INFO(),
@@ -45,5 +56,8 @@ public sealed class RoleSettings(
         (int)PB_ENUM_COM_ABMODE_TYPE.PbComAbmodeTypeA,
         NoCountryCode,
         new pbCOMDT_RED_DOT_INFO(),
-        new pbCOMDT_BUB_TIP_INFO());
+        new pbCOMDT_BUB_TIP_INFO(),
+        Off,
+        Off,
+        Off);
 }

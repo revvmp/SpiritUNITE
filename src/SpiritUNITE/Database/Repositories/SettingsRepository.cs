@@ -33,7 +33,10 @@ public sealed class SettingsRepository(DataOptions options)
         saved.ABMode,
         saved.CountryCode,
         pbCOMDT_RED_DOT_INFO.Parser.ParseFrom(saved.RedDotInfo),
-        pbCOMDT_BUB_TIP_INFO.Parser.ParseFrom(saved.BubTipInfo));
+        pbCOMDT_BUB_TIP_INFO.Parser.ParseFrom(saved.BubTipInfo),
+        saved.IsCloseIntimacyShow,
+        saved.IsInvisible,
+        saved.IsNoFriendInviteInvisible);
 
     private static RoleSetting ToEntity(ulong gameUlongUID, RoleSettings settings) => new()
     {
@@ -47,5 +50,8 @@ public sealed class SettingsRepository(DataOptions options)
         CountryCode = settings.CountryCode,
         RedDotInfo = settings.RedDotInfo.ToByteArray(),
         BubTipInfo = settings.BubTipInfo.ToByteArray(),
+        IsCloseIntimacyShow = settings.IsCloseIntimacyShow,
+        IsInvisible = settings.IsInvisible,
+        IsNoFriendInviteInvisible = settings.IsNoFriendInviteInvisible,
     };
 }
