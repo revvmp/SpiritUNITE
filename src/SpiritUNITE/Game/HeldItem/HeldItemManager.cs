@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using Microsoft.Extensions.Options;
 using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Databin;
@@ -17,6 +18,7 @@ public sealed class HeldItemManager(
     PokemonUsedRepository usedPokemon,
     HeldItemRepository heldItems,
     LobbyNotices notices,
+    IOptions<HeldItemOptions> options,
     TimeProvider clock)
 {
     public const int HeldItemLevelUpConsumableId = 1002001001;
@@ -41,12 +43,40 @@ public sealed class HeldItemManager(
     private readonly FrozenDictionary<(int GroupId, int Level), pbHeldItemLevelUpDesign> levelUpDesigns =
         gameData.HeldItemLevelUpDesign.Rows.ToFrozenDictionary(design => (design.GroupId, design.Level));
 
-    public int GetHeldItemSlotUnlockNum(LMNRoleInfo role) =>
+    public int GetHeldItemSlotUnlockNum(LMNRoleInfo role) => GetHeldItemSlotUnlockNum(role.RoleTotalExp);
+
+    public int GetHeldItemSlotUnlockNum(int roleTotalExp) =>
         HeldItemSlotUnlockTypes.Count(unlockType =>
             gameData.SystemUnlock.Find(pbSystemUnlock.Key(
                 (int)unlockType,
                 notices.GetBusinessSchemeId(PB_ENUM_RES_USER_SCHEME_BUSINESS_TYPE.PbResUserSchemeBusinessTypeSystemUnlock))) is { } unlock
-            && role.RoleTotalExp >= unlock.TrainerExp);
+            && roleTotalExp >= unlock.TrainerExp);
+
+    public async Task<BagGrant[]> CreateHeldItemUnlockGrantsAsync(LMNRoleInfo role, int roleTotalExpAfter)
+    {
+        if (GetHeldItemSlotUnlockNum(role) > 0 || GetHeldItemSlotUnlockNum(roleTotalExpAfter) == 0)
+        {
+            return [];
+        }
+
+        var maxLevel = gameData.HeldItemSystemConfig.Find(HeldItemSystemConfigId)?.MaxLevel ?? 0;
+        var owned = (await bag.GetOwnedOutSideItemsAsync(role.GameUlongUID)).Select(item => item.ItemId).ToHashSet();
+        var boundGrants = gameData.OutSideItemBase.Rows
+            .Where(item => item.OutSideItemCategory == BagManager.HeldItemCategory
+                && item.IsCanLevelUp != Enabled
+                && item.OutSideItemTypeParam.Count > BindPokemonIdTypeParam
+                && item.OutSideItemTypeParam[BindPokemonIdTypeParam] != NoBindPokemon)
+            .Select(item => new BagGrant(RoleItemType.OutSideItem, item.OutSideItemId, 1, item.OutSideItemStackSize, maxLevel));
+        var starterGrants = options.Value.UnlockGrantItemIds
+            .Select(itemId => bag.CreateOutSideItemGrant(itemId, 1))
+            .OfType<BagGrant>();
+        return [.. starterGrants.Concat(boundGrants).Where(grant => !owned.Contains(grant.ItemId)).DistinctBy(grant => grant.ItemId)];
+    }
+
+    public async Task<pbSCHeldItemSlotNtf> BuildHeldItemSlotNtfAsync(LMNRoleInfo role) => new()
+    {
+        HeldItemSlotUnlockInfo = await BuildHeldItemSlotUnlockInfoAsync(role),
+    };
 
     public async Task<pbCOMDT_HELDITEM_SLOT_UNLOCK_INFO> BuildHeldItemSlotUnlockInfoAsync(LMNRoleInfo role)
     {

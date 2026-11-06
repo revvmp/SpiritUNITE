@@ -151,6 +151,11 @@ public static class Server
             .Validate(options => options.IsValid(), "Room settings are invalid")
             .ValidateOnStart();
 
+        builder.Services.AddOptions<HeldItemOptions>()
+            .BindConfiguration(HeldItemOptions.SectionName)
+            .Validate(options => options.IsValid(), "HeldItem settings are invalid")
+            .ValidateOnStart();
+
         builder.Services.AddOptions<GVoiceOptions>()
             .BindConfiguration(GVoiceOptions.SectionName)
             .Validate(options => options.IsValid(), "GVoice settings are invalid")
