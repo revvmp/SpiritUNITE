@@ -52,7 +52,8 @@ USES_CLEARTEXT_TRAFFIC_ATTRIBUTE = "usesCleartextTraffic"
 DEFAULT_DIR_PORT = 10001
 DEFAULT_HTTPS_PORT = 443
 DEFAULT_HTTP_PORT = 80
-DEFAULT_DEV_WEB_PORT = 10080
+DEFAULT_DEV_WEB_PORT = 10081
+WEBVIEW_REFUSED_PORTS = (10080,)
 DEFAULT_LOBBY_PORT = 10002
 DIR_NODE_NAME = "trunk_global_dist"
 CLOUD_CONTROL_REPLACEMENT_HOST = "spiritunite.invalid"
@@ -128,6 +129,7 @@ class ClientBuild:
     string_literal_data_offset: int
     dir_address: MetadataLiteral
     cloud_control_host: MetadataLiteral
+    update_hosts: tuple[MetadataLiteral, ...]
 
 
 CLIENT_BUILDS_BY_METADATA_MD5 = {
@@ -138,11 +140,24 @@ CLIENT_BUILDS_BY_METADATA_MD5 = {
             0x16238, "trunk_global_dist|dirsvr.pokemon-unitepgame.com:10001"
         ),
         cloud_control_host=MetadataLiteral(0x5768, "gcloudctrl.iegcom.com"),
+        update_hosts=(
+            MetadataLiteral(0x3E8F8, "puffer.6.669535640.nishikigcloud.iegcom.com"),
+            MetadataLiteral(
+                0x3E8F0, "pre-puffer.5.669535640.nishikigcloud.iegcom.com"
+            ),
+            MetadataLiteral(
+                0x50A68, "download.2.669535640.nishikigcloud.iegcom.com"
+            ),
+            MetadataLiteral(
+                0x50A60, "pre-download.1.669535640.nishikigcloud.iegcom.com"
+            ),
+        ),
     ),
 }
 
+CLIENT_ADDRESS_SERVICE_PORTS = (8085, 8080)
+
 PENDING_CLIENT_CHANGES = (
-    "Resource and patch downloads still use the official GCloud Puffer and Dolphin hosts.",
     "Shop and banner images still load from the official image CDN.",
     "Telemetry, push and crash report hosts in MSDKConfig.ini are unchanged.",
     "The Nintendo login redirect still points at the official itopsdk CDN.",
@@ -155,6 +170,7 @@ class HostTarget:
     dir_port: int
     lobby_port: int
     web_port: int
+    update_port: int
     development: bool
 
     @property
@@ -288,9 +304,27 @@ def resolve_target(arguments: argparse.Namespace) -> HostTarget:
             DEFAULT_DEV_WEB_PORT,
             "--web-port",
         )
+        if web_port in WEBVIEW_REFUSED_PORTS:
+            log(
+                f"Warning: Android WebView refuses port {web_port}, so the account login page will not open on this build (guest login still works). Set HttpServer.Port to another port, such as {DEFAULT_DEV_WEB_PORT}."
+            )
     else:
         web_port = validate_port(arguments.web_port or DEFAULT_HTTPS_PORT, "--web-port")
-    target = HostTarget(host, dir_port, lobby_port, web_port, arguments.dev)
+    update_port = port_setting(
+        None,
+        settings,
+        "UpdateServer",
+        CLIENT_ADDRESS_SERVICE_PORTS[0],
+        "UpdateServer.Port",
+    )
+    if update_port not in CLIENT_ADDRESS_SERVICE_PORTS:
+        allowed = " or ".join(str(port) for port in CLIENT_ADDRESS_SERVICE_PORTS)
+        raise BuildError(
+            f"UpdateServer.Port is {update_port}; the client only looks for the update server on port {allowed}."
+        )
+    target = HostTarget(
+        host, dir_port, lobby_port, web_port, update_port, arguments.dev
+    )
     longest_supported = min(
         len(known.dir_address.original)
         for known in CLIENT_BUILDS_BY_METADATA_MD5.values()
@@ -299,6 +333,15 @@ def resolve_target(arguments: argparse.Namespace) -> HostTarget:
         room = longest_supported - len(DIR_NODE_NAME) - 1
         raise BuildError(
             f"{host}:{target.dir_port} is too long; the client's directory address holds at most {room} characters of host and port."
+        )
+    shortest_update_host = min(
+        len(literal.original)
+        for known in CLIENT_BUILDS_BY_METADATA_MD5.values()
+        for literal in known.update_hosts
+    )
+    if len(host.encode("utf-8")) > shortest_update_host:
+        raise BuildError(
+            f"{host} is too long; the client's update server addresses hold at most {shortest_update_host} characters."
         )
     if is_ipv4_literal(host):
         log(
@@ -564,6 +607,8 @@ def patch_metadata(metadata: bytes, target: HostTarget) -> bytes:
     write_metadata_literal(
         patched, build, build.cloud_control_host, CLOUD_CONTROL_REPLACEMENT_HOST
     )
+    for update_host in build.update_hosts:
+        write_metadata_literal(patched, build, update_host, target.host)
     return bytes(patched)
 
 
@@ -1493,7 +1538,7 @@ def build(arguments: argparse.Namespace) -> None:
     bundle_splits(signed_apks, bundle)
     log("")
     install_command = (
-        f"adb install-multiple {' '.join(str(apk) for apk in signed_apks)}"
+        f"adb install-multiple -g {' '.join(str(apk) for apk in signed_apks)}"
     )
     if target.development:
         report_development_build(target, bundle, install_command)
@@ -1503,6 +1548,12 @@ def build(arguments: argparse.Namespace) -> None:
             "They uninstall the official app first, then install the .apks with a split APK installer such as SAI,"
         )
         log(f"or from a computer: {install_command}")
+        log(
+            f"Open TCP port {target.update_port} for the update server, and put the resource archive in resources/<productId>/ next to the server."
+        )
+        log(
+            "If players cannot reach the HttpServer port directly, set ResourceArchive.BaseUrl to the public address that serves /resources/."
+        )
     log("")
     log("Not handled yet:")
     for change in PENDING_CLIENT_CHANGES:
@@ -1520,7 +1571,7 @@ def report_development_build(
             "Forward the server ports to the device after each emulator or adb restart:"
         )
         for port in dict.fromkeys(
-            (target.dir_port, target.lobby_port, target.web_port)
+            (target.dir_port, target.lobby_port, target.web_port, target.update_port)
         ):
             log(f"  adb reverse tcp:{port} tcp:{port}")
     else:

@@ -29,7 +29,7 @@ Screenshots coming soon.
    ```powershell
    mariadb -u root -p < sql/spiritunite.sql
    ```
-   The script is safe to run again. Rerun it after pulling new changes to bring your database up to date.
+
 
 3. Create a database user for the server.
    ```sql
@@ -42,12 +42,13 @@ Screenshots coming soon.
    copy src/SpiritUNITE/appsettings.example.json src/SpiritUNITE/appsettings.json
    ```
 
-5. Build and start the server from the root directory.
+5. Put the game's resource archive in `resources/1169/`. The game downloads about 7 GB from it on first launch and checks it on every start, so players cannot get past "Checking update data" without it. See [resources/README.md](resources/README.md).
+
+
+6. Build and start the server from the root directory.
    ```powershell
    dotnet run --project src/SpiritUNITE
    ```
-
-6. Build and install the client using the steps below. You should see logs in the server as you log in.
 
 ## Build the APK
 
@@ -57,7 +58,9 @@ Screenshots coming soon.
    python tools/build_apk.py --apks "path/to/splits" --dev
    ```
    The script uses your server settings, creates a signing key and offers to download Android build tools if needed. Back up the signing key so future builds can update installed clients.
-3. Uninstall the official app from your device, then run the `adb install-multiple` command. Uninstalling removes the app's data.
+
+
+3. Uninstall the official app from your device, then run the `adb install-multiple -g` command. Uninstalling removes the app's data.
 4. With the default local settings, run the printed `adb reverse` commands to connect your device to the server. Repeat these after restarting.
 5. Start the server and launch the game.
 
@@ -65,11 +68,13 @@ Screenshots coming soon.
 
 | Port | Server |
 | :--- | :--- |
+| 8085 | Update server (resource update check on every start) |
 | 10001 | Directory server |
 | 10002 | Lobby server |
-| 10080 | Account login and registration pages |
+| 10003 | Relay server |
+| 10081 | Account login and registration pages, and the resource archive download |
 
-All of these can be changed in `appsettings.json`.
+All of these can be changed in `appsettings.json`, except the update server. The client only looks for it on port 8085 or 8080.
 
 ### Hosting for Others (Remote Play)
 
@@ -84,8 +89,20 @@ The directory server tells the client where to find the lobby server. By default
      "Port": 10002
    }
    ```
-2. Set `TcpServer.BindAddress` to `0.0.0.0` so the directory and lobby servers accept outside connections. Keep `127.0.0.1` for local testing. Their ports are set separately in `DirServer.Port` and `LobbyServer.Port`.
-3. Set up HTTPS on port `443` for your domain, forwarding requests to the account server on `127.0.0.1:10080`. Forward or open TCP ports `443`, `10001` and `10002` on your router and firewall.
+
+2. Set `TcpServer.BindAddress` to `0.0.0.0` so the directory and lobby servers accept outside connections. Keep `127.0.0.1` for local testing.
+
+
+3. Set up HTTPS on port `443` for your domain, forwarding requests to the account server on `127.0.0.1:10081`. Open TCP ports `443`, `8085`, `10001` and `10002` on your router and firewall.
+   Then point the resource archive at your domain, so players download it through your proxy:
+   ```json
+   "ResourceArchive": {
+     "BaseUrl": "https://play.example.com"
+   }
+   ```
+   The game downloads the archive over plain HTTP, so also open port `80` and have the proxy forward `/resources/` on port 80 to `127.0.0.1:10081` without redirecting it to HTTPS.
+
+
 4. Build the client for your domain:
    ```powershell
    python tools/build_apk.py --apks "path/to/splits" --host play.example.com

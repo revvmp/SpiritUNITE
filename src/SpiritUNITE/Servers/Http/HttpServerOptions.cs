@@ -12,7 +12,7 @@ public sealed class HttpServerOptions
 
     public string BindAddress { get; set; } = "127.0.0.1";
 
-    public int Port { get; set; } = 10080;
+    public int Port { get; set; } = 10081;
 
     public string[] AllowedRedirectUris { get; set; } = [];
 

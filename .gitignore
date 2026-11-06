@@ -434,5 +434,7 @@ docs/
 .re/
 .idea/
 /src/SpiritUNITE/appsettings.json
+/resources/*
+!/resources/README.md
 
 /apk-build/

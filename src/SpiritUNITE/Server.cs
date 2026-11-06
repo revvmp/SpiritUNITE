@@ -41,10 +41,12 @@ using SpiritUNITE.Online;
 using SpiritUNITE.Network.Lwip;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Handlers.Session;
+using SpiritUNITE.ResourceUpdate;
 using SpiritUNITE.Servers.Http;
 using SpiritUNITE.Servers.Dir;
 using SpiritUNITE.Servers.Lobby;
 using SpiritUNITE.Servers.Relay;
+using SpiritUNITE.Servers.Update;
 
 namespace SpiritUNITE;
 
@@ -167,6 +169,16 @@ public static class Server
             .BindConfiguration(GVoiceOptions.SectionName)
             .Validate(options => options.IsValid(), "GVoice settings are invalid")
             .ValidateOnStart();
+
+        builder.Services.AddOptions<ResourceArchiveOptions>()
+            .BindConfiguration(ResourceArchiveOptions.SectionName, options => options.ErrorOnUnknownConfiguration = true)
+            .Validate(options => options.IsValid(), "ResourceArchive settings are invalid: Directory must be set and BaseUrl must be empty or an absolute http or https URL with no query, fragment or user info")
+            .ValidateOnStart();
+
+        builder.Services.AddOptions<UpdateServerOptions>()
+            .BindConfiguration(UpdateServerOptions.SectionName, options => options.ErrorOnUnknownConfiguration = true)
+            .Validate(options => options.IsValid(), "UpdateServer settings are invalid: Host must be empty or an address without spaces, Port 1-65535")
+            .ValidateOnStart();
     }
 
     private static async Task AddDatabaseAsync(IHostApplicationBuilder builder)
@@ -263,9 +275,13 @@ public static class Server
 
     private static void AddServers(IHostApplicationBuilder builder)
     {
+        builder.Services.AddSingleton<ResourceArchiveCatalog>();
+        builder.Services.AddHostedService(services => services.GetRequiredService<ResourceArchiveCatalog>());
         builder.Services.AddHostedService<DirServer>();
         builder.Services.AddHostedService<LobbyServer>();
         builder.Services.AddHostedService<RelayServer>();
+        builder.Services.AddSingleton<UpdateServiceReplies>();
+        builder.Services.AddHostedService<UpdateServer>();
         builder.Services.AddHostedService<LobbyRefreshTick>();
         builder.Services.AddHostedService<RedDotRecorder>();
         HttpServer.AddServices(builder.Services);

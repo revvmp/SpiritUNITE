@@ -66,6 +66,7 @@ public static class HttpServer
         app.MapPost(AccountPages.RegisterPath, SubmitRegister).DisableAntiforgery();
         MsdkEndpoints.Map(app);
         CentauriEndpoints.Map(app);
+        ResourceEndpoints.Map(app);
     }
 
     private static IResult ShowLogin(HttpRequest request, IOptions<HttpServerOptions> options) =>
