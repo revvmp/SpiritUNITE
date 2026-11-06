@@ -184,6 +184,7 @@ public static class Server
         builder.Services.AddSingleton<SettingsRepository>();
         builder.Services.AddSingleton<NewbieChallengeRepository>();
         builder.Services.AddSingleton<TaskProcessRepository>();
+        builder.Services.AddSingleton<EeveeChallengeRepository>();
     }
 
     private static void AddGameData(IHostApplicationBuilder builder)
@@ -217,6 +218,8 @@ public static class Server
         builder.Services.AddSingleton<BadgeManager>();
         builder.Services.AddSingleton<ActivitySchedule>();
         builder.Services.AddSingleton<ActivityTasks>();
+        builder.Services.AddSingleton<EeveeChallengePool>();
+        builder.Services.AddSingleton<EeveeChallenge>();
         builder.Services.AddSingleton<AchievementTasks>();
         builder.Services.AddSingleton<TaskUpdates>();
         builder.Services.AddSingleton<StarRoadManager>();

@@ -106,7 +106,7 @@ public sealed class NewbieManager(
         new() { NewbieState = role.BuildNewbieState() };
 
     public static GamePacket BuildAddPokemonRedDot(LMNRoleInfo role) =>
-        BuildRedDotReplaceNtf(AddPokemonRedDotID, role.GetOwnedPokemon().Count(owned => owned.NewTag == RolePokemonInfo.HasNewTag));
+        BuildRedDotReplaceNtf(AddPokemonRedDotID, role.CountNewTagPokemon());
 
     private IEnumerable<GamePacket> CompletePveChallenge(LMNRoleInfo role, int newbie)
     {

@@ -29,6 +29,8 @@ public static class DatabaseManager
             await using var database = new DataConnection(options);
             await database.GetTable<Role>().FirstOrDefaultAsync();
             await database.GetTable<RolePokemon>().AnyAsync();
+            await database.GetTable<RolePokemonTimeLimited>().AnyAsync();
+            await database.GetTable<RoleEeveeChallenge>().AnyAsync();
             await database.GetTable<RoleItem>().FirstOrDefaultAsync();
             await database.GetTable<RoleCoin>().FirstOrDefaultAsync();
             await database.GetTable<RoleShopBuy>().FirstOrDefaultAsync();

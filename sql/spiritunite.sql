@@ -60,6 +60,17 @@ CREATE TABLE IF NOT EXISTS `role_pokemon` (
     CONSTRAINT fk_role_pokemon_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `role_pokemon_time_limited` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    pokemon_id INT NOT NULL,
+    gain_time BIGINT NOT NULL DEFAULT 0,
+    gain_channel INT NOT NULL DEFAULT 0,
+    new_tag INT NOT NULL DEFAULT 0,
+    time_limited BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, pokemon_id),
+    CONSTRAINT fk_role_pokemon_time_limited_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `role_item` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL,
     item_type INT NOT NULL,
@@ -119,6 +130,17 @@ CREATE TABLE IF NOT EXISTS `role_activity_task_reward` (
     reward_time BIGINT NOT NULL,
     PRIMARY KEY (game_ulong_uid, task_id, period_start),
     CONSTRAINT fk_role_activity_task_reward_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_eevee_challenge` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    activity_id INT NOT NULL,
+    period INT NOT NULL,
+    eevee_id INT NOT NULL DEFAULT 0,
+    is_click INT NOT NULL DEFAULT 0,
+    draw_time BIGINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid, activity_id, period),
+    CONSTRAINT fk_role_eevee_challenge_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `role_trainer_exp_gift` (

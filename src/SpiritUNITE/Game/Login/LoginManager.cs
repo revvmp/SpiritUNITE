@@ -33,6 +33,7 @@ public sealed class LoginManager(
     RoleInfoStore roles,
     GameData gameData,
     ActivityTasks activityTasks,
+    EeveeChallenge eeveeChallenge,
     BagManager bag,
     BadgeManager badges,
     ChatManager chat,
@@ -184,6 +185,8 @@ public sealed class LoginManager(
 
     private async Task<GamePacket[]> BuildReturningLoginAsync(GamePacket request, LMNRoleInfo role, bool offingRestart)
     {
+        await StoreFourteenDayRedDotAsync(role);
+        await StoreEeveeChallengeRedDotAsync(role);
         var clientSettings = await settings.LoadAsync(role.GameUlongUID);
         var route = await SyncStarRoadAsync(role);
         var canopyList = BuildCanopyListNtf(role);
@@ -216,7 +219,7 @@ public sealed class LoginManager(
     {
         var uid = role.GameUlongUID;
         var registerTime = await newbies.GetRegisterTimeAsync(role);
-        await StoreRegistRedDotsAsync(uid, registGains[^1]);
+        await StoreRegistRedDotsAsync(role, registGains[^1]);
         var clientSettings = await settings.LoadAsync(uid);
         var route = await SyncStarRoadAsync(role);
         var ownershipTasks = await taskUpdates.BuildOwnershipUpdateTaskInfoNtfAsync(role);
@@ -295,14 +298,43 @@ public sealed class LoginManager(
     private async Task<StarRoadRoute> SyncStarRoadAsync(LMNRoleInfo role) =>
         (await starRoad.SyncOwnedPokemonAsync(role)).Route;
 
-    private async Task StoreRegistRedDotsAsync(ulong uid, pbSCProfileGainResNtf lastRegistGain)
+    private async Task StoreRegistRedDotsAsync(LMNRoleInfo role, pbSCProfileGainResNtf lastRegistGain)
     {
+        var uid = role.GameUlongUID;
+        var fourteenDay = await newbieGifts.FindFourteenDayRedDotAsync(role);
+        var eeveeChallengeRedDot = await eeveeChallenge.FindRedDotAsync(role);
         await settings.ReplaceRedDotsAsync(uid,
         [
             .. await mail.BuildUnreadRedDotDetailsAsync(uid),
             .. notices.BuildRegistRedDots(CountNewTags(lastRegistGain)),
+            .. fourteenDay is null ? [] : new[] { fourteenDay },
+            .. eeveeChallengeRedDot is null ? [] : new[] { eeveeChallengeRedDot },
         ]);
         await settings.ReplaceBubTipsAsync(uid, LobbyNotices.BuildRegistBubTips());
+    }
+
+    private async Task StoreFourteenDayRedDotAsync(LMNRoleInfo role)
+    {
+        if (await newbieGifts.FindFourteenDayRedDotAsync(role) is { } fourteenDay)
+        {
+            await settings.ReplaceRedDotsAsync(role.GameUlongUID, [fourteenDay]);
+        }
+        else
+        {
+            await settings.ClearRedDotAsync(role.GameUlongUID, NewbieGiftManager.FourteenDayRedDotID);
+        }
+    }
+
+    private async Task StoreEeveeChallengeRedDotAsync(LMNRoleInfo role)
+    {
+        if (await eeveeChallenge.FindRedDotAsync(role) is { } eeveeChallengeRedDot)
+        {
+            await settings.ReplaceRedDotsAsync(role.GameUlongUID, [eeveeChallengeRedDot]);
+        }
+        else
+        {
+            await settings.ClearRedDotAsync(role.GameUlongUID, EeveeChallenge.EeveeChallengeRedDotID);
+        }
     }
 
     private async Task<GamePacket[]> BuildCouponsRefreshPacketsAsync(ulong uid)

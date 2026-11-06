@@ -16,7 +16,8 @@ public sealed class LMNRoleInfo(
     int usingLobbyBgId,
     int roleTotalExp,
     int roleHistoryMaxTotalExp,
-    int firstPokemonId = LMNRoleInfo.NoFirstPokemonId)
+    int firstPokemonId = LMNRoleInfo.NoFirstPokemonId,
+    IEnumerable<RolePokemonInfo>? timeLimitedPokemon = null)
 {
     public const int NoFirstPokemonId = 0;
     public const int NoFollowPokemonId = 0;
@@ -39,6 +40,8 @@ public sealed class LMNRoleInfo(
     private readonly Lock gate = new();
     private readonly List<long> bitsDetail = [.. newbieBitsDetail];
     private readonly Dictionary<int, RolePokemonInfo> pokemon = ownedPokemon.ToDictionary(owned => owned.PokemonId);
+    private readonly Dictionary<int, RolePokemonInfo> timeLimitedPokemonById =
+        (timeLimitedPokemon ?? []).ToDictionary(owned => owned.PokemonId);
     private int mFollowPokemonId = followPokemonId;
     private int mUsingLobbyBgId = usingLobbyBgId;
 
@@ -458,11 +461,43 @@ public sealed class LMNRoleInfo(
         }
     }
 
+    public RolePokemonInfo[] GetTimeLimitedPokemon()
+    {
+        lock (gate)
+        {
+            return [.. timeLimitedPokemonById.Values];
+        }
+    }
+
+    public void GrantTimeLimitedPokemon(RolePokemonInfo timeLimited)
+    {
+        lock (gate)
+        {
+            timeLimitedPokemonById[timeLimited.PokemonId] = timeLimited;
+        }
+    }
+
+    public bool CanUsePokemon(int pokemonId)
+    {
+        lock (gate)
+        {
+            return pokemon.ContainsKey(pokemonId) || timeLimitedPokemonById.ContainsKey(pokemonId);
+        }
+    }
+
+    public int CountNewTagPokemon()
+    {
+        lock (gate)
+        {
+            return ListUsablePokemon().Count(owned => owned.NewTag == RolePokemonInfo.HasNewTag);
+        }
+    }
+
     public RolePokemonInfo? FindPokemon(int pokemonId)
     {
         lock (gate)
         {
-            return pokemon.GetValueOrDefault(pokemonId);
+            return pokemon.GetValueOrDefault(pokemonId) ?? timeLimitedPokemonById.GetValueOrDefault(pokemonId);
         }
     }
 
@@ -470,13 +505,14 @@ public sealed class LMNRoleInfo(
     {
         lock (gate)
         {
-            if (!pokemon.TryGetValue(pokemonId, out var owned))
+            var store = pokemon.ContainsKey(pokemonId) ? pokemon : timeLimitedPokemonById;
+            if (!store.TryGetValue(pokemonId, out var owned))
             {
                 return null;
             }
 
             var cleared = owned with { NewTag = RolePokemonInfo.NoNewTag };
-            pokemon[pokemonId] = cleared;
+            store[pokemonId] = cleared;
             return cleared;
         }
     }
@@ -487,7 +523,7 @@ public sealed class LMNRoleInfo(
         {
             return
             [
-                .. pokemon.Values
+                .. ListUsablePokemon()
                     .OrderBy(owned => owned.GainTime)
                     .ThenBy(owned => owned.PokemonId)
                     .Select(owned => owned.ToPokemonInfo()),
@@ -505,6 +541,9 @@ public sealed class LMNRoleInfo(
             return new pbCOMDT_NEWBIE_STATE_INFO { BitsDetail = { bitsDetail } };
         }
     }
+
+    private IEnumerable<RolePokemonInfo> ListUsablePokemon() =>
+        pokemon.Values.Concat(timeLimitedPokemonById.Values.Where(timeLimited => !pokemon.ContainsKey(timeLimited.PokemonId)));
 
     private int ResolveFollowPokemonId()
     {

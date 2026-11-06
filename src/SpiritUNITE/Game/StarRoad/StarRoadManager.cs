@@ -140,7 +140,7 @@ public sealed class StarRoadManager(
                     new pbCOMDT_RED_DOT_DETAIL
                     {
                         RedDotID = AddPokemonRedDotID,
-                        RedDotBadgeNum = role.GetOwnedPokemon().Count(owned => owned.NewTag == RolePokemonInfo.HasNewTag),
+                        RedDotBadgeNum = role.CountNewTagPokemon(),
                     },
                 },
             },

@@ -95,4 +95,4 @@ public sealed record ScheduledActivity(
     public bool IsValidAt(DateTimeOffset now) => ValidStart <= now && now <= ValidEnd;
 }
 
-public sealed record ActiveActivityTask(ScheduledActivity Activity, pbTask_Base Task);
+public sealed record ActiveActivityTask(ScheduledActivity Activity, pbTask_Base Task, DateTimeOffset? UnlockedAt = null);

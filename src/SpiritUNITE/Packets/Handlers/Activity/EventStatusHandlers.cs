@@ -1,13 +1,18 @@
 using Microsoft.Extensions.Logging;
 using SpiritUNITE.Game.Activity;
+using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers.Activity;
 
-public sealed class EventStatusHandlers(ActivitySchedule schedule, TimeProvider clock, ILogger<EventStatusHandlers> logger)
+public sealed class EventStatusHandlers(
+    ActivitySchedule schedule,
+    RoleInfoStore roles,
+    EeveeChallenge eeveeChallenge,
+    TimeProvider clock,
+    ILogger<EventStatusHandlers> logger)
 {
     private const int NoPrivilegeExpireTime = 0;
-    private const int FirstEeveePeriod = 1;
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidMysteryShopInfoReq)]
     public GamePacket[] OnMysteryShopInfoReq(GamePacket request)
@@ -90,30 +95,37 @@ public sealed class EventStatusHandlers(ActivitySchedule schedule, TimeProvider 
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidEeveeChallengeStatusReq)]
-    public GamePacket[] OnEeveeChallengeStatusReq(GamePacket request)
+    public async Task<GamePacket[]> OnEeveeChallengeStatusReq(GamePacket request)
     {
         pbCSEeveeChallengeStatusReq.Parser.ParseFrom(request.PkgData);
-        var response = new pbSCEeveeChallengeStatusRsp { ResultInfo = new pbResultInfo(), AllPeriod = FirstEeveePeriod };
+        var response = await eeveeChallenge.BuildStatusRspAsync(roles.Require(request.Uid));
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidEeveeChallengeStatusRsp, response)];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidEeveeChallengeDrawReq)]
-    public GamePacket[] OnEeveeChallengeDrawReq(GamePacket request)
+    public async Task<GamePacket[]> OnEeveeChallengeDrawReq(GamePacket request)
     {
         var period = pbCSEeveeChallengeDrawReq.Parser.ParseFrom(request.PkgData).Period;
-        const PB_ENUM_RES_ERROR_CODE result = PB_ENUM_RES_ERROR_CODE.PbErrEeveeChallengeCanNotActivate;
-        logger.LogInformation("Eevee challenge draw for period {Period} refused for uid {Uid}: {Result}", period, request.Uid, result);
-        var response = new pbSCEeveeChallengeDrawRsp { ResultInfo = new pbResultInfo { ResultId = (int)result } };
-        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidEeveeChallengeDrawRsp, response)];
+        var outcome = await eeveeChallenge.DrawAsync(roles.Require(request.Uid), period);
+        var response = new pbSCEeveeChallengeDrawRsp
+        {
+            ResultInfo = new pbResultInfo { ResultId = (int)outcome.Result },
+            EeveeID = outcome.EeveeID,
+        };
+        return [.. AsReplies(request, outcome), request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidEeveeChallengeDrawRsp, response)];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidEeveeChallengeClickReq)]
-    public GamePacket[] OnEeveeChallengeClickReq(GamePacket request)
+    public async Task<GamePacket[]> OnEeveeChallengeClickReq(GamePacket request)
     {
-        pbCSEeveeChallengeClickReq.Parser.ParseFrom(request.PkgData);
-        var response = new pbSCEeveeChallengeClickRsp { ResultInfo = new pbResultInfo() };
-        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidEeveeChallengeClickRsp, response)];
+        var period = pbCSEeveeChallengeClickReq.Parser.ParseFrom(request.PkgData).Period;
+        var outcome = await eeveeChallenge.ClickAsync(roles.Require(request.Uid), period);
+        var response = new pbSCEeveeChallengeClickRsp { ResultInfo = new pbResultInfo { ResultId = (int)outcome.Result } };
+        return [.. AsReplies(request, outcome), request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidEeveeChallengeClickRsp, response)];
     }
+
+    private static IEnumerable<GamePacket> AsReplies(GamePacket request, EeveeChallengeOutcome outcome) =>
+        outcome.BeforeRsp.Select(packet => packet with { Uid = request.Uid, ClientSeq = request.ClientSeq });
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetActivityInfoReq)]
     public GamePacket[] OnGetActivityInfoReq(GamePacket request)

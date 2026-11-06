@@ -10,7 +10,7 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Database.Repositories;
 
-public sealed class RoleRepository(DataOptions options)
+public sealed class RoleRepository(DataOptions options, TimeProvider clock)
 {
     private const int OneRow = 1;
 
@@ -26,10 +26,18 @@ public sealed class RoleRepository(DataOptions options)
         var pokemon = await database.GetTable<RolePokemon>()
             .Where(pokemon => pokemon.GameUlongUID == gameUlongUID)
             .ToArrayAsync();
+        var now = clock.GetUtcNow().ToUnixTimeSeconds();
+        var timeLimitedPokemon = await database.GetTable<RolePokemonTimeLimited>()
+            .Where(pokemon => pokemon.GameUlongUID == gameUlongUID && pokemon.TimeLimited > now)
+            .ToArrayAsync();
         var items = await database.GetTable<RoleItem>()
             .Where(item => item.GameUlongUID == gameUlongUID && !BagRepository.BagItemTypes.Contains(item.ItemType))
             .ToArrayAsync();
-        return ToLMNRoleInfo(role, pokemon.Select(ToRolePokemonInfo), items.Select(ToRoleItemInfo));
+        return ToLMNRoleInfo(
+            role,
+            pokemon.Select(ToRolePokemonInfo),
+            items.Select(ToRoleItemInfo),
+            timeLimitedPokemon.Select(ToRolePokemonInfo));
     }
 
     public async Task SaveAsync(LMNRoleInfo role)
@@ -42,6 +50,7 @@ public sealed class RoleRepository(DataOptions options)
         }
 
         await SavePokemonAsync(database, role);
+        await SaveTimeLimitedPokemonNewTagsAsync(database, role);
         await SaveItemsAsync(database, role);
         await transaction.CommitAsync();
     }
@@ -100,6 +109,30 @@ public sealed class RoleRepository(DataOptions options)
         }
     }
 
+    private static async Task SaveTimeLimitedPokemonNewTagsAsync(DataConnection database, LMNRoleInfo role)
+    {
+        foreach (var pokemon in role.GetTimeLimitedPokemon())
+        {
+            await database.GetTable<RolePokemonTimeLimited>()
+                .Where(saved => saved.GameUlongUID == role.GameUlongUID && saved.PokemonId == pokemon.PokemonId && saved.NewTag != pokemon.NewTag)
+                .Set(saved => saved.NewTag, pokemon.NewTag)
+                .UpdateAsync();
+        }
+    }
+
+    private static RolePokemonInfo ToRolePokemonInfo(RolePokemonTimeLimited pokemon) =>
+        new(pokemon.PokemonId, pokemon.GainTime, pokemon.GainChannel, pokemon.NewTag, pokemon.TimeLimited);
+
+    internal static RolePokemonTimeLimited ToTimeLimitedEntity(ulong gameUlongUID, RolePokemonInfo pokemon) => new()
+    {
+        GameUlongUID = gameUlongUID,
+        PokemonId = pokemon.PokemonId,
+        GainTime = pokemon.GainTime,
+        GainChannel = pokemon.GainChannel,
+        NewTag = pokemon.NewTag,
+        TimeLimited = pokemon.TimeLimited,
+    };
+
     private static RolePokemonInfo ToRolePokemonInfo(RolePokemon pokemon) =>
         new(pokemon.PokemonId, pokemon.GainTime, pokemon.GainChannel, pokemon.NewTag);
 
@@ -132,7 +165,11 @@ public sealed class RoleRepository(DataOptions options)
         }
     }
 
-    private static LMNRoleInfo ToLMNRoleInfo(Role role, IEnumerable<RolePokemonInfo> pokemon, IEnumerable<RoleItemInfo> items) => new(
+    private static LMNRoleInfo ToLMNRoleInfo(
+        Role role,
+        IEnumerable<RolePokemonInfo> pokemon,
+        IEnumerable<RoleItemInfo> items,
+        IEnumerable<RolePokemonInfo> timeLimitedPokemon) => new(
         role.GameUlongUID,
         role.InGameUsrName,
         role.Gender,
@@ -144,7 +181,8 @@ public sealed class RoleRepository(DataOptions options)
         role.UsingLobbyBgId,
         role.RoleTotalExp,
         role.RoleHistoryMaxTotalExp,
-        role.FirstPokemonId);
+        role.FirstPokemonId,
+        timeLimitedPokemon);
 
     private static RoleItemInfo ToRoleItemInfo(RoleItem item) => new(
         Enum.IsDefined((RoleItemType)item.ItemType)

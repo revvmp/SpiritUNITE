@@ -48,7 +48,7 @@ public sealed class HeldItemHandlers(
         var role = roles.Require(request.Uid);
         var read = pbCSReadHeldItemReq.Parser.ParseFrom(request.PkgData);
         var used = await pokemon.FindUsedPokemonAsync(role, read.PokemonId);
-        var result = role.OwnsPokemon(read.PokemonId)
+        var result = role.CanUsePokemon(read.PokemonId)
             ? PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc
             : PB_ENUM_RES_ERROR_CODE.PbErrPokemonUnexists;
         return

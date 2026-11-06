@@ -3,7 +3,9 @@ using SpiritUNITE.Game.Activity;
 using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Game.Newbie;
 using SpiritUNITE.Game.Role;
+using SpiritUNITE.Game.StarRoad;
 using SpiritUNITE.Game.Tasks;
+using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers.Tasks;
@@ -13,7 +15,8 @@ public sealed class TaskHandlers(
     ActivityTasks activityTasks,
     AchievementTasks achievementTasks,
     NewbieChallengeTasks newbieChallengeTasks,
-    TaskUpdates taskUpdates)
+    TaskUpdates taskUpdates,
+    StarRoadManager starRoad)
 {
     private const int SingleTask = 0;
 
@@ -65,6 +68,7 @@ public sealed class TaskHandlers(
             return await ClaimNewbieChallengeAsync(request, claimRequest, role);
         }
 
+        var achievementCompleteCountBefore = await achievementTasks.CountCompleteTasksAsync(role);
         var claim = claimRequest.IsBatch == SingleTask
             ? await activityTasks.ClaimAsync(role, claimRequest.TaskId)
             : await activityTasks.ClaimGroupAsync(role, claimRequest.GroupID);
@@ -74,18 +78,15 @@ public sealed class TaskHandlers(
             return [response];
         }
 
-        var taskUpdate = request.Reply(
-            PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf,
-            new pbSCUpdateTaskInfoNtf { TaskInfoList = { claim.UpdatedTasks } });
+        var taskUpdate = BuildUpdateTaskInfoNtf(request, claim.UpdatedTasks);
         var redDot = BuildActivityRewardRedDot(request, claim.CompleteTaskCount);
+        var chained = claim.ChainedTasks.Length > 0;
         GamePacket[] rewards =
         [
-            .. claim.Wallet is { } wallet
-                ? new[] { request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetCoinValNtf, new pbSCGetCoinValNtf { CoinInfo = wallet.BuildCoinInfo() }) }
-                : [],
-            .. claim.ChangedItems.Count > 0
-                ? new[] { request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidOutSideItemUpdateNotify, BagManager.BuildOutSideItemUpdateNotify(claim.ChangedItems)) }
-                : [],
+            .. await BuildRewardGroupPacketsAsync(request, role, claim.Rewards),
+            .. chained
+                ? [BuildUpdateTaskInfoNtf(request, claim.ChainedTasks), .. await BuildRewardGroupPacketsAsync(request, role, claim.ChainedRewards)]
+                : Array.Empty<GamePacket>(),
             .. claim.Awards.Count > 0
                 ? new[]
                 {
@@ -95,14 +96,87 @@ public sealed class TaskHandlers(
                         AwardReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonTaskaward,
                         ResourcesList = { claim.Awards },
                     }),
-                    request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf, await taskUpdates.BuildOwnershipUpdateTaskInfoNtfAsync(role)),
                 }
                 : [],
+            .. claim.ProgressedTasks.Length > 0 ? new[] { BuildUpdateTaskInfoNtf(request, claim.ProgressedTasks) } : [],
+            .. chained
+                ? new[]
+                {
+                    BuildActivityRewardRedDot(request, claim.CompleteTaskCount + claim.ChainedTasks.Length),
+                    BuildActivityRewardRedDot(request, claim.CompleteTaskCount),
+                }
+                : [],
+            .. claim.Awards.Count > 0
+                ? [
+                    request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf, await taskUpdates.BuildOwnershipUpdateTaskInfoNtfAsync(role)),
+                    .. await BuildAchievementRedDotAsync(request, role, achievementCompleteCountBefore),
+                ]
+                : Array.Empty<GamePacket>(),
         ];
         return claimRequest.IsBatch == SingleTask
             ? [taskUpdate, redDot, .. rewards, response]
             : [.. rewards, taskUpdate, redDot, response];
     }
+
+    private async Task<GamePacket[]> BuildRewardGroupPacketsAsync(GamePacket request, LMNRoleInfo role, ActivityRewardGroup? rewards)
+    {
+        if (rewards is null)
+        {
+            return [];
+        }
+
+        var packets = new List<GamePacket>();
+        foreach (var (coinID, beforeCoinNum) in rewards.SpecialCoinsBefore)
+        {
+            packets.Add(GamePacket.Create(
+                PB_ENUM_CS_MSGID_DEF.PbScidSpecialCoinChangeNtf,
+                SpecialCoin.BuildSpecialCoinChangeNtf(coinID, beforeCoinNum, rewards.Wallet.GetCoinVal(coinID))));
+        }
+
+        if (rewards.WalletCoinsChanged)
+        {
+            packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidGetCoinValNtf, new pbSCGetCoinValNtf { CoinInfo = rewards.Wallet.BuildCoinInfo() }));
+        }
+
+        if (rewards.ChangedItems.Count > 0)
+        {
+            packets.Add(GamePacket.Create(
+                PB_ENUM_CS_MSGID_DEF.PbScidOutSideItemUpdateNotify,
+                BagManager.BuildOutSideItemUpdateNotify(rewards.ChangedItems)));
+        }
+
+        foreach (var pokemonId in rewards.PokemonIds)
+        {
+            packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUpdatePokemonNtf, new pbSCUpdatePokemonNtf
+            {
+                UpdateType = (int)PB_ENUM_ENM_POKEMON_UPDATETYPE.PbEnmPokemonUpdatetypeGain,
+                PokemonInfo = role.BuildPokemonInfo(pokemonId),
+            }));
+        }
+
+        if (rewards.PokemonIds.Count > 0)
+        {
+            packets.AddRange(await starRoad.BuildPokemonGainPacketsAsync(role));
+            packets.Add(StarRoadManager.BuildAddPokemonRedDot(role));
+        }
+        else if (rewards.SpecialCoinsBefore.TryGetValue(CoinID.UNIVERSAL_SHARDS_TOKEN_ID, out var licensePointsBefore))
+        {
+            packets.AddRange(await starRoad.BuildSpecialCoinChangePacketsAsync(role, licensePointsBefore));
+        }
+
+        return [.. packets.Select(packet => packet with { Uid = request.Uid, ClientSeq = request.ClientSeq })];
+    }
+
+    private async Task<GamePacket[]> BuildAchievementRedDotAsync(GamePacket request, LMNRoleInfo role, int completeCountBefore)
+    {
+        var completeCount = await achievementTasks.CountCompleteTasksAsync(role);
+        return completeCount > completeCountBefore
+            ? [TaskRedDots.BuildCount(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdAchievement, completeCount) with { Uid = request.Uid, ClientSeq = request.ClientSeq }]
+            : [];
+    }
+
+    private static GamePacket BuildUpdateTaskInfoNtf(GamePacket request, pbCOMDT_TASK_INFO[] tasks) =>
+        request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf, new pbSCUpdateTaskInfoNtf { TaskInfoList = { tasks } });
 
     private static GamePacket BuildActivityRewardRedDot(GamePacket request, int completeTaskCount) => completeTaskCount > 0
         ? request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRedDotReplaceNtf, new pbSCRedDotReplaceNtf

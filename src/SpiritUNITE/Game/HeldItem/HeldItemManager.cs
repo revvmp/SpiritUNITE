@@ -111,7 +111,7 @@ public sealed class HeldItemManager(
         int pokemonId,
         IReadOnlyCollection<int> heldItemIds)
     {
-        if (!role.OwnsPokemon(pokemonId))
+        if (!role.CanUsePokemon(pokemonId))
         {
             return PB_ENUM_RES_ERROR_CODE.PbErrPokemonUnexists;
         }
