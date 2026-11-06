@@ -87,9 +87,10 @@ public sealed class RankedMatchHandlers(
     public GamePacket[] OnGetRankedMatchHistoryInfoReq(GamePacket request)
     {
         pbCSGetRankedMatchHistoryInfoReq.Parser.ParseFrom(request.PkgData);
+        roles.Require(request.Uid);
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetRankedMatchHistoryInfoRsp, new pbSCGetRankedMatchHistoryInfoRsp
         {
-            ResultInfo = IsRankedMatchUnlocked(request, "history") ? new pbResultInfo() : RankedMatchLevelLimit,
+            ResultInfo = new pbResultInfo(),
         })];
     }
 

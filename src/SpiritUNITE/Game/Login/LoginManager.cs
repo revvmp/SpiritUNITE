@@ -61,6 +61,8 @@ public sealed class LoginManager(
     private const int BindingAccountBadgeNum = 1;
     private const int LoginSucceeded = 1;
     private const int ShippedDatabinABTestID = 1;
+    private const int NoRankedDivision = 0;
+    private const int FirstpayTotalCoupons = 60;
 
     private readonly ConcurrentDictionary<ulong, int> loginCountryCodeByUnregisteredUid = new();
 
@@ -126,7 +128,10 @@ public sealed class LoginManager(
             SeasonId = RankedMatch.FindCurrentSeason(gameData, clock.GetUtcNow()).Season.SeasonId,
             SeasonPoint = TrainerExpGifts.GetSeasonPoint(role),
             ReachMaxSeasonGift = trainerExpGifts.GetReachMaxSeasonGift(role),
-            RankedDivision = (int)RankedMatch.StartingRankedDivision,
+            RankedDivision = RankedMatch.IsRankedMatchUnlocked(gameData, notices, role)
+                ? (int)RankedMatch.StartingRankedDivision
+                : NoRankedDivision,
+            TotalCoupons = FirstpayTotalCoupons,
             CoinInfo = wallet.BuildCoinInfo(),
             AcntRealCoupous = wallet.AcntRealCoupous,
             SpecialCoin = wallet.BuildSpecialCoinInfo(),
