@@ -1,120 +1,267 @@
+using Google.Protobuf;
+using SpiritUNITE.Game.Room;
+using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Battle;
 
 public enum RelayGamePhase
 {
+    Waiting,
     Loading,
     Fighting,
     Over,
 }
 
-public sealed class RelayGame(BattleDesk desk, int randomSeed, long loadStartTime, long loadStartedAt, IReadOnlyDictionary<int, int> npcLoadSeconds)
+public enum RelaySeatTakeover
+{
+    None,
+    Hangup,
+    AiHosted,
+}
+
+public sealed record RelayTimeLimits(
+    TimeSpan MaxGameDuration,
+    double MinGameSeconds,
+    TimeSpan? Disconned2HangupTime,
+    TimeSpan? Afk2HangupTime,
+    TimeSpan? Afk2AiHostingTime,
+    SurrenderRules Surrender);
+
+public sealed class RelaySeat(DeskPlayer human)
+{
+    private const int RecentCmdSeqCapacity = 128;
+
+    private readonly HashSet<int> recentCmdSeqs = [];
+    private readonly Queue<int> recentCmdSeqOrder = new();
+
+    public DeskPlayer Human { get; } = human;
+    public ulong Uid => Human.Uid;
+    public int ObjId => Human.ObjId;
+    public bool IsConnected { get; set; }
+    public bool HasBeginLoad { get; set; }
+    public bool HasBeginfight { get; set; }
+    public bool DisconnInjected { get; set; }
+    public bool IsLossy { get; set; }
+    public bool LoadFinished { get; set; }
+    public long LastCommandAt { get; set; }
+    public long LastHeardAt { get; set; }
+    public bool EverLost { get; set; }
+    public bool QuitByExitButton { get; set; }
+    public RelaySeatTakeover Takeover { get; set; }
+    public pbCSMultgameGameoverReq? Gameover { get; set; }
+    public int GameoverFightSeconds { get; set; }
+    public bool Completed { get; set; }
+    public int StartedSurrenderVotes { get; set; }
+
+    public bool TryAcceptCmdSeq(int cmdSeq)
+    {
+        if (!recentCmdSeqs.Add(cmdSeq))
+        {
+            return false;
+        }
+
+        recentCmdSeqOrder.Enqueue(cmdSeq);
+        if (recentCmdSeqOrder.Count > RecentCmdSeqCapacity)
+        {
+            recentCmdSeqs.Remove(recentCmdSeqOrder.Dequeue());
+        }
+
+        return true;
+    }
+
+    public void ForgetCmdSeqs()
+    {
+        recentCmdSeqs.Clear();
+        recentCmdSeqOrder.Clear();
+    }
+}
+
+public sealed record StoredFrame(int SvrPkgSeq, int Session, byte[] InfoBuff);
+
+public sealed class RelayGame
 {
     public const int FullProcess = 1000;
-    public const long MaxStoredFrameBytes = 16 * 1024 * 1024;
+    public const long MaxStoredFrameBytes = 64 * 1024 * 1024;
+    public const int MaxFrameInfoBytes = 10000;
 
-    private const long TrimmedFrameBytes = MaxStoredFrameBytes / 4 * 3;
+    private const int FirstSvrPkgSeq = 1;
+    private const int NoLoadTick = -1;
 
-    private readonly List<pbSCFrapBootSingleNtf> frames = [];
-    private readonly List<int> frameBytes = [];
-    private long storedFrameBytes;
+    private readonly List<StoredFrame> frames = [];
+    private readonly Dictionary<int, Dictionary<ulong, long>> hashesByKFrapsNo = [];
+    private readonly CancellationTokenSource stopping = new();
+    private int nextSvrPkgSeq = FirstSvrPkgSeq;
 
-    public BattleDesk Desk { get; } = desk;
-    public int RandomSeed { get; } = randomSeed;
-    public long LoadStartTime { get; } = loadStartTime;
-    public long LoadStartedAt { get; } = loadStartedAt;
+    public RelayGame(BattleDesk desk, int randomSeed, long createdAt, IReadOnlyDictionary<int, int> npcLoadSeconds, RelayTimeLimits limits)
+    {
+        Desk = desk;
+        RandomSeed = randomSeed;
+        CreatedAt = createdAt;
+        NpcLoadSeconds = npcLoadSeconds;
+        Limits = limits;
+        Seats = desk.Humans.ToDictionary(human => human.Uid, human => new RelaySeat(human));
+        StoppingToken = stopping.Token;
+    }
+
+    public BattleDesk Desk { get; }
+    public int RandomSeed { get; }
+    public long CreatedAt { get; }
+    public RelayTimeLimits Limits { get; }
+    public IReadOnlyDictionary<ulong, RelaySeat> Seats { get; }
     public Lock Gate { get; } = new();
-    public CancellationTokenSource Stopping { get; } = new();
-    public RelayGamePhase Phase { get; set; } = RelayGamePhase.Loading;
+    public CancellationToken StoppingToken { get; }
+    public RelayGamePhase Phase { get; set; } = RelayGamePhase.Waiting;
+    public long LoadStartTime { get; set; }
+    public long LoadStartedAt { get; set; }
     public long GameStartTime { get; set; }
     public long FightStartedAt { get; set; }
-    public int LoadTick { get; set; }
-    public int KFrapsNo { get; set; }
+    public long? FirstGameoverAt { get; set; }
+    public long? AllLeftAt { get; set; }
+    public bool StragglersNoticed { get; set; }
+    public int LoadTick { get; set; } = NoLoadTick;
+    public int KFrapsNo { get; private set; }
     public bool Finished { get; set; }
-    public pbCSMultgameGameoverReq? AgreedGameover { get; set; }
-    public HashSet<ulong> ConnectedUids { get; } = [];
+    public bool FrameStoreFull { get; private set; }
+    public long StoredFrameBytes { get; private set; }
+    public int? SurrenderWinCampClient { get; set; }
+    public int FrapBootSession { get; set; }
+    public int FrapBootSessionSince { get; set; }
     public Dictionary<int, int> Processes { get; } = [];
-    public HashSet<ulong> LoadFinishedUids { get; } = [];
-    public HashSet<ulong> GameoverUids { get; } = [];
     public List<pbCSDT_FRAPBOOT_CC> PendingBootInfo { get; } = [];
-    public Dictionary<int, int> PendingBootBytesByObjId { get; } = [];
-    public Dictionary<int, int> PendingBootCountByObjId { get; } = [];
-    public int FirstStoredKFrapsNo { get; private set; } = 1;
+    public List<ulong> GameoverOrder { get; } = [];
+    public Dictionary<int, CampVote> Votes { get; } = [];
+    public Dictionary<int, long> LastSurrenderTimes { get; } = [];
+    public bool HangUpReported { get; set; }
 
-    public IReadOnlyDictionary<int, int> NpcLoadSeconds { get; } = npcLoadSeconds;
+    public IReadOnlyDictionary<int, int> NpcLoadSeconds { get; }
 
-    public bool IsSingleAcnt => Desk.Humans.Count() == 1;
+    public IEnumerable<RelaySeat> ConnectedSeats => Seats.Values.Where(seat => seat.IsConnected);
+
+    public ulong[] ConnectedUids => [.. ConnectedSeats.Select(seat => seat.Uid)];
+
+    public bool IsSingleAcnt => Seats.Count == 1;
 
     public bool RunsFrameLoop => !IsSingleAcnt;
 
-    public bool AllHumansLoaded => Desk.Humans.All(human => LoadFinishedUids.Contains(human.Uid));
+    public bool BroadcastsNpcProcess => Desk.DeskInfo.ManMachine != CpuMatch.ManMachine;
+
+    public bool AllHumansAttached => Seats.Values.All(seat => seat.IsConnected);
+
+    public bool AllHumansLoaded => Seats.Values.All(seat => seat.LoadFinished);
+
+    public bool AnyHumanLoaded => Seats.Values.Any(seat => seat.LoadFinished);
 
     public bool AllNpcsLoaded => NpcLoadSeconds.Keys.All(objId => Processes.GetValueOrDefault(objId) >= FullProcess);
 
-    public bool AllHumansLeft => ConnectedUids.Count == 0;
+    public bool AllHumansLeft => !Seats.Values.Any(seat => seat.IsConnected);
 
-    public bool AllHumansReportedOrLeft =>
-        GameoverUids.Count > 0 && Desk.Humans.All(human => GameoverUids.Contains(human.Uid) || !ConnectedUids.Contains(human.Uid));
+    public bool AllPlayingHumansReported =>
+        Seats.Values.Any(seat => seat.Gameover is not null)
+        && Seats.Values.All(seat => seat.Gameover is not null || !seat.IsConnected);
+
+    public IEnumerable<RelaySeat> Stragglers => ConnectedSeats.Where(seat => seat.Gameover is null);
+
+    public RelaySeat? FindSeat(ulong uid) => Seats.GetValueOrDefault(uid);
 
     public int NpcProcessAt(int objId, int tick) =>
         (int)Math.Min(FullProcess, (long)FullProcess * tick / NpcLoadSeconds[objId]);
 
-    public PB_ENUM_RECONN_RELAY_STATE_TYPE ReconnState => Phase switch
+    public PB_ENUM_RECONN_RELAY_STATE_TYPE ReconnStateOf(RelaySeat seat) => Phase switch
     {
+        RelayGamePhase.Waiting => PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateWait,
+        RelayGamePhase.Loading when !seat.HasBeginLoad => PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateWait,
         RelayGamePhase.Loading => PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateLoading,
         RelayGamePhase.Fighting => PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateGameing,
         _ => PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateGameover,
     };
 
-    public bool EndFightIfAllReported()
+    public pbCSMultgameGameoverReq? FindAgreedGameover()
     {
-        if (Phase != RelayGamePhase.Fighting || !AllHumansReportedOrLeft)
+        var reports = GameoverOrder
+            .Select(uid => Seats[uid])
+            .Where(seat => !seat.QuitByExitButton && seat.Gameover is not null)
+            .Select(seat => seat.Gameover!)
+            .ToList();
+        if (reports.Count == 0)
         {
-            return false;
+            return null;
         }
 
-        Phase = RelayGamePhase.Over;
-        return true;
+        var votes = reports.CountBy(report => report.BattleParam.WinCampClient).ToDictionary();
+        var mostVotes = votes.Values.Max();
+        return reports.First(report => votes[report.BattleParam.WinCampClient] == mostVotes);
     }
 
-    public void TakePendingBootInfo(pbCSDT_FRAPBOOT_INFO info)
+    public int TakeSvrPkgSeq() => nextSvrPkgSeq++;
+
+    public void Stop()
     {
-        info.BootInfo.Add(PendingBootInfo);
+        stopping.Cancel();
+        stopping.Dispose();
+    }
+
+    public int? EnemyCampOf(int campClient) =>
+        Desk.Players.Select(player => player.CampClient).Where(camp => camp != campClient).Order().Select(camp => (int?)camp).FirstOrDefault();
+
+    public void EmitFrame(int session)
+    {
+        var info = new pbCSDT_FRAPBOOT_INFO();
+        if (!FrameStoreFull)
+        {
+            info.BootInfo.Add(PendingBootInfo);
+        }
+
         PendingBootInfo.Clear();
-        PendingBootBytesByObjId.Clear();
-        PendingBootCountByObjId.Clear();
-    }
-
-    public void StoreFrame(pbSCFrapBootSingleNtf frame)
-    {
-        var size = frame.CalculateSize();
-        frames.Add(frame);
-        frameBytes.Add(size);
-        storedFrameBytes += size;
-        if (storedFrameBytes > MaxStoredFrameBytes)
+        var infoBuff = info.ToNoTagByteArray();
+        if (StoredFrameBytes + infoBuff.Length > MaxStoredFrameBytes)
         {
-            TrimFrames();
-        }
-    }
-
-    public pbSCFrapBootSingleNtf? FindFrame(int kFrapsNo)
-    {
-        var index = (long)kFrapsNo - FirstStoredKFrapsNo;
-        return index >= 0 && index < frames.Count ? frames[(int)index] : null;
-    }
-
-    private void TrimFrames()
-    {
-        var dropped = 0;
-        while (dropped < frames.Count && storedFrameBytes > TrimmedFrameBytes)
-        {
-            storedFrameBytes -= frameBytes[dropped];
-            dropped++;
+            FrameStoreFull = true;
+            infoBuff = new pbCSDT_FRAPBOOT_INFO().ToNoTagByteArray();
         }
 
-        frames.RemoveRange(0, dropped);
-        frameBytes.RemoveRange(0, dropped);
-        FirstStoredKFrapsNo += dropped;
+        KFrapsNo++;
+        frames.Add(new StoredFrame(TakeSvrPkgSeq(), session, infoBuff));
+        StoredFrameBytes += infoBuff.Length;
+    }
+
+    public pbSCFrapBootSingleNtf? FindFrame(int kFrapsNo) =>
+        FindStoredFrame(kFrapsNo) is { } frame
+            ? new pbSCFrapBootSingleNtf { KFrapsNo = kFrapsNo, InfoBuff = ByteString.CopyFrom(frame.InfoBuff) }
+            : null;
+
+    public StoredFrame? FindStoredFrame(int kFrapsNo) =>
+        kFrapsNo >= 1 && kFrapsNo <= frames.Count ? frames[kFrapsNo - 1] : null;
+
+    public int PendingBytesOf(int objId) =>
+        PendingBootInfo.Where(command => command.ObjID == objId).Sum(command => command.Buff.Length);
+
+    public int PendingBytes => PendingBootInfo.Sum(command => command.Buff.Length);
+
+    public IReadOnlyDictionary<ulong, long>? RecordHash(int kFrapsNo, ulong uid, long hash, int keptFrames)
+    {
+        if (!hashesByKFrapsNo.TryGetValue(kFrapsNo, out var hashes))
+        {
+            if (kFrapsNo <= KFrapsNo - keptFrames)
+            {
+                return null;
+            }
+
+            hashes = [];
+            hashesByKFrapsNo[kFrapsNo] = hashes;
+            foreach (var stale in hashesByKFrapsNo.Keys.Where(key => key <= KFrapsNo - keptFrames).ToList())
+            {
+                hashesByKFrapsNo.Remove(stale);
+            }
+        }
+
+        hashes[uid] = hash;
+        if (!ConnectedSeats.All(seat => hashes.ContainsKey(seat.Uid)) || hashes.Count < 2)
+        {
+            return null;
+        }
+
+        hashesByKFrapsNo.Remove(kFrapsNo);
+        return hashes;
     }
 }

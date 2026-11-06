@@ -46,16 +46,31 @@ public sealed class RelayHandlers(RelayManager relays)
         [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidMultGameAliveStateRsp, relays.AliveState(request.Uid, pbCSMultGameAliveStateReq.Parser.ParseFrom(request.PkgData)))];
 
     [PacketHandler(eNetEventServerType.RelayServer, PB_ENUM_CS_MSGID_DEF.PbCsidOpeningGameHangUpReq)]
-    public GamePacket[] OnOpeningGameHangUpReq(GamePacket request)
+    public async Task<GamePacket[]> OnOpeningGameHangUpReq(GamePacket request)
     {
-        relays.HangUp(request.Uid, pbCSOpeningGameHangUpReq.Parser.ParseFrom(request.PkgData));
+        await relays.HangUpAsync(request.Uid, pbCSOpeningGameHangUpReq.Parser.ParseFrom(request.PkgData));
         return [];
     }
 
+    [PacketHandler(eNetEventServerType.RelayServer, PB_ENUM_CS_MSGID_DEF.PbCsidHangUpGameOverVoteResultReq)]
+    public async Task<GamePacket[]> OnHangUpGameOverVoteResultReq(GamePacket request) =>
+        [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidHangUpGameOverVoteResultRsp, await relays.HangUpVoteAsync(request.Uid, pbCSHangUpGameOverVoteResultReq.Parser.ParseFrom(request.PkgData)))];
+
+    [PacketHandler(eNetEventServerType.RelayServer, PB_ENUM_CS_MSGID_DEF.PbCsidSurrenderReq)]
+    public Task<GamePacket[]> OnSurrenderReq(GamePacket request) =>
+        relays.SurrenderAsync(request.Uid, pbCSSurrenderReq.Parser.ParseFrom(request.PkgData));
+
     [PacketHandler(eNetEventServerType.RelayServer, PB_ENUM_CS_MSGID_DEF.PbCsidRelayHashcheckReq)]
-    public GamePacket[] OnRelayHashcheckReq(GamePacket request)
+    public async Task<GamePacket[]> OnRelayHashcheckReq(GamePacket request)
     {
-        relays.HashCheck(request.Uid, pbCSRelayHashcheckReq.Parser.ParseFrom(request.PkgData));
+        await relays.HashCheckAsync(request.Uid, pbCSRelayHashcheckReq.Parser.ParseFrom(request.PkgData));
+        return [];
+    }
+
+    [PacketHandler(eNetEventServerType.RelayServer, PB_ENUM_CS_MSGID_DEF.PbCsidFetchMsgFromVideoReq)]
+    public async Task<GamePacket[]> OnFetchMsgFromVideoReq(GamePacket request)
+    {
+        await relays.FetchMsgFromVideoAsync(request.Uid, pbCSFetchMsgFromVideoReq.Parser.ParseFrom(request.PkgData));
         return [];
     }
 
@@ -69,7 +84,7 @@ public sealed class RelayHandlers(RelayManager relays)
     [PacketHandler(eNetEventServerType.RelayServer, PB_ENUM_CS_MSGID_DEF.PbCsidGamingUpermsgReq)]
     public GamePacket[] OnGamingUpermsgReq(GamePacket request)
     {
-        relays.Upermsg(request.Uid, pbCSGamingUpermsgReq.Parser.ParseFrom(request.PkgData));
+        relays.Upermsg(request.Uid, request.PkgData);
         return [];
     }
 

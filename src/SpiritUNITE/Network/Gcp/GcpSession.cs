@@ -352,7 +352,7 @@ public sealed class GcpSession(
         packetLog.SentGame(packet);
         var payload = style.WritesPkgHeadUidAndSvrPkgSeq
             ? packet.ToByteArray(nextSvrPkgSeq++, WritesIsPkgMem(packet))
-            : packet.ToByteArrayWithoutUidAndSvrPkgSeq();
+            : packet.ToRelayByteArray();
         var compressed = compression.Compresses && payload.Length >= compression.MinSize ? Lz4Block.Compress(payload) : null;
         return compressed is not null && compressed.Length < payload.Length
             ? BuildPacket(head, GcpCommand.Data, GcpMessages.BuildDataSection(head.PackingVersion, compressed: true, sessionRoute), compressed)

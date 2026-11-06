@@ -19,6 +19,10 @@ public sealed record GamePacket(int MsgID, ulong Uid, int ClientSeq, byte[] PkgD
 
     public int Version { get; init; }
 
+    public int? SvrPkgSeq { get; init; }
+
+    public bool MsgIDInBodyOnly { get; init; }
+
     public static GamePacket Create(PB_ENUM_CS_MSGID_DEF msgID, IMessage message) =>
         new((int)msgID, Uid: 0, ClientSeq: 0, message.ToByteArray());
 
@@ -50,11 +54,11 @@ public sealed record GamePacket(int MsgID, ulong Uid, int ClientSeq, byte[] PkgD
         return buffer.ToArray();
     }
 
-    public byte[] ToByteArrayWithoutUidAndSvrPkgSeq()
+    public byte[] ToRelayByteArray()
     {
         using var buffer = new MemoryStream();
         using var output = new CodedOutputStream(buffer, leaveOpen: true);
-        output.WriteBytes(BuildHeadWithoutUidAndSvrPkgSeq());
+        output.WriteBytes(BuildRelayHead());
         output.WriteBytes(BuildBody());
         output.Flush();
         return buffer.ToArray();
@@ -141,13 +145,23 @@ public sealed record GamePacket(int MsgID, ulong Uid, int ClientSeq, byte[] PkgD
         return ByteString.CopyFrom(buffer.ToArray());
     }
 
-    private ByteString BuildHeadWithoutUidAndSvrPkgSeq()
+    private ByteString BuildRelayHead()
     {
         using var buffer = new MemoryStream();
         using var output = new CodedOutputStream(buffer, leaveOpen: true);
-        output.WriteTag(MsgIDField, WireFormat.WireType.Varint);
-        output.WriteInt32(MsgID);
+        if (!MsgIDInBodyOnly)
+        {
+            output.WriteTag(MsgIDField, WireFormat.WireType.Varint);
+            output.WriteInt32(MsgID);
+        }
+
         WriteVersion(output);
+        if (SvrPkgSeq is { } svrPkgSeq)
+        {
+            output.WriteTag(SvrPkgSeqField, WireFormat.WireType.Varint);
+            output.WriteInt32(svrPkgSeq);
+        }
+
         if (ClientSeq != NoClientSeq)
         {
             output.WriteTag(ClientSeqField, WireFormat.WireType.Varint);
