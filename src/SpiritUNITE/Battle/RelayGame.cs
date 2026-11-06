@@ -25,6 +25,7 @@ public sealed record RelayTimeLimits(
     double MinGameSeconds,
     TimeSpan? Disconned2HangupTime,
     TimeSpan? Afk2HangupTime,
+    TimeSpan? Disconned2AiHostingTime,
     TimeSpan? Afk2AiHostingTime,
     SurrenderRules Surrender);
 
@@ -240,19 +241,21 @@ public sealed class RelayGame
 
     public IReadOnlyDictionary<ulong, long>? RecordHash(int kFrapsNo, ulong uid, long hash, int keptFrames)
     {
+        var newestStale = KFrapsNo - keptFrames;
+        foreach (var stale in hashesByKFrapsNo.Keys.Where(key => key <= newestStale).ToList())
+        {
+            hashesByKFrapsNo.Remove(stale);
+        }
+
+        if (kFrapsNo <= newestStale)
+        {
+            return null;
+        }
+
         if (!hashesByKFrapsNo.TryGetValue(kFrapsNo, out var hashes))
         {
-            if (kFrapsNo <= KFrapsNo - keptFrames)
-            {
-                return null;
-            }
-
             hashes = [];
             hashesByKFrapsNo[kFrapsNo] = hashes;
-            foreach (var stale in hashesByKFrapsNo.Keys.Where(key => key <= KFrapsNo - keptFrames).ToList())
-            {
-                hashesByKFrapsNo.Remove(stale);
-            }
         }
 
         hashes[uid] = hash;

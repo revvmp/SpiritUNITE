@@ -15,8 +15,9 @@ public sealed class RoomInvites(
     GameData gameData,
     TimeProvider clock)
 {
-    public const int DenyInviteSeconds = 300;
+    public const int DenyInviteSeconds = (int)PB_MACRO_COM_DENY_INVITE_FROM_FRIEND_IN_NEXT_N_MINITUES.PbComDenyInviteFromFriendInNextNminitues * SecondsPerMinute;
 
+    private const int SecondsPerMinute = 60;
     private const int ClientJoinRoomTypeInvite = (int)PB_ENUM_ENM_CLIENT_JOIN_ROOM_TYPE.PbEnmClientJoinRoomTypeInvite;
 
     private readonly ConcurrentDictionary<(ulong InviterUid, ulong InviteeUid), long> deniedUntil = new();

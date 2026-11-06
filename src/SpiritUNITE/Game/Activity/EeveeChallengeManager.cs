@@ -29,7 +29,6 @@ public sealed class EeveeChallengeManager(
     public const int EeveeChallengeRedDotID = (int)PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdEeveechallenge;
 
     private const int FirstPeriod = 1;
-    private const int MaxPeriod = 5;
     private const int Clicked = 1;
     private const int Replaced = 1;
     private const int UseOutSideItemReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonUseoutsideitem;
@@ -44,16 +43,17 @@ public sealed class EeveeChallengeManager(
         }
 
         var periods = await FindPeriodsAsync(role.GameUlongUID, activity.Row.ActivityID);
+        var allPeriod = CountPeriods(activity.Row.ActivityID);
         return new pbSCEeveeChallengeStatusRsp
         {
             ResultInfo = new pbResultInfo(),
             EeveeList =
             {
-                Enumerable.Range(FirstPeriod, MaxPeriod).Select(period => periods.GetValueOrDefault(period) is { } saved
+                Enumerable.Range(FirstPeriod, allPeriod).Select(period => periods.GetValueOrDefault(period) is { } saved
                     ? new pbCOMDT_EEVEE_CHALLENGE_DETAIL { EeveeID = saved.EeveeID, CurrPeriod = period, IsClick = saved.IsClick }
                     : new pbCOMDT_EEVEE_CHALLENGE_DETAIL { CurrPeriod = period }),
             },
-            AllPeriod = MaxPeriod,
+            AllPeriod = allPeriod,
         };
     }
 
@@ -218,8 +218,10 @@ public sealed class EeveeChallengeManager(
 
     private (PB_ENUM_RES_ERROR_CODE Result, ScheduledActivity? Activity) Validate(int period) =>
         FindOpenActivity() is not { } activity ? (PB_ENUM_RES_ERROR_CODE.PbErrEeveeChallengeNotExit, null)
-        : period is < FirstPeriod or > MaxPeriod ? (PB_ENUM_RES_ERROR_CODE.PbErrEeveeChallengeCanNotActivate, activity)
+        : period < FirstPeriod || period > CountPeriods(activity.Row.ActivityID) ? (PB_ENUM_RES_ERROR_CODE.PbErrEeveeChallengeCanNotActivate, activity)
         : (PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, activity);
+
+    private int CountPeriods(int activityID) => pool.Find(activityID).Count;
 
     private ScheduledActivity? FindOpenActivity() =>
         schedule.FindOpen(PB_ENUM_RES_ACTIVITY_TYPE.PbResActivityTypeEeveeChallenge, clock.GetUtcNow());
@@ -232,7 +234,7 @@ public sealed class EeveeChallengeManager(
     private async Task<int> CountUnclickedPeriodsAsync(ulong uid, int activityID)
     {
         var periods = await FindPeriodsAsync(uid, activityID);
-        return Enumerable.Range(FirstPeriod, MaxPeriod).Count(period => periods.GetValueOrDefault(period)?.IsClick != Clicked);
+        return Enumerable.Range(FirstPeriod, CountPeriods(activityID)).Count(period => periods.GetValueOrDefault(period)?.IsClick != Clicked);
     }
 
     private static GamePacket BuildRedDotPacket(int unclicked) => unclicked > 0

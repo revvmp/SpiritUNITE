@@ -24,13 +24,8 @@ public static class RoomMemberDetail
     private const int UnsetBattleSetting = -1;
     private const int ValidConfig = 1;
     private const int MaleGender = (int)PB_ENUM_RES_GENDER_TYPE.PbResGenderTypeMale;
-    private const int MaleDefaultModelID = 20191219;
-    private const int FemaleDefaultModelID = 20200501;
-    private const int DefaultSkinColorID = 7;
-    private const int DefaultAvatarSlotCount = 12;
-
-    private static readonly int[] MaleDefaultAvatarIDs = [1004000114, 1004000111, 1004000110, 1004001106, 1004000113];
-    private static readonly int[] FemaleDefaultAvatarIDs = [1004000214, 1004000111, 1004000110, 1004001106, 1004000113];
+    private const int FemaleGender = (int)PB_ENUM_RES_GENDER_TYPE.PbResGenderTypeFemale;
+    private const int AnonymousUserNpcType = (int)PB_ENUM_RES_NPC_TYPE.PbResNpcTypeAnonymousUser;
 
     private static readonly PB_ENUM_ENUM_SYNC_SETTINGS[] BattleMemberSettings =
     [
@@ -122,21 +117,28 @@ public static class RoomMemberDetail
                     TmpNameList = tmpNameList,
                     BattleMemberConfigList = BuildBattleMemberConfigList(isValid: true),
                     AnonymousUserNameID = anonymousUserNameID,
-                    DefaultRoleAvatarInfo = BuildDefaultRoleAvatarInfo(role.Gender),
+                    DefaultRoleAvatarInfo = BuildDefaultRoleAvatarInfo(gameData, role.Gender),
                 },
             },
         };
 
-    public static pbCOMDT_ROLE_AVATAR_INFO BuildDefaultRoleAvatarInfo(int gender)
+    public static pbCOMDT_ROLE_AVATAR_INFO BuildDefaultRoleAvatarInfo(GameData gameData, int gender)
     {
-        var isMale = gender == MaleGender;
-        var avatarIDs = isMale ? MaleDefaultAvatarIDs : FemaleDefaultAvatarIDs;
+        var anonymousGender = gender == MaleGender ? MaleGender : FemaleGender;
+        var anonymousUser = gameData.AiInfoConfig.Rows
+            .Where(row => row.NPCType == AnonymousUserNpcType && row.Gender == anonymousGender)
+            .MinBy(row => row.ID);
+        if (anonymousUser is null)
+        {
+            return new pbCOMDT_ROLE_AVATAR_INFO();
+        }
+
         var avatar = new pbCOMDT_ROLE_AVATAR_INFO
         {
-            RoleBaseModelID = isMale ? MaleDefaultModelID : FemaleDefaultModelID,
-            SkinColorID = DefaultSkinColorID,
+            RoleBaseModelID = anonymousUser.BaseModelID,
+            SkinColorID = anonymousUser.SkinColorIdx,
         };
-        avatar.AvatarIDList.AddRange(avatarIDs.Concat(Enumerable.Repeat(0, DefaultAvatarSlotCount - avatarIDs.Length)));
+        avatar.AvatarIDList.AddRange(anonymousUser.AvatarItemID);
         return avatar;
     }
 

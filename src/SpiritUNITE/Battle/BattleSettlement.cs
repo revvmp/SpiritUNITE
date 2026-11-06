@@ -53,9 +53,9 @@ public sealed class BattleSettlement
     private const int AcntExpResID = (int)PB_ENUM_ENM_RESOURCES_ID.PbEnmResourcesIdAcntExp;
     private const int HeavenTrainerGameType = (int)PB_ENUM_RES_MATCHGAMETYPE.PbMatchGameTypeHeavenTrainer;
     private const int CatchGameType = (int)PB_ENUM_RES_MATCHGAMETYPE.PbMatchGameTypeCatch;
-    private const int WinMedalType = 34;
-    private const int DefeatMedalType = 35;
-    private const int NewbieBenefitMedalType = 38;
+    private const int WinMedalType = (int)PB_ENUM_ENM_BATTLE_MASK_TYPE.PbEnmBattleMaskTypeWin;
+    private const int DefeatMedalType = (int)PB_ENUM_ENM_BATTLE_MASK_TYPE.PbEnmBattleMaskTypeLose;
+    private const int NewbieBenefitMedalType = (int)PB_ENUM_ENM_BATTLE_MASK_TYPE.PbEnmBattleMaskTypeNewbie;
     private const int MatchTimeMillisecondsPerMinute = 60000;
     private const int NoHeldItem = 0;
     private const int PveChallengeStarReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonPveChallengeStar;
@@ -76,12 +76,13 @@ public sealed class BattleSettlement
     private const int NoOccupation = 0;
     private const int NoNextUnLock = 0;
     private const int NewNodeRedDotBadgeNum = 1;
-    private const int IsAITypeOneBattleFlagBit = 2;
+    private const int IsAITypeOneBattleFlagBit = (int)PB_ENUM_ENM_BATTLE_MASK_TYPE.PbEnmBattleMaskTypeNpc - 1;
     private const long IsAITypeOneBattleFlag = 1L << IsAITypeOneBattleFlagBit;
     private const int RankedMatchLimitTimeRedDotBadgeNum = 1;
     private const int EnergyGainRedDotBadgeNum = 2;
     private const int TodaySetNoReminded = 1;
     private const int DaysPerWeek = 7;
+    private const int GameTimeoutEnded = 1;
 
     private static readonly TimeSpan SettleGainRetention = TimeSpan.FromMinutes(5);
 
@@ -183,6 +184,19 @@ public sealed class BattleSettlement
     }
 
     public pbSCMultiGameSettleGainRsp? FindSettleGain(ulong uid) => settleGains.GetValueOrDefault(uid);
+
+    public async Task EndTimedOutGameAsync(BattleDesk desk, ulong uid)
+    {
+        var gain = new pbSCMultiGameSettleGainRsp { GameTimeoutEnd = GameTimeoutEnded };
+        settleGains[uid] = gain;
+        _ = ForgetSettleGainAsync(uid, gain);
+        var delivered = await lobbyRoles.PushAsync(uid, GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidMultiGameSettleGainRsp, gain));
+        logger.LogInformation(
+            "Desk {DeskID}: uid {Uid} {Delivery} the game timeout end",
+            desk.DeskID,
+            uid,
+            delivered ? "was sent" : "is offline and was not sent");
+    }
 
     public async Task SettleAsync(BattleResult result)
     {

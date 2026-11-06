@@ -65,7 +65,7 @@ public sealed class DeskManager
     private const int FirstBotLockStep = 3;
     private const int LastBotLockStep = 6;
     private const int PickReminderLeadSec = 1;
-    private const int WarmBattleType = 1;
+    private const int WarmBattleType = (int)PB_ENUM_ENM_WARMBATTLE_TYPE.PbEnmWarmbattleRookie;
     private const int NoWarmBattle = 0;
     private const int NoWayTipBroad = 0;
     private const int NoHeldItemAttrIndex = 0;

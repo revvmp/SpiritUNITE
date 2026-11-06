@@ -339,6 +339,7 @@ SCENE_MAP_SERVER_FIELDS = (
     "SurrenderCDTime",
     "SurrenderInvalidTime",
     "SurrenderTimesLimit",
+    "Timeout",
 )
 
 MAP_BASE_SERVER_FIELDS = ("MapBaseId", "MatchTime")

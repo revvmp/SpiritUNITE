@@ -312,7 +312,7 @@ public static class PveMatch
                         AnonymousUserNameID = anonymousUserNameID,
                         TmpNameList = tmpNameList,
                         UserPlantInfo = new pbCOMDT_ROLE_HEAD_URL_INFO { HeadType = SubscriptionHeadType },
-                        DefaultRoleAvatarInfo = RoomMemberDetail.BuildDefaultRoleAvatarInfo(row.Gender),
+                        DefaultRoleAvatarInfo = RoomMemberDetail.BuildDefaultRoleAvatarInfo(gameData, row.Gender),
                     },
                 }),
             },

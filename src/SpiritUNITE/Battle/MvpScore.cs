@@ -39,8 +39,8 @@ public sealed record MvpResult(IReadOnlyDictionary<int, int> MvpScoreTTHByObjID,
     public const long WinMvpBattleFlag = 1L << (WinMvpMedalType - 1);
     public const long LoseMvpBattleFlag = 1L << (LoseMvpMedalType - 1);
 
-    private const int WinMvpMedalType = 1;
-    private const int LoseMvpMedalType = 2;
+    private const int WinMvpMedalType = (int)PB_ENUM_ENM_BATTLE_MASK_TYPE.PbEnmBattleMaskTypeWinMvp;
+    private const int LoseMvpMedalType = (int)PB_ENUM_ENM_BATTLE_MASK_TYPE.PbEnmBattleMaskTypeLoseMvp;
 
     public long BattleFlagOf(int objID) =>
         (objID == WinMvpObjID ? WinMvpBattleFlag : 0) | (objID == LoseMvpObjID ? LoseMvpBattleFlag : 0);
@@ -49,7 +49,7 @@ public sealed record MvpResult(IReadOnlyDictionary<int, int> MvpScoreTTHByObjID,
 public sealed class MvpScore
 {
     private const int CatchGameType = (int)PB_ENUM_RES_MATCHGAMETYPE.PbMatchGameTypeCatch;
-    private const int FirstOccupationType = 6;
+    private const int FirstOccupationType = (int)PB_ENUM_RES_POKEMON_OCCUPATION_TYPE.PbResPokemonOccupationTypeSupport;
     private const int RefDivisor = 10000;
     private const int NoMvp = 0;
 

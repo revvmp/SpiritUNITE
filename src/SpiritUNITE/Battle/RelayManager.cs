@@ -33,15 +33,13 @@ public sealed class RelayManager
     private const int PauseType = (int)PB_ENUM_CS_PAUSE_TYPE.PbCsPauseCancel;
     private const int PauseCancelType = (int)PB_ENUM_COM_PAUSE_CANCEL_TYPE.PbComPauseCancelManual;
     private const int MinNpcLoadSeconds = 13;
-    private const int MaxNpcLoadSeconds = 18;
+    private const int MaxNpcLoadSeconds = 20;
     private const int FrapBootSession = 3;
     private const int LossFrapBootSession = 8;
     private const int FrapBootSessionStepFrames = 76;
-    private const int LossyExtraPacketsAtLossSession = 2;
-    private const int LossyExtraPacketsWhileDecaying = 1;
     private const int FirstFrapBootSession = 0;
     private const int RedundantFrapNum = 4;
-    private const int MaxSpareFrapNum = 9;
+    private const int MaxSpareFrapNum = (int)PB_MACRO_CS_MAX_SPAREFRAP_NUM.PbCsMaxSparefrapNum;
     private const int AcntObjType = 1;
     private const int UsedTimeToleranceSeconds = 10;
     private const double MillisecondsPerSecond = 1000;
@@ -50,17 +48,18 @@ public sealed class RelayManager
     private const int MaxBootInfoPerObjPerFrame = 16;
     private const int MaxBootInfoBytesPerObjPerFrame = 1024;
     private const int MaxRepairRanges = 20;
-    private const int MaxRepairFrames = 300;
+    private const int MaxRepairFrames = (int)PB_MACRO_CS_MAX_REPAIR_FRAP_NUM.PbCsMaxRepairFrapNum;
     private const int MaxRepairBufBytes = 48 * 1024;
     private const int MaxReportedRelayIPLength = 64;
     private const int SecondGameoverRspVersion = 1;
-    private const int HashKeptFrames = 300;
+    private const int HashKeptFrames = 35;
     private const int SelfObjID = 0;
     private const int FirstUnknownSyncType = (int)CmdInfoCase.StFrameCmdAddGainScore;
     private const int LastSyncType = 40;
-    private const int Disconned2HangupTimeKey = 254;
-    private const int Afk2HangupTimeKey = 255;
-    private const int Afk2AiHostingTimeKey = 454;
+    private const int Disconned2HangupTimeKey = (int)PB_ENUM_RES_RESGLOBAL.PbResglobalDisconned2HangupTime;
+    private const int Afk2HangupTimeKey = (int)PB_ENUM_RES_RESGLOBAL.PbResglobalAfk2HangupTime;
+    private const int Disconned2AiHostingTimeKey = (int)PB_ENUM_RES_RESGLOBAL.PbResglobalDisconned2AiHostingTime;
+    private const int Afk2AiHostingTimeKey = (int)PB_ENUM_RES_RESGLOBAL.PbResglobalAfk2AiHostingTime;
     private const int NotSurrender = 0;
     private const int SurrenderEnded = 1;
     private const int SurrenderEndSyncType = (int)CmdInfoCase.StFrameCmdSurrenderEnd;
@@ -77,7 +76,7 @@ public sealed class RelayManager
     private static readonly TimeSpan LoadGrace = TimeSpan.FromSeconds(60);
     private static readonly TimeSpan LoadTimeout = TimeSpan.FromSeconds(120);
     private static readonly TimeSpan SecondGameoverRspDelay = TimeSpan.FromMilliseconds(520);
-    private static readonly TimeSpan SettlementDelay = TimeSpan.FromMilliseconds(230);
+    private static readonly TimeSpan SettlementDelay = TimeSpan.FromMilliseconds(200);
     private static readonly TimeSpan FinishDelay = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan AbandonDelay = TimeSpan.FromSeconds(60);
     private static readonly TimeSpan AttachTimeout = LoadTimeout;
@@ -1051,6 +1050,18 @@ public sealed class RelayManager
         return completions;
     }
 
+    private static ulong[] EndTimedOutFight(RelayGame game)
+    {
+        game.Phase = RelayGamePhase.Over;
+        var timedOut = game.Seats.Values.Where(seat => !seat.Completed).ToArray();
+        foreach (var seat in timedOut)
+        {
+            seat.Completed = true;
+        }
+
+        return [.. timedOut.Select(seat => seat.Uid)];
+    }
+
     private GameoverFault? FindGameoverFault(RelayGame game, DeskPlayer human, pbCSMultgameGameoverReq request, double fightSeconds)
     {
         var desk = game.Desk;
@@ -1140,6 +1151,11 @@ public sealed class RelayManager
                 var step = Advance(game);
                 await SendAllAsync(step.Sends);
                 StartCompletions(game, step.Completions, finishesDesk: true);
+                foreach (var uid in step.TimedOutUids ?? [])
+                {
+                    await settlement.EndTimedOutGameAsync(game.Desk, uid);
+                }
+
                 if (step.Finishes)
                 {
                     await FinishAsync(game);
@@ -1307,12 +1323,9 @@ public sealed class RelayManager
         if (fightElapsed >= game.Limits.MaxGameDuration)
         {
             logger.LogWarning("Desk {DeskID} reached the game time limit of {MaxGameDuration}", game.Desk.DeskID, game.Limits.MaxGameDuration);
-            if (game.FindAgreedGameover() is null)
-            {
-                return new RelayStep([], [], Finishes: true, Wait: null);
-            }
-
-            return new RelayStep([], EndFight(game), Finishes: false, Wait: null);
+            return game.FindAgreedGameover() is null
+                ? new RelayStep([], [], Finishes: true, Wait: null, TimedOutUids: EndTimedOutFight(game))
+                : new RelayStep([], EndFight(game), Finishes: false, Wait: null);
         }
 
         sends.AddRange(ExpireVotes(game));
@@ -1372,25 +1385,17 @@ public sealed class RelayManager
         }
 
         var receivers = game.ConnectedSeats.Where(seat => seat.LoadFinished || seat.HasBeginfight).ToList();
-        var lossyPackets = new List<GamePacket>(packets);
-        var extraPackets = !receivers.Any(seat => seat.IsLossy) ? 0
-            : game.FrapBootSession == LossFrapBootSession ? LossyExtraPacketsAtLossSession
-            : game.FrapBootSession > FrapBootSession ? LossyExtraPacketsWhileDecaying
-            : 0;
-        for (var extra = 1; extra <= extraPackets; extra++)
+        var extraFrames = receivers.Any(seat => seat.IsLossy) ? Math.Max(0, game.FrapBootSession + 1 - RedundantFrapNum) : 0;
+        var oldestExtra = Math.Max(1, game.KFrapsNo - RedundantFrapNum - extraFrames + 1);
+        var extraPackets = new List<GamePacket>();
+        for (var newest = game.KFrapsNo - RedundantFrapNum; newest >= oldestExtra; newest -= RedundantFrapNum)
         {
-            var newest = game.KFrapsNo - extra * RedundantFrapNum;
-            if (newest < 1)
-            {
-                break;
-            }
-
-            var oldest = extra == LossyExtraPacketsAtLossSession ? newest : Math.Max(1, newest - RedundantFrapNum + 1);
-            lossyPackets.Add(BuildFramesPacket(game, newest, oldest));
+            extraPackets.Add(BuildFramesPacket(game, newest, Math.Max(oldestExtra, newest - RedundantFrapNum + 1)));
         }
 
+        extraPackets.Reverse();
         GamePacket[] framePackets = [.. packets];
-        GamePacket[] lossyFramePackets = [.. lossyPackets];
+        GamePacket[] lossyFramePackets = [.. extraPackets, .. packets];
         sends.AddRange(receivers.Select(seat => new RelaySend(seat.Uid, RelayChannel.Unreliable, seat.IsLossy ? lossyFramePackets : framePackets)));
     }
 
@@ -1450,9 +1455,13 @@ public sealed class RelayManager
             var idle = clock.GetElapsedTime(seat.LastCommandAt, now);
             switch (seat.Takeover)
             {
-                case RelaySeatTakeover.None when (seat.EverLost ? limits.Disconned2HangupTime : limits.Afk2HangupTime) is { } limit && idle >= limit:
-                    InjectAcntState(game, seat, seat.EverLost ? PbCsFrapbootAcntstateAiStart : PbCsFrapbootAcntstateHangup);
-                    seat.Takeover = seat.EverLost ? RelaySeatTakeover.AiHosted : RelaySeatTakeover.Hangup;
+                case RelaySeatTakeover.None when seat.EverLost && (limits.Disconned2HangupTime ?? limits.Disconned2AiHostingTime) is { } limit && idle >= limit:
+                    InjectAcntState(game, seat, PbCsFrapbootAcntstateAiStart);
+                    seat.Takeover = RelaySeatTakeover.AiHosted;
+                    break;
+                case RelaySeatTakeover.None when !seat.EverLost && limits.Afk2HangupTime is { } limit && idle >= limit:
+                    InjectAcntState(game, seat, PbCsFrapbootAcntstateHangup);
+                    seat.Takeover = RelaySeatTakeover.Hangup;
                     break;
                 case RelaySeatTakeover.Hangup when limits.Afk2AiHostingTime is { } limit && idle >= limit:
                     InjectAcntState(game, seat, PbCsFrapbootAcntstateAiStart);
@@ -1589,10 +1598,13 @@ public sealed class RelayManager
             scene?.SurrenderInvalidTime ?? 0,
             scene?.SurrenderTimesLimit ?? 0);
         return new RelayTimeLimits(
-            matchTime is { } limit ? limit + GameTimeMargin : FallbackMaxGameDuration,
+            scene is { Timeout: > 0 } ? TimeSpan.FromSeconds(scene.Timeout)
+                : matchTime is { } limit ? limit + GameTimeMargin
+                : FallbackMaxGameDuration,
             minGameSeconds,
             FindHangupSeconds(hangupSchemeID, Disconned2HangupTimeKey),
             FindHangupSeconds(hangupSchemeID, Afk2HangupTimeKey),
+            FindHangupSeconds(hangupSchemeID, Disconned2AiHostingTimeKey),
             FindHangupSeconds(hangupSchemeID, Afk2AiHostingTimeKey),
             surrender);
     }
@@ -1712,7 +1724,7 @@ public sealed class RelayManager
 
     private sealed record RelaySend(ulong Uid, RelayChannel Channel, GamePacket[] Packets);
 
-    private sealed record RelayStep(RelaySend[] Sends, List<SeatCompletion> Completions, bool Finishes, TimeSpan? Wait);
+    private sealed record RelayStep(RelaySend[] Sends, List<SeatCompletion> Completions, bool Finishes, TimeSpan? Wait, ulong[]? TimedOutUids = null);
 
     private sealed record SeatCompletion(BattleResult Result, bool SendsFinalRsp);
 

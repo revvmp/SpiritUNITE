@@ -26,9 +26,9 @@ public sealed class CreditManager(
     private const long SecondsPerDay = 86400;
     private const long MillisecondsPerSecond = 1000;
     private const int MinCreditPoint = 0;
-    private const int MaxCreditPoint = 100;
+    private const int MaxCreditPoint = (int)PB_MACRO_COM_CREDIT_POINT_INIT_VALUE.PbComCreditPointInitValue;
     private const int NoBanSec = 0;
-    private const int UnconfirmedMatchMailID = 12;
+    private const int UnconfirmedMatchMailID = (int)PB_ENUM_RES_MAILID_TYPE.PbResMailidTypeHangupPunish;
     private const int AccusationMailType = (int)PB_ENUM_RES_MAIL_TYPE.PbResMailTypeAccusation;
     private const int GameStartUnconfirmKey = (int)PB_ENUM_RES_RESGLOBAL.PbResglobalGameStartUnconfirm;
     private const int FirstMatchUnconfirmKey = (int)PB_ENUM_RES_RESGLOBAL.PbResglobalMatchUnconfirm1;
