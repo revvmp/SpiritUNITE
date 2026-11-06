@@ -438,3 +438,4 @@ docs/
 !/resources/README.md
 
 /apk-build/
+/ipa-build/

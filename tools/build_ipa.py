@@ -1,0 +1,918 @@
+#!/usr/bin/env python3
+import argparse
+import hashlib
+import ipaddress
+import json
+import plistlib
+import re
+import socket
+import struct
+import sys
+import zipfile
+from collections import defaultdict
+from collections.abc import Callable
+from dataclasses import dataclass
+from pathlib import Path, PurePosixPath
+
+REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
+APPSETTINGS_PATH = REPOSITORY_ROOT / "src/SpiritUNITE/appsettings.json"
+DEFAULT_WORK_DIR = REPOSITORY_ROOT / "ipa-build"
+
+PAYLOAD_FOLDER = "Payload"
+APP_BUNDLE_SUFFIX = ".app"
+INFO_PLIST_NAME = "Info.plist"
+MSDK_CONFIG_NAME = "MSDKConfig.ini"
+CENTAURI_CONFIG_NAME = "centauri_oversea_cp.cfg"
+CENTAURI_PLIST_NAME = "CTISDKResources-IPMappingInfo.plist"
+METADATA_NAME = "global-metadata.dat"
+
+ATS_KEY = "NSAppTransportSecurity"
+ATS_ALLOWS_ARBITRARY_LOADS = "NSAllowsArbitraryLoads"
+ATS_KEYS_THAT_DISABLE_ARBITRARY_LOADS = (
+    "NSAllowsArbitraryLoadsInWebContent",
+    "NSAllowsArbitraryLoadsForMedia",
+    "NSAllowsLocalNetworking",
+)
+LOCAL_NETWORK_USAGE_KEY = "NSLocalNetworkUsageDescription"
+LOCAL_NETWORK_USAGE_TEXT = "Connects to your SpiritUNITE development server."
+
+MACH_O_MAGICS_LITTLE_ENDIAN = (0xFEEDFACE, 0xFEEDFACF)
+FAT_MAGICS_BIG_ENDIAN = (0xCAFEBABE, 0xCAFEBABF)
+MACH_O_64_MAGIC = 0xFEEDFACF
+MACH_O_HEADER_32 = struct.Struct("<IiiIIII")
+MACH_O_HEADER_64_SIZE = MACH_O_HEADER_32.size + 4
+FAT_ARCH_32 = struct.Struct(">iiIII")
+FAT_ARCH_64 = struct.Struct(">iiQQII")
+LOAD_COMMAND = struct.Struct("<II")
+ENCRYPTION_INFO = struct.Struct("<IIIII")
+LC_ENCRYPTION_INFO = 0x21
+LC_ENCRYPTION_INFO_64 = 0x2C
+MACH_O_MIN_SIZE = 4096
+EXECUTABLE_FOLDERS = ("", "Frameworks", "PlugIns")
+
+LITERAL_ENTRY = struct.Struct("<II")
+LITERAL_ENTRY_ALIGNMENT = 4
+MIN_AGREEING_LITERALS = 2
+SCANNED_CONFIG_SUFFIXES = (".ini", ".cfg", ".json", ".plist", ".txt", ".data", ".xml")
+SCANNED_CONFIG_MAX_SIZE = 4 * 1024 * 1024
+OFFICIAL_HOST_MARKERS = (
+    "pokemon-unitepgame.com",
+    "iegcom.com",
+    "itopsdk.com",
+    "msdkpass.com",
+    "singaporepaya.com",
+    "gcloudcs.com",
+    "tencent.com",
+    "crashsight",
+    "appsflyer",
+    "adjust.com",
+)
+LISTED_LITERAL_MAX_LENGTH = 256
+COPY_CHUNK_SIZE = 8 * 1024 * 1024
+
+DEFAULT_DIR_PORT = 10001
+DEFAULT_HTTPS_PORT = 443
+DEFAULT_HTTP_PORT = 80
+DEFAULT_DEV_WEB_PORT = 10081
+CLIENT_ADDRESS_SERVICE_PORTS = (8085, 8080)
+DIR_NODE_NAME = "trunk_global_dist"
+CLOUD_CONTROL_REPLACEMENT_HOST = "spiritunite.invalid"
+IMAGE_CDN_ROUTE = "/cdn"
+CENTAURI_RELEASE_MODE = "release"
+HOSTNAME_LABEL = re.compile(r"^(?!-)[A-Za-z0-9-]{1,63}(?<!-)$")
+
+OFFICIAL_DIR_ADDRESS = "trunk_global_dist|dirsvr.pokemon-unitepgame.com:10001"
+OFFICIAL_CLOUD_CONTROL_HOST = "gcloudctrl.iegcom.com"
+OFFICIAL_IMAGE_CDN_ADDRESS = "https://image.pokemon-unitepgame.com/Encrypt"
+OFFICIAL_UPDATE_HOSTS = (
+    "puffer.6.669535640.nishikigcloud.iegcom.com",
+    "pre-puffer.5.669535640.nishikigcloud.iegcom.com",
+    "download.2.669535640.nishikigcloud.iegcom.com",
+    "pre-download.1.669535640.nishikigcloud.iegcom.com",
+)
+
+PENDING_CLIENT_CHANGES = (
+    "Nothing in this tool has run on an iPhone yet; configuration patches were inspected on iOS build 1192039 but runtime behavior is unverified.",
+    "The IPA is unsigned for distribution; sign it with your own provisioning before installing.",
+    "Telemetry, push and crash report hosts are unchanged.",
+    "The Nintendo login redirect still points at the official itopsdk CDN.",
+    "The iOS resource archive (Puffer product 1170) must be in ResourceArchive.Directory for the update step.",
+)
+
+
+class BuildError(Exception):
+    pass
+
+
+@dataclass(frozen=True)
+class HostTarget:
+    host: str
+    dir_port: int
+    web_port: int
+    development: bool
+
+    @property
+    def web_origin(self) -> str:
+        scheme, default_port = (
+            ("http", DEFAULT_HTTP_PORT)
+            if self.development
+            else ("https", DEFAULT_HTTPS_PORT)
+        )
+        if self.web_port == default_port:
+            return f"{scheme}://{self.host}"
+        return f"{scheme}://{self.host}:{self.web_port}"
+
+    @property
+    def image_cdn_address(self) -> str:
+        return f"{self.web_origin}{IMAGE_CDN_ROUTE}"
+
+    @property
+    def build_name(self) -> str:
+        return f"dev-{self.host}" if self.development else self.host
+
+    @property
+    def dir_address(self) -> str:
+        return f"{DIR_NODE_NAME}|{self.host}:{self.dir_port}"
+
+
+@dataclass(frozen=True)
+class LiteralPatch:
+    original: str
+    replacement: Callable[[HostTarget], str]
+
+
+LITERAL_PATCHES = (
+    LiteralPatch(OFFICIAL_DIR_ADDRESS, lambda target: target.dir_address),
+    LiteralPatch(
+        OFFICIAL_CLOUD_CONTROL_HOST, lambda target: CLOUD_CONTROL_REPLACEMENT_HOST
+    ),
+    LiteralPatch(OFFICIAL_IMAGE_CDN_ADDRESS, lambda target: target.image_cdn_address),
+    *(
+        LiteralPatch(update_host, lambda target: target.host)
+        for update_host in OFFICIAL_UPDATE_HOSTS
+    ),
+)
+
+
+def log(message: str) -> None:
+    print(message, flush=True)
+
+
+def ip_address_or_none(host: str):
+    try:
+        return ipaddress.ip_address(host)
+    except ValueError:
+        return None
+
+
+def is_ipv4_literal(host: str) -> bool:
+    return isinstance(ip_address_or_none(host), ipaddress.IPv4Address)
+
+
+def is_loopback(host: str) -> bool:
+    if host.lower() == "localhost":
+        return True
+    address = ip_address_or_none(host)
+    return address is not None and address.is_loopback
+
+
+def validate_host(host: str) -> str:
+    host = host.strip().rstrip(".")
+    if not host:
+        raise BuildError(
+            "The server address is empty. Pass --host with your domain or IPv4 address."
+        )
+    if "://" in host or "/" in host:
+        raise BuildError(
+            f"--host must be a bare domain or IPv4 address, not a URL: {host}"
+        )
+    address = ip_address_or_none(host)
+    if isinstance(address, ipaddress.IPv6Address):
+        raise BuildError(
+            "IPv6 addresses are not supported: the client splits the directory address on ':'. Use a domain or IPv4 address."
+        )
+    if address is None and (
+        len(host) > 253
+        or not all(HOSTNAME_LABEL.match(label) for label in host.split("."))
+    ):
+        raise BuildError(f"--host is not a valid domain name or IPv4 address: {host}")
+    if is_loopback(host):
+        raise BuildError(
+            f"{host} is a loopback address, which an iPhone cannot reach. Use your PC's LAN IPv4 address with --dev, or your domain."
+        )
+    return host
+
+
+def validate_port(value: int, option: str) -> int:
+    if not 1 <= value <= 65535:
+        raise BuildError(f"{option} must be between 1 and 65535, got {value}.")
+    return value
+
+
+def read_appsettings() -> dict:
+    if not APPSETTINGS_PATH.is_file():
+        return {}
+    try:
+        return json.loads(APPSETTINGS_PATH.read_text(encoding="utf-8-sig"))
+    except json.JSONDecodeError as error:
+        raise BuildError(f"{APPSETTINGS_PATH} is not valid JSON: {error}") from error
+
+
+def appsetting(settings: dict, section: str, key: str):
+    values = settings.get(section)
+    return values.get(key) if isinstance(values, dict) else None
+
+
+def port_setting(
+    argument: int | None, settings: dict, section: str, default: int, option: str
+) -> int:
+    port = argument or appsetting(settings, section, "Port") or default
+    if not isinstance(port, int) or isinstance(port, bool):
+        raise BuildError(
+            f"{section}.Port in appsettings.json must be a number, got {port!r}."
+        )
+    return validate_port(port, option)
+
+
+def resolve_target(arguments: argparse.Namespace) -> HostTarget:
+    settings = read_appsettings()
+    host = arguments.host or appsetting(settings, "LobbyServer", "Host")
+    if not isinstance(host, str) or not host:
+        raise BuildError(
+            "No server address. Pass --host with your domain or IPv4 address, or set LobbyServer.Host in appsettings.json."
+        )
+    host = validate_host(host)
+    dir_port = port_setting(
+        arguments.dir_port, settings, "DirServer", DEFAULT_DIR_PORT, "--dir-port"
+    )
+    if arguments.dev:
+        web_port = port_setting(
+            arguments.web_port,
+            settings,
+            "HttpServer",
+            DEFAULT_DEV_WEB_PORT,
+            "--web-port",
+        )
+    else:
+        web_port = validate_port(arguments.web_port or DEFAULT_HTTPS_PORT, "--web-port")
+    update_port = port_setting(
+        None,
+        settings,
+        "UpdateServer",
+        CLIENT_ADDRESS_SERVICE_PORTS[0],
+        "UpdateServer.Port",
+    )
+    if update_port not in CLIENT_ADDRESS_SERVICE_PORTS:
+        allowed = " or ".join(str(port) for port in CLIENT_ADDRESS_SERVICE_PORTS)
+        raise BuildError(
+            f"UpdateServer.Port is {update_port}; the client only looks for the update server on port {allowed}."
+        )
+    return HostTarget(host, dir_port, web_port, arguments.dev)
+
+
+def replace_ini_value(text: str, key: str, value: str) -> str:
+    pattern = re.compile(rf"^({re.escape(key)}[ \t]*=[ \t]*)[^\r\n]*", re.MULTILINE)
+    replaced, count = pattern.subn(lambda match: match.group(1) + value, text)
+    if count != 1:
+        raise BuildError(
+            f"{MSDK_CONFIG_NAME} has {count} {key} lines; expected exactly one."
+        )
+    return replaced
+
+
+def patch_msdk_config(content: bytes, target: HostTarget) -> bytes:
+    text = content.decode("utf-8")
+    values = {
+        "MSDK_URL": target.web_origin,
+        "POKEMON_LOGIN_URL": f"{target.web_origin}/oauth2/auth",
+        "NINTENDO_WEB_LOGIN_URL": f"{target.web_origin}/connect/1.0.0/authorize",
+    }
+    for key, value in values.items():
+        text = replace_ini_value(text, key, value)
+    return text.encode("utf-8")
+
+
+def centauri_ip_list(host: str) -> list[str]:
+    if is_ipv4_literal(host):
+        return [host]
+    try:
+        return sorted(
+            {info[4][0] for info in socket.getaddrinfo(host, None, socket.AF_INET)}
+        )
+    except socket.gaierror:
+        log(
+            f"Warning: {host} does not resolve; the Centauri pay config gets an empty IP list."
+        )
+        return []
+
+
+def patch_centauri_config(content: bytes, target: HostTarget) -> bytes:
+    try:
+        config = json.loads(content.decode("utf-8"))
+        entries = config["config"]
+    except (UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError) as error:
+        raise BuildError(
+            f"{CENTAURI_CONFIG_NAME} is not in the expected format: {error}"
+        ) from error
+    release_entries = [
+        entry
+        for entry in entries
+        if isinstance(entry, dict) and entry.get("mode") == CENTAURI_RELEASE_MODE
+    ]
+    if len(release_entries) != 1:
+        raise BuildError(
+            f"{CENTAURI_CONFIG_NAME} has {len(release_entries)} release entries; expected exactly one."
+        )
+    release = release_entries[0]
+    release["domain"] = target.host
+    release["reportdomain"] = target.host
+    release["iplist"] = centauri_ip_list(target.host)
+    return (json.dumps(config, indent=4) + "\n").encode("utf-8")
+
+
+def patch_centauri_plist(content: bytes, target: HostTarget) -> bytes:
+    try:
+        config = plistlib.loads(content)
+    except (plistlib.InvalidFileException, ValueError) as error:
+        raise BuildError(f"Invalid {CENTAURI_PLIST_NAME}: {error}") from error
+    release = config.get(CENTAURI_RELEASE_MODE) if isinstance(config, dict) else None
+    if not isinstance(release, dict) or not release:
+        raise BuildError(f"{CENTAURI_PLIST_NAME} has no release region mappings.")
+    ip_list = centauri_ip_list(target.host)
+    for region, entry in release.items():
+        if (
+            not isinstance(entry, dict)
+            or not isinstance(entry.get("k_domain"), str)
+            or not isinstance(entry.get("k_domain_hb"), str)
+            or not isinstance(entry.get("k_ip_list"), list)
+        ):
+            raise BuildError(f"Invalid Centauri release region {region}.")
+        entry["k_domain"] = target.host
+        entry["k_domain_hb"] = target.host
+        entry["k_ip_list"] = ip_list
+    fmt = plistlib.FMT_BINARY if content.startswith(b"bplist00") else plistlib.FMT_XML
+    return plistlib.dumps(config, fmt=fmt)
+
+
+@dataclass(frozen=True)
+class EncryptionState:
+    path: str
+    encrypted_slices: int
+    slices: int
+
+
+@dataclass
+class LiteralTable:
+    data_offset: int
+    entries_by_original: dict[str, list[int]]
+
+
+@dataclass
+class AppBundle:
+    root: str
+    info_plist: dict
+    info_plist_format: plistlib.PlistFormat
+    entries_by_name: dict[str, list[zipfile.ZipInfo]]
+
+    @property
+    def executable(self) -> str:
+        return f"{self.root}{self.info_plist.get('CFBundleExecutable', '')}"
+
+    def single(self, name: str) -> zipfile.ZipInfo | None:
+        matches = self.entries_by_name.get(name, [])
+        if len(matches) > 1:
+            paths = ", ".join(info.filename for info in matches)
+            raise BuildError(f"The IPA holds several {name} files: {paths}")
+        return matches[0] if matches else None
+
+
+def find_app_root(archive: zipfile.ZipFile) -> str:
+    roots = {
+        f"{PAYLOAD_FOLDER}/{parts[1]}/"
+        for parts in (PurePosixPath(name).parts for name in archive.namelist())
+        if len(parts) > 2
+        and parts[0] == PAYLOAD_FOLDER
+        and parts[1].endswith(APP_BUNDLE_SUFFIX)
+    }
+    if len(roots) != 1:
+        raise BuildError(
+            f"Expected exactly one {PAYLOAD_FOLDER}/<name>{APP_BUNDLE_SUFFIX} folder in the IPA, found {len(roots)}."
+        )
+    return roots.pop()
+
+
+def open_app_bundle(archive: zipfile.ZipFile) -> AppBundle:
+    root = find_app_root(archive)
+    plist_name = f"{root}{INFO_PLIST_NAME}"
+    try:
+        plist_bytes = archive.read(plist_name)
+    except KeyError as error:
+        raise BuildError(f"The IPA has no {plist_name}.") from error
+    try:
+        info_plist = plistlib.loads(plist_bytes)
+    except plistlib.InvalidFileException as error:
+        raise BuildError(f"{plist_name} is not a valid property list.") from error
+    plist_format = (
+        plistlib.FMT_BINARY if plist_bytes.startswith(b"bplist") else plistlib.FMT_XML
+    )
+    entries_by_name: dict[str, list[zipfile.ZipInfo]] = defaultdict(list)
+    for info in archive.infolist():
+        if info.filename.startswith(root) and not info.is_dir():
+            entries_by_name[PurePosixPath(info.filename).name].append(info)
+    return AppBundle(root, info_plist, plist_format, dict(entries_by_name))
+
+
+def read_entry_range(
+    archive: zipfile.ZipFile, info: zipfile.ZipInfo, offset: int, length: int
+) -> bytes:
+    with archive.open(info) as stream:
+        stream.seek(offset)
+        return stream.read(length)
+
+
+def is_executable_candidate(bundle: AppBundle, info: zipfile.ZipInfo) -> bool:
+    if info.file_size < MACH_O_MIN_SIZE:
+        return False
+    relative = PurePosixPath(info.filename[len(bundle.root) :])
+    name = relative.name
+    if "." in name and not name.endswith(".dylib"):
+        return False
+    top = relative.parts[0] if len(relative.parts) > 1 else ""
+    return top in EXECUTABLE_FOLDERS
+
+
+def mach_o_slices(archive: zipfile.ZipFile, info: zipfile.ZipInfo) -> list[int] | None:
+    head = read_entry_range(archive, info, 0, 8)
+    if len(head) < 8:
+        return None
+    if struct.unpack_from("<I", head)[0] in MACH_O_MAGICS_LITTLE_ENDIAN:
+        return [0]
+    magic, count = struct.unpack_from(">II", head)
+    if magic not in FAT_MAGICS_BIG_ENDIAN:
+        return None
+    arch = FAT_ARCH_64 if magic == FAT_MAGICS_BIG_ENDIAN[1] else FAT_ARCH_32
+    table = read_entry_range(archive, info, 8, count * arch.size)
+    return [arch.unpack_from(table, index * arch.size)[2] for index in range(count)]
+
+
+def slice_is_encrypted(
+    archive: zipfile.ZipFile, info: zipfile.ZipInfo, slice_offset: int
+) -> bool:
+    header = read_entry_range(archive, info, slice_offset, MACH_O_HEADER_64_SIZE)
+    magic, _, _, _, command_count, commands_size, _ = MACH_O_HEADER_32.unpack_from(
+        header
+    )
+    header_size = (
+        MACH_O_HEADER_64_SIZE if magic == MACH_O_64_MAGIC else MACH_O_HEADER_32.size
+    )
+    commands = read_entry_range(
+        archive, info, slice_offset + header_size, commands_size
+    )
+    position = 0
+    for _ in range(command_count):
+        if position + LOAD_COMMAND.size > len(commands):
+            break
+        command, command_size = LOAD_COMMAND.unpack_from(commands, position)
+        if command in (LC_ENCRYPTION_INFO, LC_ENCRYPTION_INFO_64):
+            crypt_id = ENCRYPTION_INFO.unpack_from(commands, position)[4]
+            if crypt_id != 0:
+                return True
+        if command_size < LOAD_COMMAND.size:
+            break
+        position += command_size
+    return False
+
+
+def encryption_states(
+    archive: zipfile.ZipFile, bundle: AppBundle
+) -> list[EncryptionState]:
+    states = []
+    for info in archive.infolist():
+        if not info.filename.startswith(bundle.root) or info.is_dir():
+            continue
+        if not is_executable_candidate(bundle, info):
+            continue
+        slices = mach_o_slices(archive, info)
+        if not slices:
+            continue
+        encrypted = sum(slice_is_encrypted(archive, info, offset) for offset in slices)
+        states.append(EncryptionState(info.filename, encrypted, len(slices)))
+    return states
+
+
+def find_all(data: bytes, needle: bytes) -> list[int]:
+    positions = []
+    position = data.find(needle)
+    while position >= 0:
+        positions.append(position)
+        position = data.find(needle, position + 1)
+    return positions
+
+
+def locate_literal_table(metadata: bytes, originals: list[str]) -> LiteralTable:
+    data_positions = {
+        original: find_all(metadata, original.encode("utf-8")) for original in originals
+    }
+    present = [original for original, found in data_positions.items() if found]
+    if not present:
+        raise BuildError(
+            f"{METADATA_NAME} holds none of the official addresses; it is not a supported client build."
+        )
+    originals_by_data_offset: dict[int, set[str]] = defaultdict(set)
+    entries_by_data_offset: dict[int, dict[str, list[int]]] = defaultdict(
+        lambda: defaultdict(list)
+    )
+    for original in present:
+        length_bytes = struct.pack("<I", len(original.encode("utf-8")))
+        for entry in find_all(metadata, length_bytes):
+            if entry % LITERAL_ENTRY_ALIGNMENT or entry + LITERAL_ENTRY.size > len(
+                metadata
+            ):
+                continue
+            relative = struct.unpack_from("<I", metadata, entry + 4)[0]
+            for position in data_positions[original]:
+                if position >= relative:
+                    data_offset = position - relative
+                    originals_by_data_offset[data_offset].add(original)
+                    entries_by_data_offset[data_offset][original].append(entry)
+    if not originals_by_data_offset:
+        raise BuildError(f"Could not find the string literal table in {METADATA_NAME}.")
+    best = max(
+        originals_by_data_offset,
+        key=lambda offset: len(originals_by_data_offset[offset]),
+    )
+    if len(originals_by_data_offset[best]) < MIN_AGREEING_LITERALS:
+        raise BuildError(
+            f"Could not find the string literal table in {METADATA_NAME}; fewer than {MIN_AGREEING_LITERALS} official addresses share one table."
+        )
+    return LiteralTable(best, dict(entries_by_data_offset[best]))
+
+
+def literal_entry(metadata: bytes, entry: int) -> tuple[int, int]:
+    return LITERAL_ENTRY.unpack_from(metadata, entry)
+
+
+def contiguous_literal_entries(metadata: bytes, table: LiteralTable) -> range:
+    anchor = next(
+        entry for entries in table.entries_by_original.values() for entry in entries
+    )
+
+    def follows(previous: int, current: int) -> bool:
+        length, relative = literal_entry(metadata, previous)
+        return relative + length == literal_entry(metadata, current)[1]
+
+    first = anchor
+    while first - LITERAL_ENTRY.size >= 0 and follows(
+        first - LITERAL_ENTRY.size, first
+    ):
+        first -= LITERAL_ENTRY.size
+    last = anchor
+    while last + 2 * LITERAL_ENTRY.size <= len(metadata) and follows(
+        last, last + LITERAL_ENTRY.size
+    ):
+        last += LITERAL_ENTRY.size
+    return range(first, last + LITERAL_ENTRY.size, LITERAL_ENTRY.size)
+
+
+def official_host_literals(metadata: bytes, table: LiteralTable) -> list[str]:
+    found = []
+    for entry in contiguous_literal_entries(metadata, table):
+        length, relative = literal_entry(metadata, entry)
+        if length > LISTED_LITERAL_MAX_LENGTH:
+            continue
+        start = table.data_offset + relative
+        try:
+            text = metadata[start : start + length].decode("utf-8")
+        except UnicodeDecodeError:
+            continue
+        if any(marker in text.lower() for marker in OFFICIAL_HOST_MARKERS):
+            found.append(text)
+    return found
+
+
+def write_literal(
+    metadata: bytearray, table: LiteralTable, entry: int, original: str, value: str
+) -> None:
+    length, relative = literal_entry(metadata, entry)
+    data_offset = table.data_offset + relative
+    if bytes(metadata[data_offset : data_offset + length]) != original.encode("utf-8"):
+        raise BuildError(
+            f"{METADATA_NAME} slot for {original!r} changed while patching."
+        )
+    encoded = value.encode("utf-8")
+    if len(encoded) > length:
+        raise BuildError(
+            f"{value!r} is {len(encoded)} bytes; the client slot for {original!r} holds at most {length}. Use a shorter domain."
+        )
+    metadata[data_offset : data_offset + length] = encoded.ljust(length, b"\x00")
+    struct.pack_into("<I", metadata, entry, len(encoded))
+
+
+def patch_metadata(metadata: bytes, target: HostTarget) -> bytes:
+    originals = [patch.original for patch in LITERAL_PATCHES]
+    table = locate_literal_table(metadata, originals)
+    missing = [
+        original for original in originals if original not in table.entries_by_original
+    ]
+    if missing:
+        raise BuildError(
+            f"{METADATA_NAME} is missing these official addresses, so this build cannot be patched safely: {', '.join(missing)}"
+        )
+    patched = bytearray(metadata)
+    for patch in LITERAL_PATCHES:
+        for entry in table.entries_by_original[patch.original]:
+            write_literal(
+                patched, table, entry, patch.original, patch.replacement(target)
+            )
+    return bytes(patched)
+
+
+def allow_development_http(info_plist: dict) -> dict:
+    patched = dict(info_plist)
+    transport = dict(patched.get(ATS_KEY) or {})
+    for key in ATS_KEYS_THAT_DISABLE_ARBITRARY_LOADS:
+        transport.pop(key, None)
+    transport[ATS_ALLOWS_ARBITRARY_LOADS] = True
+    patched[ATS_KEY] = transport
+    patched.setdefault(LOCAL_NETWORK_USAGE_KEY, LOCAL_NETWORK_USAGE_TEXT)
+    return patched
+
+
+def patch_info_plist(info_plist: dict, target: HostTarget) -> dict:
+    plist = dict(info_plist)
+    cloud_config = plist.get("GCloudCore")
+    if cloud_config is not None:
+        if not isinstance(cloud_config, dict):
+            raise BuildError("Info.plist GCloudCore is not a dictionary.")
+        cloud_config = dict(cloud_config)
+        for key in ("RemoteConfigUrl", "GTraceUrl"):
+            value = cloud_config.get(key)
+            if not isinstance(value, str) or OFFICIAL_CLOUD_CONTROL_HOST not in value:
+                raise BuildError(
+                    f"Info.plist GCloudCore.{key} is not the expected official URL."
+                )
+            cloud_config[key] = value.replace(
+                OFFICIAL_CLOUD_CONTROL_HOST, CLOUD_CONTROL_REPLACEMENT_HOST
+            )
+        plist["GCloudCore"] = cloud_config
+    if target.development:
+        plist = allow_development_http(plist)
+    return plist
+
+
+def config_entries(archive: zipfile.ZipFile, bundle: AppBundle):
+    for infos in bundle.entries_by_name.values():
+        for info in infos:
+            if (
+                info.filename.lower().endswith(SCANNED_CONFIG_SUFFIXES)
+                and info.file_size <= SCANNED_CONFIG_MAX_SIZE
+            ):
+                yield info, archive.read(info)
+
+
+def entries_referencing(
+    archive: zipfile.ZipFile, bundle: AppBundle, needle: bytes
+) -> list[zipfile.ZipInfo]:
+    return [
+        info for info, content in config_entries(archive, bundle) if needle in content
+    ]
+
+
+def inspect(ipa: Path) -> None:
+    with zipfile.ZipFile(ipa) as archive:
+        bundle = open_app_bundle(archive)
+        plist = bundle.info_plist
+        log(f"App bundle:   {bundle.root}")
+        for key in (
+            "CFBundleIdentifier",
+            "CFBundleShortVersionString",
+            "CFBundleVersion",
+            "MinimumOSVersion",
+        ):
+            log(f"{key + ':':<28}{plist.get(key)}")
+        log(f"{ATS_KEY + ':':<28}{plist.get(ATS_KEY)}")
+        schemes = [
+            scheme
+            for url_type in plist.get("CFBundleURLTypes", [])
+            for scheme in url_type.get("CFBundleURLSchemes", [])
+        ]
+        log(f"{'URL schemes:':<28}{', '.join(schemes) or 'none'}")
+
+        log("\nMach-O encryption (FairPlay cryptid):")
+        for state in encryption_states(archive, bundle):
+            status = "ENCRYPTED" if state.encrypted_slices else "decrypted"
+            log(f"  {status:<10} {state.path} ({state.slices} slice(s))")
+
+        log("\nClient files:")
+        for name in (
+            MSDK_CONFIG_NAME,
+            CENTAURI_CONFIG_NAME,
+            CENTAURI_PLIST_NAME,
+            METADATA_NAME,
+        ):
+            for info in bundle.entries_by_name.get(name, []):
+                log(f"  {info.filename} ({info.file_size} bytes)")
+            if name not in bundle.entries_by_name:
+                log(f"  {name}: not found")
+
+        metadata_info = bundle.single(METADATA_NAME)
+        if metadata_info is not None:
+            metadata = archive.read(metadata_info)
+            metadata_md5 = hashlib.md5(metadata).hexdigest()
+            log(f"\n{METADATA_NAME} md5 {metadata_md5}")
+            log(f"  header word 0x{struct.unpack_from('<I', metadata)[0]:08X}")
+            table = locate_literal_table(
+                metadata, [patch.original for patch in LITERAL_PATCHES]
+            )
+            log(f"  string literal data at 0x{table.data_offset:X}")
+            for patch in LITERAL_PATCHES:
+                entries = table.entries_by_original.get(patch.original, [])
+                where = ", ".join(f"0x{entry:X}" for entry in entries) or "NOT FOUND"
+                log(f"  {patch.original}: {where}")
+            log("  Literals naming official or third-party hosts:")
+            for text in official_host_literals(metadata, table):
+                log(f"    {text}")
+            references = entries_referencing(archive, bundle, metadata_md5.encode())
+            for info in references:
+                log(f"  md5 referenced by {info.filename}")
+
+        log("\nConfig files naming official or third-party hosts:")
+        for info, content in config_entries(archive, bundle):
+            lowered = content.lower()
+            markers = [m for m in OFFICIAL_HOST_MARKERS if m.encode() in lowered]
+            if markers:
+                log(f"  {info.filename}: {', '.join(markers)}")
+
+
+def build_replacements(
+    archive: zipfile.ZipFile, bundle: AppBundle, target: HostTarget
+) -> dict[str, bytes]:
+    encrypted = [
+        state.path
+        for state in encryption_states(archive, bundle)
+        if state.encrypted_slices
+    ]
+    if encrypted:
+        raise BuildError(
+            "These executables are still FairPlay encrypted and will not launch once re-signed; use a decrypted IPA: "
+            + ", ".join(encrypted)
+        )
+    replacements: dict[str, bytes] = {}
+
+    msdk_config = bundle.single(MSDK_CONFIG_NAME)
+    if msdk_config is None:
+        raise BuildError(
+            f"The IPA has no {MSDK_CONFIG_NAME}; the login addresses cannot be changed."
+        )
+    replacements[msdk_config.filename] = patch_msdk_config(
+        archive.read(msdk_config), target
+    )
+    log(f"Patched {msdk_config.filename}")
+
+    centauri_config = bundle.single(CENTAURI_CONFIG_NAME)
+    centauri_plist = bundle.single(CENTAURI_PLIST_NAME)
+    if centauri_config is None and centauri_plist is None:
+        raise BuildError("The IPA has no supported Centauri host mapping.")
+    if centauri_config is not None:
+        replacements[centauri_config.filename] = patch_centauri_config(
+            archive.read(centauri_config), target
+        )
+        log(f"Patched {centauri_config.filename}")
+    if centauri_plist is not None:
+        replacements[centauri_plist.filename] = patch_centauri_plist(
+            archive.read(centauri_plist), target
+        )
+        log(f"Patched {centauri_plist.filename}")
+
+    metadata_info = bundle.single(METADATA_NAME)
+    if metadata_info is None:
+        raise BuildError(f"The IPA has no {METADATA_NAME}.")
+    metadata = archive.read(metadata_info)
+    patched_metadata = patch_metadata(metadata, target)
+    replacements[metadata_info.filename] = patched_metadata
+    log(f"Patched {metadata_info.filename}")
+
+    old_md5 = hashlib.md5(metadata).hexdigest().encode()
+    new_md5 = hashlib.md5(patched_metadata).hexdigest().encode()
+    for info in entries_referencing(archive, bundle, old_md5):
+        replacements[info.filename] = archive.read(info).replace(old_md5, new_md5)
+        log(f"Updated the {METADATA_NAME} md5 in {info.filename}")
+
+    plist_name = f"{bundle.root}{INFO_PLIST_NAME}"
+    replacements[plist_name] = plistlib.dumps(
+        patch_info_plist(bundle.info_plist, target), fmt=bundle.info_plist_format
+    )
+    log(f"Patched {plist_name}")
+    return replacements
+
+
+def copied_info(info: zipfile.ZipInfo) -> zipfile.ZipInfo:
+    copy = zipfile.ZipInfo(info.filename, info.date_time)
+    copy.compress_type = info.compress_type
+    copy.external_attr = info.external_attr
+    copy.create_system = info.create_system
+    copy.comment = info.comment
+    return copy
+
+
+def rewrite_ipa(
+    source: Path, destination: Path, replacements: dict[str, bytes]
+) -> None:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    partial = destination.with_suffix(destination.suffix + ".partial")
+    with (
+        zipfile.ZipFile(source) as archive,
+        zipfile.ZipFile(partial, "w", allowZip64=True) as output,
+    ):
+        for info in archive.infolist():
+            target_info = copied_info(info)
+            if info.filename in replacements:
+                output.writestr(target_info, replacements[info.filename])
+                continue
+            with (
+                archive.open(info) as reader,
+                output.open(target_info, "w", force_zip64=True) as writer,
+            ):
+                while chunk := reader.read(COPY_CHUNK_SIZE):
+                    writer.write(chunk)
+    partial.replace(destination)
+
+
+def build(arguments: argparse.Namespace) -> None:
+    if not arguments.ipa.is_file():
+        raise BuildError(f"IPA not found: {arguments.ipa}")
+    if arguments.inspect:
+        inspect(arguments.ipa)
+        return
+    target = resolve_target(arguments)
+    if is_ipv4_literal(target.host) and not target.development:
+        log(
+            "Warning: a release IPA on a bare IP cannot use trusted HTTPS for the login pages; use a domain."
+        )
+    out_dir = arguments.out or DEFAULT_WORK_DIR / "out" / target.build_name
+    destination = out_dir / f"SpiritUNITE-{target.build_name}.ipa"
+    with zipfile.ZipFile(arguments.ipa) as archive:
+        bundle = open_app_bundle(archive)
+        replacements = build_replacements(archive, bundle, target)
+    log(f"Writing {destination}")
+    rewrite_ipa(arguments.ipa, destination, replacements)
+    log(f"\nBuilt {destination} for {target.dir_address}.")
+    log(
+        "Sign it with your own Apple provisioning (for example Sideloadly, AltStore or zsign) and install it after removing the official app."
+    )
+    log("Not handled yet:")
+    for change in PENDING_CLIENT_CHANGES:
+        log(f"  - {change}")
+
+
+def parse_arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Build an iOS Pokemon UNITE client that connects to your SpiritUNITE server (experimental)."
+    )
+    parser.add_argument(
+        "--ipa",
+        type=Path,
+        required=True,
+        help="official IPA; encrypted input supports --inspect, builds require decryption",
+    )
+    parser.add_argument(
+        "--inspect",
+        action="store_true",
+        help="report what the IPA holds (encryption, config files, address literals) without building",
+    )
+    parser.add_argument(
+        "--host",
+        help="your server's public domain or IPv4 address (default: LobbyServer.Host in appsettings.json)",
+    )
+    parser.add_argument(
+        "--dir-port", type=int, help="directory server port (default: DirServer.Port)"
+    )
+    parser.add_argument(
+        "--web-port",
+        type=int,
+        help="port of the login pages (default: 443; with --dev, HttpServer.Port)",
+    )
+    parser.add_argument(
+        "--dev",
+        action="store_true",
+        help="build a development client that talks plain HTTP to a server on your LAN",
+    )
+    parser.add_argument(
+        "--out",
+        type=Path,
+        help="output folder (default: ipa-build/out/<host>, or ipa-build/out/dev-<host> with --dev)",
+    )
+    return parser.parse_args()
+
+
+def main() -> int:
+    try:
+        build(parse_arguments())
+    except BuildError as error:
+        print(f"build_ipa: {error}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
