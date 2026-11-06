@@ -4,18 +4,19 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Room;
 
-public sealed record PveMatchSucc(pbSCMatchRsp MatchRsp, IReadOnlyDictionary<ulong, pbAiInfoConfig> NpcConfigs);
+public sealed record BotMatchSucc(pbSCMatchRsp MatchRsp, IReadOnlyDictionary<ulong, pbAiInfoConfig> NpcConfigs);
 
 public static class PveMatch
 {
     public const int MinAILevel = 1;
     public const int ConfirmTimeoutMs = 15000;
 
+    public const int ReadyConfirmUiType = 1;
+    public const int GenericNpcType = (int)PB_ENUM_RES_NPC_TYPE.PbResNpcTypeNormal;
+
     private const int TrainerConfirmUiType = 2;
-    private const int ReadyConfirmUiType = 1;
     private const int CatchGameType = (int)PB_ENUM_RES_MATCHGAMETYPE.PbMatchGameTypeCatch;
     private const int CatchAILevel = 2;
-    private const int GenericNpcType = (int)PB_ENUM_RES_NPC_TYPE.PbResNpcTypeNormal;
     private const int NpcAcntLevel = 1;
     private const int NpcMember = (int)PB_ENUM_COM_ROOM_MEMBEM_TYPE.PbComRoomMemberTnpc;
     private const int TitleNpcType = (int)PB_ENUM_RES_NPC_TYPE.PbResNpcTypeAnonymousUser;
@@ -23,7 +24,6 @@ public static class PveMatch
     private const int ValidTmpName = 1;
     private const int SubscriptionHeadType = (int)PB_ENUM_ENUM_SOCIAL_HEAD_TYPE.PbEnumSocialHeadTypeSubscription;
 
-    private const int MatchSvrEntity = 2;
     private const int FirstMatchRoomID = 10000;
     private const int MatchRoomIDCount = 10000;
     private const int AceTrainerFemale = (int)PB_ENUM_RES_NPC_TYPE.PbResNpcTypeAceTrainerFemale;
@@ -54,7 +54,7 @@ public static class PveMatch
             ["t_Battle_notify_ko_Uruto"] = PB_ENUM_RES_NPC_TYPE.PbResNpcTypeUlr,
         };
 
-    public static PveMatchSucc MatchSucc(
+    public static BotMatchSucc MatchSucc(
         GameData gameData,
         MatchRoom room,
         IReadOnlyList<pbCOMDT_ROOMMEMBER_DT> members,
@@ -68,7 +68,16 @@ public static class PveMatch
             ? BuildCatchMemInfo(gameData, room, members, aiLevel, npcConfigs)
             : BuildHeavenTrainerMemInfo(gameData, room, members, aiLevel, npcConfigs);
 
-        var matchRsp = new pbSCMatchRsp
+        var matchRsp = BuildMatchSuccRsp(room.MapId, aiLevel, memInfo, succTimeStamp, isCatchMap ? ReadyConfirmUiType : TrainerConfirmUiType);
+        return new BotMatchSucc(matchRsp, npcConfigs);
+    }
+
+    public static pbSCMatchRsp BuildMatchSuccRsp(
+        int mapId,
+        int aiLevel,
+        pbCOMDT_MULTROOMMEMBER_INFO memInfo,
+        long succTimeStamp,
+        int confirmUiType) => new()
         {
             MatchResult = new pbCOMDT_MATCH_RESULT
             {
@@ -77,25 +86,23 @@ public static class PveMatch
                 {
                     MatchSucc = EmptyChildren.Fill(new pbCOMDT_MATCH_SUCC_DETAIL
                     {
-                        RoomEntity = MatchSvrEntity,
+                        RoomEntity = MatchRoom.MatchRoomEntity,
                         RoomID = FirstMatchRoomID + Random.Shared.Next(MatchRoomIDCount),
                         RoomSeq = succTimeStamp,
                         RoomInfo = new pbCOMDT_MATCHROOM_ATTR
                         {
-                            MapId = room.MapId,
+                            MapId = mapId,
                             Feature = BattleVersion.Build(),
                             AILevel = aiLevel,
                         },
                         MemInfo = memInfo,
                         SuccTimeStamp = succTimeStamp,
                         ConfirmTimeoutMs = ConfirmTimeoutMs,
-                        ConfirmUiType = isCatchMap ? ReadyConfirmUiType : TrainerConfirmUiType,
+                        ConfirmUiType = confirmUiType,
                     }),
                 },
             },
         };
-        return new PveMatchSucc(matchRsp, npcConfigs);
-    }
 
     private static pbCOMDT_MULTROOMMEMBER_INFO BuildCatchMemInfo(
         GameData gameData,
@@ -140,7 +147,7 @@ public static class PveMatch
         return memInfo;
     }
 
-    private static pbCOMDT_ROOMMEMBER_DT SeatHuman(GameData gameData, pbCOMDT_ROOMMEMBER_DT member, int posOfCamp, int anonymousUserNameID)
+    public static pbCOMDT_ROOMMEMBER_DT SeatHuman(GameData gameData, pbCOMDT_ROOMMEMBER_DT member, int posOfCamp, int anonymousUserNameID)
     {
         var seated = member.Clone();
         seated.PosOfCamp = posOfCamp;
@@ -153,7 +160,7 @@ public static class PveMatch
         return seated;
     }
 
-    private static Dictionary<int, string> BuildTitles(GameData gameData) =>
+    public static Dictionary<int, string> BuildTitles(GameData gameData) =>
         gameData.AiInfoConfig.Rows
             .Where(row => row.NPCType == TitleNpcType)
             .GroupBy(row => row.Num)
@@ -247,13 +254,13 @@ public static class PveMatch
     private static int PickNpcHeadId(GameData gameData) =>
         gameData.HeadIcon.Rows[Random.Shared.Next(gameData.HeadIcon.Rows.Count)].HeadIconID;
 
-    private static ulong RememberNpc(Dictionary<ulong, pbAiInfoConfig> npcConfigs, ulong npcUid, pbAiInfoConfig row)
+    public static ulong RememberNpc(Dictionary<ulong, pbAiInfoConfig> npcConfigs, ulong npcUid, pbAiInfoConfig row)
     {
         npcConfigs[npcUid] = row;
         return npcUid;
     }
 
-    private static pbCOMDT_ROOMMEMBER_DT BuildNpc(
+    public static pbCOMDT_ROOMMEMBER_DT BuildNpc(
         GameData gameData,
         pbAiInfoConfig row,
         int posOfCamp,

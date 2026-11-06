@@ -21,7 +21,7 @@ public sealed class RoomInvites(
 
     private readonly ConcurrentDictionary<(ulong InviterUid, ulong InviteeUid), long> deniedUntil = new();
 
-    public async Task<RoomOutcome> InviteAsync(ulong uid, ulong targetUid, int inviterType)
+    public async Task<RoomOutcome> InviteAsync(ulong uid, ulong targetUid, int inviteType, int inviterType)
     {
         if (await CheckFriendAsync(uid, targetUid) is { } refusal)
         {
@@ -55,7 +55,7 @@ public sealed class RoomInvites(
             RoomEntity = MatchRoom.RoomEntity,
             FromUid = uid,
             MapID = room.MapId,
-            ClientJoinRoomType = ClientJoinRoomTypeInvite,
+            ClientJoinRoomType = IsClientJoinRoomType(inviteType) ? inviteType : ClientJoinRoomTypeInvite,
             InviterType = inviterType,
             RoleInviteInfo = BuildInviteInfo(uid),
         }));
@@ -156,4 +156,8 @@ public sealed class RoomInvites(
     }
 
     private long Now() => clock.GetUtcNow().ToUnixTimeSeconds();
+
+    private static bool IsClientJoinRoomType(int inviteType) =>
+        inviteType != (int)PB_ENUM_ENM_CLIENT_JOIN_ROOM_TYPE.PbEnmClientJoinRoomTypeNone
+        && Enum.IsDefined((PB_ENUM_ENM_CLIENT_JOIN_ROOM_TYPE)inviteType);
 }

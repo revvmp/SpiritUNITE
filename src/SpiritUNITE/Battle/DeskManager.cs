@@ -21,12 +21,10 @@ namespace SpiritUNITE.Battle;
 
 public sealed class DeskManager
 {
-    public const int PickLeftSec = 300;
-    public const int PickWaitLeftSec = 15;
-
     private const int AcntObjType = 1;
     private const int NpcObjType = 2;
-    private const int FirstAcntObjId = 1001;
+    private const int FirstAcntObjId = 1;
+    private const int LastAcntObjId = 1999;
     private const int NpcObjIdBase = 2000;
     private const int NpcPlayerAILevel = 1;
     private const int RelayIsUDP = 1;
@@ -40,7 +38,8 @@ public sealed class DeskManager
     private const int FreeShowIcon = (int)PB_ENUM_ENM_PICK_POKEMON_SHOW_ICON_TYPE.PbEnmPickPokemonShowIconTypeFree;
     private const int LastEffectUpdReason = (int)PB_ENUM_ENM_PICK_UPD_TIME_REASON.PbEnmPickUpdTimeLasteffect;
     private const int RandomTeamPickMode = 1;
-    private const int HiddenInBox = 1;
+    private const int ShownInBox = 0;
+    private const int SingleForm = 0;
     private const int WayTipTimeLeadSeconds = 1;
     private const int NoPasterRule = (int)PB_ENUM_RES_CHOOSE_PASTER_RULE.PbResChoosePasterRuleDefault;
     private const int FixedPasterRule = (int)PB_ENUM_RES_CHOOSE_PASTER_RULE.PbResChoosePasterRuleAssign;
@@ -59,6 +58,20 @@ public sealed class DeskManager
     private const int HeldItemSystemConfigId = 1;
     private const int FirstAILevel = 1;
     private const int NoHeldItemLevel = 0;
+    private const int ForbidQuitGame = 1;
+    private const int BotPickStepMs = 500;
+    private const int FirstBotChooseStep = 22;
+    private const int LastBotChooseStep = 76;
+    private const int FirstBotLockStep = 3;
+    private const int LastBotLockStep = 6;
+    private const int PickReminderLeadSec = 1;
+    private const int WarmBattleType = 1;
+    private const int NoWarmBattle = 0;
+    private const int NoWayTipBroad = 0;
+    private const int NoHeldItemAttrIndex = 0;
+    private const int FirstHeldItemLevel = 1;
+    private const int WayTipShowPercent = 50;
+    private const int Percent = 100;
 
     private static readonly FrozenDictionary<int, int> NpcTrainerItemByHeroID = new Dictionary<int, int>
     {
@@ -90,6 +103,7 @@ public sealed class DeskManager
     private readonly LwipTickets relayTickets;
     private readonly RelayRoles relayRoles;
     private readonly GVoiceOptions gVoice;
+    private readonly HeroPickOptions heroPick;
     private readonly LoginManager login;
     private readonly TimeProvider clock;
     private readonly ILogger<DeskManager> logger;
@@ -116,6 +130,7 @@ public sealed class DeskManager
         LwipTickets relayTickets,
         RelayRoles relayRoles,
         IOptions<GVoiceOptions> gVoice,
+        IOptions<HeroPickOptions> heroPick,
         LoginManager login,
         TimeProvider clock,
         ILogger<DeskManager> logger)
@@ -130,6 +145,7 @@ public sealed class DeskManager
         this.relayTickets = relayTickets;
         this.relayRoles = relayRoles;
         this.gVoice = gVoice.Value;
+        this.heroPick = heroPick.Value;
         this.login = login;
         this.clock = clock;
         this.logger = logger;
@@ -144,7 +160,7 @@ public sealed class DeskManager
         lobbyRoles.RoleOffline += OnRoleOfflineAsync;
     }
 
-    public async Task<RoomOutcome> BeginPveDeskAsync(MatchRoom room)
+    public async Task<RoomOutcome> BeginDeskAsync(MatchRoom room)
     {
         var memberUids = room.Members.Select(member => member.Uid).ToArray();
         var humanProfiles = new Dictionary<ulong, HumanProfile>();
@@ -158,7 +174,7 @@ public sealed class DeskManager
             humanProfiles[uid] = await LoadHumanProfileAsync(role);
         }
 
-        if (room.MatchSucc is not { } matchSucc)
+        if (room.MatchSucc is not { } matchSucc || gameData.SceneMap.Find(room.MapId) is not { } scene)
         {
             return AbortAll(memberUids, PB_ENUM_RES_ERROR_CODE.PbErrPrepareDeskFail);
         }
@@ -186,29 +202,16 @@ public sealed class DeskManager
 
             releasedUids.ExceptWith(memberUids);
 
-            desk = CreateDesk(room, matchSucc, humanProfiles, now);
+            desk = CreateDesk(room, scene, matchSucc, humanProfiles, now);
             desksById[desk.DeskID] = desk;
             foreach (var uid in desk.HumanUids)
             {
                 desksByUid[uid] = desk;
             }
 
-            var route = FindRoute(desk);
-            var enemyHeroIDs = HeroIDsOf(route?.EnemyldList ?? []);
-            int[]? fixedAllyHeroIDs = IsCatchDesk(desk) && route is { } fixedTeamRoute && fixedTeamRoute.TeamPickMode != RandomTeamPickMode
-                ? HeroIDsOf(fixedTeamRoute.TeamldList)
-                : null;
-            var enemies = Enemies(desk).ToHashSet();
-            foreach (var npc in desk.Players.Where(player => player.IsNpc))
+            if (FindRoute(desk) is { } route)
             {
-                if (enemies.Contains(npc))
-                {
-                    PickNpc(desk, npc, enemyHeroIDs, showsWayTip: true, now, outcome);
-                }
-                else if (fixedAllyHeroIDs is not null)
-                {
-                    PickNpc(desk, npc, fixedAllyHeroIDs, showsWayTip: true, now, outcome);
-                }
+                PreparePveNpcPicks(desk, route, now, outcome);
             }
 
             foreach (var human in desk.Humans)
@@ -218,13 +221,21 @@ public sealed class DeskManager
         }
 
         logger.LogInformation(
-            "Desk {DeskID} formed from room {RoomID} on map {MapId} for uids {Uids}; pick open for {PickLeftSec} s",
+            "Desk {DeskID} formed from room {RoomID} on map {MapId} for uids {Uids}; pick open for {PickTimeOut} s",
             desk.DeskID,
             room.RoomID,
             desk.DeskInfo.MapId,
             desk.HumanUids,
-            PickLeftSec);
+            desk.PickTimeOut);
         _ = ExpirePickAsync(desk);
+        if (desk.BotsPickLive)
+        {
+            foreach (var npc in desk.Players.Where(player => player.IsNpc))
+            {
+                _ = PickBotLiveAsync(desk, npc);
+            }
+        }
+
         await RaiseDeskClosedAsync(releasedUids);
         return outcome;
     }
@@ -258,16 +269,176 @@ public sealed class DeskManager
                 return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrChooseSameHeroInCamp);
             }
 
-            player.ChoiceHero = choice.Clone();
+            var outcome = new RoomOutcome();
+            ChooseHumanHero(desk, player, choice, clock.GetUtcNow().ToUnixTimeSeconds(), outcome);
+            return outcome.Push(uid, PB_ENUM_CS_MSGID_DEF.PbScidChooseHeroRsp, new pbSCChooseHeroRsp
+            {
+                ResultInfo = new pbResultInfo(),
+                HeroId = heroID,
+            });
+        }
+    }
+
+    public RoomOutcome UnlockHero(ulong uid, int heroID)
+    {
+        lock (gate)
+        {
+            if (FindPickingHuman(uid, out var desk, out var player) is { } refusal)
+            {
+                return refusal;
+            }
+
+            if (player.ChosenHeroID == NoHeroID)
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrHasNotChoosePokemon);
+            }
+
+            if (player.ChosenHeroID != heroID)
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrLockHeroNotSameAsChoose);
+            }
+
+            if (!player.IsHeroLocked)
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrDeskStateErr);
+            }
+
+            player.ChoiceHero.IsHeroLocked = DeskPlayer.HeroUnlocked;
             return new RoomOutcome()
-                .PushAll(desk.HumanUids, PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(player, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroChooseHero))
-                .Push(uid, PB_ENUM_CS_MSGID_DEF.PbScidChooseHeroRsp, new pbSCChooseHeroRsp
+                .PushAll(desk.HumanUidsOf(player.CampClient), PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(player, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroUnlockHero))
+                .Push(uid, PB_ENUM_CS_MSGID_DEF.PbScidUnLockHeroRsp, new pbSCUnLockHeroRsp { ResultInfo = new pbResultInfo() });
+        }
+    }
+
+    public RoomOutcome CancelChooseHero(ulong uid)
+    {
+        lock (gate)
+        {
+            if (FindPickingHuman(uid, out var desk, out var player) is { } refusal)
+            {
+                return refusal;
+            }
+
+            if (player.IsHeroLocked)
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrHadLockHero);
+            }
+
+            if (player.ChosenHeroID == NoHeroID)
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrHasNotChoosePokemon);
+            }
+
+            player.ChoiceHero = new pbCOMDT_CHOICEHERO();
+            return new RoomOutcome()
+                .PushAll(desk.HumanUidsOf(player.CampClient), PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(player, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroCancelChooseHero))
+                .Push(uid, PB_ENUM_CS_MSGID_DEF.PbScidCancelChooseHeroRsp, new pbSCCancelChooseHeroRsp { ResultInfo = new pbResultInfo() });
+        }
+    }
+
+    public RoomOutcome ChangeWayTip(ulong uid, int wayTipType)
+    {
+        lock (gate)
+        {
+            if (FindPickingHuman(uid, out var desk, out var player) is { } refusal)
+            {
+                return refusal;
+            }
+
+            if (player.ChosenHeroID == NoHeroID)
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrHasNotChoosePokemon);
+            }
+
+            if (!IsLaneWayTip(wayTipType))
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrChgWayTipTypeInvalid);
+            }
+
+            if (player.ChoiceHero.WayTipType == wayTipType)
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrChgWayTipTypeSame);
+            }
+
+            player.ChoiceHero.WayTipType = wayTipType;
+            player.ChoiceHero.ChgWayTipTime = (int)(clock.GetUtcNow().ToUnixTimeSeconds() + WayTipTimeLeadSeconds);
+            return new RoomOutcome()
+                .PushAll(desk.HumanUidsOf(player.CampClient), PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildBroadcastWayTipChgNtf(player, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroChgWayTip))
+                .Push(uid, PB_ENUM_CS_MSGID_DEF.PbScidChgWayTipRsp, new pbSCChgWayTipRsp
                 {
                     ResultInfo = new pbResultInfo(),
-                    HeroId = heroID,
+                    WayTipType = wayTipType,
                 });
         }
     }
+
+    public RoomOutcome ChangeHeldItems(ulong uid, int pokemonId, IReadOnlyList<int> heldItemIds) =>
+        ChangeHeroLoadout(uid, pokemonId, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroHelditem, (player, choice) =>
+        {
+            choice.HeldItemList = BuildHeldItemList(heldItemIds, player.HeldItemLevels);
+        });
+
+    public RoomOutcome ChangeTrainerItem(ulong uid, int pokemonId, int trainerItemID) =>
+        ChangeHeroLoadout(uid, pokemonId, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroChgTrainerItem, (_, choice) =>
+        {
+            choice.CarryTrainerItemID = trainerItemID;
+            choice.CarryTrainerSkillID = TrainerSkillOf(trainerItemID);
+        });
+
+    public RoomOutcome ChangePaster(ulong uid, int pokemonId, int pasterID) =>
+        ChangeHeroLoadout(uid, pokemonId, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroPasterChg, (player, choice) =>
+        {
+            choice.WearPasterID = pasterID;
+            foreach (var detail in player.CampPlayerInfo.UsableHero.HeroDetail.Where(detail => detail.HeroID == choice.HeroID))
+            {
+                detail.WearPasterID = pasterID;
+            }
+        });
+
+    public async Task<RoomMessage[]> DeliverAsync(ulong requesterUid, RoomOutcome outcome)
+    {
+        await PushAllAsync(outcome.Pushes.Where(push => push.Uid != requesterUid));
+        return [.. outcome.Pushes.Where(push => push.Uid == requesterUid).Select(push => push.Message)];
+    }
+
+    private RoomOutcome ChangeHeroLoadout(
+        ulong uid,
+        int pokemonId,
+        PB_ENUM_ENM_CHOICE_HERO_CHG_REASON chgReason,
+        Action<DeskPlayer, pbCOMDT_CHOICEHERO> change)
+    {
+        lock (gate)
+        {
+            var outcome = new RoomOutcome();
+            if (FindPickingHuman(uid, out var desk, out var player) is not null
+                || HeroIDOf(pokemonId) is not (> NoHeroID and var heroID)
+                || !player.UsableHeroes.TryGetValue(heroID, out var template))
+            {
+                return outcome;
+            }
+
+            change(player, template);
+            if (player.ChosenHeroID != heroID)
+            {
+                return outcome;
+            }
+
+            change(player, player.ChoiceHero);
+            return outcome.PushAll(desk.HumanUidsOf(player.CampClient), PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(player, chgReason));
+        }
+    }
+
+    private void ChooseHumanHero(BattleDesk desk, DeskPlayer player, pbCOMDT_CHOICEHERO choice, long now, RoomOutcome outcome)
+    {
+        player.ChoiceHero = choice.Clone();
+        player.ChoiceHero.ChgWayTipTime = (int)(now + WayTipTimeLeadSeconds);
+        outcome.PushAll(desk.HumanUidsOf(player.CampClient), PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildBroadcastWayTipChgNtf(player, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroChooseHero));
+    }
+
+    private static bool IsLaneWayTip(int wayTipType) =>
+        wayTipType is (int)PB_ENUM_ENM_WAY_TIP_TYPE.PbEnmWayTipTypeUp
+            or (int)PB_ENUM_ENM_WAY_TIP_TYPE.PbEnmWayTipTypeMiddle
+            or (int)PB_ENUM_ENM_WAY_TIP_TYPE.PbEnmWayTipTypeBottom;
 
     public RoomOutcome ConfirmHero(ulong uid, int heroID)
     {
@@ -299,32 +470,162 @@ public sealed class DeskManager
 
             player.ChoiceHero.IsHeroLocked = DeskPlayer.HeroLocked;
             outcome = new RoomOutcome()
-                .PushAll(desk.HumanUids, PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(player, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroLockHero))
+                .PushAll(desk.HumanUidsOf(player.CampClient), PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(player, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroLockHero))
                 .Push(uid, PB_ENUM_CS_MSGID_DEF.PbScidLockHeroRsp, new pbSCLockHeroRsp { ResultInfo = new pbResultInfo() });
             LogTrialLicenseLock(desk, player);
-            if (!desk.AllHumansLocked)
+            if (desk.Phase == DeskPhase.WaitingRelay && desk.BotsPickLive && desk.AllHumansLocked)
+            {
+                FinalizeBots(desk, clock.GetUtcNow().ToUnixTimeSeconds(), outcome);
+                return outcome;
+            }
+
+            if (desk.Phase != DeskPhase.Picking || !IsPickComplete(desk))
             {
                 return outcome;
             }
 
-            desk.Phase = DeskPhase.WaitingRelay;
-            outcome.PushAll(desk.HumanUids, PB_ENUM_CS_MSGID_DEF.PbScidDeskUpdPickWaitTimeNtf, new pbSCDeskUpdPickWaitTimeNtf
-            {
-                LeftSec = PickWaitLeftSec,
-                UpdReason = LastEffectUpdReason,
-            });
-            PickAllies(desk, clock.GetUtcNow().ToUnixTimeSeconds(), outcome);
+            BeginPickWait(desk, outcome);
         }
 
-        logger.LogInformation("Desk {DeskID}: every trainer locked; relay hand-off in {PickWaitLeftSec} s", desk.DeskID, PickWaitLeftSec);
-        _ = HandOffAfterPickWaitAsync(desk);
+        StartPickWait(desk);
         return outcome;
     }
+
+    private void FinalizeBots(BattleDesk desk, long now, RoomOutcome outcome)
+    {
+        var unfinishedCamps = desk.Players
+            .Where(player => player.IsNpc && !player.IsHeroLocked)
+            .Select(player => player.CampClient)
+            .ToHashSet();
+        foreach (var npc in desk.Players.Where(player => player.IsNpc && unfinishedCamps.Contains(player.CampClient)))
+        {
+            if (npc.IsHeroLocked)
+            {
+                outcome.PushAll(desk.HumanUids, PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(npc, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroChooseHero));
+            }
+            else if (npc.ChosenHeroID != NoHeroID || ChooseLiveBot(desk, npc, now, outcome))
+            {
+                LockNpc(desk, npc, outcome);
+            }
+        }
+
+        if (unfinishedCamps.Count > 0)
+        {
+            logger.LogInformation("Desk {DeskID}: every trainer locked after the pick reminder; NPCs of camps {Camps} were finished at once", desk.DeskID, unfinishedCamps);
+        }
+    }
+
+    private void PreparePveNpcPicks(BattleDesk desk, pbPveChallengeStageRoute route, long now, RoomOutcome outcome)
+    {
+        var enemies = Enemies(desk).ToHashSet();
+        var enemyHeroIDs = HeroIDsOf(route.EnemyldList);
+        int[]? fixedAllyHeroIDs = IsCatchDesk(desk) && route.TeamPickMode != RandomTeamPickMode
+            ? HeroIDsOf(route.TeamldList)
+            : null;
+        foreach (var npc in desk.Players.Where(player => player.IsNpc))
+        {
+            if (enemies.Contains(npc))
+            {
+                PickNpc(desk, npc, enemyHeroIDs, showsWayTip: true, now, outcome);
+            }
+            else if (fixedAllyHeroIDs is not null)
+            {
+                PickNpc(desk, npc, fixedAllyHeroIDs, showsWayTip: true, now, outcome);
+            }
+        }
+    }
+
+    private async Task PickBotLiveAsync(BattleDesk desk, DeskPlayer npc)
+    {
+        try
+        {
+            await Task.Delay(RandomBotPickDelay(FirstBotChooseStep, LastBotChooseStep), clock);
+            var chosen = new RoomOutcome();
+            lock (gate)
+            {
+                if (!IsPicking(desk) || npc.ChosenHeroID != NoHeroID)
+                {
+                    return;
+                }
+
+                ChooseLiveBot(desk, npc, clock.GetUtcNow().ToUnixTimeSeconds(), chosen);
+            }
+
+            await PushAllAsync(chosen);
+            await Task.Delay(RandomBotPickDelay(FirstBotLockStep, LastBotLockStep), clock);
+            var locked = new RoomOutcome();
+            bool pickComplete;
+            lock (gate)
+            {
+                if (!IsPicking(desk) || npc.ChosenHeroID == NoHeroID || npc.IsHeroLocked)
+                {
+                    return;
+                }
+
+                LockNpc(desk, npc, locked);
+                pickComplete = desk.Phase == DeskPhase.Picking && IsPickComplete(desk);
+                if (pickComplete)
+                {
+                    BeginPickWait(desk, locked);
+                }
+            }
+
+            await PushAllAsync(locked);
+            if (pickComplete)
+            {
+                StartPickWait(desk);
+            }
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Bot pick for NPC {FakeUid} on desk {DeskID} failed", npc.Uid, desk.DeskID);
+        }
+    }
+
+    private static TimeSpan RandomBotPickDelay(int firstStep, int lastStep) =>
+        TimeSpan.FromMilliseconds(BotPickStepMs * Random.Shared.Next(firstStep, lastStep + 1));
+
+    private static bool IsPickComplete(BattleDesk desk) =>
+        desk.BotsPickLive ? desk.Players.All(player => player.IsHeroLocked) : desk.AllHumansLocked;
+
+    private void BeginPickWait(BattleDesk desk, RoomOutcome outcome)
+    {
+        desk.Phase = DeskPhase.WaitingRelay;
+        outcome.PushAll(desk.HumanUids, PB_ENUM_CS_MSGID_DEF.PbScidDeskUpdPickWaitTimeNtf, new pbSCDeskUpdPickWaitTimeNtf
+        {
+            LeftSec = desk.PickReminderSec,
+            UpdReason = LastEffectUpdReason,
+        });
+        if (!desk.BotsPickLive)
+        {
+            PickAllies(desk, clock.GetUtcNow().ToUnixTimeSeconds(), outcome);
+        }
+    }
+
+    private void StartPickWait(BattleDesk desk)
+    {
+        logger.LogInformation("Desk {DeskID}: every pick locked; relay hand-off in {PickReminderSec} s", desk.DeskID, desk.PickReminderSec);
+        _ = HandOffAfterPickWaitAsync(desk);
+    }
+
+    private bool IsPicking(BattleDesk desk) => IsCurrent(desk, DeskPhase.Picking) || IsCurrent(desk, DeskPhase.WaitingRelay);
 
     private async Task<HumanProfile> LoadHumanProfileAsync(LMNRoleInfo role)
     {
         var style = await profiles.LoadAsync(role.GameUlongUID);
         var usedPokemon = (await pokemon.LoadUsedPokemonAsync(role)).ToDictionary(used => used.PokemonId);
+        var ownedItems = await bag.GetOwnedOutSideItemsAsync(role.GameUlongUID);
+        var heldItemLevels = ownedItems
+            .Where(item => gameData.OutSideItemBase.Find(item.ItemId)?.OutSideItemCategory == BagManager.HeldItemCategory)
+            .ToDictionary(item => item.ItemId, item => item.Level);
+        int[] trainerItemIDs =
+        [
+            .. ownedItems
+                .Where(item => gameData.OutSideItemBase.Find(item.ItemId)?.OutSideItemType == TrainerItemType)
+                .Select(item => item.ItemId)
+                .Order(),
+        ];
+        var loadout = new HumanLoadout(heldItemLevels, trainerItemIDs);
         var heroDetails = new List<pbCOMDT_ACNT_USABLE_HERO_DETAIL>();
         var usableHeroes = new Dictionary<int, pbCOMDT_CHOICEHERO>();
         var ownedPokemonIds = role.BuildPokemonList().Select(owned => owned.PokemonId).ToArray();
@@ -344,7 +645,7 @@ public sealed class DeskManager
                 PokemonTotalPoint = used?.PokemonTotalPoint ?? 0,
                 PokemonSeasonPoint = used?.PokemonSeasonPoint ?? 0,
             });
-            usableHeroes[heroID] = BuildHumanChoiceHero(heroID, used);
+            usableHeroes[heroID] = BuildHumanChoiceHero(heroID, used, loadout);
         }
 
         foreach (var pokemonId in pokemon.FreePokemonList.Except(ownedPokemonIds))
@@ -360,10 +661,10 @@ public sealed class DeskManager
                 IsFreePokemon = FreePokemon,
                 PokemonShowIcon = FreeShowIcon,
             });
-            usableHeroes[heroID] = BuildHumanChoiceHero(heroID, used: null);
+            usableHeroes[heroID] = BuildHumanChoiceHero(heroID, usedPokemon.GetValueOrDefault(pokemonId), loadout);
         }
 
-        var trialLicenses = (await bag.GetOwnedOutSideItemsAsync(role.GameUlongUID))
+        var trialLicenses = ownedItems
             .Select(item => (CardItemId: item.ItemId, HeroID: TrialLicenseHeroIDOf(item.ItemId)))
             .Where(trial => trial.HeroID > NoHeroID)
             .OrderBy(trial => trial.HeroID)
@@ -381,36 +682,38 @@ public sealed class DeskManager
                 CardItemId = cardItemId,
                 PokemonShowIcon = CardShowIcon,
             });
-            usableHeroes[heroID] = BuildHumanChoiceHero(heroID, used: null);
+            usableHeroes[heroID] = BuildHumanChoiceHero(heroID, used: null, loadout);
         }
 
         return new HumanProfile(
             ProfileManager.BuildTrainerImageInfo(style),
             profiles.BuildHeadIconInfo(role, style).CurHeadIconInfo,
             heroDetails,
-            usableHeroes);
+            usableHeroes,
+            loadout);
     }
 
     private BattleDesk CreateDesk(
         MatchRoom room,
+        pbScene_Map scene,
         pbCOMDT_MATCH_SUCC_DETAIL matchSucc,
         IReadOnlyDictionary<ulong, HumanProfile> humanProfiles,
         long now)
     {
         var humans = new List<DeskPlayer>();
         var npcs = new List<DeskPlayer>();
-        var acntObjId = FirstAcntObjId;
+        var takenAcntObjIds = new HashSet<int>();
         foreach (var camp in matchSucc.MemInfo.CampMem)
         {
             foreach (var member in camp.MemInfo)
             {
                 if (member.MemberDetail.MemberOfAcnt is { } acnt && humanProfiles.TryGetValue(acnt.Uid, out var profile))
                 {
-                    humans.Add(BuildHumanPlayer(room, member, acnt, camp.CampClient, acntObjId++, profile));
+                    humans.Add(BuildHumanPlayer(room, member, acnt, camp.CampClient, PickAcntObjId(takenAcntObjIds), profile));
                 }
                 else if (member.MemberDetail.MemberOfNpc?.Detail is { } npc)
                 {
-                    npcs.Add(BuildNpcPlayer(member, npc, camp.CampClient, room.MatchNpcConfigs.GetValueOrDefault(npc.Uid)));
+                    npcs.Add(BuildNpcPlayer(member, npc, camp.CampClient, NpcObjIdBase + npcs.Count + 1, room.MatchNpcConfigs.GetValueOrDefault(npc.Uid)));
                 }
             }
         }
@@ -419,18 +722,23 @@ public sealed class DeskManager
         {
             MapId = room.MapId,
             AILevel = matchSucc.RoomInfo.AILevel,
-            GameType = gameData.SceneMap.Find(room.MapId)?.GameType ?? 0,
+            GameType = scene.GameType,
             RoomType = (int)room.RoomType,
             ManMachine = room.ManMachine,
             RoomRule = new pbCOMDT_FRIENDLY_ROOM_RULE_INFO(),
+            IsForbidQuitGame = room.PveChallengeSelectNode is null ? ForbidQuitGame : 0,
             LegendPokemonInfo = new pbCOMDT_LEGEND_POKEMON_INFO(),
+            IsWarmBattle = matchSucc.RoomInfo.IsWarmBattle,
+            WarmBattleType = matchSucc.RoomInfo.IsWarmBattle != NoWarmBattle ? WarmBattleType : NoWarmBattle,
         };
         return new BattleDesk(
             nextDeskID++,
             now,
             deskInfo,
             room.PveChallengeSelectNode?.Clone(),
-            [.. humans, .. npcs]);
+            [.. humans.OrderByDescending(human => human.PosOfCamp), .. npcs],
+            scene.PickTimeOut,
+            scene.PickReminderSec);
     }
 
     private DeskPlayer BuildHumanPlayer(
@@ -480,7 +788,7 @@ public sealed class DeskManager
             OpenID = acnt.Uid.ToString(CultureInfo.InvariantCulture),
             UsableHero = new pbCOMDT_ACNT_USABLE_HERO { HeroDetail = { profile.HeroDetails } },
             UsablePasterList = new pbCOMDT_POKEMON_PASTER_LIST { SkillEffectsExpandPackInfo = new pbCOMDT_SKILL_EFFECTS_EXPAND_PACK_LIST() },
-            UsableTrainerItemList = new pbCOMDT_TRAINRE_ITEM_LIST(),
+            UsableTrainerItemList = new pbCOMDT_TRAINRE_ITEM_LIST { TrainerItemList = { profile.Loadout.TrainerItemIDs } },
             RoomSvrUniq = new pbCOMDT_ROOMSVR_UNIQ
             {
                 RoomsvrEntity = MatchRoom.RoomEntity,
@@ -489,13 +797,20 @@ public sealed class DeskManager
             },
             VirtualRegionInfo = new pbCOMDT_VIRTUAL_REGION_RANK_INFO(),
         };
-        return new DeskPlayer(acnt.Uid, isNpc: false, campPlayerInfo, profile.UsableHeroes, npcConfig: null);
+        return new DeskPlayer(
+            acnt.Uid,
+            isNpc: false,
+            campPlayerInfo,
+            profile.UsableHeroes.ToDictionary(entry => entry.Key, entry => entry.Value.Clone()),
+            profile.Loadout.HeldItemLevels,
+            npcConfig: null);
     }
 
     private static DeskPlayer BuildNpcPlayer(
         pbCOMDT_ROOMMEMBER_DT member,
         pbCOMDT_FAKEACNT_DETAIL npc,
         int campClient,
+        int objId,
         pbAiInfoConfig? npcConfig)
     {
         var campPlayerInfo = new pbCSDT_CAMPPLAYERINFO
@@ -504,7 +819,7 @@ public sealed class DeskManager
             {
                 ObjType = NpcObjType,
                 PosOfCamp = member.PosOfCamp,
-                ObjId = NpcObjIdBase + (int)npc.Uid,
+                ObjId = objId,
                 Level = npc.AcntLevel,
                 Name = npc.UserName,
                 Detail = new pbCOMDT_PLAYERINFO_DETAIL
@@ -519,6 +834,8 @@ public sealed class DeskManager
                         ContestantEmoji = npc.ContestantEmoji,
                         ContestantBackgroud = npc.ContestantBackgroud,
                         ContestantFrame = npc.ContestantFrame,
+                        ContestantCameraDis = npc.ContestantCameraDis,
+                        ContestantDir = npc.ContestantDir,
                         ContestantPos = new pbCOMDT_TRAINER_IMAGE_POSITION(),
                         AILevel = NpcPlayerAILevel,
                         UserPlantInfo = npc.UserPlantInfo.Clone(),
@@ -534,18 +851,22 @@ public sealed class DeskManager
                 DefaultRoleAvatarInfo = npc.DefaultRoleAvatarInfo.Clone(),
             },
         };
-        return new DeskPlayer(npc.Uid, isNpc: true, campPlayerInfo, new Dictionary<int, pbCOMDT_CHOICEHERO>(), npcConfig);
+        return new DeskPlayer(npc.Uid, isNpc: true, campPlayerInfo, [], new Dictionary<int, int>(), npcConfig);
     }
 
-    private pbCOMDT_CHOICEHERO BuildHumanChoiceHero(int heroID, UsedPokemonInfo? used)
+    private pbCOMDT_CHOICEHERO BuildHumanChoiceHero(int heroID, UsedPokemonInfo? used, HumanLoadout loadout)
     {
-        var trainerItemID = used?.LastCarryTrainerItemID ?? PokemonManager.NoTrainerItem;
+        var lastTrainerItemID = used?.LastCarryTrainerItemID ?? PokemonManager.NoTrainerItem;
+        var trainerItemID = loadout.TrainerItemIDs.Contains(lastTrainerItemID)
+            ? lastTrainerItemID
+            : loadout.TrainerItemIDs.FirstOrDefault(PokemonManager.NoTrainerItem);
         return new pbCOMDT_CHOICEHERO
         {
             HeroID = heroID,
-            HeldItemList = new pbCOMDT_HELDITEM_LIST(),
+            HeldItemList = BuildHeldItemList(used?.HeldItemID ?? [], loadout.HeldItemLevels),
             SkillRecommendInfo = new pbCOMDT_SKILLRECOMMENDINFO(),
             WearPasterID = used?.WearPasterID ?? PokemonManager.NoPaster,
+            WayTipType = WayTipTypeOf(heroID),
             CarryTrainerItemID = trainerItemID,
             CarryTrainerSkillID = TrainerSkillOf(trainerItemID),
             PokemonTotalPoint = used?.PokemonTotalPoint ?? 0,
@@ -703,58 +1024,91 @@ public sealed class DeskManager
     {
         var route = FindRoute(desk);
         var allies = Allies(desk).Where(ally => !ally.IsHeroLocked).ToArray();
-        var allyHeroIDs = route?.TeamPickMode == RandomTeamPickMode
-            ? PickRandomAllyHeroIDs(desk, allies)
-            : HeroIDsOf(route?.TeamldList ?? []);
+        var allyHeroIDs = route is null || route.TeamPickMode == RandomTeamPickMode
+            ? PickRandomBotHeroIDs(desk, allies)
+            : HeroIDsOf(route.TeamldList);
         foreach (var ally in allies)
         {
             PickNpc(desk, ally, allyHeroIDs, showsWayTip: false, now, outcome);
         }
     }
 
-    private int[] PickRandomAllyHeroIDs(BattleDesk desk, IReadOnlyList<DeskPlayer> allies)
+    private int[] PickRandomBotHeroIDs(BattleDesk desk, IReadOnlyList<DeskPlayer> bots)
     {
-        if (allies.Count == 0)
+        var pool = NpcHeroPool(desk);
+        var picked = new List<int>(bots.Count);
+        foreach (var bot in bots)
         {
-            return [];
-        }
+            var heroID = PickBotHeroID(desk, bot, pool, picked);
+            if (heroID == NoHeroID)
+            {
+                break;
+            }
 
-        var allyCamp = allies[0].CampClient;
-        var candidates = PveChallengeHeroIDs()
-            .Where(heroID => !desk.CampOf(allyCamp).Any(player => player.ChosenHeroID == heroID))
-            .ToList();
-        var occupationTypes = candidates.Select(OccupationTypeOf).Distinct().ToArray();
-        Random.Shared.Shuffle(occupationTypes);
-        var picked = new List<int>(allies.Count);
-        foreach (var occupationType in occupationTypes.Take(allies.Count))
-        {
-            TakeRandomHero(candidates.Where(heroID => OccupationTypeOf(heroID) == occupationType).ToArray(), candidates, picked);
-        }
-
-        while (picked.Count < allies.Count && candidates.Count > 0)
-        {
-            TakeRandomHero([.. candidates], candidates, picked);
+            picked.Add(heroID);
         }
 
         return [.. picked];
     }
 
-    private static void TakeRandomHero(int[] choices, List<int> candidates, List<int> picked)
+    private int PickBotHeroID(BattleDesk desk, DeskPlayer bot, IReadOnlyList<int> pool, IReadOnlyCollection<int> pendingHeroIDs)
     {
-        var heroID = choices[Random.Shared.Next(choices.Length)];
-        candidates.Remove(heroID);
-        picked.Add(heroID);
+        var campHeroIDs = desk.CampOf(bot.CampClient)
+            .Where(player => player != bot && player.ChosenHeroID != NoHeroID)
+            .Select(player => player.ChosenHeroID)
+            .Concat(pendingHeroIDs)
+            .ToHashSet();
+        var campOccupationTypes = campHeroIDs.Select(OccupationTypeOf).ToHashSet();
+        int[] freeHeroIDs = [.. pool.Where(heroID => !campHeroIDs.Contains(heroID))];
+        int[] freeOccupationTypes = [.. freeHeroIDs.Select(OccupationTypeOf).Where(type => !campOccupationTypes.Contains(type)).Distinct()];
+        var heroID = freeHeroIDs.Length == 0
+            ? NoHeroID
+            : freeOccupationTypes.Length == 0
+                ? RandomOf(freeHeroIDs)
+                : RandomHeroOfOccupation(freeHeroIDs, RandomOf(freeOccupationTypes));
+        logger.LogInformation(
+            "Desk {DeskID}: NPC {FakeUid} in camp {Camp} picked hero {HeroID} (OccupationType {OccupationType}) from a pool of {PoolSize}; camp OccupationTypes before {CampOccupationTypes}",
+            desk.DeskID,
+            bot.Uid,
+            bot.CampClient,
+            heroID,
+            OccupationTypeOf(heroID),
+            pool.Count,
+            campOccupationTypes.Order());
+        return heroID;
     }
 
-    private IEnumerable<int> PveChallengeHeroIDs() =>
-        gameData.PveChallengeStageRoute.Rows
-            .SelectMany(route => route.EnemyldList.Concat(route.TeamldList))
-            .Distinct()
-            .Select(pokemonId => gameData.PokemonBase.Find(pokemonId))
-            .OfType<pbPokemon_Base>()
-            .Where(row => row.MainUnitId != NoHeroID && row.HideInBox != HiddenInBox)
-            .Select(row => row.MainUnitId)
-            .Distinct();
+    private int RandomHeroOfOccupation(int[] heroIDs, int occupationType) =>
+        RandomOf([.. heroIDs.Where(heroID => OccupationTypeOf(heroID) == occupationType)]);
+
+    private static int RandomOf(int[] choices) => choices[Random.Shared.Next(choices.Length)];
+
+    private int[] NpcHeroPool(BattleDesk desk)
+    {
+        if (gameData.SceneMap.Find(desk.DeskInfo.MapId) is not { } scene)
+        {
+            return [];
+        }
+
+        var now = clock.GetUtcNow().ToUnixTimeSeconds();
+        return
+        [
+            .. gameData.PokemonRelease.Rows
+                .Where(release => IsReleased(release, now) && heroPick.AllowsNpcHero(release.Order))
+                .Select(release => gameData.PokemonBase.Find(release.PokemonId))
+                .OfType<pbPokemon_Base>()
+                .Where(row => row.HideInBox <= ShownInBox && IsOriginalForm(row))
+                .Where(row => gameData.UnitBase.Find(row.MainUnitId)?.HeroMode.Contains(scene.OpenHeroMode) == true)
+                .Select(row => row.MainUnitId)
+                .Distinct(),
+        ];
+    }
+
+    private static bool IsReleased(pbPokemon_Release release, long now) =>
+        release.OnTime == 0 || UTCTimeUtil.CfgTime2ServerUnixTime(release.OnTime) <= now;
+
+    private static bool IsOriginalForm(pbPokemon_Base row) =>
+        row.IsMultiform == SingleForm || row.OriginalForm == row.PokemonId;
 
     private int OccupationTypeOf(int heroID) => pokemonByHeroID.GetValueOrDefault(heroID)?.OccupationType ?? 0;
 
@@ -766,17 +1120,51 @@ public sealed class DeskManager
         long now,
         RoomOutcome outcome)
     {
+        if (ChooseNpc(desk, npc, preferredHeroIDs, showsWayTip, now, outcome))
+        {
+            LockNpc(desk, npc, outcome);
+        }
+    }
+
+    private bool ChooseNpc(
+        BattleDesk desk,
+        DeskPlayer npc,
+        IReadOnlyList<int> preferredHeroIDs,
+        bool showsWayTip,
+        long now,
+        RoomOutcome outcome)
+    {
         var heroID = preferredHeroIDs
-            .Concat(pokemonByHeroID.Keys)
+            .Concat(NpcHeroPool(desk))
             .FirstOrDefault(candidate => !desk.IsHeroTakenInCamp(npc.CampClient, candidate, npc));
         if (heroID == NoHeroID)
         {
             logger.LogWarning("Desk {DeskID}: no free Pokemon left for NPC {FakeUid}", desk.DeskID, npc.Uid);
-            return;
+            return false;
         }
 
         npc.ChoiceHero = BuildNpcChoiceHero(heroID, npc.NpcConfig, NpcHeldItemLevelOf(desk), showsWayTip, now);
         outcome.PushAll(desk.HumanUids, PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(npc, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroChooseHero));
+        return true;
+    }
+
+    private bool ChooseLiveBot(BattleDesk desk, DeskPlayer npc, long now, RoomOutcome outcome)
+    {
+        var heroID = PickBotHeroID(desk, npc, NpcHeroPool(desk), []);
+        if (heroID == NoHeroID)
+        {
+            logger.LogWarning("Desk {DeskID}: no Pokemon left for NPC {FakeUid}", desk.DeskID, npc.Uid);
+            return false;
+        }
+
+        var showsWayTip = Random.Shared.Next(Percent) < WayTipShowPercent;
+        npc.ChoiceHero = BuildNpcChoiceHero(heroID, npc.NpcConfig, NpcHeldItemLevelOf(desk), showsWayTip, now);
+        outcome.PushAll(desk.HumanUids, PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(npc, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroChooseHero));
+        return true;
+    }
+
+    private static void LockNpc(BattleDesk desk, DeskPlayer npc, RoomOutcome outcome)
+    {
         npc.ChoiceHero.IsHeroLocked = DeskPlayer.HeroLocked;
         outcome.PushAll(desk.HumanUids, PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(npc, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroLockHero));
     }
@@ -790,7 +1178,9 @@ public sealed class DeskManager
         }
 
         player = human;
-        return desk.Phase == DeskPhase.Picking ? null : RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrDeskStateInvalid);
+        return desk.Phase is DeskPhase.Picking or DeskPhase.WaitingRelay
+            ? null
+            : RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrDeskStateInvalid);
     }
 
     private RoomOutcome? FindLockableHero(ulong uid, int heroID, out BattleDesk desk, out DeskPlayer player)
@@ -817,42 +1207,11 @@ public sealed class DeskManager
     {
         try
         {
-            await Task.Delay(TimeSpan.FromSeconds(PickLeftSec), clock);
-            RoomOutcome outcome;
-            bool handedOff;
-            ulong[] releasedUids = [];
-            lock (gate)
-            {
-                if (!IsCurrent(desk, DeskPhase.Picking))
-                {
-                    return;
-                }
-
-                outcome = LockUnlockedHumans(desk);
-                handedOff = desk.AllHumansLocked;
-                if (handedOff)
-                {
-                    PickAllies(desk, clock.GetUtcNow().ToUnixTimeSeconds(), outcome);
-                    HandOffToRelay(desk, outcome);
-                }
-                else
-                {
-                    releasedUids = Forget(desk);
-                    outcome = AbortAll(desk.HumanUids, PB_ENUM_RES_ERROR_CODE.PbErrHasNotChoosePokemon);
-                }
-            }
-
-            logger.LogInformation(
-                "Desk {DeskID}: pick time ran out; {Result}",
-                desk.DeskID,
-                handedOff ? "picks were locked and the desk handed to the relay" : "a trainer had no Pokemon to pick and the desk was aborted");
-            if (handedOff)
-            {
-                RelayHandedOff?.Invoke(desk);
-            }
-
-            await PushAllAsync(outcome);
-            await RaiseDeskClosedAsync(releasedUids);
+            var reminderDelay = TimeSpan.FromSeconds(Math.Max(0, desk.PickTimeOut - desk.PickReminderSec - PickReminderLeadSec));
+            await Task.Delay(reminderDelay, clock);
+            await RemindPickEndAsync(desk);
+            await Task.Delay(TimeSpan.FromSeconds(desk.PickTimeOut) - reminderDelay, clock);
+            await CompletePickAsync(desk, DeskPhase.WaitingRelay);
         }
         catch (Exception exception)
         {
@@ -860,56 +1219,123 @@ public sealed class DeskManager
         }
     }
 
+    private async Task RemindPickEndAsync(BattleDesk desk)
+    {
+        var outcome = new RoomOutcome();
+        lock (gate)
+        {
+            if (!IsCurrent(desk, DeskPhase.Picking))
+            {
+                return;
+            }
+
+            BeginPickWait(desk, outcome);
+        }
+
+        logger.LogInformation(
+            "Desk {DeskID}: {PickReminderSec} s of the pick left; the relay hand-off follows at the {PickTimeOut} s pick timeout",
+            desk.DeskID,
+            desk.PickReminderSec,
+            desk.PickTimeOut);
+        await PushAllAsync(outcome);
+    }
+
+    private async Task CompletePickAsync(BattleDesk desk, DeskPhase expectedPhase)
+    {
+        RoomOutcome outcome;
+        bool handedOff;
+        ulong[] releasedUids = [];
+        lock (gate)
+        {
+            if (!IsCurrent(desk, expectedPhase))
+            {
+                return;
+            }
+
+            outcome = LockUnlockedHumans(desk);
+            LockUnlockedBots(desk, outcome);
+            handedOff = desk.AllHumansLocked;
+            if (handedOff)
+            {
+                PickAllies(desk, clock.GetUtcNow().ToUnixTimeSeconds(), outcome);
+                HandOffToRelay(desk, outcome);
+            }
+            else
+            {
+                releasedUids = Forget(desk);
+                outcome = AbortAll(desk.HumanUids, PB_ENUM_RES_ERROR_CODE.PbErrHasNotChoosePokemon);
+            }
+        }
+
+        logger.LogInformation(
+            "Desk {DeskID}: pick ended in phase {Phase}; {Result}",
+            desk.DeskID,
+            expectedPhase,
+            handedOff
+                ? $"picks were locked and the desk handed to the relay at {relayRoles.AdvertisedHost}:{relayRoles.AdvertisedPort}"
+                : "a trainer had no Pokemon to pick and the desk was aborted");
+        if (handedOff)
+        {
+            RelayHandedOff?.Invoke(desk);
+        }
+
+        await PushAllAsync(outcome);
+        await RaiseDeskClosedAsync(releasedUids);
+    }
+
     private RoomOutcome LockUnlockedHumans(BattleDesk desk)
     {
         var outcome = new RoomOutcome();
+        var now = clock.GetUtcNow().ToUnixTimeSeconds();
         foreach (var human in desk.Humans.Where(human => !human.IsHeroLocked))
         {
             if (human.ChosenHeroID == NoHeroID)
             {
-                var heroID = human.CampPlayerInfo.UsableHero.HeroDetail
-                    .Select(detail => detail.HeroID)
-                    .FirstOrDefault(candidate => !desk.IsHeroTakenInCamp(human.CampClient, candidate, human));
-                if (heroID == NoHeroID)
+                int[] candidates =
+                [
+                    .. human.CampPlayerInfo.UsableHero.HeroDetail
+                        .Select(detail => detail.HeroID)
+                        .Where(candidate => !desk.IsHeroTakenInCamp(human.CampClient, candidate, human)),
+                ];
+                if (candidates.Length == 0)
                 {
                     continue;
                 }
 
-                human.ChoiceHero = human.UsableHeroes[heroID].Clone();
-                outcome.PushAll(desk.HumanUids, PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(human, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroChooseHero));
+                var heroID = candidates[Random.Shared.Next(candidates.Length)];
+                ChooseHumanHero(desk, human, human.UsableHeroes[heroID], now, outcome);
             }
 
             human.ChoiceHero.IsHeroLocked = DeskPlayer.HeroLocked;
-            outcome.PushAll(desk.HumanUids, PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(human, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroLockHero));
+            outcome.PushAll(desk.HumanUidsOf(human.CampClient), PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(human, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroLockHero));
         }
 
         return outcome;
+    }
+
+    private void LockUnlockedBots(BattleDesk desk, RoomOutcome outcome)
+    {
+        if (!desk.BotsPickLive)
+        {
+            return;
+        }
+
+        var now = clock.GetUtcNow().ToUnixTimeSeconds();
+        foreach (var npc in desk.Players.Where(player => player.IsNpc && !player.IsHeroLocked))
+        {
+            if (npc.ChosenHeroID != NoHeroID || ChooseLiveBot(desk, npc, now, outcome))
+            {
+                LockNpc(desk, npc, outcome);
+            }
+        }
     }
 
     private async Task HandOffAfterPickWaitAsync(BattleDesk desk)
     {
         try
         {
-            await Task.Delay(TimeSpan.FromSeconds(PickWaitLeftSec), clock);
-            var outcome = new RoomOutcome();
-            lock (gate)
-            {
-                if (!IsCurrent(desk, DeskPhase.WaitingRelay))
-                {
-                    return;
-                }
-
-                HandOffToRelay(desk, outcome);
-            }
-
-            logger.LogInformation(
-                "Desk {DeskID} handed to the relay at {RelayUrl}:{VPort} for uids {Uids}",
-                desk.DeskID,
-                relayRoles.AdvertisedHost,
-                relayRoles.AdvertisedPort,
-                desk.HumanUids);
-            RelayHandedOff?.Invoke(desk);
-            await PushAllAsync(outcome);
+            await Task.Delay(TimeSpan.FromSeconds(desk.PickReminderSec), clock);
+            await CompletePickAsync(desk, DeskPhase.WaitingRelay);
         }
         catch (Exception exception)
         {
@@ -953,7 +1379,7 @@ public sealed class DeskManager
 
         foreach (var human in desk.Humans)
         {
-            outcome.PushAll(desk.HumanUids, PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(human, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroLockHero));
+            outcome.PushAll(desk.HumanUidsOf(human.CampClient), PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(human, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroLockHero));
         }
 
         foreach (var human in desk.Humans)
@@ -1044,9 +1470,11 @@ public sealed class DeskManager
         ResultInfo = new pbResultInfo { ResultId = (int)result },
     };
 
-    private async Task PushAllAsync(RoomOutcome outcome)
+    private Task PushAllAsync(RoomOutcome outcome) => PushAllAsync(outcome.Pushes);
+
+    private async Task PushAllAsync(IEnumerable<RoomPush> pushes)
     {
-        foreach (var group in outcome.Pushes.GroupBy(push => push.Uid))
+        foreach (var group in pushes.GroupBy(push => push.Uid))
         {
             var packets = group.Select(push => GamePacket.Create(push.Message.MsgID, push.Message.Message)).ToArray();
             if (!await lobbyRoles.PushAsync(group.Key, packets))
@@ -1059,14 +1487,27 @@ public sealed class DeskManager
     private pbSCMultGameBeginPickNtf BuildBeginPickNtf(BattleDesk desk, DeskPlayer recipient) => new()
     {
         DeskInfo = desk.DeskInfo.Clone(),
-        PlayerInfo = new pbCSDT_DESK_PLAYERINFO { CampPlayerInfo = { desk.Players.Select(player => player.CampPlayerInfo.Clone()) } },
-        LeftSec = PickLeftSec,
+        PlayerInfo = new pbCSDT_DESK_PLAYERINFO { CampPlayerInfo = { desk.Players.Select(player => BuildCampPlayerInfoFor(player, recipient)) } },
+        LeftSec = desk.PickTimeOut,
         GVoiceInfo = gVoice.BuildGVoiceInfo(),
         OBDeskInfo = desk.BuildOBDesk(),
         CampClient = recipient.CampClient,
         RecentlyUsedPokemonList = new pbCOMDT_RECENTLY_USED_POKEMON_SORT_LIST_INFO(),
-        PveChallengeSelectNode = desk.PveChallengeSelectNode?.Clone(),
+        PveChallengeSelectNode = desk.PveChallengeSelectNode?.Clone() ?? new pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE(),
     };
+
+    private static pbCSDT_CAMPPLAYERINFO BuildCampPlayerInfoFor(DeskPlayer player, DeskPlayer recipient)
+    {
+        var campPlayerInfo = player.CampPlayerInfo.Clone();
+        if (!player.IsNpc && player != recipient)
+        {
+            campPlayerInfo.UsableHero = null;
+            campPlayerInfo.UsablePasterList = null;
+            campPlayerInfo.UsableTrainerItemList = null;
+        }
+
+        return campPlayerInfo;
+    }
 
     private pbSCConnRelayNtf BuildConnRelayNtf(BattleDesk desk, DeskPlayer player) => new()
     {
@@ -1085,6 +1526,19 @@ public sealed class DeskManager
         CampClient = player.CampClient,
     };
 
+    public pbSCConnRelayRecoverNtf BuildConnRelayRecoverNtf(BattleDesk desk, DeskPlayer player)
+    {
+        var connRelay = BuildConnRelayNtf(desk, player);
+        return new pbSCConnRelayRecoverNtf
+        {
+            RelayTGW = connRelay.RelayTGW,
+            Camp = connRelay.Camp,
+            DeskInfo = connRelay.DeskInfo,
+            CampClient = connRelay.CampClient,
+            MapID = desk.DeskInfo.MapId,
+        };
+    }
+
     private static pbSCChoiceHeroChgNtf BuildChoiceHeroChgNtf(DeskPlayer player, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON chgReason) => new()
     {
         Uid = player.Uid,
@@ -1093,11 +1547,56 @@ public sealed class DeskManager
         CampClient = player.CampClient,
     };
 
+    private static pbSCChoiceHeroChgNtf BuildBroadcastWayTipChgNtf(DeskPlayer player, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON chgReason)
+    {
+        var ntf = BuildChoiceHeroChgNtf(player, chgReason);
+        if (ntf.ChoiceHeroInfo.WayTipType != (int)PB_ENUM_ENM_WAY_TIP_TYPE.PbEnmWayTipTypeNull)
+        {
+            ntf.ChoiceHeroInfo.WayTipBroad = WayTipBroad;
+        }
+
+        return ntf;
+    }
+
+    private pbCOMDT_HELDITEM_LIST BuildHeldItemList(IEnumerable<int> heldItemIds, IReadOnlyDictionary<int, int> heldItemLevels) => new()
+    {
+        HeldItemInfo =
+        {
+            heldItemIds.Select(heldItemId => new pbCOMDT_HELDITEM_INFO
+            {
+                HeldItemID = heldItemId,
+                HeldItemAttrIndex = HeldItemAttrIndexOf(heldItemId, heldItemLevels.GetValueOrDefault(heldItemId)),
+            }),
+        },
+    };
+
+    private int HeldItemAttrIndexOf(int heldItemId, int level) =>
+        gameData.OutSideItemBase.Find(heldItemId) is { } item
+        && item.OutSideItemTypeParam.ElementAtOrDefault(HeldItemGroupIdParamIndex) is var groupId
+        && levelUpDesignIds.TryGetValue((groupId, Math.Max(FirstHeldItemLevel, level)), out var designId)
+            ? designId
+            : NoHeldItemAttrIndex;
+
+    private static int PickAcntObjId(HashSet<int> takenAcntObjIds)
+    {
+        int objId;
+        do
+        {
+            objId = Random.Shared.Next(FirstAcntObjId, LastAcntObjId + 1);
+        }
+        while (!takenAcntObjIds.Add(objId));
+
+        return objId;
+    }
+
     private sealed record NpcHeldItem(int OutSideItemId, int GroupId);
+
+    private sealed record HumanLoadout(IReadOnlyDictionary<int, int> HeldItemLevels, IReadOnlyList<int> TrainerItemIDs);
 
     private sealed record HumanProfile(
         pbCOMDT_TRAINER_IMAGE_INFO TrainerImageInfo,
         pbCOMDT_HEAD_ICON_BASE_INFO CurHeadIconInfo,
         IReadOnlyList<pbCOMDT_ACNT_USABLE_HERO_DETAIL> HeroDetails,
-        IReadOnlyDictionary<int, pbCOMDT_CHOICEHERO> UsableHeroes);
+        IReadOnlyDictionary<int, pbCOMDT_CHOICEHERO> UsableHeroes,
+        HumanLoadout Loadout);
 }

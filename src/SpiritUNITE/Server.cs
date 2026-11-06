@@ -162,6 +162,11 @@ public static class Server
             .Validate(options => options.IsValid(), "BattleSettlement settings are invalid")
             .ValidateOnStart();
 
+        builder.Services.AddOptions<HeroPickOptions>()
+            .BindConfiguration(HeroPickOptions.SectionName)
+            .Validate(options => options.IsValid(), "HeroPick settings are invalid: NpcHeroMaxReleaseOrder must be 0 or more")
+            .ValidateOnStart();
+
         builder.Services.AddOptions<HeldItemOptions>()
             .BindConfiguration(HeldItemOptions.SectionName)
             .Validate(options => options.IsValid(), "HeldItem settings are invalid")
@@ -265,6 +270,8 @@ public static class Server
         builder.Services.AddSingleton<AccountSessionManager>();
         builder.Services.AddSingleton<RoomManager>();
         builder.Services.AddSingleton<RoomInvites>();
+        builder.Services.AddSingleton<MatchScheduler>();
+        builder.Services.AddSingleton<SettleTeamPresence>();
         builder.Services.AddSingleton<DeskManager>();
         builder.Services.AddSingleton<PveChallengeProgress>();
         builder.Services.AddSingleton<NewbieManager>();

@@ -6,10 +6,13 @@ public sealed class RoomMember(
     ulong uid,
     int campClient,
     int posOfCamp,
+    int teamFlag,
     pbCOMDT_ACNTMAP_INFO acntMapInfo,
     RoomMemberProfile profile)
 {
     public ulong Uid { get; } = uid;
+    public int TeamFlag { get; } = teamFlag;
+    public bool IsSettle { get; set; }
     public int CampClient { get; set; } = campClient;
     public int PosOfCamp { get; set; } = posOfCamp;
     public pbCOMDT_ACNTMAP_INFO AcntMapInfo { get; set; } = acntMapInfo;
@@ -24,11 +27,13 @@ public sealed record RoomPosChange(int ChgSeq, ulong SenderUid, ulong ReceiverUi
 public sealed class MatchRoom(int roomID, long roomSeq, int roomShowId, ulong masterUid)
 {
     public const int RoomEntity = 1;
+    public const int MatchRoomEntity = 2;
     public const int LeftCamp = (int)PB_ENUM_COM_CAMP_CLIENT.PbCampClientPlayer1;
     public const int RightCamp = (int)PB_ENUM_COM_CAMP_CLIENT.PbCampClientPlayer2;
     public const int JudgeCamp = (int)PB_ENUM_COM_CAMP_CLIENT.PbCampClientJudge1;
     public const int JudgeCampCapacity = (int)PB_MACRO_COM_MAX_JUDGE_NUM.PbComMaxJudgeNum;
 
+    private const int FirstTeamFlag = 1;
     private const int GameEntityTypeBits = 12;
     private const int LobbyGameEntityType = 0x008;
     private const int FirstGameEntityInstance = 1;
@@ -56,14 +61,32 @@ public sealed class MatchRoom(int roomID, long roomSeq, int roomShowId, ulong ma
     public pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE? PveChallengeSelectNode { get; set; }
     public int MatchSeq { get; set; }
     public HashSet<ulong> ConfirmedUids { get; } = [];
+    public HashSet<ulong> UnconfirmedNpcUids { get; } = [];
     public pbCOMDT_MATCH_SUCC_DETAIL? MatchSucc { get; set; }
     public IReadOnlyDictionary<ulong, pbAiInfoConfig> MatchNpcConfigs { get; set; } = new Dictionary<ulong, pbAiInfoConfig>();
 
     public IReadOnlyList<RoomMember> Members => members;
 
-    public bool IsMatching => State == PB_ENUM_COM_ROOMSVR_ROOM_STATE.PbComRoomsvrRoomStateReq;
+    public bool IsMatching => State is PB_ENUM_COM_ROOMSVR_ROOM_STATE.PbComRoomsvrRoomStateReq or PB_ENUM_COM_ROOMSVR_ROOM_STATE.PbComRoomsvrRoomStateProc;
 
-    public bool IsMatchConfirmed => members.All(member => ConfirmedUids.Contains(member.Uid));
+    public bool IsSearching => State == PB_ENUM_COM_ROOMSVR_ROOM_STATE.PbComRoomsvrRoomStateProc && MatchSucc is null;
+
+    public bool IsConfirming => State == PB_ENUM_COM_ROOMSVR_ROOM_STATE.PbComRoomsvrRoomStateProc && MatchSucc is not null;
+
+    public bool IsMatchConfirmed => UnconfirmedNpcUids.Count == 0 && members.All(member => ConfirmedUids.Contains(member.Uid));
+
+    public MatchTicket Ticket => new(RoomID, RoomSeq, MatchSeq);
+
+    public bool Holds(MatchTicket ticket) => ticket.RoomID == RoomID && ticket.RoomSeq == RoomSeq && ticket.MatchSeq == MatchSeq;
+
+    public void ClearMatch()
+    {
+        MatchSucc = null;
+        MatchNpcConfigs = new Dictionary<ulong, pbAiInfoConfig>();
+        ConfirmedUids.Clear();
+        UnconfirmedNpcUids.Clear();
+        MatchStartedAt = 0;
+    }
 
     public RoomMember? FindMember(ulong uid) => members.Find(member => member.Uid == uid);
 
@@ -97,7 +120,8 @@ public sealed class MatchRoom(int roomID, long roomSeq, int roomShowId, ulong ma
 
     public RoomMember Add(ulong uid, int campClient, int posOfCamp, pbCOMDT_ACNTMAP_INFO acntMapInfo, RoomMemberProfile profile)
     {
-        var member = new RoomMember(uid, campClient, posOfCamp, acntMapInfo, profile);
+        var teamFlag = members.Count == 0 ? FirstTeamFlag : members.Max(member => member.TeamFlag) + 1;
+        var member = new RoomMember(uid, campClient, posOfCamp, teamFlag, acntMapInfo, profile);
         members.Add(member);
         return member;
     }
@@ -117,4 +141,10 @@ public sealed class MatchRoom(int roomID, long roomSeq, int roomShowId, ulong ma
 
     private static int BuildLobbyGameEntity() =>
         (Random.Shared.Next(FirstGameEntityInstance, GameEntityInstanceCount) << GameEntityTypeBits) | LobbyGameEntityType;
+}
+
+public sealed class SettleRoomPlan(MatchRoom finishedRoom)
+{
+    public MatchRoom FinishedRoom { get; } = finishedRoom;
+    public MatchRoom? SettleRoom { get; set; }
 }

@@ -14,15 +14,19 @@ public sealed class DeskPlayer(
     ulong uid,
     bool isNpc,
     pbCSDT_CAMPPLAYERINFO campPlayerInfo,
-    IReadOnlyDictionary<int, pbCOMDT_CHOICEHERO> usableHeroes,
+    Dictionary<int, pbCOMDT_CHOICEHERO> usableHeroes,
+    IReadOnlyDictionary<int, int> heldItemLevels,
     pbAiInfoConfig? npcConfig)
 {
     public const int HeroLocked = 1;
+    public const int HeroUnlocked = 0;
+    public const int NoHeroID = 0;
 
     public ulong Uid { get; } = uid;
     public bool IsNpc { get; } = isNpc;
     public pbCSDT_CAMPPLAYERINFO CampPlayerInfo { get; } = campPlayerInfo;
-    public IReadOnlyDictionary<int, pbCOMDT_CHOICEHERO> UsableHeroes { get; } = usableHeroes;
+    public Dictionary<int, pbCOMDT_CHOICEHERO> UsableHeroes { get; } = usableHeroes;
+    public IReadOnlyDictionary<int, int> HeldItemLevels { get; } = heldItemLevels;
     public pbAiInfoConfig? NpcConfig { get; } = npcConfig;
 
     public pbCOMDT_PLAYERINFO PlayerInfo => CampPlayerInfo.PlayerInfo;
@@ -48,13 +52,17 @@ public sealed class BattleDesk(
     long deskCrtSeq,
     pbCOMDT_DESKINFO deskInfo,
     pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE? pveChallengeSelectNode,
-    IReadOnlyList<DeskPlayer> players)
+    IReadOnlyList<DeskPlayer> players,
+    int pickTimeOut,
+    int pickReminderSec)
 {
     public int DeskID { get; } = deskID;
     public long DeskCrtSeq { get; } = deskCrtSeq;
     public pbCOMDT_DESKINFO DeskInfo { get; } = deskInfo;
     public pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE? PveChallengeSelectNode { get; } = pveChallengeSelectNode;
     public IReadOnlyList<DeskPlayer> Players { get; } = players;
+    public int PickTimeOut { get; } = pickTimeOut;
+    public int PickReminderSec { get; } = pickReminderSec;
     public DeskPhase Phase { get; set; } = DeskPhase.Picking;
     public int RelayEntity { get; } = RandomNumberGenerator.GetInt32(int.MinValue, 0);
 
@@ -62,7 +70,11 @@ public sealed class BattleDesk(
 
     public ulong[] HumanUids => [.. Humans.Select(player => player.Uid)];
 
+    public ulong[] HumanUidsOf(int campClient) => [.. Humans.Where(player => player.CampClient == campClient).Select(player => player.Uid)];
+
     public bool AllHumansLocked => Humans.All(player => player.IsHeroLocked);
+
+    public bool BotsPickLive => PveChallengeSelectNode is null;
 
     public DeskPlayer? FindPlayer(int objId) => Players.FirstOrDefault(player => player.ObjId == objId);
 

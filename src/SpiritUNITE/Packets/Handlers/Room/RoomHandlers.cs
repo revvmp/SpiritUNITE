@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using SpiritUNITE.Auth;
 using SpiritUNITE.Battle;
 using SpiritUNITE.Game.Activity;
+using SpiritUNITE.Game.Credit;
 using SpiritUNITE.Game.Friend;
 using SpiritUNITE.Game.Profile;
 using SpiritUNITE.Game.Role;
@@ -20,6 +21,7 @@ public sealed class RoomHandlers
 
     private readonly RoomManager rooms;
     private readonly RoomInvites invites;
+    private readonly MatchScheduler matches;
     private readonly DeskManager desks;
     private readonly LobbyRoles lobbyRoles;
     private readonly FriendPresence presence;
@@ -29,6 +31,8 @@ public sealed class RoomHandlers
     private readonly RoleInfoStore roles;
     private readonly ActivitySchedule activitySchedule;
     private readonly ActivityTasks activityTasks;
+    private readonly CreditManager credit;
+    private readonly SettleTeamPresence teamPresence;
     private readonly GVoiceOptions gVoice;
     private readonly TimeProvider clock;
     private readonly ILogger<RoomHandlers> logger;
@@ -36,6 +40,7 @@ public sealed class RoomHandlers
     public RoomHandlers(
         RoomManager rooms,
         RoomInvites invites,
+        MatchScheduler matches,
         DeskManager desks,
         RelayManager relays,
         LobbyRoles lobbyRoles,
@@ -46,12 +51,15 @@ public sealed class RoomHandlers
         RoleInfoStore roles,
         ActivitySchedule activitySchedule,
         ActivityTasks activityTasks,
+        CreditManager credit,
+        SettleTeamPresence teamPresence,
         IOptions<GVoiceOptions> gVoice,
         TimeProvider clock,
         ILogger<RoomHandlers> logger)
     {
         this.rooms = rooms;
         this.invites = invites;
+        this.matches = matches;
         this.desks = desks;
         this.lobbyRoles = lobbyRoles;
         this.presence = presence;
@@ -61,18 +69,31 @@ public sealed class RoomHandlers
         this.roles = roles;
         this.activitySchedule = activitySchedule;
         this.activityTasks = activityTasks;
+        this.credit = credit;
+        this.teamPresence = teamPresence;
         this.gVoice = gVoice.Value;
         this.clock = clock;
         this.logger = logger;
         lobbyRoles.RoleOffline += OnRoleOfflineAsync;
         desks.DeskClosed += presence.LeaveGameAsync;
         relays.RelayFinished += presence.LeaveGameAsync;
+        matches.MatchConfirmed += OnMatchConfirmedAsync;
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidCreateRoomReq)]
     public async Task<GamePacket[]> OnCreateRoomReq(GamePacket request)
     {
         var create = pbCSCreateRoomReq.Parser.ParseFrom(request.PkgData);
+        if (await credit.FindBattleBanEndAsync(request.Uid) is { } banEndTime)
+        {
+            logger.LogInformation("Create room for uid {Uid} refused: banned from battles until {BanEndTime}", request.Uid, banEndTime);
+            return
+            [
+                request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomDailyActivityRewardNtf, RoomNotices.DailyActivityReward(await BuildDailyActivityInfoAsync(request.Uid))),
+                request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidJoinRoomNtf, RoomNotices.JoinBanned(banEndTime)),
+            ];
+        }
+
         var outcome = rooms.Create(
             request.Uid,
             new RoomCreateRequest(
@@ -98,17 +119,16 @@ public sealed class RoomHandlers
         }
 
         await MarkInRoomAsync(request.Uid);
-        var dailyActivityInfo = await RoomDailyActivity.BuildDailyActivityInfoAsync(
-            activitySchedule,
-            activityTasks,
-            roles.Require(request.Uid),
-            clock.GetUtcNow());
+        var dailyActivityInfo = await BuildDailyActivityInfoAsync(request.Uid);
         return await DeliverAsync(
             request,
             outcome,
             [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomDailyActivityRewardNtf, RoomNotices.DailyActivityReward(dailyActivityInfo))],
             [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomRttNtf, RoomNotices.RoomRtt(gVoice, lobbyRoles.Rtt(request.Uid)))]);
     }
+
+    private Task<pbCSDT_ROOM_DAILY_ACTIVITY_INFO> BuildDailyActivityInfoAsync(ulong uid) =>
+        RoomDailyActivity.BuildDailyActivityInfoAsync(activitySchedule, activityTasks, roles.Require(uid), clock.GetUtcNow());
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidShowidJoinRoomReq)]
     public async Task<GamePacket[]> OnShowidJoinRoomReq(GamePacket request)
@@ -152,6 +172,62 @@ public sealed class RoomHandlers
         return await CompleteJoinAsync(request, outcome, response);
     }
 
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidRoomSettleOneKeyTeamReq)]
+    public async Task<GamePacket[]> OnRoomSettleOneKeyTeamReq(GamePacket request)
+    {
+        pbCSRoomSettleOneKeyTeamReq.Parser.ParseFrom(request.PkgData);
+        var room = rooms.FindSettleRoomOf(request.Uid);
+        logger.LogInformation(
+            "Uid {Uid} asks to team up again: {Result}",
+            request.Uid,
+            room is null ? "refused, not in a post-game room" : $"post-game room {room.RoomID}");
+        if (room is null)
+        {
+            return
+            [
+                request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomSettleOneKeyTeamRsp, new pbSCRoomSettleOneKeyTeamRsp
+                {
+                    Result = new pbResultInfo { ResultId = (int)PB_ENUM_RES_ERROR_CODE.PbErrRoomNotFound },
+                }),
+            ];
+        }
+
+        await teamPresence.MarkAsync(request.Uid, SettleTeamPresence.Ready);
+        return
+        [
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomSettleOneKeyTeamRsp, new pbSCRoomSettleOneKeyTeamRsp
+            {
+                Result = new pbResultInfo(),
+                RoomEntity = MatchRoom.RoomEntity,
+                RoomID = room.RoomID,
+                RoomSeq = room.RoomSeq,
+            }),
+        ];
+    }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidSettleAcntReturnRoomReq)]
+    public async Task<GamePacket[]> OnSettleAcntReturnRoomReq(GamePacket request)
+    {
+        pbCSSettleAcntReturnRoomReq.Parser.ParseFrom(request.PkgData);
+        var outcome = rooms.ReturnFromSettle(request.Uid);
+        logger.LogInformation("Uid {Uid} returns from the settlement to its room: {Result}", request.Uid, outcome.Result);
+        if (!outcome.Succeeded)
+        {
+            return
+            [
+                request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidSettleAcntReturnRoomNtf, new pbSCSettleAcntReturnRoomNtf
+                {
+                    ResultInfo = Result(outcome),
+                    Uid = request.Uid,
+                }),
+            ];
+        }
+
+        await teamPresence.MarkAsync(request.Uid, SettleTeamPresence.Offline);
+        await MarkInRoomAsync(request.Uid);
+        return await DeliverAsync(request, outcome);
+    }
+
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidQuitRoomReq)]
     public async Task<GamePacket[]> OnQuitRoomReq(GamePacket request)
     {
@@ -193,23 +269,21 @@ public sealed class RoomHandlers
     public async Task<GamePacket[]> OnRoomStartGameReq(GamePacket request)
     {
         pbCSRoomStartGameReq.Parser.ParseFrom(request.PkgData);
-        var outcome = rooms.StartGame(request.Uid);
-        logger.LogInformation("Uid {Uid} starts matching: {Result}", request.Uid, outcome.Result);
-        if (outcome.Succeeded && rooms.FindMatchConfirm(request.Uid) is { } ticket)
+        if (await FindCreditShortfallAsync(request.Uid) is { } creditRefusal)
         {
-            logger.LogInformation(
-                "Room {RoomID} matched against bots; waiting {ConfirmTimeoutMs} ms for every member to confirm",
-                ticket.RoomID,
-                PveMatch.ConfirmTimeoutMs);
-            _ = ExpireMatchConfirmAsync(ticket);
-            return await DeliverAsync(request, outcome);
+            return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomStartGameRsp, new pbSCRoomStartGameRsp { ResultInfo = new pbResultInfo { ResultId = (int)creditRefusal } })];
         }
 
-        var response = request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomStartGameRsp, new pbSCRoomStartGameRsp
+        var outcome = rooms.StartGame(request.Uid);
+        logger.LogInformation("Uid {Uid} starts matching: {Result}", request.Uid, outcome.Result);
+        if (!outcome.Succeeded)
         {
-            ResultInfo = Result(outcome),
-        });
-        return await DeliverAsync(request, outcome, response);
+            return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomStartGameRsp, new pbSCRoomStartGameRsp { ResultInfo = Result(outcome) })];
+        }
+
+        var replies = await DeliverAsync(request, outcome);
+        matches.Follow(outcome);
+        return replies;
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidRoomConfirmReq)]
@@ -237,12 +311,7 @@ public sealed class RoomHandlers
             return confirmReplies;
         }
 
-        var deskOutcome = await desks.BeginPveDeskAsync(room);
-        foreach (var member in room.Members)
-        {
-            await (deskOutcome.Succeeded ? MarkInGameAsync(member.Uid) : MarkIdleAsync(member.Uid));
-        }
-
+        var deskOutcome = await BeginDeskAsync(room);
         return [.. confirmReplies, .. await DeliverAsync(request, deskOutcome)];
     }
 
@@ -358,7 +427,7 @@ public sealed class RoomHandlers
     public async Task<GamePacket[]> OnInviteFriendJoinRoomReq(GamePacket request)
     {
         var invite = pbCSInviteFriendJoinRoomReq.Parser.ParseFrom(request.PkgData);
-        var outcome = await invites.InviteAsync(request.Uid, invite.Uid, invite.InviterType);
+        var outcome = await invites.InviteAsync(request.Uid, invite.Uid, invite.InviteType, invite.InviterType);
         logger.LogInformation(
             "Uid {Uid} invites uid {TargetUid} to the room (type {InviteType}): {Result}",
             request.Uid,
@@ -420,30 +489,57 @@ public sealed class RoomHandlers
         return await DeliverAsync(request, outcome, response);
     }
 
-    private async Task ExpireMatchConfirmAsync(MatchConfirmTicket ticket)
+    private async Task<PB_ENUM_RES_ERROR_CODE?> FindCreditShortfallAsync(ulong uid)
+    {
+        if (rooms.FindRoomOf(uid) is not { } room)
+        {
+            return null;
+        }
+
+        var (mapId, mapSubMode, memberUids) = (room.MapId, room.MapSubMode, room.Members.Select(member => member.Uid).ToArray());
+        var needCredit = credit.FindGameStartNeedCredit(mapId);
+        foreach (var memberUid in memberUids)
+        {
+            var creditPoint = await credit.GetCreditPointAsync(memberUid);
+            if (creditPoint < needCredit)
+            {
+                logger.LogInformation(
+                    "Uid {Uid} cannot start map {MapId}: uid {MemberUid} has {CreditPoint} credit of the {NeedCredit} needed",
+                    uid,
+                    mapId,
+                    memberUid,
+                    creditPoint,
+                    needCredit);
+                return mapSubMode == (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceRank
+                    ? PB_ENUM_RES_ERROR_CODE.PbErrChangeRankRoomCreditNotEnough
+                    : PB_ENUM_RES_ERROR_CODE.PbErrChangeRoomCreditNotEnough;
+            }
+        }
+
+        return null;
+    }
+
+    private async Task OnMatchConfirmedAsync(MatchRoom room)
     {
         try
         {
-            await Task.Delay(TimeSpan.FromMilliseconds(PveMatch.ConfirmTimeoutMs), clock);
-            var outcome = rooms.ExpireMatchConfirm(ticket, out var removedUids);
-            if (removedUids.Length == 0)
-            {
-                return;
-            }
-
-            logger.LogInformation(
-                "Room {RoomID} match aborted: not every member confirmed within the confirm window",
-                ticket.RoomID);
-            await PushAllAsync(outcome);
-            foreach (var uid in removedUids)
-            {
-                await MarkIdleAsync(uid);
-            }
+            await PushAllAsync(await BeginDeskAsync(room));
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Match confirm expiry for room {RoomID} failed", ticket.RoomID);
+            logger.LogError(exception, "Desk start for room {RoomID} failed", room.RoomID);
         }
+    }
+
+    private async Task<RoomOutcome> BeginDeskAsync(MatchRoom room)
+    {
+        var deskOutcome = await desks.BeginDeskAsync(room);
+        foreach (var member in room.Members)
+        {
+            await (deskOutcome.Succeeded ? MarkInGameAsync(member.Uid) : MarkIdleAsync(member.Uid));
+        }
+
+        return deskOutcome;
     }
 
     private async Task<GamePacket[]> CompleteJoinAsync(GamePacket request, RoomOutcome outcome, GamePacket response)
@@ -454,7 +550,12 @@ public sealed class RoomHandlers
         }
 
         await MarkInRoomAsync(request.Uid);
-        return await DeliverAsync(request, outcome, response);
+        var dailyActivityInfo = await BuildDailyActivityInfoAsync(request.Uid);
+        return await DeliverAsync(
+            request,
+            outcome,
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomDailyActivityRewardNtf, RoomNotices.DailyActivityReward(dailyActivityInfo)),
+            response);
     }
 
     private async Task OnRoleOfflineAsync(ulong uid)

@@ -7,6 +7,12 @@ public sealed record RoomMessage(PB_ENUM_CS_MSGID_DEF MsgID, IMessage Message);
 
 public sealed record RoomPush(ulong Uid, RoomMessage Message);
 
+public sealed record MatchTicket(int RoomID, long RoomSeq, int MatchSeq);
+
+public sealed record MatchSearch(MatchTicket Ticket, TimeSpan Delay);
+
+public sealed record MatchConfirmWindow(MatchTicket Ticket, int MapId, DateTimeOffset Deadline, IReadOnlyList<ulong> NpcUids);
+
 public sealed class RoomOutcome
 {
     private readonly List<RoomMessage> replies = [];
@@ -18,6 +24,8 @@ public sealed class RoomOutcome
     public bool Succeeded => Result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     public int RequesterPushesBeforeResponse { get; private set; }
     public MatchRoom? StartedGame { get; private set; }
+    public MatchSearch? Search { get; private set; }
+    public MatchConfirmWindow? ConfirmWindow { get; private set; }
 
     public static RoomOutcome Refused(PB_ENUM_RES_ERROR_CODE result) => new() { Result = result };
 
@@ -30,6 +38,18 @@ public sealed class RoomOutcome
     public RoomOutcome StartGame(MatchRoom room)
     {
         StartedGame = room;
+        return this;
+    }
+
+    public RoomOutcome SearchFor(MatchSearch search)
+    {
+        Search = search;
+        return this;
+    }
+
+    public RoomOutcome AwaitConfirm(MatchConfirmWindow window)
+    {
+        ConfirmWindow = window;
         return this;
     }
 

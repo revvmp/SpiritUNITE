@@ -19,6 +19,13 @@ public static class RankedMatch
             notices.GetBusinessSchemeId(PB_ENUM_RES_USER_SCHEME_BUSINESS_TYPE.PbResUserSchemeBusinessTypeSystemUnlock))) is { } unlock
         && role.RoleTotalExp >= unlock.TrainerExp;
 
+    public static int GetRankedMatchUnlockLevel(GameData gameData, LobbyNotices notices) =>
+        gameData.SystemUnlock.Find(pbSystemUnlock.Key(
+            (int)PB_ENUM_RES_SYSTEM_UNLOCK_TYPE.PbResSystemUnlockTypeRank,
+            notices.GetBusinessSchemeId(PB_ENUM_RES_USER_SCHEME_BUSINESS_TYPE.PbResUserSchemeBusinessTypeSystemUnlock))) is { } unlock
+            ? gameData.TrainerLevel.Rows.Where(row => row.UpgradeExp <= unlock.TrainerExp).Max(row => row.Level)
+            : int.MaxValue;
+
     public static RankedMatchSeasonState FindCurrentSeason(GameData gameData, DateTimeOffset now)
     {
         var nowSeconds = now.ToUnixTimeSeconds();

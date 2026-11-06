@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SpiritUNITE.Battle;
 using SpiritUNITE.Game.Newbie;
 using SpiritUNITE.Game.Pokemon;
 using SpiritUNITE.Game.Role;
@@ -6,7 +7,7 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers.Pokemon;
 
-public sealed class PokemonHandlers(RoleInfoStore roles, PokemonManager pokemon, ILogger<PokemonHandlers> logger)
+public sealed class PokemonHandlers(RoleInfoStore roles, PokemonManager pokemon, DeskManager desks, ILogger<PokemonHandlers> logger)
 {
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetPokemonListReq)]
     public async Task<GamePacket[]> OnGetPokemonListReq(GamePacket request)
@@ -132,8 +133,12 @@ public sealed class PokemonHandlers(RoleInfoStore roles, PokemonManager pokemon,
             wear.PokemonID,
             role.GameUlongUID,
             result);
+        var pickNotices = result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc
+            ? await desks.DeliverAsync(request.Uid, desks.ChangePaster(request.Uid, wear.PokemonID, used.WearPasterID))
+            : [];
         return
         [
+            .. pickNotices.Select(message => request.Reply(message.MsgID, message.Message)),
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidWearPokemonPasterRsp, new pbSCWearPokemonPasterRsp
             {
                 ResultInfo = new pbResultInfo { ResultId = (int)result },

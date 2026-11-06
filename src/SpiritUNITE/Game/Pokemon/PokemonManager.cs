@@ -55,6 +55,9 @@ public sealed class PokemonManager(
 
     public IReadOnlyList<int> FreePokemonList => options.Value.FreePokemonList;
 
+    public bool CanBattleWith(LMNRoleInfo role, int pokemonId) =>
+        role.CanUsePokemon(pokemonId) || FreePokemonList.Contains(pokemonId);
+
     public Task<IReadOnlyList<UsedPokemonInfo>> LoadUsedPokemonAsync(LMNRoleInfo role) => usedPokemon.LoadAsync(role.GameUlongUID);
 
     public Task<UsedPokemonInfo> FindUsedPokemonAsync(LMNRoleInfo role, int pokemonId) =>
@@ -66,7 +69,7 @@ public sealed class PokemonManager(
         int trainerItemID)
     {
         var used = await usedPokemon.FindAsync(role.GameUlongUID, pokemonId);
-        if (!role.OwnsPokemon(pokemonId))
+        if (!CanBattleWith(role, pokemonId))
         {
             return (PB_ENUM_RES_ERROR_CODE.PbErrTrainerItemPokemonIdinvalid, used);
         }

@@ -12,7 +12,9 @@ public static class RoomMemberDetail
     public const int FirstAnonymousUserNameID = 1;
 
     private const int AcntMember = (int)PB_ENUM_COM_ROOM_MEMBEM_TYPE.PbComRoomMemberTacnt;
-    private const int OwnTeamFlag = 1;
+    private const int PartyTeamFlag = 1;
+    private const int SettlingMember = 1;
+    private const int ReturnedMember = 0;
     private const int GuestAccount = 1;
     private const int RegisteredAccount = 0;
     private const int HasMapResource = 1;
@@ -68,7 +70,8 @@ public static class RoomMemberDetail
                     MemberName = role.InGameUsrName,
                     MemberLevel = RoleProfile.GetLevel(gameData, role),
                     MemberHeadId = RoleImage.GetHeadID(gameData, role),
-                    TeamFlag = OwnTeamFlag,
+                    TeamFlag = member.TeamFlag,
+                    IsSettle = member.IsSettle ? SettlingMember : ReturnedMember,
                     AcntMapInfo = member.AcntMapInfo.Clone(),
                     RoleAvatarInfo = role.RoleAvatarInfo.Clone(),
                     Gender = role.Gender,
@@ -105,7 +108,7 @@ public static class RoomMemberDetail
                     MemberName = role.InGameUsrName,
                     MemberLevel = RoleProfile.GetLevel(gameData, role),
                     MemberHeadId = RoleImage.GetHeadID(gameData, role),
-                    TeamFlag = OwnTeamFlag,
+                    TeamFlag = PartyTeamFlag,
                     AcntMapInfo = new pbCOMDT_ACNTMAP_INFO(),
                     RoleAvatarInfo = role.RoleAvatarInfo.Clone(),
                     Gender = role.Gender,

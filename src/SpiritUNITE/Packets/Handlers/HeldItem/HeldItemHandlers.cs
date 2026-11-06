@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SpiritUNITE.Battle;
 using SpiritUNITE.Game.HeldItem;
 using SpiritUNITE.Game.Pokemon;
 using SpiritUNITE.Game.Role;
@@ -11,6 +12,7 @@ public sealed class HeldItemHandlers(
     RoleInfoStore roles,
     HeldItemManager heldItems,
     PokemonManager pokemon,
+    DeskManager desks,
     ILogger<HeldItemHandlers> logger)
 {
     private const int UsedRecommend = 1;
@@ -29,8 +31,12 @@ public sealed class HeldItemHandlers(
             string.Join(',', heldItemIds),
             role.GameUlongUID,
             result);
+        var pickNotices = result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc
+            ? await desks.DeliverAsync(request.Uid, desks.ChangeHeldItems(request.Uid, chg.PokemonId, used.HeldItemID))
+            : [];
         return
         [
+            .. pickNotices.Select(message => request.Reply(message.MsgID, message.Message)),
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidChgHeldItemRsp, new pbSCChgHeldItemRsp
             {
                 ResultInfo = new pbResultInfo { ResultId = (int)result },
@@ -112,8 +118,12 @@ public sealed class HeldItemHandlers(
             carry.PokemonID,
             role.GameUlongUID,
             result);
+        var pickNotices = result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc
+            ? await desks.DeliverAsync(request.Uid, desks.ChangeTrainerItem(request.Uid, carry.PokemonID, used.LastCarryTrainerItemID))
+            : [];
         return
         [
+            .. pickNotices.Select(message => request.Reply(message.MsgID, message.Message)),
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidCarryTrainerItemRsp, new pbSCCarryTrainerItemRsp
             {
                 ResultInfo = new pbResultInfo { ResultId = (int)result },

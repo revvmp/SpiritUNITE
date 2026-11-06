@@ -16,6 +16,7 @@ public sealed class HeldItemManager(
     BagManager bag,
     BagRepository bagRepository,
     PokemonUsedRepository usedPokemon,
+    PokemonManager pokemon,
     HeldItemRepository heldItems,
     LobbyNotices notices,
     IOptions<HeldItemOptions> options,
@@ -141,7 +142,7 @@ public sealed class HeldItemManager(
         int pokemonId,
         IReadOnlyCollection<int> heldItemIds)
     {
-        if (!role.CanUsePokemon(pokemonId))
+        if (!pokemon.CanBattleWith(role, pokemonId))
         {
             return PB_ENUM_RES_ERROR_CODE.PbErrPokemonUnexists;
         }

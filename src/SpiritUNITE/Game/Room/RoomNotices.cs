@@ -18,6 +18,16 @@ public static class RoomNotices
         AcntLocalSvrInfo = new pbCOMDT_LOCAL_SVR_ACNT_INFO(),
     };
 
+    public static pbSCJoinRoomNtf JoinBanned(long banEndTime) => new()
+    {
+        ResultInfo = new pbResultInfo
+        {
+            ResultId = (int)PB_ENUM_RES_ERROR_CODE.PbErrInBannedForRejectMatchConfirm,
+            Args = new pbArgList { Args = { new pbArgData { Value = new pbArgDataValue { IntValue = (int)banEndTime } } } },
+        },
+        AcntLocalSvrInfo = new pbCOMDT_LOCAL_SVR_ACNT_INFO(),
+    };
+
     public static pbSCRoomRttNtf RoomRtt(GVoiceOptions gVoice, TimeSpan? lobbyRtt) => new()
     {
         Rtt = lobbyRtt is { } rtt ? Math.Max(MinRoomDelayMs, (int)Math.Ceiling(rtt.TotalMilliseconds)) : ClientDefaultRoomDelayMs,
@@ -57,6 +67,21 @@ public static class RoomNotices
                 MemInfo = memberDT,
             },
         });
+
+    public static pbSCChatMsgNtf RoomChat(pbCOMDT_CHAT_PLAYER_INFO from, int roomChatType) => new()
+    {
+        ChatMsg =
+        {
+            new pbCOMDT_CHAT_MSG
+            {
+                Type = (int)PB_ENUM_RES_CHAT_MSG_TYPE.PbResChatMsgTypeRoom,
+                ChatInfo = new pbCOMDT_CHAT_MSG_UNION
+                {
+                    Room = new pbCOMDT_CHAT_MSG_ROOM { From = from, Type = roomChatType },
+                },
+            },
+        },
+    };
 
     public static pbSCRoomChgNtf PlayerLeave(MatchRoom room, int campClient, int posOfCamp) =>
         ChgNtf(room, PB_ENUM_COM_ROOMCHGTYPE.PbComRoomchgPlayerleave, new pbCOMDT_ROOMCHG_DT
@@ -160,22 +185,41 @@ public static class RoomNotices
             },
         });
 
-    public static pbSCMatchRsp MatchProcess(MatchRoom room) => new()
+    public static pbSCMatchRsp MatchProcess(MatchRoom room, int waitTime) => new()
     {
         MatchResult = new pbCOMDT_MATCH_RESULT
         {
             Result = (int)PB_ENUM_COM_MATCH_RESULT.PbComMatchProcess,
             MatchResDetail = new pbCOMDT_MATCH_DETAIL
             {
+                MatchSucc = new pbCOMDT_MATCH_SUCC_DETAIL { ConfirmTimeoutMs = PveMatch.ConfirmTimeoutMs },
                 MatchProcess = new pbCOMDT_MATCH_PRCESS_DETAIL
                 {
-                    RoomEntity = MatchRoom.RoomEntity,
+                    RoomEntity = MatchRoom.MatchRoomEntity,
                     MapId = room.MapId,
-                    PkAI = room.ManMachine,
+                    WaitTime = waitTime,
                     ProcTimeStamp = room.MatchStartedAt,
                 },
             },
         },
+    };
+
+    public static pbSCRoomConfirmRsp HumanConfirmed(ulong uid) => new()
+    {
+        Uid = uid,
+        FromGameEntity = MatchRoom.GameEntity,
+        ResultInfo = new pbResultInfo(),
+    };
+
+    public static pbSCRoomConfirmRsp NpcConfirmed(ulong npcUid) => new()
+    {
+        Uid = npcUid,
+        ResultInfo = new pbResultInfo(),
+    };
+
+    public static pbSCMultGameAbortNtf MatchAbort(PB_ENUM_RES_ERROR_CODE result) => new()
+    {
+        ResultInfo = new pbResultInfo { ResultId = (int)result },
     };
 
     public static pbSCCancelMatchNtf CancelMatch(PB_ENUM_ENM_MATCHTEAM_DESTORY_REASON reason, string acntName) =>

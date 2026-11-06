@@ -30,11 +30,25 @@
       { "CanUseType": 3, "MapIds": [402, 403, 404, 405, 412, 416, 417, 90006, 90011, 90012, 90013, 90015, 90022, 90023, 521, 522, 523, 2521, 2522, 2523, 606, 90070] },
       { "CanUseType": 4, "MapIds": [301, 304, 319] }
     ],
-    "HiddenMapIds": [92001, 92002, 92003, 92004, 601, 602, 603, 604, 611, 612, 613, 614]
+    "HiddenMapIds": [92001, 92002, 92003, 92004, 601, 602, 603, 604, 611, 612, 613, 614],
+    "ManMachineSearchSec": 60,
+    "TeamMMRScore": 1343,
+    "SettleTeamOfflineMinSec": 14,
+    "SettleTeamOfflineMaxSec": 52,
+    "WarmBattleSearchSec": 3,
+    "WarmBattleWaitTime": 10,
+    "WarmBattleMaxTrainerLevel": 0
   },
   "BattleSettlement": {
     "PveChallengeWinBaseExp": 150,
-    "PveChallengeLoseBaseExp": 0
+    "PveChallengeLoseBaseExp": 0,
+    "MatchWinExpPerMinute": 15,
+    "MatchLoseExpPerMinute": 0,
+    "MatchWinEnergy": 15,
+    "MatchLoseEnergy": 0
+  },
+  "HeroPick": {
+    "NpcHeroMaxReleaseOrder": 26
   },
   "HeldItem": {
     "UnlockGrantItemIds": [1002001014]
