@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text.Json;
 
-namespace SpiritUNITE.ResourceUpdate;
+namespace SpiritUNITE.Resource;
 
 public sealed record ResourceArchiveHash(string Md5, long Length, long LastWriteTimeUtcTicks)
 {

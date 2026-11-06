@@ -41,7 +41,7 @@ using SpiritUNITE.Online;
 using SpiritUNITE.Network.Lwip;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Handlers.Session;
-using SpiritUNITE.ResourceUpdate;
+using SpiritUNITE.Resource;
 using SpiritUNITE.Servers.Http;
 using SpiritUNITE.Servers.Dir;
 using SpiritUNITE.Servers.Lobby;
@@ -277,6 +277,8 @@ public static class Server
     {
         builder.Services.AddSingleton<ResourceArchiveCatalog>();
         builder.Services.AddHostedService(services => services.GetRequiredService<ResourceArchiveCatalog>());
+        builder.Services.AddSingleton<ImageCdnFolder>();
+        builder.Services.AddHostedService(services => services.GetRequiredService<ImageCdnFolder>());
         builder.Services.AddHostedService<DirServer>();
         builder.Services.AddHostedService<LobbyServer>();
         builder.Services.AddHostedService<RelayServer>();

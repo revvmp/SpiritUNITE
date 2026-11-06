@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 using SpiritUNITE.Servers.Http;
 using SpiritUNITE.Servers.Lobby;
 
-namespace SpiritUNITE.ResourceUpdate;
+namespace SpiritUNITE.Resource;
 
 public sealed class ResourceArchiveCatalog(
     IOptions<ResourceArchiveOptions> options,
@@ -32,7 +32,10 @@ public sealed class ResourceArchiveCatalog(
 
         var servedBase = options.Value.ServedBase(lobbyAddress.Value, httpServer.Value);
         var found = new Dictionary<int, ResourceArchive>();
-        foreach (var productFolder in new DirectoryInfo(root).EnumerateDirectories().OrderBy(folder => folder.Name, StringComparer.Ordinal))
+        var productFolders = new DirectoryInfo(root).EnumerateDirectories()
+            .Where(folder => folder.Name != ImageCdnFolder.FolderName)
+            .OrderBy(folder => folder.Name, StringComparer.Ordinal);
+        foreach (var productFolder in productFolders)
         {
             if (await LoadProductAsync(productFolder, servedBase, cancellationToken) is { } archive)
             {

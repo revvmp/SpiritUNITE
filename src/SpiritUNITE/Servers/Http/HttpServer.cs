@@ -67,6 +67,7 @@ public static class HttpServer
         MsdkEndpoints.Map(app);
         CentauriEndpoints.Map(app);
         ResourceEndpoints.Map(app);
+        ImageCdnEndpoints.Map(app);
     }
 
     private static IResult ShowLogin(HttpRequest request, IOptions<HttpServerOptions> options) =>

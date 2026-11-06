@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace SpiritUNITE.ResourceUpdate;
+namespace SpiritUNITE.Resource;
 
 public static partial class ResourceArchiveFileName
 {

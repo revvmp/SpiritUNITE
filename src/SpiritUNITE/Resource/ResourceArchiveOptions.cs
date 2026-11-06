@@ -1,7 +1,7 @@
 using SpiritUNITE.Servers.Http;
 using SpiritUNITE.Servers.Lobby;
 
-namespace SpiritUNITE.ResourceUpdate;
+namespace SpiritUNITE.Resource;
 
 public sealed class ResourceArchiveOptions
 {

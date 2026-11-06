@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
-using SpiritUNITE.ResourceUpdate;
+using SpiritUNITE.Resource;
 
 namespace SpiritUNITE.Servers.Http;
 

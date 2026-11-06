@@ -57,6 +57,7 @@ WEBVIEW_REFUSED_PORTS = (10080,)
 DEFAULT_LOBBY_PORT = 10002
 DIR_NODE_NAME = "trunk_global_dist"
 CLOUD_CONTROL_REPLACEMENT_HOST = "spiritunite.invalid"
+IMAGE_CDN_ROUTE = "/cdn"
 CENTAURI_RELEASE_MODE = "release"
 
 SIGNING_KEY_ALIAS = "spiritunite"
@@ -129,6 +130,7 @@ class ClientBuild:
     string_literal_data_offset: int
     dir_address: MetadataLiteral
     cloud_control_host: MetadataLiteral
+    image_cdn_address: MetadataLiteral
     update_hosts: tuple[MetadataLiteral, ...]
 
 
@@ -140,6 +142,9 @@ CLIENT_BUILDS_BY_METADATA_MD5 = {
             0x16238, "trunk_global_dist|dirsvr.pokemon-unitepgame.com:10001"
         ),
         cloud_control_host=MetadataLiteral(0x5768, "gcloudctrl.iegcom.com"),
+        image_cdn_address=MetadataLiteral(
+            0x3F730, "https://image.pokemon-unitepgame.com/Encrypt"
+        ),
         update_hosts=(
             MetadataLiteral(0x3E8F8, "puffer.6.669535640.nishikigcloud.iegcom.com"),
             MetadataLiteral(
@@ -158,7 +163,6 @@ CLIENT_BUILDS_BY_METADATA_MD5 = {
 CLIENT_ADDRESS_SERVICE_PORTS = (8085, 8080)
 
 PENDING_CLIENT_CHANGES = (
-    "Shop and banner images still load from the official image CDN.",
     "Telemetry, push and crash report hosts in MSDKConfig.ini are unchanged.",
     "The Nintendo login redirect still points at the official itopsdk CDN.",
 )
@@ -183,6 +187,10 @@ class HostTarget:
         if self.web_port == default_port:
             return f"{scheme}://{self.host}"
         return f"{scheme}://{self.host}:{self.web_port}"
+
+    @property
+    def image_cdn_address(self) -> str:
+        return f"{self.web_origin}{IMAGE_CDN_ROUTE}"
 
     @property
     def build_name(self) -> str:
@@ -342,6 +350,14 @@ def resolve_target(arguments: argparse.Namespace) -> HostTarget:
     if len(host.encode("utf-8")) > shortest_update_host:
         raise BuildError(
             f"{host} is too long; the client's update server addresses hold at most {shortest_update_host} characters."
+        )
+    shortest_image_cdn_address = min(
+        len(known.image_cdn_address.original)
+        for known in CLIENT_BUILDS_BY_METADATA_MD5.values()
+    )
+    if len(target.image_cdn_address.encode("utf-8")) > shortest_image_cdn_address:
+        raise BuildError(
+            f"{target.image_cdn_address} is too long; the client's image CDN address holds at most {shortest_image_cdn_address} characters."
         )
     if is_ipv4_literal(host):
         log(
@@ -606,6 +622,9 @@ def patch_metadata(metadata: bytes, target: HostTarget) -> bytes:
     write_metadata_literal(patched, build, build.dir_address, target.dir_address)
     write_metadata_literal(
         patched, build, build.cloud_control_host, CLOUD_CONTROL_REPLACEMENT_HOST
+    )
+    write_metadata_literal(
+        patched, build, build.image_cdn_address, target.image_cdn_address
     )
     for update_host in build.update_hosts:
         write_metadata_literal(patched, build, update_host, target.host)
@@ -1508,7 +1527,9 @@ def build(arguments: argparse.Namespace) -> None:
     log(
         f"Building a {kind} for {target.web_origin} (directory {target.host}:{target.dir_port})"
     )
-    log("Patching the directory address in global-metadata.dat")
+    log(
+        f"Patching the directory, update and image CDN ({target.image_cdn_address}) addresses in global-metadata.dat"
+    )
     native_replacements, old_md5, new_md5, client_build = build_native_replacements(
         splits, target
     )
@@ -1553,6 +1574,9 @@ def build(arguments: argparse.Namespace) -> None:
         )
         log(
             "If players cannot reach the HttpServer port directly, set ResourceArchive.BaseUrl to the public address that serves /resources/."
+        )
+        log(
+            f"Put the image mirror in resources/images/ next to the server; {target.image_cdn_address} must reach the HttpServer."
         )
     log("")
     log("Not handled yet:")

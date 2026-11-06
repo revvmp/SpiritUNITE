@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using SpiritUNITE.Network.Gcp;
 using SpiritUNITE.Network.Thrift;
 using SpiritUNITE.Network.Tuap;
-using SpiritUNITE.ResourceUpdate;
+using SpiritUNITE.Resource;
 using SpiritUNITE.Servers.Lobby;
 
 namespace SpiritUNITE.Servers.Update;
