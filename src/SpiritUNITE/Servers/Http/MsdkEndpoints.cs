@@ -59,14 +59,13 @@ public static class MsdkEndpoints
         using var body = await ReadBodyAsync(request);
         var channelInfo = body is null ? null : ReadObject(body.RootElement, ChannelInfoKey);
         return query.ChannelId == GuestChannelId
-            ? await GuestLoginAsync(query, channelInfo, request.HttpContext.Connection.RemoteIpAddress, sessions, logger)
+            ? await GuestLoginAsync(query, channelInfo, sessions, logger)
             : await AuthorizationCodeLoginAsync(query, channelInfo, sessions, logger);
     }
 
     private static async Task<IResult> GuestLoginAsync(
         MsdkQuery query,
         JsonElement? channelInfo,
-        IPAddress? clientAddress,
         AccountSessionManager sessions,
         ILogger logger)
     {
@@ -76,12 +75,10 @@ public static class MsdkEndpoints
             return Refuse(query, "missing uuid");
         }
 
-        var login = await sessions.GuestLoginAsync(guestId, clientAddress);
-        if (login.Session is not { } session)
+        if (await sessions.GuestLoginAsync(guestId) is not { } session)
         {
-            logger.LogInformation("MSDK guest login refused from {Address}: {Result}, guest id {GuestIdLength} characters",
-                clientAddress, login.Result, guestId.Length);
-            return Refuse(query, login.Result == GuestLoginResult.Throttled ? "too many new guests" : "invalid uuid");
+            logger.LogInformation("MSDK guest login refused: invalid guest id of {GuestIdLength} characters", guestId.Length);
+            return Refuse(query, "invalid uuid");
         }
 
         logger.LogInformation("MSDK guest login issued a token to guest account {AccountId}, new account {IsNewAccount}",

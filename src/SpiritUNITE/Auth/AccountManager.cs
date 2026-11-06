@@ -1,20 +1,8 @@
-using System.Net;
 using System.Net.Mail;
-using System.Security.Cryptography;
 using System.Text;
 using SpiritUNITE.Database.Repositories;
 
 namespace SpiritUNITE.Auth;
-
-public enum AccountLoginResult
-{
-    LoggedIn,
-    Refused,
-    Throttled,
-    Busy,
-}
-
-public sealed record AccountLogin(AccountLoginResult Result, PlayerAccount? Account);
 
 public enum AccountRegistrationResult
 {
@@ -25,12 +13,11 @@ public enum AccountRegistrationResult
     PasswordConfirmationMismatch,
     UserNameTaken,
     EmailTaken,
-    Busy,
 }
 
 public sealed record AccountCreation(AccountRegistrationResult Result, PlayerAccount? Account);
 
-public sealed class AccountManager(AccountRepository repository, PasswordHashing hashing, LoginThrottle throttle)
+public sealed class AccountManager(AccountRepository repository)
 {
     public const int MinimumUserNameLength = 3;
     public const int MaximumUserNameLength = 20;
@@ -38,19 +25,11 @@ public sealed class AccountManager(AccountRepository repository, PasswordHashing
     public const int MinimumPasswordLength = 8;
     public const int MaximumPasswordLength = 128;
 
-    private static readonly AccountPassword UnknownAccountPassword =
-        AccountPassword.Create(Convert.ToHexString(RandomNumberGenerator.GetBytes(MaximumUserNameLength)));
-
-    private static readonly AccountLogin Refused = new(AccountLoginResult.Refused, null);
-    private static readonly AccountLogin Throttled = new(AccountLoginResult.Throttled, null);
-    private static readonly AccountLogin Busy = new(AccountLoginResult.Busy, null);
-
     public async Task<AccountCreation> RegisterAsync(
         string userName,
         string email,
         string password,
-        string passwordConfirmation,
-        CancellationToken cancellationToken)
+        string passwordConfirmation)
     {
         var trimmedUserName = userName.Trim();
         var normalizedEmail = NormalizeLogin(email);
@@ -60,55 +39,20 @@ public sealed class AccountManager(AccountRepository repository, PasswordHashing
             return new AccountCreation(result, null);
         }
 
-        if (await hashing.TryCreateAsync(password, cancellationToken) is not { } accountPassword)
-        {
-            return new AccountCreation(AccountRegistrationResult.Busy, null);
-        }
-
-        return await repository.CreateAsync(trimmedUserName, normalizedEmail, accountPassword);
+        return await repository.CreateAsync(trimmedUserName, normalizedEmail, AccountPassword.Create(password));
     }
 
-    public async Task<AccountLogin> AuthenticateAsync(
-        string userNameOrEmail,
-        string password,
-        IPAddress? clientAddress,
-        CancellationToken cancellationToken)
+    public async Task<PlayerAccount?> AuthenticateAsync(string userNameOrEmail, string password)
     {
         var login = NormalizeLogin(userNameOrEmail);
-        if (login.Length is 0 or > MaximumEmailLength || password.Length is 0 or > MaximumPasswordLength)
+        if (login.Length is 0 or > MaximumEmailLength || password.Length is 0 or > MaximumPasswordLength ||
+            await FindAsync(login) is not { } stored || !stored.Password.Matches(password))
         {
-            return Refused;
+            return null;
         }
 
-        if (await FindAsync(login) is not { } stored)
-        {
-            var unknownCheck = await hashing.CheckAsync(UnknownAccountPassword, password, cancellationToken);
-            return unknownCheck == PasswordCheck.Busy ? Busy : Refused;
-        }
-
-        if (throttle.TryBeginAttempt(stored.Account.AccountId, clientAddress) is not { } attempt)
-        {
-            return Throttled;
-        }
-
-        await throttle.DelayIfAttackedAsync(attempt, cancellationToken);
-        var check = await hashing.CheckAsync(stored.Password, password, cancellationToken);
-        if (check == PasswordCheck.Busy)
-        {
-            throttle.Abandon(attempt);
-            return Busy;
-        }
-
-        if (check == PasswordCheck.Mismatched)
-        {
-            throttle.RecordFailure(attempt);
-            return Refused;
-        }
-
-        throttle.RecordSuccess(attempt);
-        await UpgradePasswordAsync(stored, password, cancellationToken);
         await repository.RecordLoginAsync(stored.Account.AccountId);
-        return new AccountLogin(AccountLoginResult.LoggedIn, stored.Account);
+        return stored.Account;
     }
 
     public Task<bool> DeleteAsync(ulong accountId) => repository.DeleteAsync(accountId);
@@ -126,14 +70,6 @@ public sealed class AccountManager(AccountRepository repository, PasswordHashing
         }
 
         return IsValidEmail(login) ? await repository.FindByEmailAsync(login) : null;
-    }
-
-    private async Task UpgradePasswordAsync(StoredAccount stored, string password, CancellationToken cancellationToken)
-    {
-        if (stored.Password.IsOutdated && await hashing.TryCreateAsync(password, cancellationToken) is { } upgraded)
-        {
-            await repository.UpdatePasswordAsync(stored.Account.AccountId, upgraded);
-        }
     }
 
     private static AccountRegistrationResult? ValidateRegistration(string userName, string email, string password, string passwordConfirmation)

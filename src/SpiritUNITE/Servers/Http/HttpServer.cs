@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -10,13 +9,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using SpiritUNITE.Auth;
-using SpiritUNITE.Network;
 
 namespace SpiritUNITE.Servers.Http;
 
 public static class HttpServer
 {
-    private const string FormRateLimitPolicy = "account-form";
     private const string HtmlContentType = "text/html; charset=utf-8";
     private const string LoginField = "login";
     private const string UserNameField = "user_name";
@@ -38,12 +35,6 @@ public static class HttpServer
             .Validate(options => options.IsValid(), "HttpServer settings are invalid")
             .ValidateOnStart();
 
-        services.AddSingleton(provider =>
-        {
-            var options = provider.GetRequiredService<IOptions<HttpServerOptions>>().Value;
-            return new PasswordHashing(options.PasswordHashSlots, options.QueuedPasswordHashes);
-        });
-
         services.Configure<KestrelServerOptions>(kestrel => kestrel.Limits.MaxRequestBodySize = MaximumRequestBodyBytes);
 
         services.AddOptions<ForwardedHeadersOptions>().Configure<IOptions<HttpServerOptions>>((forwarded, server) =>
@@ -61,31 +52,18 @@ public static class HttpServer
                 }
             }
         });
-
-        services.AddRateLimiter(limiter =>
-        {
-            limiter.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-            limiter.AddPolicy(FormRateLimitPolicy, context => RateLimitPartition.GetFixedWindowLimiter(
-                ClientAddress.Partition(context.Connection.RemoteIpAddress),
-                _ => new FixedWindowRateLimiterOptions
-                {
-                    PermitLimit = context.RequestServices.GetRequiredService<IOptions<HttpServerOptions>>().Value.FormSubmissionsPerMinute,
-                    Window = TimeSpan.FromMinutes(1),
-                }));
-        });
     }
 
     public static void Map(WebApplication app)
     {
         app.UseForwardedHeaders();
         app.Use(ApplySecurityHeaders);
-        app.UseRateLimiter();
         app.MapGet(AccountPages.LoginPath, ShowLogin);
-        app.MapPost(AccountPages.LoginPath, SubmitLogin).RequireRateLimiting(FormRateLimitPolicy).DisableAntiforgery();
+        app.MapPost(AccountPages.LoginPath, SubmitLogin).DisableAntiforgery();
         app.MapGet(AccountPages.NintendoLoginPath, ShowLogin);
-        app.MapPost(AccountPages.NintendoLoginPath, SubmitLogin).RequireRateLimiting(FormRateLimitPolicy).DisableAntiforgery();
+        app.MapPost(AccountPages.NintendoLoginPath, SubmitLogin).DisableAntiforgery();
         app.MapGet(AccountPages.RegisterPath, ShowRegister);
-        app.MapPost(AccountPages.RegisterPath, SubmitRegister).RequireRateLimiting(FormRateLimitPolicy).DisableAntiforgery();
+        app.MapPost(AccountPages.RegisterPath, SubmitRegister).DisableAntiforgery();
         MsdkEndpoints.Map(app);
         CentauriEndpoints.Map(app);
     }
@@ -115,13 +93,11 @@ public static class HttpServer
         }
 
         var login = SingleValue(form[LoginField]) ?? string.Empty;
-        var clientAddress = request.HttpContext.Connection.RemoteIpAddress;
-        var attempt = await accounts.AuthenticateAsync(login, SingleValue(form[PasswordField]) ?? string.Empty, clientAddress, cancellationToken);
         var logger = loggers.CreateLogger(typeof(HttpServer));
-        if (attempt.Account is not { } account)
+        if (await accounts.AuthenticateAsync(login, SingleValue(form[PasswordField]) ?? string.Empty) is not { } account)
         {
-            logger.LogInformation("Account login {Result} from {Address}", attempt.Result, clientAddress);
-            return Html(AccountPages.Login(authorization, login, AccountPages.LoginError(attempt.Result)), LoginStatusCode(attempt.Result));
+            logger.LogInformation("Account login refused from {Address}", request.HttpContext.Connection.RemoteIpAddress);
+            return Html(AccountPages.Login(authorization, login, AccountPages.LoginError));
         }
 
         logger.LogInformation("Account {AccountId} ({UserName}) logged in on the account page", account.AccountId, account.UserName);
@@ -148,14 +124,12 @@ public static class HttpServer
             userName,
             email,
             SingleValue(form[PasswordField]) ?? string.Empty,
-            SingleValue(form[PasswordConfirmationField]) ?? string.Empty,
-            cancellationToken);
+            SingleValue(form[PasswordConfirmationField]) ?? string.Empty);
         var logger = loggers.CreateLogger(typeof(HttpServer));
         if (creation.Account is not { } account)
         {
             logger.LogInformation("Account registration refused: {Result}", creation.Result);
-            var statusCode = creation.Result == AccountRegistrationResult.Busy ? StatusCodes.Status503ServiceUnavailable : StatusCodes.Status200OK;
-            return Html(AccountPages.Register(authorization, userName, email, AccountPages.RegistrationError(creation.Result)), statusCode);
+            return Html(AccountPages.Register(authorization, userName, email, AccountPages.RegistrationError(creation.Result)));
         }
 
         logger.LogInformation("Account {AccountId} ({UserName}) created", account.AccountId, account.UserName);
@@ -218,13 +192,6 @@ public static class HttpServer
             return null;
         }
     }
-
-    private static int LoginStatusCode(AccountLoginResult result) => result switch
-    {
-        AccountLoginResult.Throttled => StatusCodes.Status429TooManyRequests,
-        AccountLoginResult.Busy => StatusCodes.Status503ServiceUnavailable,
-        _ => StatusCodes.Status200OK,
-    };
 
     private static Task ApplySecurityHeaders(HttpContext context, RequestDelegate next)
     {

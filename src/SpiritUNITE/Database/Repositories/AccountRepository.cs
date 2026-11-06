@@ -51,7 +51,6 @@ public sealed class AccountRepository(DataOptions options)
                 Email = email,
                 PasswordHash = password.Hash,
                 PasswordSalt = password.Salt,
-                PasswordIterations = password.Iterations,
             }));
             return new AccountCreation(AccountRegistrationResult.Created, new PlayerAccount(accountId, userName));
         }
@@ -93,17 +92,6 @@ public sealed class AccountRepository(DataOptions options)
             .UpdateAsync();
     }
 
-    public async Task UpdatePasswordAsync(ulong accountId, AccountPassword password)
-    {
-        await using var database = new DataConnection(options);
-        await database.GetTable<AccountEntity>()
-            .Where(account => account.AccountId == accountId)
-            .Set(account => account.PasswordHash, password.Hash)
-            .Set(account => account.PasswordSalt, password.Salt)
-            .Set(account => account.PasswordIterations, password.Iterations)
-            .UpdateAsync();
-    }
-
     public async Task<bool> DeleteAsync(ulong accountId)
     {
         await using var database = new DataConnection(options);
@@ -125,7 +113,7 @@ public sealed class AccountRepository(DataOptions options)
     }
 
     private static StoredAccount? ToStoredAccount(AccountEntity account) =>
-        account is { UserName: { } userName, PasswordHash: { } hash, PasswordSalt: { } salt, PasswordIterations: { } iterations }
-            ? new StoredAccount(new PlayerAccount(account.AccountId, userName), new AccountPassword(hash, salt, iterations))
+        account is { UserName: { } userName, PasswordHash: { } hash, PasswordSalt: { } salt }
+            ? new StoredAccount(new PlayerAccount(account.AccountId, userName), new AccountPassword(hash, salt))
             : null;
 }

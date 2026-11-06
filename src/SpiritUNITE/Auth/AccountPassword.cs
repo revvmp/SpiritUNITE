@@ -1,27 +1,35 @@
 using System.Security.Cryptography;
 using System.Text;
+using Konscious.Security.Cryptography;
 
 namespace SpiritUNITE.Auth;
 
-public sealed record AccountPassword(byte[] Hash, byte[] Salt, int Iterations)
+public sealed record AccountPassword(byte[] Hash, byte[] Salt)
 {
-    public const int CurrentIterations = 600_000;
     private const int SaltBytes = 16;
     private const int HashBytes = 32;
-
-    private static readonly HashAlgorithmName HashAlgorithm = HashAlgorithmName.SHA256;
+    private const int MemoryKibibytes = 19 * 1024;
+    private const int Passes = 2;
+    private const int Lanes = 1;
 
     public static AccountPassword Create(string password)
     {
         var salt = RandomNumberGenerator.GetBytes(SaltBytes);
-        return new AccountPassword(Derive(password, salt, CurrentIterations), salt, CurrentIterations);
+        return new AccountPassword(Derive(password, salt), salt);
     }
 
-    public bool IsOutdated => Iterations < CurrentIterations;
-
     public bool Matches(string password) =>
-        CryptographicOperations.FixedTimeEquals(Derive(password, Salt, Iterations), Hash);
+        password.Length > 0 && CryptographicOperations.FixedTimeEquals(Derive(password, Salt), Hash);
 
-    private static byte[] Derive(string password, byte[] salt, int iterations) =>
-        Rfc2898DeriveBytes.Pbkdf2(Encoding.UTF8.GetBytes(password), salt, iterations, HashAlgorithm, HashBytes);
+    private static byte[] Derive(string password, byte[] salt)
+    {
+        using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password))
+        {
+            Salt = salt,
+            MemorySize = MemoryKibibytes,
+            Iterations = Passes,
+            DegreeOfParallelism = Lanes,
+        };
+        return argon2.GetBytes(HashBytes);
+    }
 }

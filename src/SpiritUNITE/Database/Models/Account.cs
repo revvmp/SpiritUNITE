@@ -22,9 +22,6 @@ public sealed class Account
     [Column("password_salt")]
     public byte[]? PasswordSalt { get; set; }
 
-    [Column("password_iterations")]
-    public int? PasswordIterations { get; set; }
-
     [Column("guest_id_hash")]
     public byte[]? GuestIdHash { get; set; }
 

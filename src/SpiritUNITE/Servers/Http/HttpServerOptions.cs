@@ -16,17 +16,10 @@ public sealed class HttpServerOptions
 
     public string[] AllowedRedirectUris { get; set; } = [];
 
-    public int FormSubmissionsPerMinute { get; set; } = 10;
-
     public string[] TrustedProxies { get; set; } = [];
-
-    public int ConcurrentPasswordHashes { get; set; }
-
-    public int QueuedPasswordHashes { get; set; } = 32;
 
     public IReadOnlyCollection<string> RedirectUris =>
         AllowedRedirectUris.Length > 0 ? AllowedRedirectUris : [PokemonChannelRedirectUri, NintendoChannelRedirectUri];
-    public int PasswordHashSlots => ConcurrentPasswordHashes > 0 ? ConcurrentPasswordHashes : Math.Max(1, Environment.ProcessorCount / 2);
 
     public static bool TryParseProxyNetwork(string proxy, out IPNetwork network)
     {
@@ -43,8 +36,5 @@ public sealed class HttpServerOptions
         IPAddress.TryParse(BindAddress, out _) &&
         Port is > IPEndPoint.MinPort and <= IPEndPoint.MaxPort &&
         AllowedRedirectUris.All(uri => Uri.TryCreate(uri, UriKind.Absolute, out var parsed) && parsed.Scheme == Uri.UriSchemeHttps) &&
-        FormSubmissionsPerMinute > 0 &&
-        TrustedProxies.All(proxy => TryParseProxyNetwork(proxy, out _)) &&
-        ConcurrentPasswordHashes >= 0 &&
-        QueuedPasswordHashes >= 0;
+        TrustedProxies.All(proxy => TryParseProxyNetwork(proxy, out _));
 }

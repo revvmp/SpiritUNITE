@@ -103,12 +103,7 @@ public static class AccountPages
         null,
         """<p class="lead">This login link is not valid or has expired. Close this page and try logging in again from the game.</p>""");
 
-    public static string LoginError(AccountLoginResult result) => result switch
-    {
-        AccountLoginResult.Throttled => "Too many failed attempts for this account. Wait a few minutes and try again.",
-        AccountLoginResult.Busy => ServerBusy,
-        _ => "The username, email or password is not correct.",
-    };
+    public const string LoginError = "The username, email or password is not correct.";
 
     public static string RegistrationError(AccountRegistrationResult result) => result switch
     {
@@ -120,11 +115,8 @@ public static class AccountPages
         AccountRegistrationResult.PasswordConfirmationMismatch => "The passwords do not match.",
         AccountRegistrationResult.UserNameTaken => "That username is already taken.",
         AccountRegistrationResult.EmailTaken => "An account with that email already exists. Log in instead.",
-        AccountRegistrationResult.Busy => ServerBusy,
         _ => "The account could not be created.",
     };
-
-    private const string ServerBusy = "The server is busy. Wait a moment and try again.";
 
     private static string ScriptHashSource(string script) =>
         $"'sha256-{Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(script)))}'";

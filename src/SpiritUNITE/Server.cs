@@ -242,7 +242,6 @@ public static class Server
         builder.Services.AddSingleton<FightHistoryRecords>();
         builder.Services.AddSingleton<ProfileManager>();
         builder.Services.AddSingleton<SettingsManager>();
-        builder.Services.AddSingleton<LoginThrottle>();
         builder.Services.AddSingleton<AccountManager>();
         builder.Services.AddSingleton<AuthorizationCodeStore>();
         builder.Services.AddSingleton<AccountSessionManager>();
