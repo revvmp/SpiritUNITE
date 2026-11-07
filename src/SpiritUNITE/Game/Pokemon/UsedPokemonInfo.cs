@@ -12,11 +12,13 @@ public sealed record UsedPokemonInfo(
     int PokemonTotalPoint = 0,
     int PokemonSeasonPoint = 0,
     long LastBattleWinTime = 0,
-    UsedPokemonStatistics? Statistics = null)
+    UsedPokemonStatistics? Statistics = null,
+    pbCOMDT_SKILLRECOMMENDINFO? SkillRecommendInfo = null)
 {
     public const long NeverWon = 0;
 
     private const long BattleTimeEpoch = 1577808000;
+    private const int SkillRecommendGameType = 0;
 
     public static UsedPokemonInfo Unused(int pokemonId) => new(pokemonId, []);
 
@@ -37,7 +39,7 @@ public sealed record UsedPokemonInfo(
         LastCarryTrainerItemID = LastCarryTrainerItemID,
         LastHeldItemDesignInfo = new pbCOMDT_HELDITEM_DESIGN_INFO(),
         CurrentSeasonStatisticInfo = BattleStatistics.CurrentSeason.Clone(),
-        RankedMatchInfoInSeason = new pbCOMDT_RANKED_MATCH_USED_POKEMON_INFO(),
+        RankedMatchInfoInSeason = BattleStatistics.RankedMatchInfoInSeason.Clone(),
         PokemonTotalPoint = PokemonTotalPoint,
         PokemonSeasonPoint = PokemonSeasonPoint,
         LastBattleWinTime = ToBattleTime(LastBattleWinTime),
@@ -45,6 +47,12 @@ public sealed record UsedPokemonInfo(
         BattleNotUseBadge = BattleNotUseBadge,
         CurrentWeekStatisticInfo = BattleStatistics.CurrentWeek.Clone(),
         SkillWayInfo = new pbCOMDT_SKILL_WAY_INFO { UnlockInfo = new pbCOMDT_SKILL_UNLOCK_WAY_LIST() },
+        SkillRecommendSetInfo =
+        {
+            SkillRecommendInfo is { } skillRecommendInfo
+                ? [new pbCOMDT_SKILL_RECOMMEND_SET { GameType = SkillRecommendGameType, SkillRecommendInfo = skillRecommendInfo.Clone() }]
+                : [],
+        },
     };
 
     private static int ToBattleTime(long unixTime) => unixTime == NeverWon ? 0 : (int)(unixTime - BattleTimeEpoch);

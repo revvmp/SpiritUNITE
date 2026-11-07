@@ -13,6 +13,7 @@ namespace SpiritUNITE.Battle;
 public sealed class RelayManager
 {
     private const int KFrapsLater = 1;
+    private const int TimedGameType = (int)PB_ENUM_RES_MATCHGAMETYPE.PbMatchGameTypeCatch;
     private const int KFrapsFreqMs = 66;
     private const int PreActFrap = 20;
     private const int MaxRandomSeed = 10000;
@@ -32,8 +33,6 @@ public sealed class RelayManager
     private const int CltNeedWait = 1;
     private const int PauseType = (int)PB_ENUM_CS_PAUSE_TYPE.PbCsPauseCancel;
     private const int PauseCancelType = (int)PB_ENUM_COM_PAUSE_CANCEL_TYPE.PbComPauseCancelManual;
-    private const int MinNpcLoadSeconds = 13;
-    private const int MaxNpcLoadSeconds = 20;
     private const int FrapBootSession = 3;
     private const int LossFrapBootSession = 8;
     private const int FrapBootSessionStepFrames = 76;
@@ -55,7 +54,7 @@ public sealed class RelayManager
     private const int HashKeptFrames = 35;
     private const int SelfObjID = 0;
     private const int FirstUnknownSyncType = (int)CmdInfoCase.StFrameCmdAddGainScore;
-    private const int LastSyncType = 40;
+    private const int LastSyncType = (int)CmdInfoCase.StRerollEquip;
     private const int Disconned2HangupTimeKey = (int)PB_ENUM_RES_RESGLOBAL.PbResglobalDisconned2HangupTime;
     private const int Afk2HangupTimeKey = (int)PB_ENUM_RES_RESGLOBAL.PbResglobalAfk2HangupTime;
     private const int Disconned2AiHostingTimeKey = (int)PB_ENUM_RES_RESGLOBAL.PbResglobalDisconned2AiHostingTime;
@@ -63,6 +62,7 @@ public sealed class RelayManager
     private const int NotSurrender = 0;
     private const int SurrenderEnded = 1;
     private const int SurrenderEndSyncType = (int)CmdInfoCase.StFrameCmdSurrenderEnd;
+    private const int JudgeGameOverSyncType = (int)CmdInfoCase.StGameOverReq;
     private const int HashNotEqual = 1;
     private const int HashEqual = 0;
     private const int NoLogUpload = 0;
@@ -73,7 +73,6 @@ public sealed class RelayManager
     private static readonly TimeSpan FirstLoadNoticeDelay = TimeSpan.FromMilliseconds(340);
     private static readonly TimeSpan MinFrameWait = TimeSpan.FromMilliseconds(1);
     private static readonly TimeSpan AttachWait = TimeSpan.FromSeconds(30);
-    private static readonly TimeSpan LoadGrace = TimeSpan.FromSeconds(60);
     private static readonly TimeSpan LoadTimeout = TimeSpan.FromSeconds(120);
     private static readonly TimeSpan SecondGameoverRspDelay = TimeSpan.FromMilliseconds(520);
     private static readonly TimeSpan SettlementDelay = TimeSpan.FromMilliseconds(200);
@@ -126,7 +125,7 @@ public sealed class RelayManager
         var created = false;
         lock (gate)
         {
-            if (desks.FindRelayDesk(uid) is { } relayDesk && relayDesk.FindHuman(uid) is not null)
+            if (desks.FindRelayDesk(uid) is { } relayDesk && relayDesk.FindAttendee(uid) is not null)
             {
                 if (!gamesByDesk.TryGetValue(relayDesk.DeskID, out var existing) || existing.Desk != relayDesk)
                 {
@@ -154,7 +153,7 @@ public sealed class RelayManager
             finished = game.Finished;
             if (!finished)
             {
-                Attach(game, game.Seats[uid], sends);
+                Attach(game, game.FindViewer(uid)!, sends);
             }
         }
 
@@ -164,7 +163,7 @@ public sealed class RelayManager
             return;
         }
 
-        logger.LogInformation("Uid {Uid} joined relay desk {DeskID}", uid, game.Desk.DeskID);
+        logger.LogInformation("Uid {Uid} joined relay desk {DeskID}{Role}", uid, game.Desk.DeskID, game.FindJudge(uid) is null ? string.Empty : " as a judge");
         await SendAllAsync(sends);
         if (created)
         {
@@ -178,7 +177,11 @@ public sealed class RelayManager
         seat.IsConnected = true;
         seat.LastHeardAt = now;
         seat.ForgetCmdSeqs();
-        game.AllLeftAt = null;
+        if (!seat.Human.IsJudge)
+        {
+            game.AllLeftAt = null;
+        }
+
         switch (game.Phase)
         {
             case RelayGamePhase.Waiting when game.AllHumansAttached:
@@ -186,10 +189,11 @@ public sealed class RelayManager
                 break;
             case RelayGamePhase.Loading:
                 var loadNotices = BuildCurrentLoadNotices(game, seat.Uid);
-                sends.Add(new RelaySend(seat.Uid, RelayChannel.Stream, [.. seat.LoadFinished ? loadNotices : loadNotices.Prepend(BuildBeginLoadPacket(game))]));
+                sends.Add(new RelaySend(seat.Uid, RelayChannel.Stream, [.. seat.LoadFinished ? loadNotices : loadNotices.Prepend(BuildBeginLoadPacket(game, seat))]));
                 seat.HasBeginLoad = true;
                 break;
             case RelayGamePhase.Fighting:
+                seat.CountSilence(clock.GetElapsedTime(seat.LastCommandAt, now), HangupAfter(game));
                 seat.LastCommandAt = now;
                 seat.DisconnInjected = false;
                 if (game.RunsFrameLoop)
@@ -212,14 +216,19 @@ public sealed class RelayManager
         game.LoadStartedAt = clock.GetTimestamp();
         game.LoadStartTime = NextWholeSecond();
         game.TakeSvrPkgSeq();
-        var beginLoad = BuildBeginLoadPacket(game);
-        foreach (var seat in game.ConnectedSeats)
+        foreach (var seat in game.ConnectedViewers)
         {
             seat.HasBeginLoad = true;
-            sends.Add(new RelaySend(seat.Uid, RelayChannel.Stream, [beginLoad]));
+            sends.Add(new RelaySend(seat.Uid, RelayChannel.Stream, [BuildBeginLoadPacket(game, seat)]));
         }
 
-        logger.LogInformation("Desk {DeskID} begins loading with {Connected} of {Humans} trainers on the relay", game.Desk.DeskID, game.ConnectedSeats.Count(), game.Seats.Count);
+        logger.LogInformation(
+            "Desk {DeskID} begins loading with {Connected} of {Humans} trainers and {Judges} of {JudgeCount} judges on the relay",
+            game.Desk.DeskID,
+            game.ConnectedSeats.Count(),
+            game.Seats.Count,
+            game.ConnectedJudges.Count(),
+            game.Judges.Count);
     }
 
     private async Task DetachAsync(ulong uid)
@@ -233,13 +242,13 @@ public sealed class RelayManager
         bool finishes;
         lock (game.Gate)
         {
-            if (game.FindSeat(uid) is not { IsConnected: true } seat)
+            if (game.FindViewer(uid) is not { IsConnected: true } seat)
             {
                 return;
             }
 
             seat.IsConnected = false;
-            if (!game.Finished && game.Phase == RelayGamePhase.Fighting)
+            if (!seat.Human.IsJudge && !game.Finished && game.Phase == RelayGamePhase.Fighting)
             {
                 seat.EverLost = true;
                 if (game.FirstGameoverAt is not null && game.AllPlayingHumansReported)
@@ -276,7 +285,7 @@ public sealed class RelayManager
             }
 
             game.Processes[seat.ObjId] = request.Process;
-            others = [.. game.ConnectedSeats.Where(other => other.Uid != uid && other.HasBeginLoad).Select(other => other.Uid)];
+            others = [.. game.ConnectedViewers.Where(other => other.Uid != uid && other.HasBeginLoad).Select(other => other.Uid)];
         }
 
         var notice = BuildLoadprocessNtf(seat.ObjId, request.Process);
@@ -288,7 +297,7 @@ public sealed class RelayManager
 
     public pbSCMultgameLoadfinRsp LoadFinished(ulong uid)
     {
-        if (FindSeat(uid) is not ({ } game, { } seat))
+        if (FindViewerSeat(uid) is not ({ } game, { } seat))
         {
             return new pbSCMultgameLoadfinRsp { ResultInfo = Refusal(PB_ENUM_RES_ERROR_CODE.PbErrAccountNotInDesk) };
         }
@@ -313,7 +322,7 @@ public sealed class RelayManager
 
     public pbSCReConnGameRsp ReConnGame(ulong uid)
     {
-        if (FindSeat(uid) is not ({ } game, { } seat))
+        if (FindViewerSeat(uid) is not ({ } game, { } seat))
         {
             return new pbSCReConnGameRsp { ResultInfo = Refusal(PB_ENUM_RES_ERROR_CODE.PbErrAccountNotInDesk) };
         }
@@ -340,7 +349,7 @@ public sealed class RelayManager
 
     public async Task FetchMsgFromVideoAsync(ulong uid, pbCSFetchMsgFromVideoReq fetch)
     {
-        if (FindSeat(uid) is not ({ } game, { } seat))
+        if (FindViewerSeat(uid) is not ({ } game, { } seat))
         {
             return;
         }
@@ -363,7 +372,7 @@ public sealed class RelayManager
             }
 
             logger.LogInformation("Desk {DeskID}: uid {Uid} rejoins in phase {Phase} at frame {KFrapsNo}", game.Desk.DeskID, uid, game.Phase, game.KFrapsNo);
-            stream = [BuildBeginLoadPacket(game), .. game.Phase == RelayGamePhase.Loading ? BuildCurrentLoadNotices(game, uid) : []];
+            stream = [BuildBeginLoadPacket(game, seat), .. game.Phase == RelayGamePhase.Loading ? BuildCurrentLoadNotices(game, uid) : []];
         }
 
         await relayRoles.PushAsync(uid, RelayChannel.Unreliable, GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidFetchMsgFromVideoRsp, new pbSCFetchMsgFromVideoRsp { ResultInfo = new pbResultInfo() }));
@@ -372,7 +381,7 @@ public sealed class RelayManager
 
     public async Task PingAsync(ulong uid, GamePacket ping)
     {
-        if (FindSeat(uid) is not ({ } game, { } seat))
+        if (FindViewerSeat(uid) is not ({ } game, { } seat))
         {
             return;
         }
@@ -392,7 +401,7 @@ public sealed class RelayManager
 
     public pbSCMultGameAliveStateRsp AliveState(ulong uid, pbCSMultGameAliveStateReq request)
     {
-        if (FindSeat(uid) is not ({ } game, { } seat) || game.Desk.FindPlayer(request.AcntObjID) is null)
+        if (FindViewerSeat(uid) is not ({ } game, { } seat) || game.Desk.FindPlayer(request.AcntObjID) is null)
         {
             return new pbSCMultGameAliveStateRsp { ResultInfo = Refusal(PB_ENUM_RES_ERROR_CODE.PbErrAccountNotInDesk) };
         }
@@ -595,6 +604,7 @@ public sealed class RelayManager
             }
 
             var vote = game.Votes.GetValueOrDefault(camp) ?? StartSurrenderVote(game, seat);
+            vote.RecordScores(request.Camp1Score, request.Camp2Score);
             vote.TryCast(seat.Human, request.SurrenderFlag == VoteAgrees);
             var notices = new List<GamePacket> { BuildSurrenderNtf(vote) };
             notices.AddRange(CastAutomaticVotes(game, vote, BuildSurrenderNtf));
@@ -661,18 +671,54 @@ public sealed class RelayManager
         return vote;
     }
 
-    private static List<GamePacket> CastAutomaticVotes(RelayGame game, CampVote vote, Func<CampVote, GamePacket> buildNotice)
+    private List<GamePacket> CastAutomaticVotes(RelayGame game, CampVote vote, Func<CampVote, GamePacket> buildNotice)
     {
         var notices = new List<GamePacket>();
         foreach (var voter in vote.Voters.Where(voter => VotesAutomatically(game, voter)))
         {
-            if (vote.TryCast(voter, agrees: true))
+            if (voter.IsNpc)
+            {
+                vote.ScheduleNpcVote(voter, NpcSurrenderDelay());
+            }
+            else if (vote.TryCast(voter, agrees: true))
             {
                 notices.Add(buildNotice(vote));
             }
         }
 
         return notices;
+    }
+
+    private TimeSpan NpcSurrenderDelay() => TimeSpan.FromSeconds(Random.Shared.Next(
+        gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalNpcSurrenderMinInterval),
+        gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalNpcSurrenderMaxInterval) + 1));
+
+    private List<RelaySend> CastDueNpcVotes(RelayGame game)
+    {
+        var sends = new List<RelaySend>();
+        foreach (var vote in game.Votes.Values.Where(vote => vote.Kind == CampVoteKind.Surrender).ToList())
+        {
+            var npcAgrees = vote.ScoreBehind >= gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalServeraiAcceptSurrenderScoreDiff);
+            var cast = vote.TakeDueNpcVotes(clock.GetElapsedTime(vote.StartedAt)).Where(voter => vote.TryCast(voter, npcAgrees)).ToList();
+            if (cast.Count == 0)
+            {
+                continue;
+            }
+
+            logger.LogInformation(
+                "Desk {DeskID}: {NpcCount} NPCs vote {Vote} on the surrender of camp {Camp}, {ScoreBehind} points behind; {Agrees} of {ValidCnt} agree",
+                game.Desk.DeskID,
+                cast.Count,
+                npcAgrees ? "yes" : "no",
+                vote.CampClient,
+                vote.ScoreBehind,
+                vote.Agrees,
+                vote.SurrenderValidCnt);
+            sends.AddRange(CampNotices(game, vote.CampClient, [BuildSurrenderNtf(vote)]));
+            sends.AddRange(CloseDecidedVote(game, vote));
+        }
+
+        return sends;
     }
 
     private static bool VotesAutomatically(RelayGame game, DeskPlayer voter) =>
@@ -716,7 +762,7 @@ public sealed class RelayManager
         }
 
         var end = GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidHangUpVoteToEndGameNtf, new pbSCHangUpVoteToEndGameNtf { WinCampClient = winCampClient });
-        return [.. game.ConnectedSeats.Select(seat => new RelaySend(seat.Uid, RelayChannel.Stream, [end]))];
+        return [.. game.ConnectedViewers.Select(seat => new RelaySend(seat.Uid, RelayChannel.Stream, [end]))];
     }
 
     private static GamePacket BuildSurrenderRsp(pbResultInfo resultInfo, long surrenderTime) =>
@@ -795,7 +841,7 @@ public sealed class RelayManager
 
     private static bool IsRelayableUper(RelayGame game, pbCSDT_GAMING_SYNC_INFO uper, RelaySeat seat) =>
         (uper.ObjID == SelfObjID || uper.ObjID == seat.ObjId)
-        && uper.SyncType is >= 0 and <= LastSyncType and not FirstUnknownSyncType and not (int)CmdInfoCase.StAcntState
+        && uper.SyncType is >= 0 and <= LastSyncType and not FirstUnknownSyncType and not (int)CmdInfoCase.StAcntState and not JudgeGameOverSyncType
         && uper.Buff.Length <= MaxUperBuffBytes
         && (uper.SyncType != SurrenderEndSyncType || EndsAsSurrendered(game, uper));
 
@@ -824,7 +870,9 @@ public sealed class RelayManager
             return false;
         }
 
-        seat.LastCommandAt = clock.GetTimestamp();
+        var commandAt = clock.GetTimestamp();
+        seat.CountSilence(clock.GetElapsedTime(seat.LastCommandAt, commandAt), HangupAfter(game));
+        seat.LastCommandAt = commandAt;
         if (!seat.QuitByExitButton)
         {
             if (seat.Takeover == RelaySeatTakeover.Hangup)
@@ -852,7 +900,7 @@ public sealed class RelayManager
         return true;
     }
 
-    private static bool IsInjected(pbCSDT_FRAPBOOT_CC command) => command.SyncType is (int)CmdInfoCase.StAcntState or SurrenderEndSyncType;
+    private static bool IsInjected(pbCSDT_FRAPBOOT_CC command) => command.SyncType is (int)CmdInfoCase.StAcntState or SurrenderEndSyncType or JudgeGameOverSyncType;
 
     private void InjectAcntState(RelayGame game, RelaySeat seat, PB_ENUM_CS_FRAPBOOT_ACNTSTATECHG state)
     {
@@ -867,7 +915,7 @@ public sealed class RelayManager
 
     public pbCSFrapBootRepairRsp RepairFrames(ulong uid, pbCSFrapBootRepairReq request)
     {
-        if (FindSeat(uid) is not ({ } game, { } seat))
+        if (FindViewerSeat(uid) is not ({ } game, { } seat))
         {
             return new pbCSFrapBootRepairRsp { ResultInfo = Refusal(PB_ENUM_RES_ERROR_CODE.PbErrAccountNotInDesk) };
         }
@@ -925,6 +973,11 @@ public sealed class RelayManager
 
     public pbSCMultgameGameoverRsp Gameover(ulong uid, pbCSMultgameGameoverReq request)
     {
+        if (FindJudgeSeat(uid) is ({ } judgeGame, { } judge))
+        {
+            return JudgeGameover(judgeGame, judge, request);
+        }
+
         if (FindSeat(uid) is not ({ } game, { } seat))
         {
             return new pbSCMultgameGameoverRsp { ResultInfo = Refusal(PB_ENUM_RES_ERROR_CODE.PbErrAccountNotInDesk) };
@@ -961,6 +1014,7 @@ public sealed class RelayManager
 
             seat.Gameover = request;
             seat.GameoverFightSeconds = (int)Math.Round(fightSeconds);
+            seat.GameoverHangupSeconds = HangupSecondsOf(game, seat);
             seat.QuitByExitButton = request.IsExitButtonGameOver != 0;
             game.GameoverOrder.Add(uid);
             if (game.FindAgreedGameover() is { } agreed && !seat.QuitByExitButton && agreed.BattleParam.WinCampClient != request.BattleParam.WinCampClient)
@@ -1000,6 +1054,88 @@ public sealed class RelayManager
         return new pbSCMultgameGameoverRsp { ResultInfo = new pbResultInfo(), IsCltNeedWait = CltNeedWait };
     }
 
+    private pbSCMultgameGameoverRsp JudgeGameover(RelayGame game, RelaySeat judge, pbCSMultgameGameoverReq request)
+    {
+        SeatCompletion? completion = null;
+        var waits = CltNeedWait;
+        lock (game.Gate)
+        {
+            Heard(judge);
+            if (request.BattleParam is not { } param || param.MapID != game.Desk.DeskInfo.MapId || param.GameType != game.Desk.DeskInfo.GameType)
+            {
+                logger.LogWarning("Desk {DeskID}: refused the game over of judge uid {Uid}: the battle parameters do not match the desk", game.Desk.DeskID, judge.Uid);
+                return new pbSCMultgameGameoverRsp { ResultInfo = Refusal(PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid) };
+            }
+
+            if (game.Phase is not (RelayGamePhase.Fighting or RelayGamePhase.Over) || game.Finished)
+            {
+                logger.LogWarning("Desk {DeskID}: judge uid {Uid} sent a game over in phase {Phase}", game.Desk.DeskID, judge.Uid, game.Phase);
+                return new pbSCMultgameGameoverRsp { ResultInfo = Refusal(PB_ENUM_RES_ERROR_CODE.PbErrDeskStateInvalid) };
+            }
+
+            judge.Gameover ??= request;
+            if (game.Phase == RelayGamePhase.Over)
+            {
+                completion = !judge.Completed && game.FindAgreedGameover() is { } agreed ? CompleteJudge(game, judge, agreed, sendsFinalRsp: true) : null;
+                waits = completion is null ? 0 : CltNeedWait;
+            }
+        }
+
+        logger.LogInformation(
+            "Desk {DeskID}: judge uid {Uid} reports game over, winner camp {WinCampClient}; judges do not count toward the result",
+            game.Desk.DeskID,
+            judge.Uid,
+            request.BattleParam.WinCampClient);
+        if (completion is not null)
+        {
+            StartCompletions(game, [completion], finishesDesk: false);
+        }
+
+        return new pbSCMultgameGameoverRsp { ResultInfo = new pbResultInfo(), IsCltNeedWait = waits };
+    }
+
+    private SeatCompletion CompleteJudge(RelayGame game, RelaySeat judge, pbCSMultgameGameoverReq agreed, bool sendsFinalRsp)
+    {
+        judge.Completed = true;
+        var fightSeconds = (int)Math.Round(clock.GetElapsedTime(game.FightStartedAt).TotalSeconds);
+        return new SeatCompletion(new BattleResult(game.Desk, judge.Human, agreed.Clone(), game.GameStartTime, fightSeconds), sendsFinalRsp);
+    }
+
+    public pbSCJudgeGameOverRsp JudgeGameOver(ulong uid)
+    {
+        if (FindGame(uid) is not { } game)
+        {
+            return new pbSCJudgeGameOverRsp { ResultInfo = Refusal(PB_ENUM_RES_ERROR_CODE.PbErrAccountNotInDesk) };
+        }
+
+        if (game.FindJudge(uid) is not { } judge)
+        {
+            logger.LogWarning("Desk {DeskID}: uid {Uid} asked to end the game but is not a judge", game.Desk.DeskID, uid);
+            return new pbSCJudgeGameOverRsp { ResultInfo = Refusal(PB_ENUM_RES_ERROR_CODE.PbErrJudgeIllegalOperation) };
+        }
+
+        lock (game.Gate)
+        {
+            Heard(judge);
+            if (game.Phase != RelayGamePhase.Fighting || game.Finished || !game.RunsFrameLoop || game.EndedByJudge || game.SurrenderWinCampClient is not null)
+            {
+                logger.LogInformation("Desk {DeskID}: refused judge uid {Uid}'s end of the game in phase {Phase}", game.Desk.DeskID, uid, game.Phase);
+                return new pbSCJudgeGameOverRsp { ResultInfo = Refusal(PB_ENUM_RES_ERROR_CODE.PbErrDeskStateInvalid) };
+            }
+
+            game.EndedByJudge = true;
+            game.PendingBootInfo.Add(new pbCSDT_FRAPBOOT_CC
+            {
+                ObjID = judge.ObjId,
+                SyncType = JudgeGameOverSyncType,
+                Buff = ByteString.CopyFrom(new FrameCmdPkg { Type = CmdInfoCase.StGameOverReq }.ToNoTagByteArray()),
+            });
+            logger.LogInformation("Desk {DeskID}: judge uid {Uid} ends the game at frame {KFrapsNo}", game.Desk.DeskID, uid, game.KFrapsNo + KFrapsLater);
+        }
+
+        return new pbSCJudgeGameOverRsp { ResultInfo = new pbResultInfo() };
+    }
+
     private SeatCompletion CompleteQuitter(RelayGame game, RelaySeat seat)
     {
         seat.Completed = true;
@@ -1009,7 +1145,16 @@ public sealed class RelayManager
             seat.Takeover = RelaySeatTakeover.AiHosted;
         }
 
-        return new SeatCompletion(new BattleResult(game.Desk, seat.Human, seat.Gameover!.Clone(), game.GameStartTime, seat.GameoverFightSeconds), SendsFinalRsp: true);
+        return new SeatCompletion(new BattleResult(game.Desk, seat.Human, seat.Gameover!.Clone(), game.GameStartTime, seat.GameoverFightSeconds, seat.GameoverHangupSeconds), SendsFinalRsp: true);
+    }
+
+    private static TimeSpan? HangupAfter(RelayGame game) => game.RunsFrameLoop ? game.Limits.Afk2HangupTime : null;
+
+    private int HangupSecondsOf(RelayGame game, RelaySeat seat)
+    {
+        seat.CountSilence(clock.GetElapsedTime(seat.LastCommandAt), HangupAfter(game));
+        seat.LastCommandAt = clock.GetTimestamp();
+        return (int)seat.HangupTime.TotalSeconds;
     }
 
     private List<SeatCompletion> EndFight(RelayGame game)
@@ -1029,20 +1174,29 @@ public sealed class RelayManager
                     gameover.GameoverSummary = agreed.GameoverSummary?.Clone();
                 }
 
-                completions.Add(new SeatCompletion(new BattleResult(game.Desk, seat.Human, gameover, game.GameStartTime, seat.GameoverFightSeconds), SendsFinalRsp: true));
+                completions.Add(new SeatCompletion(new BattleResult(game.Desk, seat.Human, gameover, game.GameStartTime, seat.GameoverFightSeconds, seat.GameoverHangupSeconds), SendsFinalRsp: true));
                 seat.Completed = true;
             }
             else if (seat.IsConnected && agreed is not null)
             {
                 logger.LogInformation("Desk {DeskID}: uid {Uid} never reported the game over and is settled with the agreed result", game.Desk.DeskID, seat.Uid);
-                completions.Add(new SeatCompletion(new BattleResult(game.Desk, seat.Human, agreed.Clone(), game.GameStartTime, fightSeconds), SendsFinalRsp: false));
+                completions.Add(new SeatCompletion(new BattleResult(game.Desk, seat.Human, agreed.Clone(), game.GameStartTime, fightSeconds, HangupSecondsOf(game, seat)), SendsFinalRsp: false));
                 seat.Completed = true;
             }
         }
 
+        if (agreed is not null)
+        {
+            foreach (var judge in game.Judges.Values.Where(judge => !judge.Completed && (judge.Gameover is not null || judge.IsConnected)))
+            {
+                completions.Add(CompleteJudge(game, judge, agreed, sendsFinalRsp: judge.Gameover is not null));
+            }
+        }
+
         logger.LogInformation(
-            "Desk {DeskID}: the fight ended at frame {KFrapsNo} with winner camp {WinCampClient}; {Reporters} of {Humans} trainers reported",
+            "Desk {DeskID}: the fight ended after {FightSeconds} s at relay frame {KFrapsNo} with winner camp {WinCampClient}; {Reporters} of {Humans} trainers reported",
             game.Desk.DeskID,
+            fightSeconds,
             game.KFrapsNo,
             agreed?.BattleParam.WinCampClient,
             game.GameoverOrder.Count,
@@ -1053,7 +1207,7 @@ public sealed class RelayManager
     private static ulong[] EndTimedOutFight(RelayGame game)
     {
         game.Phase = RelayGamePhase.Over;
-        var timedOut = game.Seats.Values.Where(seat => !seat.Completed).ToArray();
+        var timedOut = game.Seats.Values.Concat(game.Judges.Values).Where(seat => !seat.Completed).ToArray();
         foreach (var seat in timedOut)
         {
             seat.Completed = true;
@@ -1082,7 +1236,7 @@ public sealed class RelayManager
             return new GameoverFault(PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid, "the sender's own entry is missing");
         }
 
-        var endsBeforeFloor = !quitByExitButton && game.SurrenderWinCampClient is null && fightSeconds < game.Limits.MinGameSeconds;
+        var endsBeforeFloor = !quitByExitButton && game.SurrenderWinCampClient is null && !game.EndedByJudge && fightSeconds < game.Limits.MinGameSeconds;
         if (endsBeforeFloor || param.UsedTime / MillisecondsPerSecond > fightSeconds + UsedTimeToleranceSeconds)
         {
             return new GameoverFault(
@@ -1120,7 +1274,7 @@ public sealed class RelayManager
             {
                 try
                 {
-                    await settlement.SettleAsync(completion.Result);
+                    await (completion.Result.Human.IsJudge ? settlement.SettleJudgeAsync(completion.Result) : settlement.SettleAsync(completion.Result));
                 }
                 catch (Exception exception)
                 {
@@ -1259,7 +1413,7 @@ public sealed class RelayManager
             .Order()
             .Select(objId => BuildLoadprocessNtf(objId, game.Processes[objId]))
             .ToList();
-        var loadingUids = game.ConnectedSeats.Where(seat => seat.HasBeginLoad).Select(seat => seat.Uid).ToList();
+        var loadingUids = game.ConnectedViewers.Where(seat => seat.HasBeginLoad).Select(seat => seat.Uid).ToList();
         if (!beginsFight)
         {
             if (loadElapsed > LoadTimeout)
@@ -1276,7 +1430,7 @@ public sealed class RelayManager
         var beginfight = BuildBeginfightPacket(game);
         foreach (var uid in loadingUids)
         {
-            var seat = game.Seats[uid];
+            var seat = game.FindViewer(uid)!;
             sends.Add(new RelaySend(uid, RelayChannel.Stream, [.. notices, .. seat.LoadFinished ? new[] { beginfight } : []]));
             seat.HasBeginfight = seat.LoadFinished;
         }
@@ -1328,6 +1482,7 @@ public sealed class RelayManager
                 : new RelayStep([], EndFight(game), Finishes: false, Wait: null);
         }
 
+        sends.AddRange(CastDueNpcVotes(game));
         sends.AddRange(ExpireVotes(game));
         if (game.FirstGameoverAt is { } firstGameoverAt)
         {
@@ -1346,7 +1501,7 @@ public sealed class RelayManager
                     BeSurrender = game.SurrenderWinCampClient is null ? NotSurrender : SurrenderEnded,
                     WinCampClient = agreed.BattleParam.WinCampClient,
                 });
-                sends.AddRange(game.Stragglers.Select(seat => new RelaySend(seat.Uid, RelayChannel.Stream, [notice])));
+                sends.AddRange(game.Stragglers.Concat(game.ConnectedJudges.Where(judge => judge.Gameover is null)).Select(seat => new RelaySend(seat.Uid, RelayChannel.Stream, [notice])));
             }
         }
 
@@ -1384,7 +1539,7 @@ public sealed class RelayManager
             packets.Add(BuildFramesPacket(game, chunkEnd, oldest));
         }
 
-        var receivers = game.ConnectedSeats.Where(seat => seat.LoadFinished || seat.HasBeginfight).ToList();
+        var receivers = game.ConnectedViewers.Where(seat => seat.LoadFinished || seat.HasBeginfight).ToList();
         var extraFrames = receivers.Any(seat => seat.IsLossy) ? Math.Max(0, game.FrapBootSession + 1 - RedundantFrapNum) : 0;
         var oldestExtra = Math.Max(1, game.KFrapsNo - RedundantFrapNum - extraFrames + 1);
         var extraPackets = new List<GamePacket>();
@@ -1531,7 +1686,7 @@ public sealed class RelayManager
 
             game.Finished = true;
             connected = game.ConnectedUids;
-            foreach (var seat in game.Seats.Values)
+            foreach (var seat in game.Seats.Values.Concat(game.Judges.Values))
             {
                 seat.IsConnected = false;
             }
@@ -1549,7 +1704,7 @@ public sealed class RelayManager
 
     private GamePacket? BuildConnRelayRecover(ulong uid)
     {
-        if (desks.FindRelayDesk(uid) is not { } desk || desk.FindHuman(uid) is not { } human || desk.HumanUids.Length < 2)
+        if (desks.FindRelayDesk(uid) is not { } desk || desk.FindAttendee(uid) is not { } human || desk.HumanUids.Length < 2)
         {
             return null;
         }
@@ -1579,7 +1734,9 @@ public sealed class RelayManager
     {
         var npcLoadSeconds = desk.Players
             .Where(player => player.IsNpc)
-            .ToDictionary(player => player.ObjId, _ => Random.Shared.Next(MinNpcLoadSeconds, MaxNpcLoadSeconds + 1));
+            .ToDictionary(player => player.ObjId, _ => Random.Shared.Next(
+                gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalAiLoadMinSeconds),
+                gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalAiLoadMaxSeconds) + 1));
         return new RelayGame(desk, Random.Shared.Next(1, MaxRandomSeed), clock.GetTimestamp(), npcLoadSeconds, FindTimeLimits(desk.DeskInfo.MapId));
     }
 
@@ -1590,7 +1747,7 @@ public sealed class RelayManager
             ? TimeSpan.FromMilliseconds(mapBase.MatchTime)
             : (TimeSpan?)null;
         var surrenderStart = scene?.SurrenderStartTime ?? 0;
-        var minGameSeconds = matchTime is { } match ? Math.Min(surrenderStart, match.TotalSeconds) : 0;
+        var minGameSeconds = matchTime is { } match && scene?.GameType == TimedGameType ? Math.Min(surrenderStart, match.TotalSeconds) : 0;
         var hangupSchemeID = scene?.HangupSchemeID ?? 0;
         var surrender = new SurrenderRules(
             scene is { SurrenderTimesLimit: > 0 } && surrenderStart < DisabledSurrenderStartTime ? surrenderStart : int.MaxValue,
@@ -1609,6 +1766,8 @@ public sealed class RelayManager
             surrender);
     }
 
+    private TimeSpan LoadGrace => TimeSpan.FromSeconds(gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalPvpLoadingTime));
+
     private TimeSpan? FindHangupSeconds(int hangupSchemeID, int keyID) =>
         gameData.HangupScheme.Find(pbHangupScheme.Key(hangupSchemeID, keyID)) is { Value: > 0 } row ? TimeSpan.FromSeconds(row.Value) : null;
 
@@ -1623,6 +1782,12 @@ public sealed class RelayManager
     private (RelayGame Game, RelaySeat Seat)? FindSeat(ulong uid) =>
         FindGame(uid) is { } game && game.FindSeat(uid) is { } seat ? (game, seat) : null;
 
+    private (RelayGame Game, RelaySeat Seat)? FindJudgeSeat(ulong uid) =>
+        FindGame(uid) is { } game && game.FindJudge(uid) is { } judge ? (game, judge) : null;
+
+    private (RelayGame Game, RelaySeat Seat)? FindViewerSeat(ulong uid) =>
+        FindGame(uid) is { } game && game.FindViewer(uid) is { } seat ? (game, seat) : null;
+
     private static GamePacket BuildFrapBootInfoPacket(pbSCFrapBootInfoNtf ntf, int svrPkgSeq) =>
         new((int)PB_ENUM_CS_MSGID_DEF.PbScidFrapBootInfoNtf, Uid: 0, ClientSeq: 0, ntf.ToNoTagByteArray())
         {
@@ -1630,8 +1795,8 @@ public sealed class RelayManager
             MsgIDInBodyOnly = true,
         };
 
-    private static GamePacket BuildBeginLoadPacket(RelayGame game) =>
-        GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidMultgameBeginLoadNtf, BuildBeginLoadNtf(game)) with { ClientSeq = BeginLoadClientSeq };
+    private static GamePacket BuildBeginLoadPacket(RelayGame game, RelaySeat recipient) =>
+        GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidMultgameBeginLoadNtf, BuildBeginLoadNtf(game, recipient.Human.IsJudge)) with { ClientSeq = BeginLoadClientSeq };
 
     private static void InjectSurrenderEnd(RelayGame game, int objId, int winCampClient) =>
         game.PendingBootInfo.Add(new pbCSDT_FRAPBOOT_CC
@@ -1676,7 +1841,7 @@ public sealed class RelayManager
         return campPlayerInfo;
     }
 
-    private static pbSCMultgameBeginLoadNtf BuildBeginLoadNtf(RelayGame game)
+    private static pbSCMultgameBeginLoadNtf BuildBeginLoadNtf(RelayGame game, bool showsJudges)
     {
         var desk = game.Desk;
         int[] camps = [.. desk.Players.Select(player => player.CampClient).Distinct().Order()];
@@ -1690,7 +1855,7 @@ public sealed class RelayManager
             RandomSeed = game.RandomSeed,
             GameType = desk.DeskInfo.GameType,
             DeskInfo = desk.DeskInfo.Clone(),
-            PlayerInfo = new pbCSDT_DESK_PLAYERINFO { CampPlayerInfo = { desk.Players.Select(BuildLoadCampPlayerInfo) } },
+            PlayerInfo = new pbCSDT_DESK_PLAYERINFO { CampPlayerInfo = { desk.Players.Concat(showsJudges ? desk.Judges : []).Select(BuildLoadCampPlayerInfo) } },
             HaskChkFreq = HaskChkFreq,
             CltLogSize = CltLogSize,
             VirtualClient = new pbCSDT_DESK_VIRTUAL_CLIENT(),

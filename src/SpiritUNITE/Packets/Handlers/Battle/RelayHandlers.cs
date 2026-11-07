@@ -92,6 +92,13 @@ public sealed class RelayHandlers(RelayManager relays)
     public GamePacket[] OnFrapBootRepairReq(GamePacket request) =>
         [request.Reply(PB_ENUM_CS_MSGID_DEF.PbCsidFrapBootRepairRsp, relays.RepairFrames(request.Uid, pbCSFrapBootRepairReq.Parser.ParseFrom(request.PkgData)))];
 
+    [PacketHandler(eNetEventServerType.RelayServer, PB_ENUM_CS_MSGID_DEF.PbCsidJudgeGameOverReq)]
+    public GamePacket[] OnJudgeGameOverReq(GamePacket request)
+    {
+        pbCSJudgeGameOverReq.Parser.ParseFrom(request.PkgData);
+        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidJudgeGameOverRsp, relays.JudgeGameOver(request.Uid))];
+    }
+
     [PacketHandler(eNetEventServerType.RelayServer, PB_ENUM_CS_MSGID_DEF.PbCsidMultgameGameoverReq)]
     public GamePacket[] OnMultgameGameoverReq(GamePacket request) =>
         [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidMultgameGameoverRsp, relays.Gameover(request.Uid, pbCSMultgameGameoverReq.Parser.ParseFrom(request.PkgData)))];

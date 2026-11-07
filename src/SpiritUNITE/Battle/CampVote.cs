@@ -27,9 +27,13 @@ public sealed class CampVote(CampVoteKind kind, int campClient, IReadOnlyList<De
     public const int SurrenderPassed = 3;
 
     private const int DissentersAllowed = 1;
+    private const int FirstPlayerCamp = (int)PB_ENUM_COM_CAMP_CLIENT.PbCampClientPlayer1;
     private const int MinAgreesNeeded = 1;
 
     private readonly List<(DeskPlayer Voter, bool Agrees)> ballots = [];
+    private readonly Dictionary<DeskPlayer, TimeSpan> scheduledNpcVotes = [];
+    private int camp1Score;
+    private int camp2Score;
 
     public CampVoteKind Kind { get; } = kind;
     public int CampClient { get; } = campClient;
@@ -39,6 +43,8 @@ public sealed class CampVote(CampVoteKind kind, int campClient, IReadOnlyList<De
     public DeskPlayer? Initiator => ballots.Count > 0 ? ballots[0].Voter : null;
 
     public int SurrenderValidCnt => Voters.Count;
+
+    public int ScoreBehind => CampClient == FirstPlayerCamp ? camp2Score - camp1Score : camp1Score - camp2Score;
 
     public int AgreesNeeded => Math.Max(MinAgreesNeeded, SurrenderValidCnt - DissentersAllowed);
 
@@ -66,6 +72,31 @@ public sealed class CampVote(CampVoteKind kind, int campClient, IReadOnlyList<De
 
             return data;
         }
+    }
+
+    public void RecordScores(int camp1Score, int camp2Score)
+    {
+        this.camp1Score = Math.Max(0, camp1Score);
+        this.camp2Score = Math.Max(0, camp2Score);
+    }
+
+    public void ScheduleNpcVote(DeskPlayer voter, TimeSpan after)
+    {
+        if (CanVote(voter))
+        {
+            scheduledNpcVotes.TryAdd(voter, after);
+        }
+    }
+
+    public IReadOnlyList<DeskPlayer> TakeDueNpcVotes(TimeSpan elapsed)
+    {
+        DeskPlayer[] due = [.. scheduledNpcVotes.Where(scheduled => scheduled.Value <= elapsed).OrderBy(scheduled => scheduled.Value).Select(scheduled => scheduled.Key)];
+        foreach (var voter in due)
+        {
+            scheduledNpcVotes.Remove(voter);
+        }
+
+        return due;
     }
 
     public bool CanVote(DeskPlayer voter) => Voters.Contains(voter) && !ballots.Any(ballot => ballot.Voter == voter);

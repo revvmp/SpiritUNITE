@@ -1,5 +1,5 @@
 using Google.Protobuf;
-using SpiritUNITE.Game.Room;
+using SpiritUNITE.Game.Match;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
 
@@ -52,8 +52,18 @@ public sealed class RelaySeat(DeskPlayer human)
     public RelaySeatTakeover Takeover { get; set; }
     public pbCSMultgameGameoverReq? Gameover { get; set; }
     public int GameoverFightSeconds { get; set; }
+    public int GameoverHangupSeconds { get; set; }
     public bool Completed { get; set; }
     public int StartedSurrenderVotes { get; set; }
+    public TimeSpan HangupTime { get; private set; }
+
+    public void CountSilence(TimeSpan silence, TimeSpan? hangupAfter)
+    {
+        if (hangupAfter is { } threshold && silence >= threshold)
+        {
+            HangupTime += silence;
+        }
+    }
 
     public bool TryAcceptCmdSeq(int cmdSeq)
     {
@@ -102,6 +112,7 @@ public sealed class RelayGame
         NpcLoadSeconds = npcLoadSeconds;
         Limits = limits;
         Seats = desk.Humans.ToDictionary(human => human.Uid, human => new RelaySeat(human));
+        Judges = desk.Judges.ToDictionary(judge => judge.Uid, judge => new RelaySeat(judge));
         StoppingToken = stopping.Token;
     }
 
@@ -110,6 +121,7 @@ public sealed class RelayGame
     public long CreatedAt { get; }
     public RelayTimeLimits Limits { get; }
     public IReadOnlyDictionary<ulong, RelaySeat> Seats { get; }
+    public IReadOnlyDictionary<ulong, RelaySeat> Judges { get; }
     public Lock Gate { get; } = new();
     public CancellationToken StoppingToken { get; }
     public RelayGamePhase Phase { get; set; } = RelayGamePhase.Waiting;
@@ -134,14 +146,19 @@ public sealed class RelayGame
     public Dictionary<int, CampVote> Votes { get; } = [];
     public Dictionary<int, long> LastSurrenderTimes { get; } = [];
     public bool HangUpReported { get; set; }
+    public bool EndedByJudge { get; set; }
 
     public IReadOnlyDictionary<int, int> NpcLoadSeconds { get; }
 
     public IEnumerable<RelaySeat> ConnectedSeats => Seats.Values.Where(seat => seat.IsConnected);
 
-    public ulong[] ConnectedUids => [.. ConnectedSeats.Select(seat => seat.Uid)];
+    public IEnumerable<RelaySeat> ConnectedJudges => Judges.Values.Where(judge => judge.IsConnected);
 
-    public bool IsSingleAcnt => Seats.Count == 1;
+    public IEnumerable<RelaySeat> ConnectedViewers => ConnectedSeats.Concat(ConnectedJudges);
+
+    public ulong[] ConnectedUids => [.. ConnectedViewers.Select(seat => seat.Uid)];
+
+    public bool IsSingleAcnt => Seats.Count == 1 && Judges.Count == 0;
 
     public bool RunsFrameLoop => !IsSingleAcnt;
 
@@ -164,6 +181,10 @@ public sealed class RelayGame
     public IEnumerable<RelaySeat> Stragglers => ConnectedSeats.Where(seat => seat.Gameover is null);
 
     public RelaySeat? FindSeat(ulong uid) => Seats.GetValueOrDefault(uid);
+
+    public RelaySeat? FindJudge(ulong uid) => Judges.GetValueOrDefault(uid);
+
+    public RelaySeat? FindViewer(ulong uid) => FindSeat(uid) ?? FindJudge(uid);
 
     public int NpcProcessAt(int objId, int tick) =>
         (int)Math.Min(FullProcess, (long)FullProcess * tick / NpcLoadSeconds[objId]);

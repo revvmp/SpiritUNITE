@@ -10,9 +10,10 @@ public sealed record UsedPokemonStatistics(
     pbCOMDT_USED_POKEMON_STATISTIC_INFO CurrentSeason,
     long CurrentWeekStart,
     pbCOMDT_USED_POKEMON_STATISTIC_INFO CurrentWeek,
-    long LastBattleTime)
+    long LastBattleTime,
+    pbCOMDT_RANKED_MATCH_USED_POKEMON_INFO RankedMatchInfoInSeason)
 {
-    public static readonly UsedPokemonStatistics None = new(new(), 0, new(), 0, new(), 0);
+    public static readonly UsedPokemonStatistics None = new(new(), 0, new(), 0, new(), 0, new());
 
     public UsedPokemonStatistics Record(UsedPokemonBattle battle) => new(
         Count(Total, battle),
@@ -20,7 +21,25 @@ public sealed record UsedPokemonStatistics(
         Count(battle.SeasonId == CurrentSeasonID ? CurrentSeason : new(), battle),
         battle.WeekStart,
         Count(battle.WeekStart == CurrentWeekStart ? CurrentWeek : new(), battle),
-        battle.BattleTime);
+        battle.BattleTime,
+        CountRanked(battle.SeasonId == CurrentSeasonID ? RankedMatchInfoInSeason : new(), battle));
+
+    private static pbCOMDT_RANKED_MATCH_USED_POKEMON_INFO CountRanked(pbCOMDT_RANKED_MATCH_USED_POKEMON_INFO rankedMatchInfo, UsedPokemonBattle battle)
+    {
+        var counted = rankedMatchInfo.Clone();
+        if (battle.MapSubMode != (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceRank)
+        {
+            return counted;
+        }
+
+        counted.RankedMatchBattleCnt = Increment(counted.RankedMatchBattleCnt);
+        if (battle.Won)
+        {
+            counted.RankedMatchWinCnt = Increment(counted.RankedMatchWinCnt);
+        }
+
+        return counted;
+    }
 
     private static pbCOMDT_USED_POKEMON_STATISTIC_INFO Count(pbCOMDT_USED_POKEMON_STATISTIC_INFO statistic, UsedPokemonBattle battle)
     {

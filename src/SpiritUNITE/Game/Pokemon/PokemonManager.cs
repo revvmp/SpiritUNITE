@@ -16,6 +16,9 @@ public sealed class PokemonManager(
     public const int NoPaster = 0;
     public const int NoTrainerItem = 0;
     public const int RegistUsedPokemonId = 4;
+    private const int MaxSkillSlotNum = (int)PB_MACRO_COM_MAX_SKILLSLOT_NUM.PbComMaxSkillslotNum;
+    private const int NoSkillRoute = 0;
+    private const int MaxSkillRoute = (int)PB_MACRO_MAX_POKEMON_BASE_BRANCHRECOMMEND_CFG_NUM.PbMaxPokemonBaseBranchrecommendCfgNum;
 
     public async Task<pbSCGetPokemonListRsp> BuildGetPokemonListRspAsync(LMNRoleInfo role)
     {
@@ -88,6 +91,58 @@ public sealed class PokemonManager(
         }
 
         used = used with { LastCarryTrainerItemID = trainerItemID };
+        await usedPokemon.SaveAsync(role.GameUlongUID, used);
+        return (PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, used);
+    }
+
+    public async Task<(PB_ENUM_RES_ERROR_CODE Result, UsedPokemonInfo Used)> SaveSkillRecommendTypeAsync(
+        LMNRoleInfo role,
+        int pokemonId,
+        int skillRecommendType)
+    {
+        var used = await usedPokemon.FindAsync(role.GameUlongUID, pokemonId);
+        if (!Enum.IsDefined((PB_ENUM_ENM_SKILL_RECOMMEND_TYPE)skillRecommendType))
+        {
+            return (PB_ENUM_RES_ERROR_CODE.PbErrSkillRecommendTypeInvalid, used);
+        }
+
+        var saved = used.SkillRecommendInfo?.Clone() ?? new pbCOMDT_SKILLRECOMMENDINFO();
+        saved.SkillRecommendType = skillRecommendType;
+        return await SaveSkillRecommendAsync(role, used, saved);
+    }
+
+    public async Task<(PB_ENUM_RES_ERROR_CODE Result, UsedPokemonInfo Used)> SaveUserDefineSkillRecommendAsync(
+        LMNRoleInfo role,
+        int pokemonId,
+        IReadOnlyList<int> skillSlotRecommend)
+    {
+        var used = await usedPokemon.FindAsync(role.GameUlongUID, pokemonId);
+        if (!IsValidSkillSlotRecommend(skillSlotRecommend))
+        {
+            return (PB_ENUM_RES_ERROR_CODE.PbErrSkillRecommendTypeInvalid, used);
+        }
+
+        return await SaveSkillRecommendAsync(role, used, new pbCOMDT_SKILLRECOMMENDINFO
+        {
+            SkillRecommendType = (int)PB_ENUM_ENM_SKILL_RECOMMEND_TYPE.PbEnmSkillRecommendTypeUserdefine,
+            SkillSlotRecommend = { skillSlotRecommend },
+        });
+    }
+
+    public static bool IsValidSkillSlotRecommend(IReadOnlyList<int> skillSlotRecommend) =>
+        skillSlotRecommend.Count <= MaxSkillSlotNum && skillSlotRecommend.All(option => option is >= NoSkillRoute and <= MaxSkillRoute);
+
+    private async Task<(PB_ENUM_RES_ERROR_CODE Result, UsedPokemonInfo Used)> SaveSkillRecommendAsync(
+        LMNRoleInfo role,
+        UsedPokemonInfo used,
+        pbCOMDT_SKILLRECOMMENDINFO skillRecommendInfo)
+    {
+        if (!CanBattleWith(role, used.PokemonId))
+        {
+            return (PB_ENUM_RES_ERROR_CODE.PbErrPokemonUnexists, used);
+        }
+
+        used = used with { SkillRecommendInfo = skillRecommendInfo };
         await usedPokemon.SaveAsync(role.GameUlongUID, used);
         return (PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, used);
     }

@@ -3,6 +3,7 @@ using SpiritUNITE.Battle;
 using SpiritUNITE.Game.HeldItem;
 using SpiritUNITE.Game.Pokemon;
 using SpiritUNITE.Game.Role;
+using SpiritUNITE.Game.Room;
 using SpiritUNITE.Packets.Handlers.Bag;
 using SpiritUNITE.Packets.Messages;
 
@@ -17,6 +18,7 @@ public sealed class HeldItemHandlers(
 {
     private const int UsedRecommend = 1;
     private const int Permanent = 0;
+    private const int Temporary = 1;
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidChgHeldItemReq)]
     public async Task<GamePacket[]> OnChgHeldItemReq(GamePacket request)
@@ -24,6 +26,11 @@ public sealed class HeldItemHandlers(
         var role = roles.Require(request.Uid);
         var chg = pbCSChgHeldItemReq.Parser.ParseFrom(request.PkgData);
         var heldItemIds = chg.HeldItemDesignInfo?.HeldItemID.ToArray() ?? [];
+        if (desks.FindPickRoomRules(request.Uid) is { KeepsHeldItemsTemporary: true } roomRules)
+        {
+            return await ChgTemporaryHeldItemAsync(request, role, chg, heldItemIds, roomRules);
+        }
+
         var (result, used) = await heldItems.ChgHeldItemAsync(role, chg.PokemonId, heldItemIds);
         logger.LogInformation(
             "Held items of Pokemon {PokemonId} set to {HeldItemIds} for uid {Uid}: {Result}",
@@ -43,6 +50,37 @@ public sealed class HeldItemHandlers(
                 PokemonId = chg.PokemonId,
                 HeldItemDesignInfo = used.BuildHeldItemDesignInfo(),
                 IsTemporary = Permanent,
+                IsUsedRecommend = chg.IsUsedRecommend == UsedRecommend ? UsedRecommend : 0,
+            }),
+        ];
+    }
+
+    private async Task<GamePacket[]> ChgTemporaryHeldItemAsync(
+        GamePacket request,
+        LMNRoleInfo role,
+        pbCSChgHeldItemReq chg,
+        int[] heldItemIds,
+        FriendlyRoomRules roomRules)
+    {
+        var result = await heldItems.ValidateHeldItemDesignAsync(role, chg.PokemonId, heldItemIds, roomRules);
+        logger.LogInformation(
+            "Custom battle held items of Pokemon {PokemonId} set to {HeldItemIds} for uid {Uid} without saving: {Result}",
+            chg.PokemonId,
+            string.Join(',', heldItemIds),
+            role.GameUlongUID,
+            result);
+        var pickNotices = result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc
+            ? await desks.DeliverAsync(request.Uid, desks.ChangeHeldItems(request.Uid, chg.PokemonId, heldItemIds))
+            : [];
+        return
+        [
+            .. pickNotices.Select(message => request.Reply(message.MsgID, message.Message)),
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidChgHeldItemRsp, new pbSCChgHeldItemRsp
+            {
+                ResultInfo = new pbResultInfo { ResultId = (int)result },
+                PokemonId = chg.PokemonId,
+                HeldItemDesignInfo = new pbCOMDT_HELDITEM_DESIGN_INFO { HeldItemID = { heldItemIds } },
+                IsTemporary = Temporary,
                 IsUsedRecommend = chg.IsUsedRecommend == UsedRecommend ? UsedRecommend : 0,
             }),
         ];
@@ -111,6 +149,11 @@ public sealed class HeldItemHandlers(
     {
         var role = roles.Require(request.Uid);
         var carry = pbCSCarryTrainerItemReq.Parser.ParseFrom(request.PkgData);
+        if (desks.FindPickRoomRules(request.Uid) is { IsAllTrainerItem: true } or { IsAllOpenMode: true })
+        {
+            return await CarryTemporaryTrainerItemAsync(request, carry);
+        }
+
         var (result, used) = await pokemon.CarryTrainerItemAsync(role, carry.PokemonID, carry.TrainerItemID);
         logger.LogInformation(
             "Battle item {TrainerItemID} carried by Pokemon {PokemonID} for uid {Uid}: {Result}",
@@ -129,6 +172,28 @@ public sealed class HeldItemHandlers(
                 ResultInfo = new pbResultInfo { ResultId = (int)result },
                 PokemonID = carry.PokemonID,
                 TrainerItemID = used.LastCarryTrainerItemID,
+            }),
+        ];
+    }
+
+    private async Task<GamePacket[]> CarryTemporaryTrainerItemAsync(GamePacket request, pbCSCarryTrainerItemReq carry)
+    {
+        var outcome = desks.ChangeCustomTrainerItem(request.Uid, carry.PokemonID, carry.TrainerItemID);
+        logger.LogInformation(
+            "Custom battle item {TrainerItemID} carried by Pokemon {PokemonID} for uid {Uid} without saving: {Result}",
+            carry.TrainerItemID,
+            carry.PokemonID,
+            request.Uid,
+            outcome.Result);
+        var pickNotices = outcome.Succeeded ? await desks.DeliverAsync(request.Uid, outcome) : [];
+        return
+        [
+            .. pickNotices.Select(message => request.Reply(message.MsgID, message.Message)),
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidCarryTrainerItemRsp, new pbSCCarryTrainerItemRsp
+            {
+                ResultInfo = new pbResultInfo { ResultId = (int)outcome.Result },
+                PokemonID = carry.PokemonID,
+                TrainerItemID = carry.TrainerItemID,
             }),
         ];
     }

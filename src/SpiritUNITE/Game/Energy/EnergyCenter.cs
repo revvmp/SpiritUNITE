@@ -6,12 +6,13 @@ namespace SpiritUNITE.Game.Energy;
 
 public static class EnergyCenter
 {
-    public const int WeeklyEnergyFreeCapacity = 1400;
-
     private const int StartingRaffleTicket = 1;
     private const int DaysPerWeek = 7;
 
-    public static RoleEnergyInfo Starting(DateTimeOffset now) => new(0, WeeklyEnergyFreeCapacity, FindNextFlushTime(now));
+    public static int WeeklyEnergyFreeCapacity(GameData gameData) => gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalEnergyPoolLimit);
+
+    public static RoleEnergyInfo Starting(DateTimeOffset now, int weeklyEnergyFreeCapacity) =>
+        new(0, weeklyEnergyFreeCapacity, FindNextFlushTime(now));
 
     public static pbCOMDT_ENERGY_INFO BuildEnergyInfo(RoleEnergyInfo energy) => new()
     {

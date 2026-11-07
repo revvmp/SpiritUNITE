@@ -6,6 +6,7 @@ using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Lobby;
 using SpiritUNITE.Game.Pokemon;
 using SpiritUNITE.Game.Role;
+using SpiritUNITE.Game.Room;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
 
@@ -140,14 +141,15 @@ public sealed class HeldItemManager(
     public async Task<PB_ENUM_RES_ERROR_CODE> ValidateHeldItemDesignAsync(
         LMNRoleInfo role,
         int pokemonId,
-        IReadOnlyCollection<int> heldItemIds)
+        IReadOnlyCollection<int> heldItemIds,
+        FriendlyRoomRules roomRules)
     {
-        if (!pokemon.CanBattleWith(role, pokemonId))
+        if (!roomRules.IsAllOpenMode && !pokemon.CanBattleWith(role, pokemonId))
         {
             return PB_ENUM_RES_ERROR_CODE.PbErrPokemonUnexists;
         }
 
-        if (heldItemIds.Count > GetHeldItemSlotUnlockNum(role))
+        if (heldItemIds.Count > (roomRules.IsFullHeldItem ? HeldItemSlotUnlockTypes.Length : GetHeldItemSlotUnlockNum(role)))
         {
             return PB_ENUM_RES_ERROR_CODE.PbErrHeldItemSlotNotEnough;
         }
@@ -169,7 +171,7 @@ public sealed class HeldItemManager(
                 return PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemExclusive;
             }
 
-            if (await bag.FindOwnedOutSideItemAsync(role.GameUlongUID, heldItemId) is null)
+            if (!roomRules.IsFullHeldItem && await bag.FindOwnedOutSideItemAsync(role.GameUlongUID, heldItemId) is null)
             {
                 return PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemNotFoundResInAcnt;
             }
@@ -184,7 +186,7 @@ public sealed class HeldItemManager(
         IReadOnlyList<int> heldItemIds)
     {
         var used = await usedPokemon.FindAsync(role.GameUlongUID, pokemonId);
-        var result = await ValidateHeldItemDesignAsync(role, pokemonId, heldItemIds);
+        var result = await ValidateHeldItemDesignAsync(role, pokemonId, heldItemIds, FriendlyRoomRules.None);
         if (result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
         {
             return (result, used);
