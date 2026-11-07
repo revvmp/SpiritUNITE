@@ -500,6 +500,46 @@ CREATE TABLE IF NOT EXISTS `activation_code_use` (
     PRIMARY KEY (activation_code, game_ulong_uid)
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `role_battle_pass` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    season_id INT NOT NULL,
+    level INT NOT NULL DEFAULT 1,
+    exp INT NOT NULL DEFAULT 0,
+    total_exp INT NOT NULL DEFAULT 0,
+    pass_type INT NOT NULL DEFAULT 0,
+    video_played INT NOT NULL DEFAULT 0,
+    addition_treasure_cnt INT NOT NULL DEFAULT 0,
+    addition_treasure_unget_cnt INT NOT NULL DEFAULT 0,
+    addition_treasure_unget_exp INT NOT NULL DEFAULT 0,
+    last_up_level_time BIGINT NOT NULL DEFAULT 0,
+    last_gain_exp_time BIGINT NOT NULL DEFAULT 0,
+    season_settled INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid, season_id),
+    CONSTRAINT ck_role_battle_pass_progress CHECK (level >= 1 AND exp >= 0 AND total_exp >= 0 AND addition_treasure_cnt >= 0 AND addition_treasure_unget_cnt >= 0 AND addition_treasure_unget_exp >= 0),
+    CONSTRAINT fk_role_battle_pass_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_battle_pass_level_reward` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    season_id INT NOT NULL,
+    level INT NOT NULL,
+    reward_type INT NOT NULL,
+    reward_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, season_id, level, reward_type),
+    CONSTRAINT fk_role_battle_pass_level_reward_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_battle_pass_task_reward` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    task_id INT NOT NULL,
+    period_start BIGINT NOT NULL,
+    reward_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, task_id, period_start),
+    CONSTRAINT fk_role_battle_pass_task_reward_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `role_pokemon_carry_equipment` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL,
     pokemon_id INT NOT NULL,

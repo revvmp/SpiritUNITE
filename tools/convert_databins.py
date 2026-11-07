@@ -89,6 +89,33 @@ LUA_ONLY_FIELDS = {
         252197: Field("ElitePassLevelUp", "int32"),
         253707: Field("ElitePassCoinType", "int32"),
         255263: Field("SeasonEndTime", "int64"),
+        258169: Field("HighPackLevel", "int32"),
+        259704: Field("FullLevelTreasureBoxEXP", "int32"),
+        282987: Field("CommonPassCoinType", "int32"),
+        297191: Field("CommonPassRealPrice", "int32"),
+        297622: Field("HighPackPrice", "int32"),
+    },
+    "pbBattlePassInfo": {
+        202953: Field("OutSideItemId", "int32", repeated=True),
+        223064: Field("SeasonID", "int32"),
+        237151: Field("ExtraPassDropID", "int32"),
+        241787: Field("HighPassDropID", "int32"),
+        244596: Field("DiscountPrice", "int32", repeated=True),
+    },
+    "pbBattlePass_SeasonTask": {
+        211384: Field("WeekIndex", "int32"),
+        215292: Field("WelfareTaskRefreshNum", "int32"),
+        223064: Field("SeasonID", "int32"),
+        233840: Field("WelfareTaskID", "int32", repeated=True),
+        252175: Field("WeekMaxExp", "int32"),
+        289808: Field("TaskID", "int32", repeated=True),
+    },
+    "pbBattlePass_TimeLimitTask": {
+        223064: Field("SeasonID", "int32"),
+        250088: Field("TimeLimitTaskID", "int32"),
+        258156: Field("BeginTime", "int64"),
+        266127: Field("ID", "int32"),
+        294988: Field("EndTime", "int64"),
     },
     "pbReward_Pool": {
         236391: Field("StartTime", "int64"),
@@ -511,6 +538,16 @@ TABLES = {
     "databin_BattlePassSeason": Table(
         "pbBattlePassSeason", LUA_ONLY_FIELDS["pbBattlePassSeason"], key_field="SeasonID"
     ),
+    "databin_BattlePassInfo": Table("pbBattlePassInfo", LUA_ONLY_FIELDS["pbBattlePassInfo"], key_field="SeasonID"),
+    "databin_BattlePassLevel": Table("pbBattlePassLevel"),
+    "databin_BattlePassLevelReward.group.1": Table("pbBattlePassLevelReward"),
+    "databin_BattlePass_SeasonTask": Table("pbBattlePass_SeasonTask", LUA_ONLY_FIELDS["pbBattlePass_SeasonTask"]),
+    "databin_BattlePass_TimeLimitTask": Table(
+        "pbBattlePass_TimeLimitTask", LUA_ONLY_FIELDS["pbBattlePass_TimeLimitTask"], key_field="ID"
+    ),
+    "databin_BattlePass_WeekIndex": Table("pbBattlePass_WeekIndex"),
+    "databin_BattlePass_WeekTaskGroup": Table("pbBattlePass_WeekTaskGroup", key_field="WeekTaskGroupID"),
+    "databin_BattlePassTaskBase": Table("pbTask_Base", SERVER_FIELD_SUBSETS["pbTask_Base"], key_field="TaskID"),
     "databin_Reward_Pool": Table("pbReward_Pool", LUA_ONLY_FIELDS["pbReward_Pool"], key_field="LotteryPoolId"),
     "databin_Canopy_Base": Table("pbCanopy_Base", LUA_ONLY_FIELDS["pbCanopy_Base"], key_field="CanopyID"),
     "databin_CardFace": Table("pbCardFace", LUA_ONLY_FIELDS["pbCardFace"], key_field="CardFaceID"),

@@ -1,0 +1,2777 @@
+[
+  {
+    "WeekIndex": 1,
+    "SeasonID": 1,
+    "TaskGroupID": 1
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 1,
+    "TaskGroupID": 2
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 1,
+    "TaskGroupID": 3
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 1,
+    "TaskGroupID": 4
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 1,
+    "TaskGroupID": 5
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 1,
+    "TaskGroupID": 6
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 1,
+    "TaskGroupID": 7
+  },
+  {
+    "WeekIndex": 8,
+    "SeasonID": 1,
+    "TaskGroupID": 8
+  },
+  {
+    "WeekIndex": 9,
+    "SeasonID": 1,
+    "TaskGroupID": 9
+  },
+  {
+    "WeekIndex": 10,
+    "SeasonID": 1,
+    "TaskGroupID": 10
+  },
+  {
+    "WeekIndex": 11,
+    "SeasonID": 1,
+    "TaskGroupID": 11
+  },
+  {
+    "WeekIndex": 12,
+    "SeasonID": 1,
+    "TaskGroupID": 12
+  },
+  {
+    "WeekIndex": 13,
+    "SeasonID": 1,
+    "TaskGroupID": 13
+  },
+  {
+    "WeekIndex": 14,
+    "SeasonID": 1,
+    "TaskGroupID": 14
+  },
+  {
+    "WeekIndex": 15,
+    "SeasonID": 1,
+    "TaskGroupID": 15
+  },
+  {
+    "WeekIndex": 16,
+    "SeasonID": 1,
+    "TaskGroupID": 16
+  },
+  {
+    "WeekIndex": 17,
+    "SeasonID": 1,
+    "TaskGroupID": 17
+  },
+  {
+    "WeekIndex": 18,
+    "SeasonID": 1,
+    "TaskGroupID": 18
+  },
+  {
+    "WeekIndex": 19,
+    "SeasonID": 1,
+    "TaskGroupID": 19
+  },
+  {
+    "WeekIndex": 20,
+    "SeasonID": 1,
+    "TaskGroupID": 20
+  },
+  {
+    "WeekIndex": 21,
+    "SeasonID": 1,
+    "TaskGroupID": 21
+  },
+  {
+    "WeekIndex": 22,
+    "SeasonID": 1,
+    "TaskGroupID": 22
+  },
+  {
+    "WeekIndex": 23,
+    "SeasonID": 1,
+    "TaskGroupID": 23
+  },
+  {
+    "WeekIndex": 24,
+    "SeasonID": 1,
+    "TaskGroupID": 24
+  },
+  {
+    "WeekIndex": 25,
+    "SeasonID": 1,
+    "TaskGroupID": 25
+  },
+  {
+    "WeekIndex": 26,
+    "SeasonID": 1,
+    "TaskGroupID": 26
+  },
+  {
+    "WeekIndex": 27,
+    "SeasonID": 1,
+    "TaskGroupID": 27
+  },
+  {
+    "WeekIndex": 28,
+    "SeasonID": 1,
+    "TaskGroupID": 28
+  },
+  {
+    "WeekIndex": 29,
+    "SeasonID": 1,
+    "TaskGroupID": 29
+  },
+  {
+    "WeekIndex": 30,
+    "SeasonID": 1,
+    "TaskGroupID": 30
+  },
+  {
+    "WeekIndex": 31,
+    "SeasonID": 1,
+    "TaskGroupID": 31
+  },
+  {
+    "WeekIndex": 32,
+    "SeasonID": 1,
+    "TaskGroupID": 32
+  },
+  {
+    "WeekIndex": 33,
+    "SeasonID": 1,
+    "TaskGroupID": 33
+  },
+  {
+    "WeekIndex": 34,
+    "SeasonID": 1,
+    "TaskGroupID": 34
+  },
+  {
+    "WeekIndex": 35,
+    "SeasonID": 1,
+    "TaskGroupID": 35
+  },
+  {
+    "WeekIndex": 36,
+    "SeasonID": 1,
+    "TaskGroupID": 36
+  },
+  {
+    "WeekIndex": 37,
+    "SeasonID": 1,
+    "TaskGroupID": 37
+  },
+  {
+    "WeekIndex": 38,
+    "SeasonID": 1,
+    "TaskGroupID": 38
+  },
+  {
+    "WeekIndex": 39,
+    "SeasonID": 1,
+    "TaskGroupID": 39
+  },
+  {
+    "WeekIndex": 40,
+    "SeasonID": 1,
+    "TaskGroupID": 40
+  },
+  {
+    "WeekIndex": 41,
+    "SeasonID": 1,
+    "TaskGroupID": 41
+  },
+  {
+    "WeekIndex": 42,
+    "SeasonID": 1,
+    "TaskGroupID": 42
+  },
+  {
+    "WeekIndex": 43,
+    "SeasonID": 1,
+    "TaskGroupID": 43
+  },
+  {
+    "WeekIndex": 44,
+    "SeasonID": 1,
+    "TaskGroupID": 44
+  },
+  {
+    "WeekIndex": 45,
+    "SeasonID": 1,
+    "TaskGroupID": 45
+  },
+  {
+    "WeekIndex": 46,
+    "SeasonID": 1,
+    "TaskGroupID": 46
+  },
+  {
+    "WeekIndex": 47,
+    "SeasonID": 1,
+    "TaskGroupID": 47
+  },
+  {
+    "WeekIndex": 48,
+    "SeasonID": 1,
+    "TaskGroupID": 48
+  },
+  {
+    "WeekIndex": 49,
+    "SeasonID": 1,
+    "TaskGroupID": 49
+  },
+  {
+    "WeekIndex": 50,
+    "SeasonID": 1,
+    "TaskGroupID": 50
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 2,
+    "TaskGroupID": 1
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 2,
+    "TaskGroupID": 2
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 2,
+    "TaskGroupID": 3
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 2,
+    "TaskGroupID": 4
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 2,
+    "TaskGroupID": 5
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 2,
+    "TaskGroupID": 6
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 2,
+    "TaskGroupID": 7
+  },
+  {
+    "WeekIndex": 8,
+    "SeasonID": 2,
+    "TaskGroupID": 8
+  },
+  {
+    "WeekIndex": 9,
+    "SeasonID": 2,
+    "TaskGroupID": 9
+  },
+  {
+    "WeekIndex": 10,
+    "SeasonID": 2,
+    "TaskGroupID": 10
+  },
+  {
+    "WeekIndex": 11,
+    "SeasonID": 2,
+    "TaskGroupID": 11
+  },
+  {
+    "WeekIndex": 12,
+    "SeasonID": 2,
+    "TaskGroupID": 12
+  },
+  {
+    "WeekIndex": 13,
+    "SeasonID": 2,
+    "TaskGroupID": 13
+  },
+  {
+    "WeekIndex": 14,
+    "SeasonID": 2,
+    "TaskGroupID": 14
+  },
+  {
+    "WeekIndex": 15,
+    "SeasonID": 2,
+    "TaskGroupID": 15
+  },
+  {
+    "WeekIndex": 16,
+    "SeasonID": 2,
+    "TaskGroupID": 16
+  },
+  {
+    "WeekIndex": 17,
+    "SeasonID": 2,
+    "TaskGroupID": 17
+  },
+  {
+    "WeekIndex": 18,
+    "SeasonID": 2,
+    "TaskGroupID": 18
+  },
+  {
+    "WeekIndex": 19,
+    "SeasonID": 2,
+    "TaskGroupID": 19
+  },
+  {
+    "WeekIndex": 20,
+    "SeasonID": 2,
+    "TaskGroupID": 20
+  },
+  {
+    "WeekIndex": 21,
+    "SeasonID": 2,
+    "TaskGroupID": 21
+  },
+  {
+    "WeekIndex": 22,
+    "SeasonID": 2,
+    "TaskGroupID": 22
+  },
+  {
+    "WeekIndex": 23,
+    "SeasonID": 2,
+    "TaskGroupID": 23
+  },
+  {
+    "WeekIndex": 24,
+    "SeasonID": 2,
+    "TaskGroupID": 24
+  },
+  {
+    "WeekIndex": 25,
+    "SeasonID": 2,
+    "TaskGroupID": 25
+  },
+  {
+    "WeekIndex": 26,
+    "SeasonID": 2,
+    "TaskGroupID": 26
+  },
+  {
+    "WeekIndex": 27,
+    "SeasonID": 2,
+    "TaskGroupID": 27
+  },
+  {
+    "WeekIndex": 28,
+    "SeasonID": 2,
+    "TaskGroupID": 28
+  },
+  {
+    "WeekIndex": 29,
+    "SeasonID": 2,
+    "TaskGroupID": 29
+  },
+  {
+    "WeekIndex": 30,
+    "SeasonID": 2,
+    "TaskGroupID": 30
+  },
+  {
+    "WeekIndex": 31,
+    "SeasonID": 2,
+    "TaskGroupID": 31
+  },
+  {
+    "WeekIndex": 32,
+    "SeasonID": 2,
+    "TaskGroupID": 32
+  },
+  {
+    "WeekIndex": 33,
+    "SeasonID": 2,
+    "TaskGroupID": 33
+  },
+  {
+    "WeekIndex": 34,
+    "SeasonID": 2,
+    "TaskGroupID": 34
+  },
+  {
+    "WeekIndex": 35,
+    "SeasonID": 2,
+    "TaskGroupID": 35
+  },
+  {
+    "WeekIndex": 36,
+    "SeasonID": 2,
+    "TaskGroupID": 36
+  },
+  {
+    "WeekIndex": 37,
+    "SeasonID": 2,
+    "TaskGroupID": 37
+  },
+  {
+    "WeekIndex": 38,
+    "SeasonID": 2,
+    "TaskGroupID": 38
+  },
+  {
+    "WeekIndex": 39,
+    "SeasonID": 2,
+    "TaskGroupID": 39
+  },
+  {
+    "WeekIndex": 40,
+    "SeasonID": 2,
+    "TaskGroupID": 40
+  },
+  {
+    "WeekIndex": 41,
+    "SeasonID": 2,
+    "TaskGroupID": 41
+  },
+  {
+    "WeekIndex": 42,
+    "SeasonID": 2,
+    "TaskGroupID": 42
+  },
+  {
+    "WeekIndex": 43,
+    "SeasonID": 2,
+    "TaskGroupID": 43
+  },
+  {
+    "WeekIndex": 44,
+    "SeasonID": 2,
+    "TaskGroupID": 44
+  },
+  {
+    "WeekIndex": 45,
+    "SeasonID": 2,
+    "TaskGroupID": 45
+  },
+  {
+    "WeekIndex": 46,
+    "SeasonID": 2,
+    "TaskGroupID": 46
+  },
+  {
+    "WeekIndex": 47,
+    "SeasonID": 2,
+    "TaskGroupID": 47
+  },
+  {
+    "WeekIndex": 48,
+    "SeasonID": 2,
+    "TaskGroupID": 48
+  },
+  {
+    "WeekIndex": 49,
+    "SeasonID": 2,
+    "TaskGroupID": 49
+  },
+  {
+    "WeekIndex": 50,
+    "SeasonID": 2,
+    "TaskGroupID": 50
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 3,
+    "TaskGroupID": 1
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 3,
+    "TaskGroupID": 2
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 3,
+    "TaskGroupID": 3
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 3,
+    "TaskGroupID": 4
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 3,
+    "TaskGroupID": 5
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 3,
+    "TaskGroupID": 6
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 3,
+    "TaskGroupID": 7
+  },
+  {
+    "WeekIndex": 8,
+    "SeasonID": 3,
+    "TaskGroupID": 8
+  },
+  {
+    "WeekIndex": 9,
+    "SeasonID": 3,
+    "TaskGroupID": 9
+  },
+  {
+    "WeekIndex": 10,
+    "SeasonID": 3,
+    "TaskGroupID": 10
+  },
+  {
+    "WeekIndex": 11,
+    "SeasonID": 3,
+    "TaskGroupID": 11
+  },
+  {
+    "WeekIndex": 12,
+    "SeasonID": 3,
+    "TaskGroupID": 12
+  },
+  {
+    "WeekIndex": 13,
+    "SeasonID": 3,
+    "TaskGroupID": 13
+  },
+  {
+    "WeekIndex": 14,
+    "SeasonID": 3,
+    "TaskGroupID": 14
+  },
+  {
+    "WeekIndex": 15,
+    "SeasonID": 3,
+    "TaskGroupID": 15
+  },
+  {
+    "WeekIndex": 16,
+    "SeasonID": 3,
+    "TaskGroupID": 16
+  },
+  {
+    "WeekIndex": 17,
+    "SeasonID": 3,
+    "TaskGroupID": 17
+  },
+  {
+    "WeekIndex": 18,
+    "SeasonID": 3,
+    "TaskGroupID": 18
+  },
+  {
+    "WeekIndex": 19,
+    "SeasonID": 3,
+    "TaskGroupID": 19
+  },
+  {
+    "WeekIndex": 20,
+    "SeasonID": 3,
+    "TaskGroupID": 20
+  },
+  {
+    "WeekIndex": 21,
+    "SeasonID": 3,
+    "TaskGroupID": 21
+  },
+  {
+    "WeekIndex": 22,
+    "SeasonID": 3,
+    "TaskGroupID": 22
+  },
+  {
+    "WeekIndex": 23,
+    "SeasonID": 3,
+    "TaskGroupID": 23
+  },
+  {
+    "WeekIndex": 24,
+    "SeasonID": 3,
+    "TaskGroupID": 24
+  },
+  {
+    "WeekIndex": 25,
+    "SeasonID": 3,
+    "TaskGroupID": 25
+  },
+  {
+    "WeekIndex": 26,
+    "SeasonID": 3,
+    "TaskGroupID": 26
+  },
+  {
+    "WeekIndex": 27,
+    "SeasonID": 3,
+    "TaskGroupID": 27
+  },
+  {
+    "WeekIndex": 28,
+    "SeasonID": 3,
+    "TaskGroupID": 28
+  },
+  {
+    "WeekIndex": 29,
+    "SeasonID": 3,
+    "TaskGroupID": 29
+  },
+  {
+    "WeekIndex": 30,
+    "SeasonID": 3,
+    "TaskGroupID": 30
+  },
+  {
+    "WeekIndex": 31,
+    "SeasonID": 3,
+    "TaskGroupID": 31
+  },
+  {
+    "WeekIndex": 32,
+    "SeasonID": 3,
+    "TaskGroupID": 32
+  },
+  {
+    "WeekIndex": 33,
+    "SeasonID": 3,
+    "TaskGroupID": 33
+  },
+  {
+    "WeekIndex": 34,
+    "SeasonID": 3,
+    "TaskGroupID": 34
+  },
+  {
+    "WeekIndex": 35,
+    "SeasonID": 3,
+    "TaskGroupID": 35
+  },
+  {
+    "WeekIndex": 36,
+    "SeasonID": 3,
+    "TaskGroupID": 36
+  },
+  {
+    "WeekIndex": 37,
+    "SeasonID": 3,
+    "TaskGroupID": 37
+  },
+  {
+    "WeekIndex": 38,
+    "SeasonID": 3,
+    "TaskGroupID": 38
+  },
+  {
+    "WeekIndex": 39,
+    "SeasonID": 3,
+    "TaskGroupID": 39
+  },
+  {
+    "WeekIndex": 40,
+    "SeasonID": 3,
+    "TaskGroupID": 40
+  },
+  {
+    "WeekIndex": 41,
+    "SeasonID": 3,
+    "TaskGroupID": 41
+  },
+  {
+    "WeekIndex": 42,
+    "SeasonID": 3,
+    "TaskGroupID": 42
+  },
+  {
+    "WeekIndex": 43,
+    "SeasonID": 3,
+    "TaskGroupID": 43
+  },
+  {
+    "WeekIndex": 44,
+    "SeasonID": 3,
+    "TaskGroupID": 44
+  },
+  {
+    "WeekIndex": 45,
+    "SeasonID": 3,
+    "TaskGroupID": 45
+  },
+  {
+    "WeekIndex": 46,
+    "SeasonID": 3,
+    "TaskGroupID": 46
+  },
+  {
+    "WeekIndex": 47,
+    "SeasonID": 3,
+    "TaskGroupID": 47
+  },
+  {
+    "WeekIndex": 48,
+    "SeasonID": 3,
+    "TaskGroupID": 48
+  },
+  {
+    "WeekIndex": 49,
+    "SeasonID": 3,
+    "TaskGroupID": 49
+  },
+  {
+    "WeekIndex": 50,
+    "SeasonID": 3,
+    "TaskGroupID": 50
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 4,
+    "TaskGroupID": 1
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 4,
+    "TaskGroupID": 2
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 4,
+    "TaskGroupID": 3
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 4,
+    "TaskGroupID": 4
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 4,
+    "TaskGroupID": 5
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 4,
+    "TaskGroupID": 6
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 4,
+    "TaskGroupID": 7
+  },
+  {
+    "WeekIndex": 8,
+    "SeasonID": 4,
+    "TaskGroupID": 8
+  },
+  {
+    "WeekIndex": 9,
+    "SeasonID": 4,
+    "TaskGroupID": 9
+  },
+  {
+    "WeekIndex": 10,
+    "SeasonID": 4,
+    "TaskGroupID": 10
+  },
+  {
+    "WeekIndex": 11,
+    "SeasonID": 4,
+    "TaskGroupID": 11
+  },
+  {
+    "WeekIndex": 12,
+    "SeasonID": 4,
+    "TaskGroupID": 12
+  },
+  {
+    "WeekIndex": 13,
+    "SeasonID": 4,
+    "TaskGroupID": 13
+  },
+  {
+    "WeekIndex": 14,
+    "SeasonID": 4,
+    "TaskGroupID": 14
+  },
+  {
+    "WeekIndex": 15,
+    "SeasonID": 4,
+    "TaskGroupID": 15
+  },
+  {
+    "WeekIndex": 16,
+    "SeasonID": 4,
+    "TaskGroupID": 16
+  },
+  {
+    "WeekIndex": 17,
+    "SeasonID": 4,
+    "TaskGroupID": 17
+  },
+  {
+    "WeekIndex": 18,
+    "SeasonID": 4,
+    "TaskGroupID": 18
+  },
+  {
+    "WeekIndex": 19,
+    "SeasonID": 4,
+    "TaskGroupID": 19
+  },
+  {
+    "WeekIndex": 20,
+    "SeasonID": 4,
+    "TaskGroupID": 20
+  },
+  {
+    "WeekIndex": 21,
+    "SeasonID": 4,
+    "TaskGroupID": 21
+  },
+  {
+    "WeekIndex": 22,
+    "SeasonID": 4,
+    "TaskGroupID": 22
+  },
+  {
+    "WeekIndex": 23,
+    "SeasonID": 4,
+    "TaskGroupID": 23
+  },
+  {
+    "WeekIndex": 24,
+    "SeasonID": 4,
+    "TaskGroupID": 24
+  },
+  {
+    "WeekIndex": 25,
+    "SeasonID": 4,
+    "TaskGroupID": 25
+  },
+  {
+    "WeekIndex": 26,
+    "SeasonID": 4,
+    "TaskGroupID": 26
+  },
+  {
+    "WeekIndex": 27,
+    "SeasonID": 4,
+    "TaskGroupID": 27
+  },
+  {
+    "WeekIndex": 28,
+    "SeasonID": 4,
+    "TaskGroupID": 28
+  },
+  {
+    "WeekIndex": 29,
+    "SeasonID": 4,
+    "TaskGroupID": 29
+  },
+  {
+    "WeekIndex": 30,
+    "SeasonID": 4,
+    "TaskGroupID": 30
+  },
+  {
+    "WeekIndex": 31,
+    "SeasonID": 4,
+    "TaskGroupID": 31
+  },
+  {
+    "WeekIndex": 32,
+    "SeasonID": 4,
+    "TaskGroupID": 32
+  },
+  {
+    "WeekIndex": 33,
+    "SeasonID": 4,
+    "TaskGroupID": 33
+  },
+  {
+    "WeekIndex": 34,
+    "SeasonID": 4,
+    "TaskGroupID": 34
+  },
+  {
+    "WeekIndex": 35,
+    "SeasonID": 4,
+    "TaskGroupID": 35
+  },
+  {
+    "WeekIndex": 36,
+    "SeasonID": 4,
+    "TaskGroupID": 36
+  },
+  {
+    "WeekIndex": 37,
+    "SeasonID": 4,
+    "TaskGroupID": 37
+  },
+  {
+    "WeekIndex": 38,
+    "SeasonID": 4,
+    "TaskGroupID": 38
+  },
+  {
+    "WeekIndex": 39,
+    "SeasonID": 4,
+    "TaskGroupID": 39
+  },
+  {
+    "WeekIndex": 40,
+    "SeasonID": 4,
+    "TaskGroupID": 40
+  },
+  {
+    "WeekIndex": 41,
+    "SeasonID": 4,
+    "TaskGroupID": 41
+  },
+  {
+    "WeekIndex": 42,
+    "SeasonID": 4,
+    "TaskGroupID": 42
+  },
+  {
+    "WeekIndex": 43,
+    "SeasonID": 4,
+    "TaskGroupID": 43
+  },
+  {
+    "WeekIndex": 44,
+    "SeasonID": 4,
+    "TaskGroupID": 44
+  },
+  {
+    "WeekIndex": 45,
+    "SeasonID": 4,
+    "TaskGroupID": 45
+  },
+  {
+    "WeekIndex": 46,
+    "SeasonID": 4,
+    "TaskGroupID": 46
+  },
+  {
+    "WeekIndex": 47,
+    "SeasonID": 4,
+    "TaskGroupID": 47
+  },
+  {
+    "WeekIndex": 48,
+    "SeasonID": 4,
+    "TaskGroupID": 48
+  },
+  {
+    "WeekIndex": 49,
+    "SeasonID": 4,
+    "TaskGroupID": 49
+  },
+  {
+    "WeekIndex": 50,
+    "SeasonID": 4,
+    "TaskGroupID": 50
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 5,
+    "TaskGroupID": 8
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 5,
+    "TaskGroupID": 9
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 5,
+    "TaskGroupID": 10
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 5,
+    "TaskGroupID": 11
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 5,
+    "TaskGroupID": 12
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 5,
+    "TaskGroupID": 13
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 6,
+    "TaskGroupID": 11
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 6,
+    "TaskGroupID": 12
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 6,
+    "TaskGroupID": 13
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 7,
+    "TaskGroupID": 11
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 7,
+    "TaskGroupID": 12
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 7,
+    "TaskGroupID": 13
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 7,
+    "TaskGroupID": 51
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 8,
+    "TaskGroupID": 52
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 8,
+    "TaskGroupID": 53
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 8,
+    "TaskGroupID": 54
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 8,
+    "TaskGroupID": 55
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 8,
+    "TaskGroupID": 56
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 8,
+    "TaskGroupID": 57
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 8,
+    "TaskGroupID": 58
+  },
+  {
+    "WeekIndex": 8,
+    "SeasonID": 8,
+    "TaskGroupID": 59
+  },
+  {
+    "WeekIndex": 9,
+    "SeasonID": 8,
+    "TaskGroupID": 60
+  },
+  {
+    "WeekIndex": 10,
+    "SeasonID": 8,
+    "TaskGroupID": 61
+  },
+  {
+    "WeekIndex": 11,
+    "SeasonID": 8,
+    "TaskGroupID": 62
+  },
+  {
+    "WeekIndex": 12,
+    "SeasonID": 8,
+    "TaskGroupID": 63
+  },
+  {
+    "WeekIndex": 13,
+    "SeasonID": 8,
+    "TaskGroupID": 64
+  },
+  {
+    "WeekIndex": 14,
+    "SeasonID": 8,
+    "TaskGroupID": 65
+  },
+  {
+    "WeekIndex": 15,
+    "SeasonID": 8,
+    "TaskGroupID": 66
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 9,
+    "TaskGroupID": 67
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 9,
+    "TaskGroupID": 68
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 9,
+    "TaskGroupID": 69
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 9,
+    "TaskGroupID": 70
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 10,
+    "TaskGroupID": 71
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 10,
+    "TaskGroupID": 72
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 10,
+    "TaskGroupID": 73
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 10,
+    "TaskGroupID": 74
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 10,
+    "TaskGroupID": 75
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 10,
+    "TaskGroupID": 76
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 10,
+    "TaskGroupID": 77
+  },
+  {
+    "WeekIndex": 8,
+    "SeasonID": 10,
+    "TaskGroupID": 78
+  },
+  {
+    "WeekIndex": 9,
+    "SeasonID": 10,
+    "TaskGroupID": 79
+  },
+  {
+    "WeekIndex": 10,
+    "SeasonID": 10,
+    "TaskGroupID": 80
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 11,
+    "TaskGroupID": 81
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 11,
+    "TaskGroupID": 82
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 11,
+    "TaskGroupID": 83
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 11,
+    "TaskGroupID": 84
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 11,
+    "TaskGroupID": 85
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 11,
+    "TaskGroupID": 86
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 11,
+    "TaskGroupID": 87
+  },
+  {
+    "WeekIndex": 8,
+    "SeasonID": 11,
+    "TaskGroupID": 88
+  },
+  {
+    "WeekIndex": 9,
+    "SeasonID": 11,
+    "TaskGroupID": 89
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 12,
+    "TaskGroupID": 90
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 12,
+    "TaskGroupID": 91
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 12,
+    "TaskGroupID": 92
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 12,
+    "TaskGroupID": 93
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 12,
+    "TaskGroupID": 94
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 12,
+    "TaskGroupID": 95
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 12,
+    "TaskGroupID": 96
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 13,
+    "TaskGroupID": 97
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 13,
+    "TaskGroupID": 98
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 13,
+    "TaskGroupID": 99
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 13,
+    "TaskGroupID": 100
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 13,
+    "TaskGroupID": 101
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 13,
+    "TaskGroupID": 102
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 14,
+    "TaskGroupID": 103
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 14,
+    "TaskGroupID": 104
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 14,
+    "TaskGroupID": 105
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 14,
+    "TaskGroupID": 106
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 14,
+    "TaskGroupID": 107
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 14,
+    "TaskGroupID": 108
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 15,
+    "TaskGroupID": 109
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 15,
+    "TaskGroupID": 110
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 15,
+    "TaskGroupID": 111
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 15,
+    "TaskGroupID": 112
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 15,
+    "TaskGroupID": 113
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 15,
+    "TaskGroupID": 114
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 15,
+    "TaskGroupID": 115
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 16,
+    "TaskGroupID": 116
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 16,
+    "TaskGroupID": 117
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 16,
+    "TaskGroupID": 118
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 16,
+    "TaskGroupID": 119
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 16,
+    "TaskGroupID": 120
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 16,
+    "TaskGroupID": 121
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 16,
+    "TaskGroupID": 122
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 17,
+    "TaskGroupID": 123
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 17,
+    "TaskGroupID": 124
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 17,
+    "TaskGroupID": 125
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 17,
+    "TaskGroupID": 126
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 17,
+    "TaskGroupID": 127
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 17,
+    "TaskGroupID": 128
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 17,
+    "TaskGroupID": 129
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 18,
+    "TaskGroupID": 130
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 18,
+    "TaskGroupID": 131
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 18,
+    "TaskGroupID": 132
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 18,
+    "TaskGroupID": 133
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 18,
+    "TaskGroupID": 134
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 18,
+    "TaskGroupID": 135
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 18,
+    "TaskGroupID": 136
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 19,
+    "TaskGroupID": 137
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 19,
+    "TaskGroupID": 138
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 19,
+    "TaskGroupID": 139
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 19,
+    "TaskGroupID": 140
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 19,
+    "TaskGroupID": 141
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 19,
+    "TaskGroupID": 142
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 19,
+    "TaskGroupID": 143
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 20,
+    "TaskGroupID": 144
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 20,
+    "TaskGroupID": 145
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 20,
+    "TaskGroupID": 146
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 20,
+    "TaskGroupID": 147
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 20,
+    "TaskGroupID": 148
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 20,
+    "TaskGroupID": 149
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 20,
+    "TaskGroupID": 150
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 21,
+    "TaskGroupID": 151
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 21,
+    "TaskGroupID": 152
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 21,
+    "TaskGroupID": 153
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 21,
+    "TaskGroupID": 154
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 21,
+    "TaskGroupID": 155
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 21,
+    "TaskGroupID": 156
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 21,
+    "TaskGroupID": 157
+  },
+  {
+    "WeekIndex": 8,
+    "SeasonID": 21,
+    "TaskGroupID": 158
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 22,
+    "TaskGroupID": 173
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 22,
+    "TaskGroupID": 174
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 22,
+    "TaskGroupID": 175
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 22,
+    "TaskGroupID": 176
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 23,
+    "TaskGroupID": 177
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 23,
+    "TaskGroupID": 178
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 23,
+    "TaskGroupID": 179
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 23,
+    "TaskGroupID": 180
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 23,
+    "TaskGroupID": 181
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 23,
+    "TaskGroupID": 182
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 23,
+    "TaskGroupID": 183
+  },
+  {
+    "WeekIndex": 8,
+    "SeasonID": 23,
+    "TaskGroupID": 184
+  },
+  {
+    "WeekIndex": 9,
+    "SeasonID": 23,
+    "TaskGroupID": 185
+  },
+  {
+    "WeekIndex": 10,
+    "SeasonID": 23,
+    "TaskGroupID": 186
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 24,
+    "TaskGroupID": 187
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 24,
+    "TaskGroupID": 188
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 24,
+    "TaskGroupID": 189
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 24,
+    "TaskGroupID": 190
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 24,
+    "TaskGroupID": 191
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 24,
+    "TaskGroupID": 192
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 24,
+    "TaskGroupID": 193
+  },
+  {
+    "WeekIndex": 8,
+    "SeasonID": 24,
+    "TaskGroupID": 194
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 25,
+    "TaskGroupID": 195
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 25,
+    "TaskGroupID": 196
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 25,
+    "TaskGroupID": 197
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 25,
+    "TaskGroupID": 198
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 25,
+    "TaskGroupID": 199
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 25,
+    "TaskGroupID": 200
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 25,
+    "TaskGroupID": 201
+  },
+  {
+    "WeekIndex": 8,
+    "SeasonID": 25,
+    "TaskGroupID": 202
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 26,
+    "TaskGroupID": 203
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 26,
+    "TaskGroupID": 204
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 26,
+    "TaskGroupID": 205
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 26,
+    "TaskGroupID": 206
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 26,
+    "TaskGroupID": 207
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 26,
+    "TaskGroupID": 208
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 27,
+    "TaskGroupID": 209
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 27,
+    "TaskGroupID": 210
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 27,
+    "TaskGroupID": 211
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 27,
+    "TaskGroupID": 212
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 27,
+    "TaskGroupID": 213
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 27,
+    "TaskGroupID": 214
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 27,
+    "TaskGroupID": 215
+  },
+  {
+    "WeekIndex": 8,
+    "SeasonID": 27,
+    "TaskGroupID": 216
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 28,
+    "TaskGroupID": 217
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 28,
+    "TaskGroupID": 218
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 28,
+    "TaskGroupID": 219
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 28,
+    "TaskGroupID": 220
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 28,
+    "TaskGroupID": 221
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 28,
+    "TaskGroupID": 222
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 28,
+    "TaskGroupID": 223
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 29,
+    "TaskGroupID": 224
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 29,
+    "TaskGroupID": 225
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 29,
+    "TaskGroupID": 226
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 29,
+    "TaskGroupID": 227
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 29,
+    "TaskGroupID": 228
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 29,
+    "TaskGroupID": 229
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 29,
+    "TaskGroupID": 230
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 30,
+    "TaskGroupID": 231
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 30,
+    "TaskGroupID": 232
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 30,
+    "TaskGroupID": 233
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 30,
+    "TaskGroupID": 234
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 30,
+    "TaskGroupID": 235
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 30,
+    "TaskGroupID": 236
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 30,
+    "TaskGroupID": 237
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 31,
+    "TaskGroupID": 238
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 31,
+    "TaskGroupID": 239
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 31,
+    "TaskGroupID": 240
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 31,
+    "TaskGroupID": 241
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 31,
+    "TaskGroupID": 242
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 31,
+    "TaskGroupID": 243
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 31,
+    "TaskGroupID": 244
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 32,
+    "TaskGroupID": 245
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 32,
+    "TaskGroupID": 246
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 32,
+    "TaskGroupID": 247
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 32,
+    "TaskGroupID": 248
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 32,
+    "TaskGroupID": 249
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 32,
+    "TaskGroupID": 250
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 32,
+    "TaskGroupID": 251
+  },
+  {
+    "WeekIndex": 8,
+    "SeasonID": 32,
+    "TaskGroupID": 252
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 33,
+    "TaskGroupID": 253
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 33,
+    "TaskGroupID": 254
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 33,
+    "TaskGroupID": 255
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 33,
+    "TaskGroupID": 256
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 33,
+    "TaskGroupID": 257
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 33,
+    "TaskGroupID": 258
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 33,
+    "TaskGroupID": 259
+  },
+  {
+    "WeekIndex": 8,
+    "SeasonID": 33,
+    "TaskGroupID": 260
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 34,
+    "TaskGroupID": 261
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 34,
+    "TaskGroupID": 262
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 34,
+    "TaskGroupID": 263
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 34,
+    "TaskGroupID": 264
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 34,
+    "TaskGroupID": 265
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 34,
+    "TaskGroupID": 266
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 34,
+    "TaskGroupID": 267
+  },
+  {
+    "WeekIndex": 8,
+    "SeasonID": 34,
+    "TaskGroupID": 268
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 35,
+    "TaskGroupID": 269
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 35,
+    "TaskGroupID": 270
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 35,
+    "TaskGroupID": 271
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 35,
+    "TaskGroupID": 272
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 35,
+    "TaskGroupID": 273
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 35,
+    "TaskGroupID": 274
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 35,
+    "TaskGroupID": 275
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 36,
+    "TaskGroupID": 276
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 36,
+    "TaskGroupID": 277
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 36,
+    "TaskGroupID": 278
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 36,
+    "TaskGroupID": 279
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 36,
+    "TaskGroupID": 280
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 36,
+    "TaskGroupID": 281
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 36,
+    "TaskGroupID": 282
+  },
+  {
+    "WeekIndex": 8,
+    "SeasonID": 36,
+    "TaskGroupID": 283
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 37,
+    "TaskGroupID": 284
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 37,
+    "TaskGroupID": 285
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 37,
+    "TaskGroupID": 286
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 37,
+    "TaskGroupID": 287
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 37,
+    "TaskGroupID": 288
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 37,
+    "TaskGroupID": 289
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 37,
+    "TaskGroupID": 290
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 38,
+    "TaskGroupID": 291
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 38,
+    "TaskGroupID": 292
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 38,
+    "TaskGroupID": 293
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 38,
+    "TaskGroupID": 294
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 38,
+    "TaskGroupID": 295
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 38,
+    "TaskGroupID": 296
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 38,
+    "TaskGroupID": 297
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 39,
+    "TaskGroupID": 298
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 39,
+    "TaskGroupID": 299
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 39,
+    "TaskGroupID": 300
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 39,
+    "TaskGroupID": 301
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 39,
+    "TaskGroupID": 302
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 39,
+    "TaskGroupID": 303
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 39,
+    "TaskGroupID": 304
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 40,
+    "TaskGroupID": 305
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 40,
+    "TaskGroupID": 306
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 40,
+    "TaskGroupID": 307
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 40,
+    "TaskGroupID": 308
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 40,
+    "TaskGroupID": 309
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 40,
+    "TaskGroupID": 310
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 40,
+    "TaskGroupID": 311
+  },
+  {
+    "WeekIndex": 8,
+    "SeasonID": 40,
+    "TaskGroupID": 312
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 41,
+    "TaskGroupID": 313
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 41,
+    "TaskGroupID": 314
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 41,
+    "TaskGroupID": 315
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 41,
+    "TaskGroupID": 316
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 41,
+    "TaskGroupID": 317
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 41,
+    "TaskGroupID": 318
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 41,
+    "TaskGroupID": 319
+  },
+  {
+    "WeekIndex": 8,
+    "SeasonID": 41,
+    "TaskGroupID": 320
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 42,
+    "TaskGroupID": 321
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 42,
+    "TaskGroupID": 322
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 42,
+    "TaskGroupID": 323
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 42,
+    "TaskGroupID": 324
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 42,
+    "TaskGroupID": 325
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 42,
+    "TaskGroupID": 326
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 42,
+    "TaskGroupID": 327
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 43,
+    "TaskGroupID": 328
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 43,
+    "TaskGroupID": 329
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 43,
+    "TaskGroupID": 330
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 43,
+    "TaskGroupID": 331
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 43,
+    "TaskGroupID": 332
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 43,
+    "TaskGroupID": 333
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 43,
+    "TaskGroupID": 334
+  },
+  {
+    "WeekIndex": 8,
+    "SeasonID": 43,
+    "TaskGroupID": 335
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 44,
+    "TaskGroupID": 336
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 44,
+    "TaskGroupID": 337
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 44,
+    "TaskGroupID": 338
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 44,
+    "TaskGroupID": 339
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 44,
+    "TaskGroupID": 340
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 44,
+    "TaskGroupID": 341
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 44,
+    "TaskGroupID": 342
+  },
+  {
+    "WeekIndex": 8,
+    "SeasonID": 44,
+    "TaskGroupID": 343
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 45,
+    "TaskGroupID": 344
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 45,
+    "TaskGroupID": 345
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 45,
+    "TaskGroupID": 346
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 45,
+    "TaskGroupID": 347
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 45,
+    "TaskGroupID": 348
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 45,
+    "TaskGroupID": 349
+  },
+  {
+    "WeekIndex": 7,
+    "SeasonID": 45,
+    "TaskGroupID": 350
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 46,
+    "TaskGroupID": 351
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 46,
+    "TaskGroupID": 352
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 46,
+    "TaskGroupID": 353
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 46,
+    "TaskGroupID": 354
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 47,
+    "TaskGroupID": 355
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 47,
+    "TaskGroupID": 356
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 47,
+    "TaskGroupID": 357
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 47,
+    "TaskGroupID": 358
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 47,
+    "TaskGroupID": 359
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 47,
+    "TaskGroupID": 360
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 48,
+    "TaskGroupID": 361
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 48,
+    "TaskGroupID": 362
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 48,
+    "TaskGroupID": 363
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 48,
+    "TaskGroupID": 364
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 48,
+    "TaskGroupID": 365
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 49,
+    "TaskGroupID": 366
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 49,
+    "TaskGroupID": 367
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 49,
+    "TaskGroupID": 368
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 49,
+    "TaskGroupID": 369
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 49,
+    "TaskGroupID": 370
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 49,
+    "TaskGroupID": 371
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 50,
+    "TaskGroupID": 372
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 50,
+    "TaskGroupID": 373
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 50,
+    "TaskGroupID": 374
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 50,
+    "TaskGroupID": 375
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 50,
+    "TaskGroupID": 376
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 51,
+    "TaskGroupID": 377
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 51,
+    "TaskGroupID": 378
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 51,
+    "TaskGroupID": 379
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 51,
+    "TaskGroupID": 380
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 51,
+    "TaskGroupID": 381
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 52,
+    "TaskGroupID": 382
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 52,
+    "TaskGroupID": 383
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 52,
+    "TaskGroupID": 384
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 52,
+    "TaskGroupID": 385
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 52,
+    "TaskGroupID": 386
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 53,
+    "TaskGroupID": 387
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 53,
+    "TaskGroupID": 388
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 53,
+    "TaskGroupID": 389
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 53,
+    "TaskGroupID": 390
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 53,
+    "TaskGroupID": 391
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 54,
+    "TaskGroupID": 392
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 54,
+    "TaskGroupID": 393
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 54,
+    "TaskGroupID": 394
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 54,
+    "TaskGroupID": 395
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 54,
+    "TaskGroupID": 396
+  },
+  {
+    "WeekIndex": 6,
+    "SeasonID": 54,
+    "TaskGroupID": 397
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 55,
+    "TaskGroupID": 398
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 55,
+    "TaskGroupID": 399
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 55,
+    "TaskGroupID": 400
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 55,
+    "TaskGroupID": 401
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 55,
+    "TaskGroupID": 402
+  },
+  {
+    "WeekIndex": 1,
+    "SeasonID": 56,
+    "TaskGroupID": 403
+  },
+  {
+    "WeekIndex": 2,
+    "SeasonID": 56,
+    "TaskGroupID": 404
+  },
+  {
+    "WeekIndex": 3,
+    "SeasonID": 56,
+    "TaskGroupID": 405
+  },
+  {
+    "WeekIndex": 4,
+    "SeasonID": 56,
+    "TaskGroupID": 406
+  },
+  {
+    "WeekIndex": 5,
+    "SeasonID": 56,
+    "TaskGroupID": 407
+  }
+]

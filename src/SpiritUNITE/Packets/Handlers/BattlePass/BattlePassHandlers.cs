@@ -1,90 +1,132 @@
-using Microsoft.Extensions.Logging;
 using SpiritUNITE.Game.BattlePass;
-using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers.BattlePass;
 
-public sealed class BattlePassHandlers(
-    RoleInfoStore roles,
-    GameData gameData,
-    TimeProvider clock,
-    ILogger<BattlePassHandlers> logger)
+public sealed class BattlePassHandlers(RoleInfoStore roles, BattlePassManager battlePass)
 {
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetBattlePassReq)]
-    public GamePacket[] OnGetBattlePassReq(GamePacket request)
+    public async Task<GamePacket[]> OnGetBattlePassReq(GamePacket request)
     {
         pbCSGetBattlePassReq.Parser.ParseFrom(request.PkgData);
-        roles.Require(request.Uid);
-        var now = clock.GetUtcNow();
-        var current = BattlePassSeasons.FindCurrentSeason(gameData, now);
+        var role = roles.Require(request.Uid);
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetBattlePassRsp, new pbSCGetBattlePassRsp
         {
             ResultInfo = new pbResultInfo(),
-            BattlePassInfo = BattlePassSeasons.BuildStartingInfo(current, now),
-            BPTaskRefreshInfo = new pbCSDT_BATTLE_PASS_TASK_REFRESH_INFO(),
+            BattlePassInfo = await battlePass.BuildBattlePassInfoAsync(role),
+            BPTaskRefreshInfo = BattlePassManager.BuildTaskRefreshInfo(),
         })];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidBattlePassLevelRewardReq)]
-    public GamePacket[] OnBattlePassLevelRewardReq(GamePacket request)
+    public async Task<GamePacket[]> OnBattlePassLevelRewardReq(GamePacket request)
     {
         var claim = pbCSBattlePassLevelRewardReq.Parser.ParseFrom(request.PkgData);
-        roles.Require(request.Uid);
-        var result = RefuseLevelReward(request.Uid, "level reward");
-        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidBattlePassLevelRewardRsp, new pbSCBattlePassLevelRewardRsp
-        {
-            ResultInfo = new pbResultInfo { ResultId = (int)result },
-            Type = claim.Type,
-            Level = claim.Level,
-        })];
+        var role = roles.Require(request.Uid);
+        var outcome = await battlePass.ClaimLevelRewardAsync(role, claim.Type, claim.Level);
+        return
+        [
+            .. await BuildLevelRewardPacketsAsync(request, role, outcome),
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidBattlePassLevelRewardRsp, new pbSCBattlePassLevelRewardRsp
+            {
+                ResultInfo = new pbResultInfo { ResultId = (int)outcome.Result },
+                Type = claim.Type,
+                Level = claim.Level,
+            }),
+        ];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetBattlePassLevelRewardBatchReq)]
-    public GamePacket[] OnGetBattlePassLevelRewardBatchReq(GamePacket request)
+    public async Task<GamePacket[]> OnGetBattlePassLevelRewardBatchReq(GamePacket request)
     {
         pbCSGetBattlePassLevelRewardBatchReq.Parser.ParseFrom(request.PkgData);
-        roles.Require(request.Uid);
-        var result = RefuseLevelReward(request.Uid, "batch level reward");
-        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidBattlePassLevelRewardBatchRsp, new pbSCBattlePassLevelRewardBatchRsp
-        {
-            ResultInfo = new pbResultInfo { ResultId = (int)result },
-        })];
+        var role = roles.Require(request.Uid);
+        var outcome = await battlePass.ClaimAllLevelRewardsAsync(role);
+        return
+        [
+            .. await BuildLevelRewardPacketsAsync(request, role, outcome),
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidBattlePassLevelRewardBatchRsp, new pbSCBattlePassLevelRewardBatchRsp
+            {
+                ResultInfo = new pbResultInfo { ResultId = (int)outcome.Result },
+            }),
+        ];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidBattlePassAdditionTreasureReq)]
-    public GamePacket[] OnBattlePassAdditionTreasureReq(GamePacket request)
+    public async Task<GamePacket[]> OnBattlePassAdditionTreasureReq(GamePacket request)
     {
         pbCSBattlePassAdditionTreasureReq.Parser.ParseFrom(request.PkgData);
-        roles.Require(request.Uid);
-        var result = Refuse(request.Uid, "addition treasure", PB_ENUM_RES_ERROR_CODE.PbErrBattlePassAdditionTreasureNoReward);
-        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidBattlePassAdditionTreasureRsp, new pbSCBattlePassAdditionTreasureRsp
-        {
-            ResultInfo = new pbResultInfo { ResultId = (int)result },
-        })];
+        var role = roles.Require(request.Uid);
+        var outcome = await battlePass.OpenAdditionTreasureAsync(role);
+        return
+        [
+            .. await BuildChangePacketsAsync(request, role, outcome, PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonBattlepassAddTreasure),
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidBattlePassAdditionTreasureRsp, new pbSCBattlePassAdditionTreasureRsp
+            {
+                ResultInfo = new pbResultInfo { ResultId = (int)outcome.Result },
+            }),
+        ];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidBattlePassBuyLevelReq)]
-    public GamePacket[] OnBattlePassBuyLevelReq(GamePacket request)
+    public async Task<GamePacket[]> OnBattlePassBuyLevelReq(GamePacket request)
     {
         var purchase = pbCSBattlePassBuyLevelReq.Parser.ParseFrom(request.PkgData);
-        roles.Require(request.Uid);
-        var result = purchase.TargetLevel <= BattlePassSeasons.StartingLevel
-            ? PB_ENUM_RES_ERROR_CODE.PbErrBattlePassInvalidTargetLevel
-            : Refuse(request.Uid, "level purchase", PB_ENUM_RES_ERROR_CODE.PbErrBattlePassInvalidTargetLevel);
-        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidBattlePassBuyLevelRsp, new pbSCBattlePassBuyLevelRsp
-        {
-            ResultInfo = new pbResultInfo { ResultId = (int)result },
-        })];
+        var role = roles.Require(request.Uid);
+        var outcome = await battlePass.BuyLevelAsync(role, purchase.TargetLevel);
+        return
+        [
+            .. await BuildChangePacketsAsync(request, role, outcome, PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonBattlepassBuyLevel),
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidBattlePassBuyLevelRsp, new pbSCBattlePassBuyLevelRsp
+            {
+                ResultInfo = new pbResultInfo { ResultId = (int)outcome.Result },
+            }),
+        ];
+    }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, BattlePassPurchaseMessages.PbCsidBattlePassBuyPassReq)]
+    public async Task<GamePacket[]> OnBattlePassBuyPassReq(GamePacket request)
+    {
+        var purchase = BattlePassPurchaseMessages.ParseReq(request.PkgData);
+        var role = roles.Require(request.Uid);
+        var outcome = await battlePass.BuyPassAsync(role, purchase.PassType, purchase.ResList);
+        return
+        [
+            .. await BuildChangePacketsAsync(request, role, outcome, PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonBuypass),
+            new GamePacket(
+                BattlePassPurchaseMessages.PbScidBattlePassBuyPassRsp,
+                request.Uid,
+                request.ClientSeq,
+                BattlePassPurchaseMessages.BuildRsp(
+                    new pbResultInfo { ResultId = (int)outcome.Result },
+                    outcome.Succeeded ? purchase.PassType : BattlePassSeasons.FreePassType,
+                    outcome.Succeeded ? purchase.ResList : [])),
+        ];
+    }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, BattlePassPurchaseMessages.PbCsidBattlePassPackBuyReq)]
+    public async Task<GamePacket[]> OnBattlePassPackBuyReq(GamePacket request)
+    {
+        var purchase = BattlePassPurchaseMessages.ParsePackReq(request.PkgData);
+        var role = roles.Require(request.Uid);
+        var outcome = await battlePass.BuyLevelPackAsync(role, purchase.PackBuyType);
+        return
+        [
+            .. await BuildChangePacketsAsync(request, role, outcome, PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonBattlepassBuyLevel),
+            new GamePacket(
+                BattlePassPurchaseMessages.PbScidBattlePassPackBuyRsp,
+                request.Uid,
+                request.ClientSeq,
+                BattlePassPurchaseMessages.BuildPackRsp(new pbResultInfo { ResultId = (int)outcome.Result }, purchase.PackBuyType)),
+        ];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidSetBattlePassVideoPlayedReq)]
-    public GamePacket[] OnSetBattlePassVideoPlayedReq(GamePacket request)
+    public async Task<GamePacket[]> OnSetBattlePassVideoPlayedReq(GamePacket request)
     {
         pbCSSetBattlePassVideoPlayedReq.Parser.ParseFrom(request.PkgData);
-        roles.Require(request.Uid);
-        var result = Refuse(request.Uid, "video played flag", PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc);
+        var result = await battlePass.SetVideoPlayedAsync(roles.Require(request.Uid));
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidSetBattlePassVideoPlayedRsp, new pbSCSetBattlePassVideoPlayedRsp
         {
             ResultInfo = new pbResultInfo { ResultId = (int)result },
@@ -95,8 +137,7 @@ public sealed class BattlePassHandlers(
     public GamePacket[] OnRefreshBattlePassTaskReq(GamePacket request)
     {
         var refresh = pbCSRefreshBattlePassTaskReq.Parser.ParseFrom(request.PkgData);
-        roles.Require(request.Uid);
-        var result = Refuse(request.Uid, $"task {refresh.TaskId} refresh", PB_ENUM_RES_ERROR_CODE.PbErrTaskNotExist);
+        var result = battlePass.RefuseTaskRefresh(roles.Require(request.Uid), refresh.TaskId);
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRefreshBattlePassTaskRsp, new pbSCRefreshBattlePassTaskRsp
         {
             ResultInfo = new pbResultInfo { ResultId = (int)result },
@@ -105,16 +146,24 @@ public sealed class BattlePassHandlers(
         })];
     }
 
-    private PB_ENUM_RES_ERROR_CODE RefuseLevelReward(ulong uid, string action) =>
-        Refuse(uid, action, PB_ENUM_RES_ERROR_CODE.PbErrBattlePassBatchGetLevelRewardNoReward);
+    private async Task<GamePacket[]> BuildLevelRewardPacketsAsync(GamePacket request, LMNRoleInfo role, BattlePassOutcome outcome) =>
+        outcome.Commit?.Stored is { } stored
+            ?
+            [
+                .. await BuildChangePacketsAsync(request, role, outcome, PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonBattlepassLevelReward),
+                request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidBattlePassLevelRewardInfoNtf, new pbSCBattlePassLevelRewardInfoNtf
+                {
+                    RewardInfo = battlePass.BuildLevelRewardInfo(stored),
+                }),
+            ]
+            : [];
 
-    private PB_ENUM_RES_ERROR_CODE Refuse(ulong uid, string action, PB_ENUM_RES_ERROR_CODE inSeasonResult)
-    {
-        var current = BattlePassSeasons.FindCurrentSeason(gameData, clock.GetUtcNow());
-        var result = current.IsInProcess ? inSeasonResult : PB_ENUM_RES_ERROR_CODE.PbErrBattlePassInvalidSeasonState;
-        logger.LogInformation(
-            "Battle pass {Action} from uid {Uid} answered {Result}: season {SeasonID} is {SeasonState} and battle pass progress is not tracked",
-            action, uid, current.Season.SeasonID, current.SeasonState, result);
-        return result;
-    }
+    private async Task<GamePacket[]> BuildChangePacketsAsync(
+        GamePacket request,
+        LMNRoleInfo role,
+        BattlePassOutcome outcome,
+        PB_ENUM_ENM_RESOURCE_CHG_REASON reason) =>
+        outcome.Commit is { } commit
+            ? [.. (await battlePass.BuildChangePacketsAsync(role, commit, reason)).Select(packet => packet with { Uid = request.Uid, ClientSeq = request.ClientSeq })]
+            : [];
 }

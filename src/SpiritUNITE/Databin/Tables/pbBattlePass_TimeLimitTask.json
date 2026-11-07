@@ -1,0 +1,974 @@
+[
+  {
+    "TimeLimitTaskID": 20000825,
+    "BeginTime": "20220120000000",
+    "ID": 1,
+    "EndTime": "20220130235959"
+  },
+  {
+    "TimeLimitTaskID": 20000831,
+    "BeginTime": "20220131000000",
+    "ID": 2,
+    "EndTime": "20220210235959"
+  },
+  {
+    "TimeLimitTaskID": 20001088,
+    "BeginTime": "20220529000000",
+    "ID": 3,
+    "EndTime": "20220608235959"
+  },
+  {
+    "TimeLimitTaskID": 20001217,
+    "BeginTime": "20220710000000",
+    "ID": 4,
+    "EndTime": "20220720235959"
+  },
+  {
+    "TimeLimitTaskID": 20001230,
+    "BeginTime": "20220821000000",
+    "ID": 5,
+    "EndTime": "20220901235959"
+  },
+  {
+    "TimeLimitTaskID": 20001482,
+    "BeginTime": "20221002000000",
+    "ID": 6,
+    "EndTime": "20221012235959"
+  },
+  {
+    "TimeLimitTaskID": 20001500,
+    "BeginTime": "20221120000000",
+    "ID": 7,
+    "EndTime": "20221130235959"
+  },
+  {
+    "TimeLimitTaskID": 20001510,
+    "BeginTime": "20221215000000",
+    "ID": 8,
+    "EndTime": "20221225235959"
+  },
+  {
+    "TimeLimitTaskID": 20001520,
+    "BeginTime": "20230221000000",
+    "ID": 9,
+    "EndTime": "20230302235959"
+  },
+  {
+    "TimeLimitTaskID": 20002199,
+    "BeginTime": "20230411000000",
+    "ID": 10,
+    "EndTime": "20230420235959"
+  },
+  {
+    "TimeLimitTaskID": 20002347,
+    "BeginTime": "20230602000000",
+    "ID": 11,
+    "EndTime": "20230611235959"
+  },
+  {
+    "TimeLimitTaskID": 20002466,
+    "BeginTime": "20230711000000",
+    "ID": 12,
+    "EndTime": "20230720235959"
+  },
+  {
+    "TimeLimitTaskID": 20002602,
+    "BeginTime": "20230828000000",
+    "ID": 13,
+    "EndTime": "20230906235959"
+  },
+  {
+    "TimeLimitTaskID": 20002797,
+    "BeginTime": "20231012000000",
+    "ID": 14,
+    "EndTime": "20231022235959"
+  },
+  {
+    "TimeLimitTaskID": 20002927,
+    "BeginTime": "20231124000000",
+    "ID": 15,
+    "EndTime": "20231204235959"
+  },
+  {
+    "TimeLimitTaskID": 20003054,
+    "BeginTime": "20240105000000",
+    "ID": 16,
+    "EndTime": "20240115235959"
+  },
+  {
+    "TimeLimitTaskID": 20003180,
+    "BeginTime": "20240217000000",
+    "ID": 17,
+    "EndTime": "20240227035959"
+  },
+  {
+    "TimeLimitTaskID": 20003308,
+    "BeginTime": "20240407000000",
+    "ID": 18,
+    "EndTime": "20240416235959"
+  },
+  {
+    "TimeLimitTaskID": 20003455,
+    "BeginTime": "20240528000000",
+    "ID": 19,
+    "EndTime": "20240606065959"
+  },
+  {
+    "TimeLimitTaskID": 20003603,
+    "BeginTime": "20240716000000",
+    "ID": 20,
+    "EndTime": "20240725235959"
+  },
+  {
+    "TimeLimitTaskID": 20003751,
+    "BeginTime": "20240827000000",
+    "ID": 21,
+    "EndTime": "20240905035959"
+  },
+  {
+    "TimeLimitTaskID": 20003886,
+    "BeginTime": "20241014000000",
+    "ID": 22,
+    "EndTime": "20241023235959"
+  },
+  {
+    "SeasonID": 37,
+    "TimeLimitTaskID": 20004034,
+    "BeginTime": "20241125000000",
+    "ID": 23,
+    "EndTime": "20241205035959"
+  },
+  {
+    "SeasonID": 37,
+    "TimeLimitTaskID": 20004035,
+    "BeginTime": "20241125000000",
+    "ID": 24,
+    "EndTime": "20241205035959"
+  },
+  {
+    "SeasonID": 37,
+    "TimeLimitTaskID": 20004036,
+    "BeginTime": "20241125000000",
+    "ID": 25,
+    "EndTime": "20241205035959"
+  },
+  {
+    "SeasonID": 37,
+    "TimeLimitTaskID": 20004037,
+    "BeginTime": "20241125000000",
+    "ID": 26,
+    "EndTime": "20241205035959"
+  },
+  {
+    "SeasonID": 37,
+    "TimeLimitTaskID": 20004038,
+    "BeginTime": "20241125000000",
+    "ID": 27,
+    "EndTime": "20241205035959"
+  },
+  {
+    "SeasonID": 37,
+    "TimeLimitTaskID": 20004039,
+    "BeginTime": "20241125000000",
+    "ID": 28,
+    "EndTime": "20241205035959"
+  },
+  {
+    "SeasonID": 38,
+    "TimeLimitTaskID": 20004169,
+    "BeginTime": "20250107000000",
+    "ID": 29,
+    "EndTime": "20250117065959"
+  },
+  {
+    "SeasonID": 38,
+    "TimeLimitTaskID": 20004170,
+    "BeginTime": "20250107000000",
+    "ID": 30,
+    "EndTime": "20250117065959"
+  },
+  {
+    "SeasonID": 38,
+    "TimeLimitTaskID": 20004171,
+    "BeginTime": "20250107000000",
+    "ID": 31,
+    "EndTime": "20250117065959"
+  },
+  {
+    "SeasonID": 38,
+    "TimeLimitTaskID": 20004172,
+    "BeginTime": "20250107000000",
+    "ID": 32,
+    "EndTime": "20250117065959"
+  },
+  {
+    "SeasonID": 38,
+    "TimeLimitTaskID": 20004173,
+    "BeginTime": "20250107000000",
+    "ID": 33,
+    "EndTime": "20250117065959"
+  },
+  {
+    "SeasonID": 38,
+    "TimeLimitTaskID": 20004174,
+    "BeginTime": "20250107000000",
+    "ID": 34,
+    "EndTime": "20250117065959"
+  },
+  {
+    "SeasonID": 39,
+    "TimeLimitTaskID": 20004304,
+    "BeginTime": "20250217000000",
+    "ID": 35,
+    "EndTime": "20250227035959"
+  },
+  {
+    "SeasonID": 39,
+    "TimeLimitTaskID": 20004305,
+    "BeginTime": "20250217000000",
+    "ID": 36,
+    "EndTime": "20250227035959"
+  },
+  {
+    "SeasonID": 39,
+    "TimeLimitTaskID": 20004306,
+    "BeginTime": "20250217000000",
+    "ID": 37,
+    "EndTime": "20250227035959"
+  },
+  {
+    "SeasonID": 39,
+    "TimeLimitTaskID": 20004307,
+    "BeginTime": "20250217000000",
+    "ID": 38,
+    "EndTime": "20250227035959"
+  },
+  {
+    "SeasonID": 39,
+    "TimeLimitTaskID": 20004308,
+    "BeginTime": "20250217000000",
+    "ID": 39,
+    "EndTime": "20250227035959"
+  },
+  {
+    "SeasonID": 39,
+    "TimeLimitTaskID": 20004309,
+    "BeginTime": "20250217000000",
+    "ID": 40,
+    "EndTime": "20250227035959"
+  },
+  {
+    "SeasonID": 40,
+    "TimeLimitTaskID": 20004452,
+    "BeginTime": "20250407000000",
+    "ID": 41,
+    "EndTime": "20250417065959"
+  },
+  {
+    "SeasonID": 40,
+    "TimeLimitTaskID": 20004453,
+    "BeginTime": "20250407000000",
+    "ID": 42,
+    "EndTime": "20250417065959"
+  },
+  {
+    "SeasonID": 40,
+    "TimeLimitTaskID": 20004454,
+    "BeginTime": "20250407000000",
+    "ID": 43,
+    "EndTime": "20250417065959"
+  },
+  {
+    "SeasonID": 40,
+    "TimeLimitTaskID": 20004455,
+    "BeginTime": "20250407000000",
+    "ID": 44,
+    "EndTime": "20250417065959"
+  },
+  {
+    "SeasonID": 40,
+    "TimeLimitTaskID": 20004456,
+    "BeginTime": "20250407000000",
+    "ID": 45,
+    "EndTime": "20250417065959"
+  },
+  {
+    "SeasonID": 40,
+    "TimeLimitTaskID": 20004457,
+    "BeginTime": "20250407000000",
+    "ID": 46,
+    "EndTime": "20250417065959"
+  },
+  {
+    "SeasonID": 41,
+    "TimeLimitTaskID": 20004600,
+    "BeginTime": "20250526000000",
+    "ID": 47,
+    "EndTime": "20250605035959"
+  },
+  {
+    "SeasonID": 41,
+    "TimeLimitTaskID": 20004601,
+    "BeginTime": "20250526000000",
+    "ID": 48,
+    "EndTime": "20250605035959"
+  },
+  {
+    "SeasonID": 41,
+    "TimeLimitTaskID": 20004602,
+    "BeginTime": "20250526000000",
+    "ID": 49,
+    "EndTime": "20250605035959"
+  },
+  {
+    "SeasonID": 41,
+    "TimeLimitTaskID": 20004603,
+    "BeginTime": "20250526000000",
+    "ID": 50,
+    "EndTime": "20250605035959"
+  },
+  {
+    "SeasonID": 41,
+    "TimeLimitTaskID": 20004604,
+    "BeginTime": "20250526000000",
+    "ID": 51,
+    "EndTime": "20250605035959"
+  },
+  {
+    "SeasonID": 41,
+    "TimeLimitTaskID": 20004605,
+    "BeginTime": "20250526000000",
+    "ID": 52,
+    "EndTime": "20250605035959"
+  },
+  {
+    "SeasonID": 42,
+    "TimeLimitTaskID": 20004735,
+    "BeginTime": "20250708000000",
+    "ID": 53,
+    "EndTime": "20250718065959"
+  },
+  {
+    "SeasonID": 42,
+    "TimeLimitTaskID": 20004736,
+    "BeginTime": "20250708000000",
+    "ID": 54,
+    "EndTime": "20250718065959"
+  },
+  {
+    "SeasonID": 42,
+    "TimeLimitTaskID": 20004737,
+    "BeginTime": "20250708000000",
+    "ID": 55,
+    "EndTime": "20250718065959"
+  },
+  {
+    "SeasonID": 42,
+    "TimeLimitTaskID": 20004738,
+    "BeginTime": "20250708000000",
+    "ID": 56,
+    "EndTime": "20250718065959"
+  },
+  {
+    "SeasonID": 42,
+    "TimeLimitTaskID": 20004739,
+    "BeginTime": "20250708000000",
+    "ID": 57,
+    "EndTime": "20250718065959"
+  },
+  {
+    "SeasonID": 42,
+    "TimeLimitTaskID": 20004740,
+    "BeginTime": "20250708000000",
+    "ID": 58,
+    "EndTime": "20250718065959"
+  },
+  {
+    "SeasonID": 43,
+    "TimeLimitTaskID": 20004883,
+    "BeginTime": "20250825000000",
+    "ID": 59,
+    "EndTime": "20250904035959"
+  },
+  {
+    "SeasonID": 43,
+    "TimeLimitTaskID": 20004884,
+    "BeginTime": "20250825000000",
+    "ID": 60,
+    "EndTime": "20250904035959"
+  },
+  {
+    "SeasonID": 43,
+    "TimeLimitTaskID": 20004885,
+    "BeginTime": "20250825000000",
+    "ID": 61,
+    "EndTime": "20250904035959"
+  },
+  {
+    "SeasonID": 43,
+    "TimeLimitTaskID": 20004886,
+    "BeginTime": "20250825000000",
+    "ID": 62,
+    "EndTime": "20250904035959"
+  },
+  {
+    "SeasonID": 43,
+    "TimeLimitTaskID": 20004887,
+    "BeginTime": "20250825000000",
+    "ID": 63,
+    "EndTime": "20250904035959"
+  },
+  {
+    "SeasonID": 43,
+    "TimeLimitTaskID": 20004888,
+    "BeginTime": "20250825000000",
+    "ID": 64,
+    "EndTime": "20250904035959"
+  },
+  {
+    "SeasonID": 44,
+    "TimeLimitTaskID": 20005031,
+    "BeginTime": "20251013000000",
+    "ID": 65,
+    "EndTime": "20251023065959"
+  },
+  {
+    "SeasonID": 44,
+    "TimeLimitTaskID": 20005032,
+    "BeginTime": "20251013000000",
+    "ID": 66,
+    "EndTime": "20251023065959"
+  },
+  {
+    "SeasonID": 44,
+    "TimeLimitTaskID": 20005033,
+    "BeginTime": "20251013000000",
+    "ID": 67,
+    "EndTime": "20251023065959"
+  },
+  {
+    "SeasonID": 44,
+    "TimeLimitTaskID": 20005034,
+    "BeginTime": "20251013000000",
+    "ID": 68,
+    "EndTime": "20251023065959"
+  },
+  {
+    "SeasonID": 44,
+    "TimeLimitTaskID": 20005035,
+    "BeginTime": "20251013000000",
+    "ID": 69,
+    "EndTime": "20251023065959"
+  },
+  {
+    "SeasonID": 44,
+    "TimeLimitTaskID": 20005036,
+    "BeginTime": "20251013000000",
+    "ID": 70,
+    "EndTime": "20251023065959"
+  },
+  {
+    "SeasonID": 45,
+    "TimeLimitTaskID": 20005166,
+    "BeginTime": "20251124000000",
+    "ID": 71,
+    "EndTime": "20251204035959"
+  },
+  {
+    "SeasonID": 45,
+    "TimeLimitTaskID": 20005167,
+    "BeginTime": "20251124000000",
+    "ID": 72,
+    "EndTime": "20251204035959"
+  },
+  {
+    "SeasonID": 45,
+    "TimeLimitTaskID": 20005168,
+    "BeginTime": "20251124000000",
+    "ID": 73,
+    "EndTime": "20251204035959"
+  },
+  {
+    "SeasonID": 45,
+    "TimeLimitTaskID": 20005169,
+    "BeginTime": "20251124000000",
+    "ID": 74,
+    "EndTime": "20251204035959"
+  },
+  {
+    "SeasonID": 45,
+    "TimeLimitTaskID": 20005170,
+    "BeginTime": "20251124000000",
+    "ID": 75,
+    "EndTime": "20251204035959"
+  },
+  {
+    "SeasonID": 45,
+    "TimeLimitTaskID": 20005171,
+    "BeginTime": "20251124000000",
+    "ID": 76,
+    "EndTime": "20251204035959"
+  },
+  {
+    "SeasonID": 46,
+    "TimeLimitTaskID": 20005262,
+    "BeginTime": "20251219000000",
+    "ID": 77,
+    "EndTime": "20251225235959"
+  },
+  {
+    "SeasonID": 46,
+    "TimeLimitTaskID": 20005263,
+    "BeginTime": "20251219000000",
+    "ID": 78,
+    "EndTime": "20251225235959"
+  },
+  {
+    "SeasonID": 46,
+    "TimeLimitTaskID": 20005264,
+    "BeginTime": "20251219000000",
+    "ID": 79,
+    "EndTime": "20251225235959"
+  },
+  {
+    "SeasonID": 46,
+    "TimeLimitTaskID": 20005265,
+    "BeginTime": "20251219000000",
+    "ID": 80,
+    "EndTime": "20251225235959"
+  },
+  {
+    "SeasonID": 46,
+    "TimeLimitTaskID": 20005266,
+    "BeginTime": "20251219000000",
+    "ID": 81,
+    "EndTime": "20251225235959"
+  },
+  {
+    "SeasonID": 46,
+    "TimeLimitTaskID": 20005267,
+    "BeginTime": "20251219000000",
+    "ID": 82,
+    "EndTime": "20251225235959"
+  },
+  {
+    "SeasonID": 47,
+    "TimeLimitTaskID": 20005384,
+    "BeginTime": "20260119000000",
+    "ID": 83,
+    "EndTime": "20260129235959"
+  },
+  {
+    "SeasonID": 47,
+    "TimeLimitTaskID": 20005385,
+    "BeginTime": "20260119000000",
+    "ID": 84,
+    "EndTime": "20260129235959"
+  },
+  {
+    "SeasonID": 47,
+    "TimeLimitTaskID": 20005386,
+    "BeginTime": "20260119000000",
+    "ID": 85,
+    "EndTime": "20260129235959"
+  },
+  {
+    "SeasonID": 47,
+    "TimeLimitTaskID": 20005387,
+    "BeginTime": "20260119000000",
+    "ID": 86,
+    "EndTime": "20260129235959"
+  },
+  {
+    "SeasonID": 47,
+    "TimeLimitTaskID": 20005388,
+    "BeginTime": "20260119000000",
+    "ID": 87,
+    "EndTime": "20260129235959"
+  },
+  {
+    "SeasonID": 47,
+    "TimeLimitTaskID": 20005389,
+    "BeginTime": "20260119000000",
+    "ID": 88,
+    "EndTime": "20260129235959"
+  },
+  {
+    "SeasonID": 48,
+    "TimeLimitTaskID": 20005493,
+    "BeginTime": "20260219000000",
+    "ID": 89,
+    "EndTime": "20260228235959"
+  },
+  {
+    "SeasonID": 48,
+    "TimeLimitTaskID": 20005494,
+    "BeginTime": "20260219000000",
+    "ID": 90,
+    "EndTime": "20260228235959"
+  },
+  {
+    "SeasonID": 48,
+    "TimeLimitTaskID": 20005495,
+    "BeginTime": "20260219000000",
+    "ID": 91,
+    "EndTime": "20260228235959"
+  },
+  {
+    "SeasonID": 48,
+    "TimeLimitTaskID": 20005496,
+    "BeginTime": "20260219000000",
+    "ID": 92,
+    "EndTime": "20260228235959"
+  },
+  {
+    "SeasonID": 48,
+    "TimeLimitTaskID": 20005497,
+    "BeginTime": "20260219000000",
+    "ID": 93,
+    "EndTime": "20260228235959"
+  },
+  {
+    "SeasonID": 48,
+    "TimeLimitTaskID": 20005498,
+    "BeginTime": "20260219000000",
+    "ID": 94,
+    "EndTime": "20260228235959"
+  },
+  {
+    "SeasonID": 49,
+    "TimeLimitTaskID": 20005615,
+    "BeginTime": "20260322000000",
+    "ID": 95,
+    "EndTime": "20260331235959"
+  },
+  {
+    "SeasonID": 49,
+    "TimeLimitTaskID": 20005616,
+    "BeginTime": "20260322000000",
+    "ID": 96,
+    "EndTime": "20260331235959"
+  },
+  {
+    "SeasonID": 49,
+    "TimeLimitTaskID": 20005617,
+    "BeginTime": "20260322000000",
+    "ID": 97,
+    "EndTime": "20260331235959"
+  },
+  {
+    "SeasonID": 49,
+    "TimeLimitTaskID": 20005618,
+    "BeginTime": "20260322000000",
+    "ID": 98,
+    "EndTime": "20260331235959"
+  },
+  {
+    "SeasonID": 49,
+    "TimeLimitTaskID": 20005619,
+    "BeginTime": "20260322000000",
+    "ID": 99,
+    "EndTime": "20260331235959"
+  },
+  {
+    "SeasonID": 49,
+    "TimeLimitTaskID": 20005620,
+    "BeginTime": "20260322000000",
+    "ID": 100,
+    "EndTime": "20260331235959"
+  },
+  {
+    "SeasonID": 50,
+    "TimeLimitTaskID": 20005724,
+    "BeginTime": "20260421000000",
+    "ID": 101,
+    "EndTime": "20260430235959"
+  },
+  {
+    "SeasonID": 50,
+    "TimeLimitTaskID": 20005725,
+    "BeginTime": "20260421000000",
+    "ID": 102,
+    "EndTime": "20260430235959"
+  },
+  {
+    "SeasonID": 50,
+    "TimeLimitTaskID": 20005726,
+    "BeginTime": "20260421000000",
+    "ID": 103,
+    "EndTime": "20260430235959"
+  },
+  {
+    "SeasonID": 50,
+    "TimeLimitTaskID": 20005727,
+    "BeginTime": "20260421000000",
+    "ID": 104,
+    "EndTime": "20260430235959"
+  },
+  {
+    "SeasonID": 50,
+    "TimeLimitTaskID": 20005728,
+    "BeginTime": "20260421000000",
+    "ID": 105,
+    "EndTime": "20260430235959"
+  },
+  {
+    "SeasonID": 50,
+    "TimeLimitTaskID": 20005729,
+    "BeginTime": "20260421000000",
+    "ID": 106,
+    "EndTime": "20260430235959"
+  },
+  {
+    "SeasonID": 51,
+    "TimeLimitTaskID": 20005833,
+    "BeginTime": "20260522000000",
+    "ID": 107,
+    "EndTime": "20260531235959"
+  },
+  {
+    "SeasonID": 51,
+    "TimeLimitTaskID": 20005834,
+    "BeginTime": "20260522000000",
+    "ID": 108,
+    "EndTime": "20260531235959"
+  },
+  {
+    "SeasonID": 51,
+    "TimeLimitTaskID": 20005835,
+    "BeginTime": "20260522000000",
+    "ID": 109,
+    "EndTime": "20260531235959"
+  },
+  {
+    "SeasonID": 51,
+    "TimeLimitTaskID": 20005836,
+    "BeginTime": "20260522000000",
+    "ID": 110,
+    "EndTime": "20260531235959"
+  },
+  {
+    "SeasonID": 51,
+    "TimeLimitTaskID": 20005837,
+    "BeginTime": "20260522000000",
+    "ID": 111,
+    "EndTime": "20260531235959"
+  },
+  {
+    "SeasonID": 51,
+    "TimeLimitTaskID": 20005838,
+    "BeginTime": "20260522000000",
+    "ID": 112,
+    "EndTime": "20260531235959"
+  },
+  {
+    "SeasonID": 52,
+    "TimeLimitTaskID": 20005942,
+    "BeginTime": "20260621000000",
+    "ID": 113,
+    "EndTime": "20260630235959"
+  },
+  {
+    "SeasonID": 52,
+    "TimeLimitTaskID": 20005943,
+    "BeginTime": "20260621000000",
+    "ID": 114,
+    "EndTime": "20260630235959"
+  },
+  {
+    "SeasonID": 52,
+    "TimeLimitTaskID": 20005944,
+    "BeginTime": "20260621000000",
+    "ID": 115,
+    "EndTime": "20260630235959"
+  },
+  {
+    "SeasonID": 52,
+    "TimeLimitTaskID": 20005945,
+    "BeginTime": "20260621000000",
+    "ID": 116,
+    "EndTime": "20260630235959"
+  },
+  {
+    "SeasonID": 52,
+    "TimeLimitTaskID": 20005946,
+    "BeginTime": "20260621000000",
+    "ID": 117,
+    "EndTime": "20260630235959"
+  },
+  {
+    "SeasonID": 52,
+    "TimeLimitTaskID": 20005947,
+    "BeginTime": "20260621000000",
+    "ID": 118,
+    "EndTime": "20260630235959"
+  },
+  {
+    "SeasonID": 53,
+    "TimeLimitTaskID": 20006051,
+    "BeginTime": "20260722000000",
+    "ID": 119,
+    "EndTime": "20260731235959"
+  },
+  {
+    "SeasonID": 53,
+    "TimeLimitTaskID": 20006052,
+    "BeginTime": "20260722000000",
+    "ID": 120,
+    "EndTime": "20260731235959"
+  },
+  {
+    "SeasonID": 53,
+    "TimeLimitTaskID": 20006053,
+    "BeginTime": "20260722000000",
+    "ID": 121,
+    "EndTime": "20260731235959"
+  },
+  {
+    "SeasonID": 53,
+    "TimeLimitTaskID": 20006054,
+    "BeginTime": "20260722000000",
+    "ID": 122,
+    "EndTime": "20260731235959"
+  },
+  {
+    "SeasonID": 53,
+    "TimeLimitTaskID": 20006055,
+    "BeginTime": "20260722000000",
+    "ID": 123,
+    "EndTime": "20260731235959"
+  },
+  {
+    "SeasonID": 53,
+    "TimeLimitTaskID": 20006056,
+    "BeginTime": "20260722000000",
+    "ID": 124,
+    "EndTime": "20260731235959"
+  },
+  {
+    "SeasonID": 54,
+    "TimeLimitTaskID": 20006173,
+    "BeginTime": "20260822000000",
+    "ID": 125,
+    "EndTime": "20260831235959"
+  },
+  {
+    "SeasonID": 54,
+    "TimeLimitTaskID": 20006174,
+    "BeginTime": "20260822000000",
+    "ID": 126,
+    "EndTime": "20260831235959"
+  },
+  {
+    "SeasonID": 54,
+    "TimeLimitTaskID": 20006175,
+    "BeginTime": "20260822000000",
+    "ID": 127,
+    "EndTime": "20260831235959"
+  },
+  {
+    "SeasonID": 54,
+    "TimeLimitTaskID": 20006176,
+    "BeginTime": "20260822000000",
+    "ID": 128,
+    "EndTime": "20260831235959"
+  },
+  {
+    "SeasonID": 54,
+    "TimeLimitTaskID": 20006177,
+    "BeginTime": "20260822000000",
+    "ID": 129,
+    "EndTime": "20260831235959"
+  },
+  {
+    "SeasonID": 54,
+    "TimeLimitTaskID": 20006178,
+    "BeginTime": "20260822000000",
+    "ID": 130,
+    "EndTime": "20260831235959"
+  },
+  {
+    "SeasonID": 55,
+    "TimeLimitTaskID": 20006282,
+    "BeginTime": "20260921000000",
+    "ID": 131,
+    "EndTime": "20260930235959"
+  },
+  {
+    "SeasonID": 55,
+    "TimeLimitTaskID": 20006283,
+    "BeginTime": "20260921000000",
+    "ID": 132,
+    "EndTime": "20260930235959"
+  },
+  {
+    "SeasonID": 55,
+    "TimeLimitTaskID": 20006284,
+    "BeginTime": "20260921000000",
+    "ID": 133,
+    "EndTime": "20260930235959"
+  },
+  {
+    "SeasonID": 55,
+    "TimeLimitTaskID": 20006285,
+    "BeginTime": "20260921000000",
+    "ID": 134,
+    "EndTime": "20260930235959"
+  },
+  {
+    "SeasonID": 55,
+    "TimeLimitTaskID": 20006286,
+    "BeginTime": "20260921000000",
+    "ID": 135,
+    "EndTime": "20260930235959"
+  },
+  {
+    "SeasonID": 55,
+    "TimeLimitTaskID": 20006287,
+    "BeginTime": "20260921000000",
+    "ID": 136,
+    "EndTime": "20260930235959"
+  },
+  {
+    "SeasonID": 56,
+    "TimeLimitTaskID": 20006391,
+    "BeginTime": "20261022000000",
+    "ID": 137,
+    "EndTime": "20261031235959"
+  },
+  {
+    "SeasonID": 56,
+    "TimeLimitTaskID": 20006392,
+    "BeginTime": "20261022000000",
+    "ID": 138,
+    "EndTime": "20261031235959"
+  },
+  {
+    "SeasonID": 56,
+    "TimeLimitTaskID": 20006393,
+    "BeginTime": "20261022000000",
+    "ID": 139,
+    "EndTime": "20261031235959"
+  },
+  {
+    "SeasonID": 56,
+    "TimeLimitTaskID": 20006394,
+    "BeginTime": "20261022000000",
+    "ID": 140,
+    "EndTime": "20261031235959"
+  },
+  {
+    "SeasonID": 56,
+    "TimeLimitTaskID": 20006395,
+    "BeginTime": "20261022000000",
+    "ID": 141,
+    "EndTime": "20261031235959"
+  },
+  {
+    "SeasonID": 56,
+    "TimeLimitTaskID": 20006396,
+    "BeginTime": "20261022000000",
+    "ID": 142,
+    "EndTime": "20261031235959"
+  }
+]

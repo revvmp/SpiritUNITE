@@ -58,6 +58,7 @@ public sealed class LoginManager(
     EnergyManager energies,
     CreditManager credit,
     RankedManager ranked,
+    BattlePassManager battlePass,
     WarmBattleManager warmBattles,
     TimeProvider clock,
     ILogger<LoginManager> logger)
@@ -257,7 +258,7 @@ public sealed class LoginManager(
 
         var replies = new ReplyList(request);
         replies.Add(PbScidLoginFinishNtf, new pbSCLoginFinishNtf());
-        replies.Add(PbScidBattlePassNtf, BattlePassSeasons.BuildBattlePassNtf(gameData, clock.GetUtcNow()));
+        replies.Add(PbScidBattlePassNtf, await battlePass.BuildBattlePassNtfAsync(role));
         replies.AddRange(await friends.BuildFriendDataPacketsAsync(role));
         replies.Add(PbScidActivityInfoNtf, notices.BuildActivityInfoNtf(clientSettings.CountryCode));
         replies.Add(PbScidUpdateTaskInfoNtf, notices.BuildCreditPointTaskInfoNtf(registerTime));
@@ -307,7 +308,7 @@ public sealed class LoginManager(
         replies.Add(PbScidOutSideItemPackageAllInfoRsp, await bag.BuildOutSideItemPackageAllInfoRspAsync(uid));
         replies.Add(PbScidLimitTimeReddotNtf, LobbyNotices.BuildLimitTimeReddotNtf());
         replies.Add(PbScidGetAvatarListRsp, BuildGetAvatarListRsp(role));
-        replies.Add(PbScidBattlePassNtf, BattlePassSeasons.BuildBattlePassNtf(gameData, now));
+        replies.Add(PbScidBattlePassNtf, await battlePass.BuildBattlePassNtfAsync(role));
         replies.Add(PbScidEnergyInfoNtf, EnergyCenter.BuildEnergyInfoNtf(await energies.LoadAsync(uid)));
         replies.Add(PbScidTrainerExpNextGiftInfoNtf, trainerExpGiftManager.BuildTrainerExpNextGiftInfoNtf(role));
         replies.Add(PbScidCreditPointNtf, await credit.BuildCreditPointNtfAsync(uid));

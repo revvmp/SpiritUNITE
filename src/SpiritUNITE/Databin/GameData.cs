@@ -63,6 +63,13 @@ public sealed class GameData
         MvpConf = LoadRecords<pbMvp_Conf>(row => pbMvp_Conf.Key(row.GameType, row.ParamType));
         Achievement = LoadRecords<pbAchievement>(row => row.AchievementID);
         BattlePassSeason = LoadMessages<pbBattlePassSeason>(row => row.SeasonID);
+        BattlePassLevel = LoadMessages<pbBattlePassLevel>(row => pbBattlePassLevel.Key(row.SeasonID, row.Level));
+        BattlePassLevelReward = LoadMessages<pbBattlePassLevelReward>(row => pbBattlePassLevelReward.Key(row.SeasonID, row.Level));
+        BattlePassSeasonTask = LoadRecords<pbBattlePass_SeasonTask>(row => pbBattlePass_SeasonTask.Key(row.SeasonID, row.WeekIndex));
+        BattlePassTimeLimitTask = LoadRecords<pbBattlePass_TimeLimitTask>(row => row.ID);
+        BattlePassInfo = LoadRecords<pbBattlePassInfo>(row => row.SeasonID);
+        BattlePassWeekIndex = LoadMessages<pbBattlePass_WeekIndex>(row => pbBattlePass_WeekIndex.Key(row.SeasonID, row.WeekIndex));
+        BattlePassWeekTaskGroup = LoadMessages<pbBattlePass_WeekTaskGroup>(row => row.WeekTaskGroupID);
         RewardPool = LoadRecords<pbReward_Pool>(row => row.LotteryPoolId);
         HeadIconBase = LoadMessages<pbHeadIcon_Base>(row => row.HeadIconID);
         HeadIcon = LoadMessages<pbHeadIcon>(row => row.HeadIconID);
@@ -147,6 +154,13 @@ public sealed class GameData
     public DatabinTable<pbMvp_Conf> MvpConf { get; }
     public DatabinTable<pbAchievement> Achievement { get; }
     public DatabinTable<pbBattlePassSeason> BattlePassSeason { get; }
+    public DatabinTable<pbBattlePassLevel> BattlePassLevel { get; }
+    public DatabinTable<pbBattlePassLevelReward> BattlePassLevelReward { get; }
+    public DatabinTable<pbBattlePass_SeasonTask> BattlePassSeasonTask { get; }
+    public DatabinTable<pbBattlePass_TimeLimitTask> BattlePassTimeLimitTask { get; }
+    public DatabinTable<pbBattlePassInfo> BattlePassInfo { get; }
+    public DatabinTable<pbBattlePass_WeekIndex> BattlePassWeekIndex { get; }
+    public DatabinTable<pbBattlePass_WeekTaskGroup> BattlePassWeekTaskGroup { get; }
     public DatabinTable<pbReward_Pool> RewardPool { get; }
     public DatabinTable<pbHeadIcon_Base> HeadIconBase { get; }
     public DatabinTable<pbHeadIcon> HeadIcon { get; }

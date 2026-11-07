@@ -1,12 +1,13 @@
 using SpiritUNITE.Game.Achievement;
 using SpiritUNITE.Game.Activity;
+using SpiritUNITE.Game.BattlePass;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Tasks;
 
-public sealed class TaskUpdates(ActivityManager activityManager, AchievementManager achievementManager)
+public sealed class TaskUpdates(ActivityManager activityManager, AchievementManager achievementManager, BattlePassTasks battlePassTasks)
 {
     private static readonly IReadOnlySet<PB_ENUM_RES_CONDITION_ID> OwnershipConditions = new HashSet<PB_ENUM_RES_CONDITION_ID>
     {
@@ -45,8 +46,9 @@ public sealed class TaskUpdates(ActivityManager activityManager, AchievementMana
     {
         var activity = await activityManager.RecordBattleAsync(role, battle);
         var achievements = await achievementManager.RecordBattleAsync(role, battle);
+        var battlePass = await battlePassTasks.RecordBattleAsync(role, battle);
         return new BattleTaskUpdate(
-            [.. activity.UpdatedTasks, .. achievements, .. otherBattleTasks],
+            [.. activity.UpdatedTasks, .. achievements, .. battlePass, .. otherBattleTasks],
             activity.CompleteCountBefore,
             activity.CompleteCountAfter,
             activity.AutoClaim);

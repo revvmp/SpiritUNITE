@@ -25,6 +25,7 @@ using SpiritUNITE.Game.Chat;
 using SpiritUNITE.Game.Energy;
 using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Game.Badge;
+using SpiritUNITE.Game.BattlePass;
 using SpiritUNITE.Game.HeldItem;
 using SpiritUNITE.Game.Lobby;
 using SpiritUNITE.Databin;
@@ -242,6 +243,7 @@ public static class Server
         builder.Services.AddSingleton<CreditRepository>();
         builder.Services.AddSingleton<WarmBattleRepository>();
         builder.Services.AddSingleton<RankedRepository>();
+        builder.Services.AddSingleton<BattlePassRepository>();
         builder.Services.AddSingleton<RoleTmpNameRepository>();
         builder.Services.AddSingleton<CarryEquipmentRepository>();
         builder.Services.AddSingleton<ActivationCodeRepository>();
@@ -272,6 +274,12 @@ public static class Server
         builder.Services.AddSingleton<RankedLadder>();
         builder.Services.AddSingleton<RankedRewards>();
         builder.Services.AddSingleton<RankedManager>();
+        builder.Services.AddSingleton<BattlePassSeasons>();
+        builder.Services.AddSingleton<BattlePassLeveling>();
+        builder.Services.AddSingleton<BattlePassRewards>();
+        builder.Services.AddSingleton<BattlePassManager>();
+        builder.Services.AddSingleton<BattlePassTasks>();
+        builder.Services.AddSingleton<BattlePassActivities>();
         builder.Services.AddSingleton<RankedRankingBoard>();
         builder.Services.AddSingleton<WarmBattleManager>();
         builder.Services.AddSingleton<ChatManager>();
