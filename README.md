@@ -55,7 +55,7 @@ Screenshots coming soon.
    The script uses your server settings, creates a signing key and offers to download Android build tools if needed. Back up the signing key so future builds can update installed clients.
 
 
-3. Run the printed `adb install-multiple -g` command. The app shows up as **SpiritUNITE**; use `--label` to change the name.
+3. Run the printed `adb install -g` command. The app shows up as **SpiritUNITE**; use `--label` to change the name.
 4. With the default local settings, run the printed `adb reverse` commands to connect your device to the server. Repeat these after restarting.
 5. Start the server and launch the game.
 
