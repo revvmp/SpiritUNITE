@@ -628,6 +628,25 @@ CREATE TABLE IF NOT EXISTS `role_battle_pass_task_reward` (
     CONSTRAINT fk_role_battle_pass_task_reward_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `role_video_history` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    abs_id VARCHAR(64) NOT NULL,
+    save_time BIGINT NOT NULL,
+    collect_flag TINYINT NOT NULL DEFAULT 0,
+    battle_version_section1 BIGINT UNSIGNED NOT NULL,
+    battle_version_section2 BIGINT UNSIGNED NOT NULL,
+    fight_history_record MEDIUMBLOB NOT NULL,
+    PRIMARY KEY (game_ulong_uid, abs_id),
+    CONSTRAINT ck_role_video_history_collect_flag CHECK (collect_flag IN (0, 1)),
+    CONSTRAINT fk_role_video_history_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_video_history_tip` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    del_video_guide_tip TINYINT NOT NULL DEFAULT 0,
+    video_del_by_version TINYINT NOT NULL DEFAULT 0,
+    CONSTRAINT ck_role_video_history_tip_flags CHECK (del_video_guide_tip IN (0, 1) AND video_del_by_version IN (0, 1)),
+    CONSTRAINT fk_role_video_history_tip_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `role_pokemon_carry_equipment` (

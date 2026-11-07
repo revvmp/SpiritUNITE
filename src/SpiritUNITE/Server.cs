@@ -33,6 +33,7 @@ using SpiritUNITE.Game.Friend;
 using SpiritUNITE.Game.Guild;
 using SpiritUNITE.Game.Mail;
 using SpiritUNITE.Game.Newbie;
+using SpiritUNITE.Game.Observe;
 using SpiritUNITE.Game.MSDKNotice;
 using SpiritUNITE.Game.FightHistory;
 using SpiritUNITE.Game.Profile;
@@ -42,6 +43,7 @@ using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Room;
 using SpiritUNITE.Game.Settings;
 using SpiritUNITE.Game.Shop;
+using SpiritUNITE.Game.Video;
 using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Logging;
 using SpiritUNITE.Network;
@@ -248,6 +250,7 @@ public static class Server
         builder.Services.AddSingleton<RoleTmpNameRepository>();
         builder.Services.AddSingleton<CarryEquipmentRepository>();
         builder.Services.AddSingleton<ActivationCodeRepository>();
+        builder.Services.AddSingleton<VideoHistoryRepository>();
         builder.Services.AddSingleton<GuildRepository>();
     }
 
@@ -311,6 +314,7 @@ public static class Server
         builder.Services.AddSingleton<TrainerExpGiftManager>();
         builder.Services.AddSingleton<AppearanceGift>();
         builder.Services.AddSingleton<FightHistoryManager>();
+        builder.Services.AddSingleton<VideoHistoryManager>();
         builder.Services.AddSingleton<ProfileManager>();
         builder.Services.AddSingleton<SettingsManager>();
         builder.Services.AddSingleton<AccountManager>();
@@ -332,6 +336,8 @@ public static class Server
         builder.Services.AddSingleton<RankPointMedals>();
         builder.Services.AddSingleton<BattleSettlement>();
         builder.Services.AddSingleton<RelayManager>();
+        builder.Services.AddSingleton<ObserveManager>();
+        builder.Services.AddSingleton<ObserveBattleManager>();
     }
 
     private static void AddPackets(IHostApplicationBuilder builder) =>

@@ -98,6 +98,12 @@ public sealed class RelayManager
 
     public event Func<ulong, Task>? RelayFinished;
 
+    public event Action<RelayGame>? GameCreated;
+
+    public Func<ulong, bool> IsObserverSession { get; set; } = _ => false;
+
+    public Func<ulong, RelayGame?> FindObservedGame { get; set; } = _ => null;
+
     public RelayManager(
         DeskManager desks,
         BattleSettlement settlement,
@@ -139,6 +145,11 @@ public sealed class RelayManager
             }
         }
 
+        if (game is null && IsObserverSession(uid))
+        {
+            return;
+        }
+
         if (game is null)
         {
             logger.LogWarning("Relay session of uid {Uid} has no desk in the relay phase", uid);
@@ -167,6 +178,7 @@ public sealed class RelayManager
         await SendAllAsync(sends);
         if (created)
         {
+            GameCreated?.Invoke(game);
             _ = RunAsync(game);
         }
     }
@@ -324,7 +336,9 @@ public sealed class RelayManager
     {
         if (FindViewerSeat(uid) is not ({ } game, { } seat))
         {
-            return new pbSCReConnGameRsp { ResultInfo = Refusal(PB_ENUM_RES_ERROR_CODE.PbErrAccountNotInDesk) };
+            return FindObservedGame(uid) is { } observed
+                ? BuildObserverReConnGameRsp(observed)
+                : new pbSCReConnGameRsp { ResultInfo = Refusal(PB_ENUM_RES_ERROR_CODE.PbErrAccountNotInDesk) };
         }
 
         lock (game.Gate)
@@ -346,6 +360,34 @@ public sealed class RelayManager
             };
         }
     }
+
+    private static pbSCReConnGameRsp BuildObserverReConnGameRsp(RelayGame game)
+    {
+        lock (game.Gate)
+        {
+            var state = ObserverReconnState(game.Phase);
+            return new pbSCReConnGameRsp
+            {
+                State = (int)state,
+                CampSurrenderInfo = new pbCOMDT_CAMP_SURRENDER_INFO(),
+                AcntSurrenderInfo = new pbCOMDT_ACNT_SURRENDER_INFO(),
+                VoiceAccusationInfo = new pbCOMDT_ACNT_VOICE_ACCUSATION_INFO(),
+                IsSurrenderEnd = game.SurrenderWinCampClient is null ? NotSurrender : SurrenderEnded,
+                WinCampClient = game.SurrenderWinCampClient ?? 0,
+                PauseType = PauseType,
+                CurFrapNo = state == PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateGameing ? game.KFrapsNo : 0,
+                PauseCancelType = PauseCancelType,
+            };
+        }
+    }
+
+    private static PB_ENUM_RECONN_RELAY_STATE_TYPE ObserverReconnState(RelayGamePhase phase) => phase switch
+    {
+        RelayGamePhase.Waiting => PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateWait,
+        RelayGamePhase.Loading => PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateLoading,
+        RelayGamePhase.Fighting => PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateGameing,
+        _ => PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateGameover,
+    };
 
     public async Task FetchMsgFromVideoAsync(ulong uid, pbCSFetchMsgFromVideoReq fetch)
     {
@@ -1840,6 +1882,8 @@ public sealed class RelayManager
 
         return campPlayerInfo;
     }
+
+    public static pbSCMultgameBeginLoadNtf BuildObserverBeginLoadNtf(RelayGame game) => BuildBeginLoadNtf(game, showsJudges: false);
 
     private static pbSCMultgameBeginLoadNtf BuildBeginLoadNtf(RelayGame game, bool showsJudges)
     {
