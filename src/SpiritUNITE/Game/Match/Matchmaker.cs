@@ -45,14 +45,15 @@ public sealed class MatchQueueEntry(
     MatchRoom room,
     DateTimeOffset enqueuedAt,
     DateTimeOffset fillAt,
-    bool isWarmBattle,
+    int warmBattleType,
     RankedBand? rankedBand = null)
 {
     public MatchRoom Room { get; } = room;
     public MatchKey Key { get; } = MatchKey.Of(room);
     public DateTimeOffset EnqueuedAt { get; } = enqueuedAt;
     public DateTimeOffset FillAt { get; } = fillAt;
-    public bool IsWarmBattle { get; } = isWarmBattle;
+    public int WarmBattleType { get; } = warmBattleType;
+    public bool IsWarmBattle => WarmBattleType != MatchGroup.NoWarmBattle;
     public RankedBand? RankedBand { get; } = rankedBand;
     public int PartySize => Room.Members.Count;
     public bool IsCpuMatch => CpuMatch.IsCpuMatch(Room);
@@ -64,7 +65,9 @@ public sealed record MatchGroup(
     bool IsWarmBattle,
     int WarmBattleType = 0)
 {
+    public const int NoWarmBattle = (int)PB_ENUM_ENM_WARMBATTLE_TYPE.PbEnmWarmbattleNone;
     public const int Rookie = (int)PB_ENUM_ENM_WARMBATTLE_TYPE.PbEnmWarmbattleRookie;
+    public const int ContLose = (int)PB_ENUM_ENM_WARMBATTLE_TYPE.PbEnmWarmbattleContlose;
     public const int Timeout = (int)PB_ENUM_ENM_WARMBATTLE_TYPE.PbEnmWarmbattleTimeout;
 
     public IEnumerable<MatchQueueEntry> Entries => LeftCamp.Concat(RightCamp);
@@ -89,7 +92,7 @@ public sealed class Matchmaker
         foreach (var entry in queue.Where(entry => entry.IsWarmBattle && entry.FillAt <= now).ToArray())
         {
             queue.Remove(entry);
-            formed.Add(new MatchGroup([entry], [], IsWarmBattle: true, MatchGroup.Rookie));
+            formed.Add(new MatchGroup([entry], [], IsWarmBattle: true, entry.WarmBattleType));
         }
 
         foreach (var key in queue.Select(entry => entry.Key).Distinct().ToArray())

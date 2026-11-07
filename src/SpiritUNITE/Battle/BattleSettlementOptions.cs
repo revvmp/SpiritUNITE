@@ -9,7 +9,7 @@ public sealed class BattleSettlementOptions
     public int MatchWinExpPerMinute { get; init; } = 15;
     public int MatchLoseExpPerMinute { get; init; }
     public int MatchWinEnergy { get; init; } = 15;
-    public int MatchLoseEnergy { get; init; }
+    public int MatchLoseEnergyPerMinute { get; init; }
     public int RankedMatchWinEnergy { get; init; } = 30;
     public int RankedMatchLoseEnergy { get; init; }
 
@@ -18,7 +18,7 @@ public sealed class BattleSettlementOptions
         && MatchWinExpPerMinute >= 0
         && MatchLoseExpPerMinute >= 0
         && MatchWinEnergy >= 0
-        && MatchLoseEnergy >= 0
+        && MatchLoseEnergyPerMinute >= 0
         && RankedMatchWinEnergy >= 0
         && RankedMatchLoseEnergy >= 0;
 }

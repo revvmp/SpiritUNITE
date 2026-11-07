@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Microsoft.Extensions.Options;
 using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Ranked;
@@ -7,14 +8,14 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Match;
 
-public sealed class WarmBattleManager(GameData gameData, WarmBattleRepository repository, RoleInfoStore roles, RankedManager ranked)
+public sealed class WarmBattleManager(GameData gameData, WarmBattleRepository repository, RoleInfoStore roles, RankedManager ranked, IOptions<MatchOptions> matchOptions)
 {
     private const int RaceNormal = (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceNormal;
     private const int RaceRank = (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceRank;
     private const int RelaxNormal = (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRelaxNormal;
     private const int SinglePlayer = 1;
 
-    private static readonly WarmBattleCount NoGames = new(0, 0, 0);
+    private static readonly WarmBattleCount NoGames = new(0, 0, 0, 0);
 
     private readonly ConcurrentDictionary<ulong, IReadOnlyDictionary<int, WarmBattleCount>> countsByUid = [];
 
@@ -22,7 +23,17 @@ public sealed class WarmBattleManager(GameData gameData, WarmBattleRepository re
 
     public async Task LoadAsync(ulong uid) => countsByUid[uid] = await repository.FindAsync(uid);
 
-    public bool Admits(int mapSubMode, IReadOnlyCollection<ulong> memberUids)
+    public int WarmBattleTypeOf(int mapSubMode, IReadOnlyCollection<ulong> memberUids) =>
+        AdmitsRookie(mapSubMode, memberUids) ? MatchGroup.Rookie
+        : AdmitsContLose(mapSubMode, memberUids) ? MatchGroup.ContLose
+        : MatchGroup.NoWarmBattle;
+
+    private bool AdmitsContLose(int mapSubMode, IReadOnlyCollection<ulong> memberUids) =>
+        mapSubMode == RaceRank
+        && memberUids.Any(uid => !ranked.Ladder.IsMaster(ranked.PositionOf(uid).RankedDivision)
+            && CountOf(uid, mapSubMode).ContLoseCnt >= matchOptions.Value.ContLoseWarmBattleLosses);
+
+    private bool AdmitsRookie(int mapSubMode, IReadOnlyCollection<ulong> memberUids)
     {
         if (!IsWarmBattleSubMode(mapSubMode) || memberUids.Count == 0)
         {

@@ -21,4 +21,7 @@ public sealed class RoleWarmBattle
 
     [Column("mult_warm_cnt")]
     public int MultWarmCnt { get; set; }
+
+    [Column("cont_lose_cnt")]
+    public int ContLoseCnt { get; set; }
 }

@@ -44,6 +44,8 @@ public static class CpuMatch
     private const int Percent = 100;
     private const int OpenHeadFrame = 1;
     private const int BotLevel = (int)PB_ENUM_RES_AI_DIFFICULTYLEVEL_TYPE.PbResAiDifficultylevelTypeEasy;
+    private const int TimeoutWarmBattleType = (int)PB_ENUM_ENM_WARMBATTLE_TYPE.PbEnmWarmbattleTimeout;
+    private const int TimeoutWarmBattleAILevel = (int)PB_ENUM_RES_AI_DIFFICULTYLEVEL_TYPE.PbResAiDifficultylevelTypeEasy;
     private const int NpcConfirmStepMs = 500;
     private const int FirstNpcConfirmStep = 1;
     private const int LastNpcConfirmStep = 20;
@@ -115,7 +117,7 @@ public static class CpuMatch
 
         var matchRsp = PveMatch.BuildMatchSuccRsp(
             request.MapId,
-            gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalFirstnWarmbattleDifficulty),
+            WarmBattleAILevel(gameData, warmBattleType),
             memInfo,
             request.SuccTimeStamp,
             PveMatch.ReadyConfirmUiType,
@@ -123,6 +125,11 @@ public static class CpuMatch
         matchRsp.MatchResult.MatchResDetail.MatchSucc.RoomInfo.IsWarmBattle = WarmBattle;
         return new BotMatchSucc(matchRsp, npcConfigs, warmBattleType);
     }
+
+    private static int WarmBattleAILevel(GameData gameData, int warmBattleType) =>
+        warmBattleType == TimeoutWarmBattleType
+            ? TimeoutWarmBattleAILevel
+            : gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalFirstnWarmbattleDifficulty);
 
     public static BotMatchSucc MatchSucc(GameData gameData, MatchSuccRequest request, MatchCamps camps)
     {

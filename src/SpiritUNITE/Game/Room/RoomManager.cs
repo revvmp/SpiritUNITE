@@ -1131,9 +1131,10 @@ public sealed class RoomManager(
     {
         var outcome = BeginMatch(room);
         room.MatchStartedAt = NextSecond();
-        var isWarmBattle = IsWarmBattleRoom(room);
+        var warmBattleType = WarmBattleTypeOf(room);
+        var isWarmBattle = warmBattleType != MatchGroup.NoWarmBattle;
         var now = clock.GetUtcNow();
-        var entry = new MatchQueueEntry(room, now, now + SearchDelayOf(room, isWarmBattle), isWarmBattle, RankedBandOf(room));
+        var entry = new MatchQueueEntry(room, now, now + SearchDelayOf(room, isWarmBattle), warmBattleType, RankedBandOf(room));
         matchmaker.Enqueue(entry);
         var waitTime = isWarmBattle ? matching.DrawWarmBattleWaitTime(room.MapSubMode) ?? warmBattles.WaitTime : EstimateSearchWait(room);
         outcome.PushAll(MemberUids(room), PB_ENUM_CS_MSGID_DEF.PbScidMatchRsp, RoomNotices.MatchProcess(room, waitTime, ConfirmTimeoutOf(room)));
@@ -1155,12 +1156,13 @@ public sealed class RoomManager(
         searchWaits[key] = searchWaits.GetValueOrDefault(key).Add(waitedSeconds);
     }
 
-    private bool IsWarmBattleRoom(MatchRoom room) =>
+    private int WarmBattleTypeOf(MatchRoom room) =>
         matching.BotFill
         && room.RoomType == PB_ENUM_COM_ROOM_TYPE.PbComRoomTypeMatch
         && room.ManMachine != CpuMatch.ManMachine
         && gameData.SceneMap.Find(room.MapId)?.GameType == (int)PB_ENUM_RES_MATCHGAMETYPE.PbMatchGameTypeCatch
-        && warmBattles.Admits(room.MapSubMode, [.. MemberUids(room)]);
+            ? warmBattles.WarmBattleTypeOf(room.MapSubMode, [.. MemberUids(room)])
+            : MatchGroup.NoWarmBattle;
 
     private RoomOutcome StartCustomGame(MatchRoom room)
     {

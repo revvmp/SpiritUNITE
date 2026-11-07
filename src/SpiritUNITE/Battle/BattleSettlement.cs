@@ -543,8 +543,9 @@ public sealed class BattleSettlement
         var heroID = result.Human.ChosenHeroID;
         var pokemonId = pokemonIdByHeroID.GetValueOrDefault(heroID);
         var isCustomBattle = IsCustomBattle(result);
+        var matchMinutes = isMatch && !isCustomBattle ? FindMatchMinutes(result) : 0;
         var baseExp = isCustomBattle ? 0
-            : isMatch ? credit.ReduceHangupIncome(FindMatchBaseExp(result, won), hangupType)
+            : isMatch ? credit.ReduceHangupIncome(matchMinutes * (won ? options.MatchWinExpPerMinute : options.MatchLoseExpPerMinute), hangupType)
             : won ? options.PveChallengeWinBaseExp : options.PveChallengeLoseBaseExp;
         var extraExpOfNewbie = newbieBenefitActive ? NewbiePrivilegeShareOf(baseExp, PB_ENUM_RES_RESGLOBAL.PbResglobalNewbiePrivilegeAcntExp) : 0;
         var starTasks = route is null ? [] : route.TaskID.Where(taskId => taskId != NoDrop)
@@ -609,7 +610,7 @@ public sealed class BattleSettlement
             itemGrants,
             coins,
             isMatch,
-            isMatch && !isCustomBattle ? BuildEnergyGains(won, IsRankedMatch(result), newbieBenefitActive, hangupType) : []);
+            isMatch && !isCustomBattle ? BuildEnergyGains(won, IsRankedMatch(result), matchMinutes, newbieBenefitActive, hangupType) : []);
     }
 
     private UsedPokemonBattle BuildCountedBattle(BattleResult result, SettlementPlan plan, MvpResult mvp, DateTimeOffset now)
@@ -637,16 +638,24 @@ public sealed class BattleSettlement
                     result.Desk.DeskInfo.IsWarmBattle == CpuMatch.WarmBattle
                         && result.Desk.DeskInfo.WarmBattleType == MatchGroup.Rookie
                         && !warmBattles.IsWithinFirstNGames(uid, mapSubMode),
-                    result.Desk.Players.Count(player => !player.IsNpc) == SingleHuman)
+                    result.Desk.Players.Count(player => !player.IsNpc) == SingleHuman,
+                    WarmBattleResultOf(result))
                 : null;
     }
+
+    private static WarmBattleGameResult WarmBattleResultOf(BattleResult result) => result.GameResult switch
+    {
+        PB_ENUM_ENM_BATTLE_RESULT_TYPE.PbEnmBattleResultTypeWin => WarmBattleGameResult.Won,
+        PB_ENUM_ENM_BATTLE_RESULT_TYPE.PbEnmBattleResultTypeDraw => WarmBattleGameResult.Drawn,
+        _ => WarmBattleGameResult.Lost,
+    };
 
     private static bool HasSettleRoom(BattleResult result) => result.Desk.PveChallengeSelectNode is null;
 
     private bool IsMatch(BattleResult result) =>
         result.Desk.PveChallengeSelectNode is null && gameData.SceneMap.Find(result.Desk.DeskInfo.MapId)?.GameType == CatchGameType;
 
-    private int FindMatchBaseExp(BattleResult result, bool won)
+    private int FindMatchMinutes(BattleResult result)
     {
         var mapId = result.Desk.DeskInfo.MapId;
         if (gameData.SceneMap.Find(mapId) is not { } sceneMap || gameData.MapBase.Find(sceneMap.MapBaseId) is not { } mapBase)
@@ -655,17 +664,17 @@ public sealed class BattleSettlement
             return 0;
         }
 
-        return mapBase.MatchTime / MatchTimeMillisecondsPerMinute * (won ? options.MatchWinExpPerMinute : options.MatchLoseExpPerMinute);
+        return mapBase.MatchTime / MatchTimeMillisecondsPerMinute;
     }
 
-    private pbCOMDT_SETTLE_GAIN_ENERGY_DETAIL[] BuildEnergyGains(bool won, bool isRankedMatch, bool newbieBenefitActive, PB_ENUM_ENM_HANGUP_TYPE hangupType)
+    private pbCOMDT_SETTLE_GAIN_ENERGY_DETAIL[] BuildEnergyGains(bool won, bool isRankedMatch, int matchMinutes, bool newbieBenefitActive, PB_ENUM_ENM_HANGUP_TYPE hangupType)
     {
         var energyGain = credit.ReduceHangupIncome((won, isRankedMatch) switch
         {
             (true, true) => options.RankedMatchWinEnergy,
             (false, true) => options.RankedMatchLoseEnergy,
             (true, false) => options.MatchWinEnergy,
-            (false, false) => options.MatchLoseEnergy,
+            (false, false) => matchMinutes * options.MatchLoseEnergyPerMinute,
         }, hangupType);
         if (energyGain <= 0)
         {

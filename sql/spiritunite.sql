@@ -464,8 +464,9 @@ CREATE TABLE IF NOT EXISTS `role_warm_battle` (
     game_cnt INT NOT NULL DEFAULT 0,
     single_warm_cnt INT NOT NULL DEFAULT 0,
     mult_warm_cnt INT NOT NULL DEFAULT 0,
+    cont_lose_cnt INT NOT NULL DEFAULT 0,
     PRIMARY KEY (game_ulong_uid, map_sub_mode),
-    CONSTRAINT ck_role_warm_battle_counts CHECK (game_cnt >= 0 AND single_warm_cnt >= 0 AND mult_warm_cnt >= 0 AND single_warm_cnt + mult_warm_cnt <= game_cnt),
+    CONSTRAINT ck_role_warm_battle_counts CHECK (game_cnt >= 0 AND single_warm_cnt >= 0 AND mult_warm_cnt >= 0 AND single_warm_cnt + mult_warm_cnt <= game_cnt AND cont_lose_cnt >= 0 AND cont_lose_cnt <= game_cnt),
     CONSTRAINT fk_role_warm_battle_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 

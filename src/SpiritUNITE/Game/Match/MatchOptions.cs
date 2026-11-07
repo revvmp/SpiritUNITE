@@ -6,15 +6,18 @@ public sealed class MatchOptions
 
     private const int MinBotFillSearchSec = 1;
     private const int MaxBotFillSearchSec = 3600;
+    private const int MinContLoseWarmBattleLosses = 1;
 
     public bool BotFill { get; init; } = true;
     public int BotFillSearchSec { get; init; } = 60;
+    public int ContLoseWarmBattleLosses { get; init; } = 3;
     private const int WaitTimeBounds = 2;
 
     public Dictionary<int, int[]> WarmBattleWaitTime { get; init; } = [];
 
     public bool IsValid() =>
         BotFillSearchSec is >= MinBotFillSearchSec and <= MaxBotFillSearchSec
+        && ContLoseWarmBattleLosses >= MinContLoseWarmBattleLosses
         && WarmBattleWaitTime.All(entry => entry.Key > 0 && entry.Value is [>= 0 and var min, var max] && min <= max);
 
     public int? DrawWarmBattleWaitTime(int mapSubMode) =>

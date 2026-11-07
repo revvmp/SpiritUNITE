@@ -33,6 +33,7 @@
   "Match": {
     "BotFill": true,
     "BotFillSearchSec": 80,
+    "ContLoseWarmBattleLosses": 3,
     "WarmBattleWaitTime": {
       "2": [12, 14]
     }
@@ -57,7 +58,7 @@
     "MatchWinExpPerMinute": 15,
     "MatchLoseExpPerMinute": 10,
     "MatchWinEnergy": 15,
-    "MatchLoseEnergy": 0,
+    "MatchLoseEnergyPerMinute": 2,
     "RankedMatchWinEnergy": 30,
     "RankedMatchLoseEnergy": 20
   },
