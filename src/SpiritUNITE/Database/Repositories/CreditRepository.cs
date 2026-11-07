@@ -5,7 +5,7 @@ using SpiritUNITE.Database.Models;
 
 namespace SpiritUNITE.Database.Repositories;
 
-public sealed record CreditRecord(int CreditPoint, long UnconfirmedDay, int UnconfirmedCount, long BanEndTime);
+public sealed record CreditRecord(int CreditPoint, long UnconfirmedDay, int UnconfirmedCount, long BanEndTime, long ResumeDay, int ResumeCredit);
 
 public sealed class CreditRepository(DataOptions options)
 {
@@ -15,7 +15,7 @@ public sealed class CreditRepository(DataOptions options)
         var row = await database.GetTable<RoleCredit>().FirstOrDefaultAsync(credit => credit.GameUlongUID == gameUlongUID);
         return row is null
             ? null
-            : new CreditRecord(row.CreditPoint, row.UnconfirmedDay, row.UnconfirmedCount, row.BanEndTime);
+            : new CreditRecord(row.CreditPoint, row.UnconfirmedDay, row.UnconfirmedCount, row.BanEndTime, row.ResumeDay, row.ResumeCredit);
     }
 
     public async Task SaveAsync(ulong gameUlongUID, CreditRecord record)
@@ -28,6 +28,8 @@ public sealed class CreditRepository(DataOptions options)
             UnconfirmedDay = record.UnconfirmedDay,
             UnconfirmedCount = record.UnconfirmedCount,
             BanEndTime = record.BanEndTime,
+            ResumeDay = record.ResumeDay,
+            ResumeCredit = record.ResumeCredit,
         });
     }
 }

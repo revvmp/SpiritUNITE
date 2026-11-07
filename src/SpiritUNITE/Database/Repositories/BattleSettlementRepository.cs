@@ -26,8 +26,11 @@ public sealed record BattleSettlementChange(
     IReadOnlyDictionary<int, long> Coins,
     RoleFightHistory FightHistory,
     int MaxFightHistoryNumPerMapSubMode,
-    int? EnergyGain,
-    UsedPokemonBattle? CountedBattle = null);
+    BattleEnergyGrant? Energy,
+    UsedPokemonBattle? CountedBattle = null,
+    WarmBattleGame? CountedGame = null);
+
+public sealed record BattleEnergyGrant(int EnergyGain, int WeeklyEnergyFreeCapacity);
 
 public sealed record ChallengeTrainerMapLevel(int MapId, int LevelType);
 
@@ -91,9 +94,14 @@ public sealed class BattleSettlementRepository(DataOptions options)
             await WalletRepository.CreditAsync(database, gameUlongUID, coinID, amount);
         }
 
-        var energy = change.EnergyGain is { } energyGain
-            ? await GainEnergyAsync(database, gameUlongUID, energyGain, DateTimeOffset.FromUnixTimeSeconds(now))
+        var energy = change.Energy is { } energyGrant
+            ? await GainEnergyAsync(database, gameUlongUID, energyGrant, DateTimeOffset.FromUnixTimeSeconds(now))
             : null;
+        if (change.CountedGame is { } countedGame)
+        {
+            await WarmBattleRepository.AddGameAsync(database, gameUlongUID, countedGame);
+        }
+
         if (change.PveChallengeStar is { } star && star.StarNum > storedStarNum)
         {
             await RecordPveChallengeStarAsync(database, gameUlongUID, star, now);
@@ -112,10 +120,11 @@ public sealed class BattleSettlementRepository(DataOptions options)
         return new BattleSettlementCommit(changedItems, clampedGrants, beforeCoinNums, wallet, usedPokemon, heavenTrainerRecord, energy);
     }
 
-    private static async Task<BattleEnergyChange> GainEnergyAsync(DataConnection database, ulong gameUlongUID, int energyGain, DateTimeOffset now)
+    private static async Task<BattleEnergyChange> GainEnergyAsync(DataConnection database, ulong gameUlongUID, BattleEnergyGrant grant, DateTimeOffset now)
     {
-        var before = (await EnergyRepository.ReadForUpdateAsync(database, gameUlongUID))?.FlushedAt(now) ?? EnergyCenter.Starting(now);
-        var after = before.Gain(energyGain);
+        var before = (await EnergyRepository.ReadForUpdateAsync(database, gameUlongUID))?.FlushedAt(now, grant.WeeklyEnergyFreeCapacity)
+            ?? EnergyCenter.Starting(now, grant.WeeklyEnergyFreeCapacity);
+        var after = before.Gain(grant.EnergyGain);
         await EnergyRepository.SaveAsync(database, gameUlongUID, after);
         return new BattleEnergyChange(before, after);
     }
@@ -225,6 +234,7 @@ public sealed class BattleSettlementRepository(DataOptions options)
             .Set(used => used.CurrentWeekStart, statistics.CurrentWeekStart)
             .Set(used => used.CurrentWeekStatisticInfo, statistics.CurrentWeek.ToByteArray())
             .Set(used => used.LastBattleTime, statistics.LastBattleTime)
+            .Set(used => used.RankedMatchInfoInSeason, statistics.RankedMatchInfoInSeason.ToByteArray())
             .UpdateAsync();
         return PokemonUsedRepository.ToUsedPokemonInfo(row) with { Statistics = statistics };
     }

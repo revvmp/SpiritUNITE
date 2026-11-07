@@ -20,4 +20,10 @@ public sealed class RoleCredit
 
     [Column("ban_end_time")]
     public long BanEndTime { get; set; }
+
+    [Column("resume_day")]
+    public long ResumeDay { get; set; }
+
+    [Column("resume_credit")]
+    public int ResumeCredit { get; set; }
 }

@@ -91,7 +91,9 @@ public sealed class PokemonUsedRepository(DataOptions options)
             ParseStatistic(row.CurrentSeasonStatisticInfo),
             row.CurrentWeekStart,
             ParseStatistic(row.CurrentWeekStatisticInfo),
-            row.LastBattleTime));
+            row.LastBattleTime,
+            pbCOMDT_RANKED_MATCH_USED_POKEMON_INFO.Parser.ParseFrom(row.RankedMatchInfoInSeason)),
+        row.SkillRecommendInfo.Length > 0 ? pbCOMDT_SKILLRECOMMENDINFO.Parser.ParseFrom(row.SkillRecommendInfo) : null);
 
     private static pbCOMDT_USED_POKEMON_STATISTIC_INFO ParseStatistic(byte[] statistic) =>
         pbCOMDT_USED_POKEMON_STATISTIC_INFO.Parser.ParseFrom(statistic);
@@ -114,5 +116,7 @@ public sealed class PokemonUsedRepository(DataOptions options)
         CurrentWeekStart = used.BattleStatistics.CurrentWeekStart,
         CurrentWeekStatisticInfo = used.BattleStatistics.CurrentWeek.ToByteArray(),
         LastBattleTime = used.BattleStatistics.LastBattleTime,
+        RankedMatchInfoInSeason = used.BattleStatistics.RankedMatchInfoInSeason.ToByteArray(),
+        SkillRecommendInfo = used.SkillRecommendInfo?.ToByteArray() ?? [],
     };
 }

@@ -51,7 +51,7 @@ public sealed class SettingsRepository(DataOptions options)
         RedDotInfo = settings.RedDotInfo.ToByteArray(),
         BubTipInfo = settings.BubTipInfo.ToByteArray(),
         IsCloseIntimacyShow = settings.IsCloseIntimacyShow,
-        IsInvisible = settings.IsInvisible,
+        IsInvisible = settings.IsForeverInvisible,
         IsNoFriendInviteInvisible = settings.IsNoFriendInviteInvisible,
     };
 }

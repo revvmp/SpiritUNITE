@@ -54,4 +54,10 @@ public sealed class RolePokemonUsed
 
     [Column("last_battle_time")]
     public long LastBattleTime { get; set; }
+
+    [Column("ranked_match_info_in_season")]
+    public byte[] RankedMatchInfoInSeason { get; set; } = [];
+
+    [Column("skill_recommend_info")]
+    public byte[] SkillRecommendInfo { get; set; } = [];
 }

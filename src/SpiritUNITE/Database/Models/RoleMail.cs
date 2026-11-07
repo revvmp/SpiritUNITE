@@ -37,6 +37,9 @@ public sealed class RoleMail
     [Column("content")]
     public string Content { get; set; } = string.Empty;
 
+    [Column("content_param")]
+    public byte[] ContentParam { get; set; } = [];
+
     [Column("send_time")]
     public long SendTime { get; set; }
 

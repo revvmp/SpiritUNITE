@@ -241,6 +241,7 @@ CREATE TABLE IF NOT EXISTS `role_mail` (
     from_name VARCHAR(64) NOT NULL DEFAULT '',
     subject VARCHAR(64) NOT NULL,
     content VARCHAR(400) NOT NULL,
+    content_param VARBINARY(1024) NOT NULL DEFAULT '',
     send_time BIGINT NOT NULL,
     expire_time BIGINT NOT NULL,
     access_info VARBINARY(1024) NOT NULL,
@@ -313,6 +314,8 @@ CREATE TABLE IF NOT EXISTS `role_pokemon_used` (
     current_week_start BIGINT NOT NULL DEFAULT 0,
     current_week_statistic_info VARBINARY(64) NOT NULL DEFAULT '',
     last_battle_time BIGINT NOT NULL DEFAULT 0,
+    ranked_match_info_in_season VARBINARY(64) NOT NULL DEFAULT '',
+    skill_recommend_info VARBINARY(64) NOT NULL DEFAULT '',
     PRIMARY KEY (game_ulong_uid, pokemon_id),
     CONSTRAINT fk_role_pokemon_used_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
@@ -411,5 +414,58 @@ CREATE TABLE IF NOT EXISTS `role_credit` (
     unconfirmed_day BIGINT NOT NULL DEFAULT 0,
     unconfirmed_count INT NOT NULL DEFAULT 0,
     ban_end_time BIGINT NOT NULL DEFAULT 0,
+    resume_day BIGINT NOT NULL DEFAULT 0,
+    resume_credit INT NOT NULL DEFAULT 0,
     CONSTRAINT fk_role_credit_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_ranked` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    protect_card_select_status INT NOT NULL DEFAULT 0,
+    ban_rank_race_end_time BIGINT NOT NULL DEFAULT 0,
+    no_reminded_buy_protect_card_day BIGINT NOT NULL DEFAULT 0,
+    CONSTRAINT ck_role_ranked_protect_card_select_status CHECK (protect_card_select_status IN (0, 1)),
+    CONSTRAINT fk_role_ranked_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_ranked_season` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    season_id INT NOT NULL,
+    ranked_division INT NOT NULL,
+    win_point INT NOT NULL DEFAULT 0,
+    master_point INT NOT NULL DEFAULT 0,
+    highest_ranked_division INT NOT NULL,
+    highest_master_point INT NOT NULL DEFAULT 0,
+    battle_cnt INT NOT NULL DEFAULT 0,
+    win_cnt INT NOT NULL DEFAULT 0,
+    entry_ranked_division INT NOT NULL DEFAULT 0,
+    entry_win_point INT NOT NULL DEFAULT 0,
+    entry_master_point INT NOT NULL DEFAULT 0,
+    entry_ticket_consume INT NOT NULL DEFAULT 0,
+    use_free_ticket TINYINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid, season_id),
+    CONSTRAINT ck_role_ranked_season_points CHECK (win_point >= 0 AND master_point >= 0 AND entry_win_point >= 0 AND entry_master_point >= 0),
+    CONSTRAINT ck_role_ranked_season_counts CHECK (battle_cnt >= 0 AND win_cnt >= 0 AND win_cnt <= battle_cnt),
+    CONSTRAINT ck_role_ranked_season_use_free_ticket CHECK (use_free_ticket IN (0, 1)),
+    CONSTRAINT fk_role_ranked_season_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_ranked_season_task_award` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    season_id INT NOT NULL,
+    ranked_division INT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, season_id, ranked_division),
+    CONSTRAINT fk_role_ranked_season_task_award_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_warm_battle` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    map_sub_mode INT NOT NULL,
+    game_cnt INT NOT NULL DEFAULT 0,
+    single_warm_cnt INT NOT NULL DEFAULT 0,
+    mult_warm_cnt INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid, map_sub_mode),
+    CONSTRAINT ck_role_warm_battle_counts CHECK (game_cnt >= 0 AND single_warm_cnt >= 0 AND mult_warm_cnt >= 0 AND single_warm_cnt + mult_warm_cnt <= game_cnt),
+    CONSTRAINT fk_role_warm_battle_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+

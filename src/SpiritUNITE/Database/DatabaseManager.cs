@@ -55,6 +55,10 @@ public static class DatabaseManager
             await database.GetTable<RoleTaskProcess>().AnyAsync();
             await database.GetTable<RoleFightHistory>().AnyAsync();
             await database.GetTable<RoleEnergy>().AnyAsync();
+            await database.GetTable<RoleRanked>().FirstOrDefaultAsync();
+            await database.GetTable<RoleRankedSeason>().FirstOrDefaultAsync();
+            await database.GetTable<RoleRankedSeasonTaskAward>().FirstOrDefaultAsync();
+            await database.GetTable<RoleWarmBattle>().AnyAsync();
         }
         catch (MySqlException exception)
         {
