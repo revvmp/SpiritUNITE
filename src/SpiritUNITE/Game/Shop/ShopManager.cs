@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Databin;
+using SpiritUNITE.Game.PokemonAvatar;
 using SpiritUNITE.Tools;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Wallet;
@@ -116,13 +117,30 @@ public sealed class ShopManager(
             coinCosts[coinID] = coinCosts.GetValueOrDefault(coinID) + cost;
         }
 
+        BagCost[] itemCosts =
+        [
+            .. coinCosts.Where(cost => !CoinID.IsGrantableCoin(cost.Key))
+                .Select(cost => new BagCost(RoleItemType.OutSideItem, cost.Key, (int)Math.Min(cost.Value, int.MaxValue))),
+        ];
+        foreach (var itemCost in itemCosts)
+        {
+            if (coinCosts[itemCost.ItemId] > int.MaxValue
+                || await bag.FindOwnedOutSideItemAsync(role.GameUlongUID, itemCost.ItemId) is not { } owned
+                || owned.Cnt < itemCost.Cnt)
+            {
+                return new(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemFragmentNotEnough);
+            }
+
+            coinCosts.Remove(itemCost.ItemId);
+        }
+
         var wallet = await wallets.LoadAsync(role.GameUlongUID);
         if (coinCosts.Any(coinCost => wallet.GetCoinVal(coinCost.Key) < coinCost.Value))
         {
             return new(PB_ENUM_RES_ERROR_CODE.PbErrNotEnoughCoin);
         }
 
-        var purchase = new ShopPurchase(coinCosts, items, pokemonIds, changedRecords, outSideItems);
+        var purchase = new ShopPurchase(coinCosts, items, pokemonIds, changedRecords, outSideItems) { ItemCosts = itemCosts };
         var (commitResult, walletAfter, changedBagItems) = await repository.CommitPurchaseAsync(
             role.GameUlongUID,
             purchase,
@@ -179,7 +197,9 @@ public sealed class ShopManager(
         }
 
         var coinType = (PB_ENUM_RES_COIN_TYPE)shopInfo.ResCoinType;
-        var walletCoin = CoinID.GetCoinID(coinType);
+        var walletCoin = coinType == PB_ENUM_RES_COIN_TYPE.PbResCoinTypeFrament
+            ? ShopPrice.FindFragmentItemID(shopItem)
+            : CoinID.GetCoinID(coinType);
         var price = ShopPrice.GetShopPrice(shopItem, coinType, svrConfTime);
         if (walletCoin is null || price is null)
         {
@@ -218,6 +238,11 @@ public sealed class ShopManager(
             return PB_ENUM_RES_ERROR_CODE.PbErrShopUnexistsItem;
         }
 
+        if (PasterGrant.IsPaster(gameData, shopItem.ShopResID))
+        {
+            return AddPasterGrant(role, shopItem, num, gainTime, items);
+        }
+
         var (avatarIDs, lobbyBgId, pokemonId) = ResolveShopRes(shopItem);
         if (avatarIDs.Length == 0 && lobbyBgId is null && pokemonId is null)
         {
@@ -249,6 +274,28 @@ public sealed class ShopManager(
 
         var granted = avatarIDs.Count(avatarID => AddItemGrant(role, RoleItemType.AvatarItem, avatarID, gainTime, items));
         return granted > 0 ? PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc : PB_ENUM_RES_ERROR_CODE.PbErrShopAvatarExists;
+    }
+
+    private static PB_ENUM_RES_ERROR_CODE AddPasterGrant(
+        LMNRoleInfo role,
+        pbShop shopItem,
+        int num,
+        long gainTime,
+        List<RoleItemInfo> items)
+    {
+        if ((PB_ENUM_RES_SHOP_TYPE)shopItem.ShopType == PB_ENUM_RES_SHOP_TYPE.PbResShopTypePackPaster)
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrShopUnexistsItem;
+        }
+
+        if (num != PermanentItemBuyNum)
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrShopBuyNumFail;
+        }
+
+        return AddItemGrant(role, RoleItemType.Paster, shopItem.ShopResID, gainTime, items)
+            ? PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc
+            : PB_ENUM_RES_ERROR_CODE.PbErrShopItemExist;
     }
 
     private PB_ENUM_RES_ERROR_CODE AddOutSideItemGrant(pbShop shopItem, int num, List<BagGrant> outSideItems)

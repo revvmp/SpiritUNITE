@@ -469,3 +469,71 @@ CREATE TABLE IF NOT EXISTS `role_warm_battle` (
     CONSTRAINT fk_role_warm_battle_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `role_badge_show` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    badge_show_list VARCHAR(64) NOT NULL DEFAULT '',
+    CONSTRAINT fk_role_badge_show_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_tmp_name` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    tmp_name_type INT NOT NULL,
+    tmp_name VARCHAR(64) NOT NULL,
+    is_use INT NOT NULL DEFAULT 0,
+    is_valid INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid, tmp_name_type),
+    CONSTRAINT fk_role_tmp_name_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_activation_code` (
+    activation_code VARCHAR(32) NOT NULL PRIMARY KEY,
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    get_time BIGINT NOT NULL,
+    UNIQUE KEY uq_role_activation_code_role (game_ulong_uid),
+    CONSTRAINT fk_role_activation_code_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `activation_code_use` (
+    activation_code VARCHAR(32) NOT NULL,
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    use_time BIGINT NOT NULL,
+    PRIMARY KEY (activation_code, game_ulong_uid)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_pokemon_carry_equipment` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    pokemon_id INT NOT NULL,
+    carry_equipment_plan_id INT NOT NULL DEFAULT 0,
+    equipment_id_list VARCHAR(64) NOT NULL,
+    PRIMARY KEY (game_ulong_uid, pokemon_id),
+    CONSTRAINT fk_role_pokemon_carry_equipment_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_paster_time_limited` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    paster_id INT NOT NULL,
+    gain_time BIGINT NOT NULL DEFAULT 0,
+    new_tag INT NOT NULL DEFAULT 0,
+    time_limited BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, paster_id),
+    CONSTRAINT fk_role_paster_time_limited_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_paster_spray` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    paster_id INT NOT NULL,
+    paster_spray_id INT NOT NULL,
+    time_limited BIGINT NOT NULL,
+    is_wearing TINYINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid, paster_id, paster_spray_id),
+    CONSTRAINT fk_role_paster_spray_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_skill_effects_expand_pack` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    pokemon_avatar_id INT NOT NULL,
+    skill_effects_expand_pack_type INT NOT NULL,
+    skill_effects_expand_pack_id INT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, pokemon_avatar_id, skill_effects_expand_pack_type),
+    CONSTRAINT fk_role_skill_effects_expand_pack_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;

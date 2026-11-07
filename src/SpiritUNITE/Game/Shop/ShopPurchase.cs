@@ -13,6 +13,8 @@ public sealed record ShopPurchase(
 {
     private const int AwardedPokemonCount = 1;
 
+    public IReadOnlyList<BagCost> ItemCosts { get; init; } = [];
+
     public pbSCResourcesAwardNotify BuildResourcesAwardNotify()
     {
         var notify = new pbSCResourcesAwardNotify

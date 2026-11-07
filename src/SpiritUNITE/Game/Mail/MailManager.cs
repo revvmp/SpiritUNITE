@@ -5,7 +5,9 @@ using Microsoft.Extensions.Logging;
 using SpiritUNITE.Database.Models;
 using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Databin;
+using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Game.Pokemon;
+using SpiritUNITE.Game.PokemonAvatar;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Packets;
@@ -14,12 +16,16 @@ using SpiritUNITE.Online;
 
 namespace SpiritUNITE.Game.Mail;
 
-public sealed record MailClaim(RoleMail Mail, MailGrant Grant, RoleWallet Wallet, IReadOnlyDictionary<int, long> BeforeCoinNums);
+public sealed record MailClaim(RoleMail Mail, MailGrant Grant, RoleWallet Wallet, IReadOnlyDictionary<int, long> BeforeCoinNums)
+{
+    public IReadOnlyList<BagItem> ChangedBagItems { get; init; } = [];
+}
 
 public sealed class MailManager(
     MailRepository repository,
     LobbyRoles lobbyRoles,
     GameData gameData,
+    BagManager bag,
     TimeProvider clock,
     ILogger<MailManager> logger)
 {
@@ -263,7 +269,7 @@ public sealed class MailManager(
             return (PB_ENUM_RES_ERROR_CODE.PbErrMailGetAccessFail, null);
         }
 
-        var (result, wallet, beforeCoinNums) = await repository.ClaimAsync(uid, mail.MailIndex, grant, now);
+        var (result, wallet, beforeCoinNums, changedBagItems) = await repository.ClaimAsync(uid, mail.MailIndex, grant, now);
         if (result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc || wallet is null)
         {
             logger.LogInformation("Mail {MailIndex} claim refused for uid {Uid}: {Result}", mailIndex, uid, result);
@@ -289,7 +295,7 @@ public sealed class MailManager(
             string.Join(',', grant.Coins.Select(coin => $"{coin.Key}x{coin.Value}")),
             grant.Items.Count,
             string.Join(',', grant.PokemonIds));
-        return (result, new MailClaim(mail, grant, wallet, beforeCoinNums));
+        return (result, new MailClaim(mail, grant, wallet, beforeCoinNums) { ChangedBagItems = changedBagItems });
     }
 
     private MailGrant? BuildGrant(LMNRoleInfo role, pbCOMDT_MAILACCESS_INFO accessInfo, long now)
@@ -298,6 +304,7 @@ public sealed class MailManager(
         var items = new List<RoleItemInfo>();
         var pokemonIds = new List<int>();
         var awards = new List<pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO>();
+        var bagGrants = new List<BagGrant>();
         foreach (var award in accessInfo.Access.Select(access => access.ResInfo).OfType<pbCOMDT_ONE_RESOURCE_AWARD_INFO>())
         {
             if ((PB_ENUM_RES_RESOURCES_TYPE)award.ResType == PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem)
@@ -308,6 +315,17 @@ public sealed class MailManager(
                 }
 
                 license.AddTo(pokemonIds, coins, awards);
+                continue;
+            }
+
+            if ((PB_ENUM_RES_RESOURCES_TYPE)award.ResType == PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesPaster)
+            {
+                if (PasterGrant.Plan(gameData, bag, role, award.ResID, award.ResCnt, now, items) is not { } paster)
+                {
+                    return null;
+                }
+
+                paster.AddTo(items, bagGrants, coins, awards);
                 continue;
             }
 
@@ -336,7 +354,7 @@ public sealed class MailManager(
             }
         }
 
-        return new MailGrant(coins, items, pokemonIds, awards);
+        return new MailGrant(coins, items, pokemonIds, awards) { BagGrants = bagGrants };
     }
 
     private static void AddItemGrant(LMNRoleInfo role, RoleItemType itemType, int itemId, long now, List<RoleItemInfo> items)
@@ -376,6 +394,8 @@ public sealed class MailManager(
             PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesCoin => award.ResID > 0,
             PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesAvatar => gameData.AvatarItem.Contains(award.ResID),
             PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesHeadicon => gameData.HeadIconBase.Contains(award.ResID),
+            PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesPaster =>
+                gameData.PokemonAvatarBase.Contains(award.ResID) && award.ResCnt == AwardedPokemonCount,
             PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesLobbyBackground =>
                 gameData.LobbyBg.Contains(award.ResID) && award.ResID != gameData.DefaultLobbyBgId,
             PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesPokemon => award.ResID > 0 && award.ResCnt == AwardedPokemonCount,

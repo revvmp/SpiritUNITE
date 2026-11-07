@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging;
 using SpiritUNITE.Databin;
+using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Game.Mail;
+using SpiritUNITE.Game.PokemonAvatar;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.StarRoad;
 using SpiritUNITE.Game.Wallet;
@@ -200,6 +202,16 @@ public sealed class MailHandlers(
                 UpdateType = (int)PB_ENUM_ENM_AVATAR_UPDATETYPE.PbEnmAvatarUpdatetypeGain,
                 AvatarInfo = item.ToAvatarInfo(),
             }));
+        }
+
+        if (PokemonAvatarManager.BuildGainNtf(claims.SelectMany(claim => claim.Grant.Items)) is { } pokemonAvatarNtf)
+        {
+            packets.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdatePokemonAvatarNtf, pokemonAvatarNtf));
+        }
+
+        if (claims.SelectMany(claim => claim.ChangedBagItems).ToArray() is { Length: > 0 } changedBagItems)
+        {
+            packets.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidOutSideItemUpdateNotify, BagManager.BuildOutSideItemUpdateNotify(changedBagItems)));
         }
 
         if (claims.SelectMany(claim => claim.Grant.Items).Any(item => item.ItemType == RoleItemType.LobbyBg))

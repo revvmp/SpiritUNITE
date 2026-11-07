@@ -3,6 +3,7 @@ using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Game.Lobby;
+using SpiritUNITE.Game.PokemonAvatar;
 using SpiritUNITE.Game.Ranked;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
@@ -257,6 +258,11 @@ public sealed class RankedMatchHandlers(
                 UpdateType = (int)PB_ENUM_ENM_AVATAR_UPDATETYPE.PbEnmAvatarUpdatetypeGain,
                 AvatarInfo = item.ToAvatarInfo(),
             });
+        }
+
+        if (PokemonAvatarManager.BuildGainNtf(grant.Items) is { } pokemonAvatarNtf)
+        {
+            yield return request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdatePokemonAvatarNtf, pokemonAvatarNtf);
         }
 
         if (grant.Items.Any(item => item.ItemType == RoleItemType.LobbyBg))

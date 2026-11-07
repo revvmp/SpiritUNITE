@@ -1,3 +1,4 @@
+using SpiritUNITE.Databin;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Role;
@@ -16,6 +17,36 @@ public static class RoleAvatar
 
     public static bool IsNewTagClearList(IReadOnlyCollection<int> avatarIDList) =>
         avatarIDList.Count is > 0 and <= MaxBatchClearAvatarNewTagCnt && avatarIDList.All(IsAvatarID);
+
+    public static PB_ENUM_RES_ERROR_CODE TakeOffSlot(
+        GameData gameData,
+        IReadOnlyCollection<int> wornAvatarIDList,
+        int slotType,
+        out int[] remainingAvatarIDList)
+    {
+        remainingAvatarIDList = [];
+        if (!Enum.IsDefined((PB_ENUM_RES_AVATAR_SLOT_TYPE)slotType)
+            || slotType is (int)PB_ENUM_RES_AVATAR_SLOT_TYPE.PbResAvatarSlotTypeInvalid or (int)PB_ENUM_RES_AVATAR_SLOT_TYPE.PbResAvatarSlotTypeMax)
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
+        }
+
+        var slotAvatarIDs = wornAvatarIDList
+            .Where(avatarID => gameData.AvatarItem.Find(avatarID)?.AvatarSlotType == slotType)
+            .ToArray();
+        if (slotAvatarIDs.Length == 0)
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrAvatarUnexists;
+        }
+
+        if (slotAvatarIDs.Any(avatarID => CreateRoleShowAvatar.IsBodyFeature(gameData, avatarID)))
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
+        }
+
+        remainingAvatarIDList = [.. wornAvatarIDList.Except(slotAvatarIDs)];
+        return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
+    }
 
     private static bool AreDistinctAvatarIDs(IReadOnlyCollection<int> avatarIDList) =>
         avatarIDList.All(IsAvatarID) && avatarIDList.Distinct().Count() == avatarIDList.Count;

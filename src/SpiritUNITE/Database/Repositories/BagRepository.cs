@@ -13,6 +13,7 @@ namespace SpiritUNITE.Database.Repositories;
 public sealed record BagCommit(PB_ENUM_RES_ERROR_CODE Result, IReadOnlyList<BagItem> ChangedItems, RoleWallet? Wallet)
 {
     public IReadOnlyDictionary<int, long> BeforeCoinNums { get; init; } = new Dictionary<int, long>();
+    public IReadOnlyList<RoleItemInfo> TimeLimitedPasters { get; init; } = [];
 
     public static BagCommit Refused(PB_ENUM_RES_ERROR_CODE result) => new(result, [], null);
 }
@@ -71,8 +72,16 @@ public sealed class BagRepository(DataOptions options)
 
         var changedItems = await ReadItemsAsync(database, gameUlongUID, change.TouchedItems);
         var wallet = change.ChangesCoins ? await WalletRepository.ReadAsync(database, gameUlongUID) : null;
+        var timeLimitedPasters = await PasterRepository.ReadTimeLimitedAsync(
+            database,
+            gameUlongUID,
+            change.PasterTimeLimits.Select(grant => grant.PasterId));
         await transaction.CommitAsync();
-        return new BagCommit(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, changedItems, wallet) { BeforeCoinNums = beforeCoinNums };
+        return new BagCommit(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, changedItems, wallet)
+        {
+            BeforeCoinNums = beforeCoinNums,
+            TimeLimitedPasters = timeLimitedPasters,
+        };
     }
 
     public async Task<BagCommit> UseRenameCardAsync(ulong gameUlongUID, int renameCardId, string newUserName)
@@ -176,12 +185,18 @@ public sealed class BagRepository(DataOptions options)
             {
                 await database.InsertAsync(RoleRepository.ToEntity(gameUlongUID, pokemon));
             }
+
+            foreach (var item in change.ItemGrants)
+            {
+                await database.InsertAsync(RoleRepository.ToEntity(gameUlongUID, item));
+            }
         }
         catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
         {
             return PB_ENUM_RES_ERROR_CODE.PbErrCommonFailed;
         }
 
+        await PasterRepository.ApplyTimeLimitedAsync(database, gameUlongUID, change.PasterTimeLimits, now);
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 

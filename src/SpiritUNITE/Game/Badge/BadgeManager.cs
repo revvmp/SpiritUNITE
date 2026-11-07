@@ -37,6 +37,7 @@ public sealed class BadgeManager(
     private const int NoBadgeColor = 0;
     private const int NoBadgeColorLv = 0;
     private const int UnlimitedBadgeStack = int.MaxValue;
+    private const int MaxBadgeShow = (int)PB_MACRO_MAX_BADGE_SHOW.PbMaxBadgeShow;
     private const int NoItemLevel = 0;
 
     private readonly int firstPaidSchedueId = gameData.BadgeUnlock.Rows.Min(unlock => unlock.BadgeSchemeID);
@@ -317,6 +318,30 @@ public sealed class BadgeManager(
             commit.ChangedItems,
             commit.Wallet ?? wallet,
             changedCur);
+    }
+
+    public async Task<pbCOMDT_BADGE_SHOW_INFO> GetBadgeShowInfoAsync(ulong gameUlongUID) => new()
+    {
+        BadgeShowList = { await repository.LoadBadgeShowListAsync(gameUlongUID) },
+    };
+
+    public async Task<PB_ENUM_RES_ERROR_CODE> SetBadgePictureShowAsync(ulong gameUlongUID, IReadOnlyList<int> badgeShowList)
+    {
+        if (badgeShowList.Count > MaxBadgeShow
+            || badgeShowList.Distinct().Count() != badgeShowList.Count
+            || !badgeShowList.All(badgeID => gameData.BadgeBase.Contains(badgeID)))
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
+        }
+
+        var everOwned = (await bagRepository.LoadAsync(gameUlongUID, RoleItemType.Badge)).Select(badge => badge.ItemId).ToHashSet();
+        if (!badgeShowList.All(everOwned.Contains))
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrBadgeInlayNotEnoughInBag;
+        }
+
+        await repository.SaveBadgeShowListAsync(gameUlongUID, badgeShowList);
+        return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
     public PB_ENUM_RES_ERROR_CODE ValidateResolveBadge(int badgeID, int resolveNum)

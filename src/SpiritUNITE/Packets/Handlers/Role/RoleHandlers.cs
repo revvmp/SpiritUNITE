@@ -112,6 +112,32 @@ public sealed class RoleHandlers(
         ];
     }
 
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidTakeOffBeautyAvatarReq)]
+    public async Task<GamePacket[]> OnTakeOffBeautyAvatarReq(GamePacket request)
+    {
+        var role = roles.Require(request.Uid);
+        var slotType = pbCSTakeOffBeautyAvatarReq.Parser.ParseFrom(request.PkgData).SlotType;
+        var result = RoleAvatar.TakeOffSlot(gameData, role.RoleAvatarInfo.AvatarIDList, slotType, out var remainingAvatarIDList);
+        if (result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+        {
+            result = role.SetRoleAvatar(gameData, remainingAvatarIDList, clock.GetUtcNow().ToUnixTimeSeconds(), out _);
+        }
+
+        if (result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+        {
+            await roles.SaveAsync(role);
+        }
+
+        logger.LogInformation("Avatar slot {SlotType} take off for uid {Uid}: {Result}", slotType, role.GameUlongUID, result);
+        return
+        [
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidTakeOffBeautyAvatarRsp, new pbSCTakeOffBeautyAvatarRsp
+            {
+                ResultInfo = new pbResultInfo { ResultId = (int)result },
+            }),
+        ];
+    }
+
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidClearAvatarNewTagReq)]
     public async Task<GamePacket[]> OnClearAvatarNewTagReq(GamePacket request)
     {

@@ -117,6 +117,20 @@ public static class RoomNotices
             StateChg = new pbCOMDT_ROOMCHG_STATECHG { OldState = (int)oldState, NewState = (int)room.State },
         });
 
+    public static pbSCRoomChgNtf MemberInfoChg(MatchRoom room, pbCOMDT_ROOMMEMBER_OF_ACNT memberOfAcnt) =>
+        ChgNtf(room, PB_ENUM_COM_ROOMCHGTYPE.PbComRoomchgMemberinfochg, new pbCOMDT_ROOMCHG_DT
+        {
+            MemberInfoChg = new pbCOMDT_ROOMCHG_MEMBERINFOCHG
+            {
+                MemberUid = memberOfAcnt.Uid,
+                RoleAvatarInfo = memberOfAcnt.RoleAvatarInfo,
+                RankedDivision = memberOfAcnt.RankedDivision,
+                RoleName = memberOfAcnt.MemberName,
+                TmpNameList = memberOfAcnt.TmpNameList,
+                BattleMemberConfigList = memberOfAcnt.BattleMemberConfigList,
+            },
+        });
+
     public static pbSCRoomChgNtf MasterChg(MatchRoom room) =>
         ChgNtf(room, PB_ENUM_COM_ROOMCHGTYPE.PbComRoomchgMasterchg, new pbCOMDT_ROOMCHG_DT
         {

@@ -1,0 +1,337 @@
+[
+  {
+    "EquipmentId": 1,
+    "Category": 1
+  },
+  {
+    "EquipmentId": 2,
+    "Category": 1
+  },
+  {
+    "EquipmentId": 3,
+    "Category": 1
+  },
+  {
+    "EquipmentId": 4,
+    "Category": 1
+  },
+  {
+    "EquipmentId": 5,
+    "Category": 1
+  },
+  {
+    "EquipmentId": 6,
+    "Category": 4
+  },
+  {
+    "EquipmentId": 7,
+    "Category": 2
+  },
+  {
+    "EquipmentId": 8,
+    "Category": 2
+  },
+  {
+    "EquipmentId": 9,
+    "Category": 2
+  },
+  {
+    "EquipmentId": 10,
+    "Category": 2
+  },
+  {
+    "EquipmentId": 11,
+    "Category": 3
+  },
+  {
+    "EquipmentId": 12,
+    "Category": 3
+  },
+  {
+    "EquipmentId": 13,
+    "Category": 3
+  },
+  {
+    "EquipmentId": 14,
+    "Category": 3
+  },
+  {
+    "EquipmentId": 15,
+    "Category": 4
+  },
+  {
+    "EquipmentId": 16,
+    "Category": 4
+  },
+  {
+    "EquipmentId": 17,
+    "Category": 4
+  },
+  {
+    "EquipmentId": 1000109
+  },
+  {
+    "EquipmentId": 1000110
+  },
+  {
+    "EquipmentId": 1000111
+  },
+  {
+    "EquipmentId": 1000112
+  },
+  {
+    "EquipmentId": 1000113
+  },
+  {
+    "EquipmentId": 1000114
+  },
+  {
+    "EquipmentId": 1000115
+  },
+  {
+    "EquipmentId": 1000116
+  },
+  {
+    "EquipmentId": 1000117
+  },
+  {
+    "EquipmentId": 1000118
+  },
+  {
+    "EquipmentId": 1000119
+  },
+  {
+    "EquipmentId": 1000120
+  },
+  {
+    "EquipmentId": 1000121
+  },
+  {
+    "EquipmentId": 1000122
+  },
+  {
+    "EquipmentId": 1000123
+  },
+  {
+    "EquipmentId": 1000124
+  },
+  {
+    "EquipmentId": 1000125
+  },
+  {
+    "EquipmentId": 1000126
+  },
+  {
+    "EquipmentId": 1000127
+  },
+  {
+    "EquipmentId": 1000128
+  },
+  {
+    "EquipmentId": 1000129
+  },
+  {
+    "EquipmentId": 1000130
+  },
+  {
+    "EquipmentId": 1000131
+  },
+  {
+    "EquipmentId": 1000132
+  },
+  {
+    "EquipmentId": 1000133
+  },
+  {
+    "EquipmentId": 1000134
+  },
+  {
+    "EquipmentId": 1000135
+  },
+  {
+    "EquipmentId": 1000136
+  },
+  {
+    "EquipmentId": 1000137
+  },
+  {
+    "EquipmentId": 1000138
+  },
+  {
+    "EquipmentId": 1000139
+  },
+  {
+    "EquipmentId": 1000140
+  },
+  {
+    "EquipmentId": 1000141
+  },
+  {
+    "EquipmentId": 1000142
+  },
+  {
+    "EquipmentId": 1000143
+  },
+  {
+    "EquipmentId": 1000144
+  },
+  {
+    "EquipmentId": 1000145
+  },
+  {
+    "EquipmentId": 1000146
+  },
+  {
+    "EquipmentId": 1000147
+  },
+  {
+    "EquipmentId": 1000148
+  },
+  {
+    "EquipmentId": 1000149
+  },
+  {
+    "EquipmentId": 1000150
+  },
+  {
+    "EquipmentId": 1000151
+  },
+  {
+    "EquipmentId": 1000152
+  },
+  {
+    "EquipmentId": 1000153
+  },
+  {
+    "EquipmentId": 1000154
+  },
+  {
+    "EquipmentId": 1000155
+  },
+  {
+    "EquipmentId": 1000156
+  },
+  {
+    "EquipmentId": 1000157
+  },
+  {
+    "EquipmentId": 1000158
+  },
+  {
+    "EquipmentId": 1000159
+  },
+  {
+    "EquipmentId": 1000160
+  },
+  {
+    "EquipmentId": 1000161
+  },
+  {
+    "EquipmentId": 1000162
+  },
+  {
+    "EquipmentId": 1000163
+  },
+  {
+    "EquipmentId": 1000164
+  },
+  {
+    "EquipmentId": 1000165
+  },
+  {
+    "EquipmentId": 1000166
+  },
+  {
+    "EquipmentId": 1000167
+  },
+  {
+    "EquipmentId": 1000168
+  },
+  {
+    "EquipmentId": 1000169
+  },
+  {
+    "EquipmentId": 1000170
+  },
+  {
+    "EquipmentId": 1000171
+  },
+  {
+    "EquipmentId": 1000172
+  },
+  {
+    "EquipmentId": 1000173
+  },
+  {
+    "EquipmentId": 1000174
+  },
+  {
+    "EquipmentId": 1000175
+  },
+  {
+    "EquipmentId": 1000176
+  },
+  {
+    "EquipmentId": 1000177
+  },
+  {
+    "EquipmentId": 1000178
+  },
+  {
+    "EquipmentId": 1000179
+  },
+  {
+    "EquipmentId": 1000180
+  },
+  {
+    "EquipmentId": 1000181
+  },
+  {
+    "EquipmentId": 1000182
+  },
+  {
+    "EquipmentId": 1000183
+  },
+  {
+    "EquipmentId": 1000184
+  },
+  {
+    "EquipmentId": 1000185
+  },
+  {
+    "EquipmentId": 1000186
+  },
+  {
+    "EquipmentId": 1000187
+  },
+  {
+    "EquipmentId": 1000188
+  },
+  {
+    "EquipmentId": 1000189
+  },
+  {
+    "EquipmentId": 1000190
+  },
+  {
+    "EquipmentId": 1000191
+  },
+  {
+    "EquipmentId": 1000192
+  },
+  {
+    "EquipmentId": 1000193
+  },
+  {
+    "EquipmentId": 1000194
+  },
+  {
+    "EquipmentId": 1000195
+  },
+  {
+    "EquipmentId": 1000196
+  },
+  {
+    "EquipmentId": 1000197
+  }
+]

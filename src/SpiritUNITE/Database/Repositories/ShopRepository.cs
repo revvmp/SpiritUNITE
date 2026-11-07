@@ -45,6 +45,13 @@ public sealed class ShopRepository(DataOptions options)
             }
         }
 
+        var itemsPaid = await BagRepository.ApplyAsync(database, gameUlongUID, new BagChange { Costs = purchase.ItemCosts }, now);
+        if (itemsPaid != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+        {
+            await transaction.RollbackAsync();
+            return (PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemFragmentNotEnough, null, []);
+        }
+
         try
         {
             foreach (var item in purchase.Items)
@@ -89,7 +96,9 @@ public sealed class ShopRepository(DataOptions options)
         var changedBagItems = await BagRepository.ReadItemsAsync(
             database,
             gameUlongUID,
-            purchase.OutSideItems.Select(grant => (grant.ItemType, grant.ItemId)).Distinct());
+            purchase.OutSideItems.Select(grant => (grant.ItemType, grant.ItemId))
+                .Concat(purchase.ItemCosts.Select(cost => (cost.ItemType, cost.ItemId)))
+                .Distinct());
         await transaction.CommitAsync();
         return (PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, wallet, changedBagItems);
     }

@@ -127,7 +127,7 @@ public sealed class LoginManager(
             NextLevelToTalExp = RoleProfile.GetNextLevelTotalExp(gameData, role),
             ReachMaxLevel = RoleProfile.HasReachedMaxLevel(gameData, role) ? 1 : 0,
             Name = role.InGameUsrName,
-            FollowInfo = role.BuildFollowInfo(),
+            FollowInfo = await pokemon.BuildFollowInfoAsync(role),
             Gender = role.Gender,
             AvatarSuitSeqID = role.GetAvatarSuitSeqID(gameData),
             HeadID = RoleImage.GetHeadID(gameData, role),

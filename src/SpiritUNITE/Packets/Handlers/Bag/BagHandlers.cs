@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Logging;
+using SpiritUNITE.Game.Badge;
 using SpiritUNITE.Game.Bag;
+using SpiritUNITE.Game.PokemonAvatar;
 using SpiritUNITE.Game.Ranked;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.StarRoad;
@@ -17,8 +19,6 @@ public sealed class BagHandlers(
     TaskUpdates taskUpdates,
     ILogger<BagHandlers> logger)
 {
-    private const int OpenAwardBoxReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonOpenawardbox;
-
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidOutSideItemPackageAllInfoReq)]
     public async Task<GamePacket[]> OnOutSideItemPackageAllInfoReq(GamePacket request)
     {
@@ -123,6 +123,13 @@ public sealed class BagHandlers(
                 BagManager.BuildOutSideItemUpdateNotify(outcome.ChangedItems)));
         }
 
+        if (outcome.ChangedItems.Any(item => item.ItemType == RoleItemType.Badge))
+        {
+            packets.Add(request.Reply(
+                PB_ENUM_CS_MSGID_DEF.PbScidUpdateBadgeNotify,
+                BadgeManager.BuildUpdateBadgeNotify(outcome.ChangedItems.Where(item => item.ItemType == RoleItemType.Badge))));
+        }
+
         packets.Add(request.Reply(
             PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf,
             await taskUpdates.BuildOwnershipUpdateTaskInfoNtfAsync(role)));
@@ -160,6 +167,16 @@ public sealed class BagHandlers(
             packets.Add(StarRoadManager.BuildAddPokemonRedDot(role));
         }
 
+        foreach (var avatar in outcome.GrantedItems.Where(item => item.ItemType == RoleItemType.AvatarItem))
+        {
+            packets.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdateAvatarNtf, new pbSCUpdateAvatarNtf
+            {
+                UpdateType = (int)PB_ENUM_ENM_AVATAR_UPDATETYPE.PbEnmAvatarUpdatetypeGain,
+                AvatarInfo = avatar.ToAvatarInfo(),
+            }));
+        }
+
+        packets.AddRange(PokemonAvatarManager.BuildGainPushes(outcome.GrantedItems.Concat(outcome.TimeLimitedPasters)));
         if (outcome is { GrantedWalletCoins: true, Wallet: { } wallet })
         {
             packets.Add(request.Reply(
@@ -168,16 +185,76 @@ public sealed class BagHandlers(
             packets.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAcntCouponsRsp, wallet.BuildAcntCouponsRsp()));
         }
 
-        packets.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidResourcesAwardNotify, new pbSCResourcesAwardNotify
+        if (outcome.Awards.Count > 0)
         {
-            ResultInfo = new pbResultInfo(),
-            AwardReason = OpenAwardBoxReason,
-            ResourcesList = { outcome.Awards },
-        }));
+            packets.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidResourcesAwardNotify, new pbSCResourcesAwardNotify
+            {
+                ResultInfo = new pbResultInfo(),
+                AwardReason = outcome.AwardReason,
+                ResourcesList = { outcome.Awards },
+            }));
+        }
         packets.Add(request.Reply(
             PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf,
             await taskUpdates.BuildOwnershipUpdateTaskInfoNtfAsync(role)));
         return [.. packets.Select(packet => packet with { Uid = request.Uid, ClientSeq = request.ClientSeq })];
+    }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetOptionalChestInfoReq)]
+    public GamePacket[] OnGetOptionalChestInfoReq(GamePacket request)
+    {
+        var role = roles.Require(request.Uid);
+        var optionalChestID = pbCSGetOptionalChestInfoReq.Parser.ParseFrom(request.PkgData).OptionalChestID;
+        var result = bag.BuildOptionalChestInfo(role, optionalChestID, out var info);
+        return
+        [
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetOptionalChestInfoRsp, new pbSCGetOptionalChestInfoRsp
+            {
+                ResultInfo = new pbResultInfo { ResultId = (int)result },
+                OptionalChestInfo = info,
+            }),
+        ];
+    }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidUseOptionalChestReq)]
+    public async Task<GamePacket[]> OnUseOptionalChestReq(GamePacket request)
+    {
+        var role = roles.Require(request.Uid);
+        var use = pbCSUseOptionalChestReq.Parser.ParseFrom(request.PkgData);
+        var outcome = await bag.UseOptionalChestAsync(role, use.ResID, use.GridUniqueID, use.ResCnt, use.ChooseResList);
+        logger.LogInformation(
+            "Optional chest {ResID} x{ResCnt} opened by uid {Uid} choosing [{Choices}]: {Result}",
+            use.ResID,
+            use.ResCnt,
+            role.GameUlongUID,
+            string.Join(", ", use.ChooseResList.Select(choice => $"{choice.ResID}x{choice.ResCnt}")),
+            outcome.Result);
+        var reply = request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUseOptionalChestRsp, new pbSCUseOptionalChestRsp
+        {
+            ResultInfo = new pbResultInfo { ResultId = (int)outcome.Result },
+        });
+        return outcome.Succeeded ? [.. await BuildUseAwardPacketsAsync(request, role, outcome), reply] : [reply];
+    }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidExchangeSpecifiedItemReq)]
+    public async Task<GamePacket[]> OnExchangeSpecifiedItemReq(GamePacket request)
+    {
+        var role = roles.Require(request.Uid);
+        var exchange = pbCSExchangeSpecifiedItemReq.Parser.ParseFrom(request.PkgData);
+        var outcome = await bag.ExchangeSpecifiedItemAsync(role, exchange.ResID, exchange.ExchangeNum);
+        logger.LogInformation(
+            "Exchange of {ExchangeNum} from outside item {ResID} by uid {Uid}: {Result}",
+            exchange.ExchangeNum,
+            exchange.ResID,
+            role.GameUlongUID,
+            outcome.Result);
+        var reply = request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidExchangeSpecifiedItemRsp, new pbSCExchangeSpecifiedItemRsp
+        {
+            ResultInfo = new pbResultInfo { ResultId = (int)outcome.Result },
+            ResID = exchange.ResID,
+            ExchangeNum = exchange.ExchangeNum,
+        });
+        return outcome.Succeeded ? [.. await BuildUseAwardPacketsAsync(request, role, outcome), reply] : [reply];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidClearOutSideItemRedDotReq)]

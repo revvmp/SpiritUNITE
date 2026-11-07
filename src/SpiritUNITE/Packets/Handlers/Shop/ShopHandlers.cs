@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Lobby;
+using SpiritUNITE.Game.PokemonAvatar;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Shop;
 using SpiritUNITE.Game.Wallet;
@@ -44,7 +45,7 @@ public sealed class ShopHandlers(
             "Shop buy for uid {Uid}: shop ids {ShopIDs}, cost {Costs}, {ItemCount} items, Pokemon {PokemonIds}",
             role.GameUlongUID,
             shopIDs,
-            string.Join(',', purchase.CoinCosts.Select(cost => $"{cost.Key}x{cost.Value}")),
+            string.Join(',', purchase.CoinCosts.Select(cost => $"{cost.Key}x{cost.Value}").Concat(purchase.ItemCosts.Select(cost => $"{cost.ItemId}x{cost.Cnt}"))),
             purchase.Items.Count,
             string.Join(',', purchase.PokemonIds));
         return [.. BuildPurchaseUpdates(request, role, purchase, wallet, buyRecords, bagItems), reply];
@@ -101,6 +102,11 @@ public sealed class ShopHandlers(
                 UpdateType = (int)PB_ENUM_ENM_AVATAR_UPDATETYPE.PbEnmAvatarUpdatetypeGain,
                 AvatarInfo = item.ToAvatarInfo(),
             });
+        }
+
+        if (PokemonAvatarManager.BuildGainNtf(purchase.Items) is { } pokemonAvatarNtf)
+        {
+            yield return request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdatePokemonAvatarNtf, pokemonAvatarNtf);
         }
 
         if (purchase.Items.Any(item => item.ItemType == RoleItemType.LobbyBg))

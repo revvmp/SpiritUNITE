@@ -18,7 +18,7 @@ public sealed class RoomMember(
     public int CampClient { get; set; } = campClient;
     public int PosOfCamp { get; set; } = posOfCamp;
     public pbCOMDT_ACNTMAP_INFO AcntMapInfo { get; set; } = acntMapInfo;
-    public RoomMemberProfile Profile { get; } = profile;
+    public RoomMemberProfile Profile { get; set; } = profile;
 
     public IReadOnlySet<int> UsableMaps =>
         AcntMapInfo.MapList.Where(map => map.CanUseType == RoomOptions.CanUseMap).Select(map => map.MapId).ToHashSet();

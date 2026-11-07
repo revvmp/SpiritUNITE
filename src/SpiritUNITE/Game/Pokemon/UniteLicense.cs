@@ -38,6 +38,9 @@ public static class UniteLicense
 
     public static bool IsUniteLicense(GameData gameData, int resID) => FindLicense(gameData, resID) is not null;
 
+    public static int? FindPokemonId(GameData gameData, int resID) =>
+        FindLicense(gameData, resID)?.ItemParam[LicensePokemonParamIndex];
+
     public static UniteLicenseGrant? PlanGrant(
         GameData gameData,
         LMNRoleInfo role,

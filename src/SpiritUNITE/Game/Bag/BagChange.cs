@@ -1,4 +1,5 @@
 using SpiritUNITE.Game.Pokemon;
+using SpiritUNITE.Game.PokemonAvatar;
 using SpiritUNITE.Game.Role;
 
 namespace SpiritUNITE.Game.Bag;
@@ -17,6 +18,8 @@ public sealed record BagChange
     public IReadOnlyDictionary<int, long> CoinCosts { get; init; } = new Dictionary<int, long>();
     public IReadOnlyDictionary<int, long> CoinGrants { get; init; } = new Dictionary<int, long>();
     public IReadOnlyList<RolePokemonInfo> PokemonGrants { get; init; } = [];
+    public IReadOnlyList<RoleItemInfo> ItemGrants { get; init; } = [];
+    public IReadOnlyList<PasterTimeLimit> PasterTimeLimits { get; init; } = [];
 
     public bool ChangesCoins => CoinCosts.Count > 0 || CoinGrants.Count > 0;
 

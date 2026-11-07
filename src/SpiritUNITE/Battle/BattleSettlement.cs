@@ -741,7 +741,9 @@ public sealed class BattleSettlement
         var packets = new List<GamePacket>();
         if (commit.UsedPokemon is { } used)
         {
-            packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUpdateUsedPokemonNtf, pokemon.BuildUpdateUsedPokemonNtf(used)));
+            packets.Add(GamePacket.Create(
+                PB_ENUM_CS_MSGID_DEF.PbScidUpdateUsedPokemonNtf,
+                await pokemon.BuildUpdateUsedPokemonNtfAsync(role.GameUlongUID, used)));
         }
 
         var levelAfter = RoleProfile.GetLevel(gameData, role);

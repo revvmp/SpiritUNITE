@@ -28,6 +28,7 @@ public sealed class RoomHandlers
     private readonly SettingsManager settings;
     private readonly AccountManager accounts;
     private readonly RoleInfoStore roles;
+    private readonly TmpNameManager tmpNames;
     private readonly ActivitySchedule activitySchedule;
     private readonly ActivityManager activityManager;
     private readonly CreditManager credit;
@@ -47,6 +48,7 @@ public sealed class RoomHandlers
         SettingsManager settings,
         AccountManager accounts,
         RoleInfoStore roles,
+        TmpNameManager tmpNames,
         ActivitySchedule activitySchedule,
         ActivityManager activityManager,
         CreditManager credit,
@@ -63,6 +65,7 @@ public sealed class RoomHandlers
         this.settings = settings;
         this.accounts = accounts;
         this.roles = roles;
+        this.tmpNames = tmpNames;
         this.activitySchedule = activitySchedule;
         this.activityManager = activityManager;
         this.credit = credit;
@@ -490,6 +493,30 @@ public sealed class RoomHandlers
         return await DeliverAsync(request, outcome, response);
     }
 
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidChgRoleTmpNameReq)]
+    public async Task<GamePacket[]> OnChgRoleTmpNameReq(GamePacket request)
+    {
+        var role = roles.Require(request.Uid);
+        var chg = pbCSChgRoleTmpNameReq.Parser.ParseFrom(request.PkgData);
+        var result = await tmpNames.ChgRoleTmpNameAsync(role.GameUlongUID, chg);
+        logger.LogInformation(
+            "Temporary name of type {TmpNameType} for uid {Uid}: {Result}",
+            chg.TmpNameType,
+            role.GameUlongUID,
+            result);
+        var response = request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidChgRoleTmpNameRsp, new pbSCChgRoleTmpNameRsp
+        {
+            ResultInfo = new pbResultInfo { ResultId = (int)result },
+        });
+        if (result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+        {
+            return [response];
+        }
+
+        var outcome = rooms.ChangeTmpNameList(role.GameUlongUID, await tmpNames.BuildTmpNameListAsync(role.GameUlongUID));
+        return await DeliverAsync(request, outcome, response);
+    }
+
     private async Task<GamePacket[]> CompleteJoinAsync(GamePacket request, RoomOutcome outcome, GamePacket response)
     {
         if (!outcome.Succeeded)
@@ -547,7 +574,11 @@ public sealed class RoomHandlers
         var style = await profiles.LoadAsync(uid);
         var roleSettings = await settings.LoadAsync(uid);
         var channels = await accounts.FindBoundChannelsAsync(uid);
-        return new RoomMemberProfile(style.BuildUserPlantInfo(), roleSettings.ABMode, channels.Contains(LoginPlatform.GUEST));
+        return new RoomMemberProfile(
+            style.BuildUserPlantInfo(),
+            roleSettings.ABMode,
+            channels.Contains(LoginPlatform.GUEST),
+            await tmpNames.BuildTmpNameListAsync(uid));
     }
 
     private async Task PushAllAsync(RoomOutcome outcome, ulong except = 0)

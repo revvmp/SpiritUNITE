@@ -1,9 +1,11 @@
 using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Pokemon;
+using SpiritUNITE.Game.PokemonAvatar;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Packets.Messages;
+using SpiritUNITE.Tools;
 
 namespace SpiritUNITE.Game.Bag;
 
@@ -12,6 +14,9 @@ public sealed record BagOutcome(PB_ENUM_RES_ERROR_CODE Result, IReadOnlyList<Bag
     public IReadOnlyDictionary<int, long> BeforeCoinNums { get; init; } = new Dictionary<int, long>();
     public IReadOnlyList<pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO> Awards { get; init; } = [];
     public IReadOnlyList<int> GrantedPokemonIds { get; init; } = [];
+    public IReadOnlyList<RoleItemInfo> GrantedItems { get; init; } = [];
+    public IReadOnlyList<RoleItemInfo> TimeLimitedPasters { get; init; } = [];
+    public int AwardReason { get; init; } = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonOpenawardbox;
 
     public bool Succeeded => Result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
 
@@ -22,7 +27,11 @@ public sealed record BagOutcome(PB_ENUM_RES_ERROR_CODE Result, IReadOnlyList<Bag
     public static BagOutcome Refused(PB_ENUM_RES_ERROR_CODE result) => new(result, []);
 
     public static BagOutcome From(BagCommit commit) =>
-        new(commit.Result, commit.ChangedItems, commit.Wallet) { BeforeCoinNums = commit.BeforeCoinNums };
+        new(commit.Result, commit.ChangedItems, commit.Wallet)
+        {
+            BeforeCoinNums = commit.BeforeCoinNums,
+            TimeLimitedPasters = commit.TimeLimitedPasters,
+        };
 }
 
 public sealed record ChestDrop(int ResID, int ResCnt);
@@ -43,7 +52,22 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
     private const int NoDropID = 0;
     private const int FirstDropSeq = 1;
     private const int OpenAwardBoxReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonOpenawardbox;
+    private const int OptionalChestReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonOptionalchest;
+    private const int ExchangeSpecifiedItemReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonUseExchangeSpecifiedItem;
     private const ulong NoGridUniqueID = 0;
+    private const int OptionalChestDropParamIndex = 0;
+    private const int OptionalChestSingleSelectParamIndex = 1;
+    private const int OptionalChestExtraDropParamIndex = 2;
+    private const int ExchangeNeedNumParamIndex = 0;
+    private const int ExchangeRewardItemParamIndex = 1;
+    private const int ExchangeNonRepeatableParamIndex = 2;
+    private const int RepeatableExchange = 0;
+    private const int PasterItemParamIndex = 0;
+    private const int PasterTimeParamIndex = 1;
+    private const long CfgDateToCfgTime = 1000000;
+    private const int GainPasterReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonGainPaster;
+    private const int PasterTimeLimitedReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonPastertimelimited;
+    private const int PasterTimeLimitedExchangeReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonPastertimelimitedexchange;
 
     public async Task<BagItem[]> GetOwnedOutSideItemsAsync(ulong gameUlongUID) =>
         [.. (await repository.LoadAsync(gameUlongUID, RoleItemType.OutSideItem)).Where(item => item.IsOwned)];
@@ -142,9 +166,92 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
             return BagOutcome.Refused(validation);
         }
 
-        return config.OutSideItemType == (int)PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypeChest
-            ? await OpenChestAsync(role, config, resCnt)
-            : BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemUnKnownUseType);
+        return (PB_ENUM_RES_OUTSIDEITEM_TYPE)config.OutSideItemType switch
+        {
+            PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypeChest => await OpenChestAsync(role, config, resCnt),
+            PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypePokemonavatarvoucher
+                or PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypePastertimelimited
+                or PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypePasterexpiretime => await UsePasterItemAsync(role, config, resCnt),
+            _ => BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemUnKnownUseType),
+        };
+    }
+
+    private async Task<BagOutcome> UsePasterItemAsync(LMNRoleInfo role, pbOutSideItem_Base config, int resCnt)
+    {
+        var pasterID = config.ItemParam.ElementAtOrDefault(PasterItemParamIndex);
+        if (!PasterGrant.IsPaster(gameData, pasterID))
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrPasterIdinvalid);
+        }
+
+        var now = clock.GetUtcNow().ToUnixTimeSeconds();
+        var cost = new BagCost(RoleItemType.OutSideItem, config.OutSideItemId, resCnt);
+        var type = (PB_ENUM_RES_OUTSIDEITEM_TYPE)config.OutSideItemType;
+        if (role.OwnsItem(RoleItemType.Paster, pasterID))
+        {
+            return type == PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypePokemonavatarvoucher
+                ? BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrPasterAlreadyExist)
+                : await ExchangeOwnedPasterItemAsync(role, config, cost);
+        }
+
+        if (type == PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypePokemonavatarvoucher)
+        {
+            if (resCnt != SingleItem)
+            {
+                return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemInvalidNum);
+            }
+
+            var paster = new RoleItemInfo(RoleItemType.Paster, pasterID, now, RoleItemInfo.Permanent, RoleItemInfo.ShowNewTag);
+            var plan = new ResourceGrantPlan([], new Dictionary<int, long>(), [paster.ToAwardReplaceInfo()], [], [paster]);
+            return await CommitGrantsAsync(role, cost, plan, GainPasterReason);
+        }
+
+        var timeParam = config.ItemParam.ElementAtOrDefault(PasterTimeParamIndex);
+        if (timeParam <= 0)
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemIdnotExistInCfg);
+        }
+
+        PasterTimeLimit timeLimit;
+        if (type == PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypePastertimelimited)
+        {
+            timeLimit = new PasterTimeLimit(pasterID, (long)timeParam * resCnt, 0);
+        }
+        else
+        {
+            var expireTime = UTCTimeUtil.CfgTime2ServerUnixTime(timeParam * CfgDateToCfgTime);
+            if (expireTime <= now)
+            {
+                return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemExpired);
+            }
+
+            if (resCnt != SingleItem)
+            {
+                return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemInvalidNum);
+            }
+
+            timeLimit = new PasterTimeLimit(pasterID, 0, expireTime);
+        }
+
+        var change = new BagChange { Costs = [cost], PasterTimeLimits = [timeLimit] };
+        return BagOutcome.From(await repository.CommitAsync(role.GameUlongUID, change, now)) with { AwardReason = PasterTimeLimitedReason };
+    }
+
+    private async Task<BagOutcome> ExchangeOwnedPasterItemAsync(LMNRoleInfo role, pbOutSideItem_Base config, BagCost cost)
+    {
+        var transmuteNum = (long)config.TransmuteNum * cost.Cnt;
+        if (config.TransmuteNum <= 0 || transmuteNum > int.MaxValue || !CoinID.IsGrantableCoin(config.Transmuteid))
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrPasterAlreadyExist);
+        }
+
+        var plan = new ResourceGrantPlan(
+            [],
+            new Dictionary<int, long> { [config.Transmuteid] = transmuteNum },
+            [BuildCoinAward(config.Transmuteid, (int)transmuteNum)],
+            [],
+            []);
+        return await CommitGrantsAsync(role, cost, plan, PasterTimeLimitedExchangeReason);
     }
 
     public bool IsFreeTicketCard(int resID) =>
@@ -246,18 +353,241 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
             }
         }
 
+        return PlanResourceGrants(role, rolledCnts) is { } plan
+            ? await CommitGrantsAsync(role, new BagCost(RoleItemType.OutSideItem, chest.OutSideItemId, openCnt), plan, OpenAwardBoxReason)
+            : BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrDropSystemDropPackFail);
+    }
+
+    public PB_ENUM_RES_ERROR_CODE BuildOptionalChestInfo(LMNRoleInfo role, int optionalChestID, out pbCOMDT_REQ_INFO_OPTIONALCHEST info)
+    {
+        info = new pbCOMDT_REQ_INFO_OPTIONALCHEST();
+        var result = FindOptionalChest(optionalChestID, out var chest);
+        if (chest is null)
+        {
+            return result;
+        }
+
+        info.ResAlreadyHaveList.Add(FindOptionalChestOptions(chest)
+            .Where(option => IsNonRepeatableOwned(role, option.ResID))
+            .Select(option => new pbCOMDT_ONE_OPTIONALCHEST_INFO
+            {
+                ResID = option.ResID,
+                ResType = (int)CoinID.GetResIDType(option.ResID),
+                AlreadyHaveNum = SingleItem,
+                IsNonRepeatable = Enabled,
+            }));
+        return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
+    }
+
+    public async Task<BagOutcome> UseOptionalChestAsync(
+        LMNRoleInfo role,
+        int resID,
+        ulong gridUniqueID,
+        int resCnt,
+        IReadOnlyList<pbCOMDT_ONE_SELECT_RESOURCE_INFO> chooseResList)
+    {
+        if (resCnt <= 0)
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemInvalidNum);
+        }
+
+        if (gridUniqueID != NoGridUniqueID && (!TryGetItemId(gridUniqueID, out var gridItemId) || gridItemId != resID))
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemResIduniqueIdnotMatch);
+        }
+
+        var chestResult = FindOptionalChest(resID, out var chest);
+        if (chest is null)
+        {
+            return BagOutcome.Refused(chestResult);
+        }
+
+        var options = FindOptionalChestOptions(chest)
+            .GroupBy(option => option.ResID)
+            .ToDictionary(group => group.Key, group => group.MaxBy(option => option.SDropSeq)!);
+        if (options.Count == 0)
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemOptChestNoContent);
+        }
+
+        var extraOption = FindOptionalChestExtraOption(chest);
+        if (extraOption is not null)
+        {
+            options.TryAdd(extraOption.ResID, extraOption);
+        }
+
+        var choiceResult = ValidateOptionalChestChoices(chest, options, resCnt, chooseResList);
+        if (choiceResult != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+        {
+            return BagOutcome.Refused(choiceResult);
+        }
+
+        if (extraOption is not null
+            && chooseResList.Any(choice => choice.ResID != extraOption.ResID && IsNonRepeatableOwned(role, choice.ResID)))
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemHadResNotOptChest);
+        }
+
+        if (await FindOwnedOutSideItemAsync(role.GameUlongUID, resID) is not { } owned || owned.Cnt < resCnt)
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemDeleteNotEnough);
+        }
+
+        var resCnts = new Dictionary<int, long>();
+        foreach (var choice in chooseResList)
+        {
+            resCnts[choice.ResID] = resCnts.GetValueOrDefault(choice.ResID) + (long)options[choice.ResID].ResNum * choice.ResCnt;
+        }
+
+        return PlanResourceGrants(role, resCnts) is { } plan
+            ? await CommitGrantsAsync(role, new BagCost(RoleItemType.OutSideItem, resID, resCnt), plan, OptionalChestReason)
+            : BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemOptionalChestSelectResInvalid);
+    }
+
+    public async Task<BagOutcome> ExchangeSpecifiedItemAsync(LMNRoleInfo role, int resID, int exchangeNum)
+    {
+        if (exchangeNum <= 0)
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemInvalidNum);
+        }
+
+        if (gameData.OutSideItemBase.Find(resID) is not { } config)
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemIdnotExistInCfg);
+        }
+
+        if (config.OutSideItemType != (int)PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypeExchangeSpecifiedItem)
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemUnKnownUseType);
+        }
+
+        var exchangeNeedNum = config.ItemParam.ElementAtOrDefault(ExchangeNeedNumParamIndex);
+        var rewardItemID = config.ItemParam.ElementAtOrDefault(ExchangeRewardItemParamIndex);
+        var isNonRepeatable = config.ItemParam.ElementAtOrDefault(ExchangeNonRepeatableParamIndex) != RepeatableExchange;
+        if (exchangeNeedNum <= 0 || rewardItemID <= 0)
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemIdnotExistInCfg);
+        }
+
+        if (isNonRepeatable && exchangeNum != SingleItem)
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemInvalidNum);
+        }
+
+        if (isNonRepeatable && await IsOwnedAsync(role, rewardItemID))
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrExchangeSpecifiedItemExist);
+        }
+
+        var costCnt = (long)exchangeNeedNum * exchangeNum;
+        if (costCnt > int.MaxValue)
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemInvalidNum);
+        }
+
+        if (await FindOwnedOutSideItemAsync(role.GameUlongUID, resID) is not { } owned || owned.Cnt < costCnt)
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrExchangeSpecifiedItemCostNotEnough);
+        }
+
+        return PlanResourceGrants(role, new Dictionary<int, long> { [rewardItemID] = exchangeNum }) is { } plan
+            ? await CommitGrantsAsync(role, new BagCost(RoleItemType.OutSideItem, resID, (int)costCnt), plan, ExchangeSpecifiedItemReason)
+            : BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemUnKnownUseType);
+    }
+
+    private PB_ENUM_RES_ERROR_CODE FindOptionalChest(int optionalChestID, out pbOutSideItem_Base? chest)
+    {
+        var config = gameData.OutSideItemBase.Find(optionalChestID);
+        chest = config?.OutSideItemType == (int)PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypeOptionalchest ? config : null;
+        return config is null
+            ? PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemIdnotExistInCfg
+            : chest is null
+                ? PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemUseTypeInvalid
+                : PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
+    }
+
+    private static PB_ENUM_RES_ERROR_CODE ValidateOptionalChestChoices(
+        pbOutSideItem_Base chest,
+        IReadOnlyDictionary<int, pbDrop_Static> options,
+        int resCnt,
+        IReadOnlyList<pbCOMDT_ONE_SELECT_RESOURCE_INFO> chooseResList)
+    {
+        if (chooseResList.Count == 0 || (IsSingleSelect(chest) && chooseResList.Count != SingleItem))
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemOptionalChestSelectResInvalid;
+        }
+
+        if (chooseResList.Select(choice => choice.ResID).Distinct().Count() != chooseResList.Count)
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemSelectSameRes;
+        }
+
+        if (!chooseResList.All(choice => options.ContainsKey(choice.ResID)))
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemOptionalChestSelectResInvalid;
+        }
+
+        return chooseResList.Any(choice => choice.ResCnt <= 0) || chooseResList.Sum(choice => (long)choice.ResCnt) != resCnt
+            ? PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemOptChestCntErr
+            : PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
+    }
+
+    private static bool IsSingleSelect(pbOutSideItem_Base chest) =>
+        chest.ItemParam.ElementAtOrDefault(OptionalChestSingleSelectParamIndex) == Enabled;
+
+    private pbDrop_Static[] FindOptionalChestOptions(pbOutSideItem_Base chest) =>
+        FindStaticDrops(chest.ItemParam.ElementAtOrDefault(OptionalChestDropParamIndex));
+
+    private pbDrop_Static? FindOptionalChestExtraOption(pbOutSideItem_Base chest) =>
+        IsSingleSelect(chest)
+            ? FindStaticDrops(chest.ItemParam.ElementAtOrDefault(OptionalChestExtraDropParamIndex))
+                .FirstOrDefault(drop => drop.SDropSeq == FirstDropSeq)
+            : null;
+
+    private pbDrop_Static[] FindStaticDrops(int sDropID)
+    {
+        var drops = new List<pbDrop_Static>();
+        for (var dropSeq = FirstDropSeq;
+             sDropID != NoDropID && gameData.DropStatic.Find(pbDrop_Static.Key(sDropID, dropSeq)) is { } drop;
+             dropSeq++)
+        {
+            drops.Add(drop);
+        }
+
+        return [.. drops.Where(drop => drop.ResNum > 0)];
+    }
+
+    private bool IsNonRepeatableOwned(LMNRoleInfo role, int resID) =>
+        CosmeticGrant.FindItemType(gameData, resID) is { } cosmeticType
+            ? role.OwnsItem(cosmeticType, resID)
+            : CoinID.GetResIDType(resID) == PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem
+                && UniteLicense.FindPokemonId(gameData, resID) is { } pokemonId
+                && role.OwnsPokemon(pokemonId);
+
+    private async Task<bool> IsOwnedAsync(LMNRoleInfo role, int resID) =>
+        IsNonRepeatableOwned(role, resID)
+        || (CoinID.GetResIDType(resID) == PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem
+            && !UniteLicense.IsUniteLicense(gameData, resID)
+            && await FindOwnedOutSideItemAsync(role.GameUlongUID, resID) is not null)
+        || (gameData.BadgeBase.Contains(resID)
+            && await repository.FindAsync(role.GameUlongUID, RoleItemType.Badge, resID) is { IsOwned: true });
+
+    private ResourceGrantPlan? PlanResourceGrants(LMNRoleInfo role, IReadOnlyDictionary<int, long> resCnts)
+    {
         var coinGrants = new Dictionary<int, long>();
         var grants = new List<BagGrant>();
         var awards = new List<pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO>();
         var pokemonIds = new List<int>();
-        foreach (var (resID, rolledCnt) in rolledCnts)
+        var items = new List<RoleItemInfo>();
+        var gainTime = clock.GetUtcNow().ToUnixTimeSeconds();
+        foreach (var (resID, totalCnt) in resCnts)
         {
-            if (rolledCnt > int.MaxValue)
+            if (totalCnt is <= 0 or > int.MaxValue)
             {
-                return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemInvalidNum);
+                return null;
             }
 
-            var resCnt = (int)rolledCnt;
+            var resCnt = (int)totalCnt;
             if (CoinID.IsGrantableCoin(resID))
             {
                 coinGrants[resID] = coinGrants.GetValueOrDefault(resID) + resCnt;
@@ -267,29 +597,49 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
             {
                 if (UniteLicense.PlanGrant(gameData, role, resID, resCnt, pokemonIds) is not { } license)
                 {
-                    return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrDropSystemDropPackFail);
+                    return null;
                 }
 
                 license.AddTo(pokemonIds, coinGrants, awards);
+            }
+            else if (CosmeticGrant.FindItemType(gameData, resID) is not null)
+            {
+                if (CosmeticGrant.Plan(gameData, this, role, resID, resCnt, gainTime, items) is not { } cosmetic)
+                {
+                    return null;
+                }
+
+                cosmetic.AddTo(items, grants, coinGrants, awards);
             }
             else if (CreateOutSideItemGrant(resID, resCnt) is { } grant)
             {
                 grants.Add(grant);
                 awards.Add(BuildAward(resID, resCnt, PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem));
             }
+            else if (gameData.BadgeBase.Contains(resID))
+            {
+                grants.Add(new BagGrant(RoleItemType.Badge, resID, resCnt, UnlimitedStackSize, NoItemLevel, ShowNewTag));
+                awards.Add(BuildAward(resID, resCnt, PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesBadge));
+            }
             else
             {
-                return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrDropSystemDropPackFail);
+                return null;
             }
         }
 
+        return new ResourceGrantPlan(grants, coinGrants, awards, pokemonIds, items);
+    }
+
+    private async Task<BagOutcome> CommitGrantsAsync(LMNRoleInfo role, BagCost cost, ResourceGrantPlan plan, int reason)
+    {
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
         var change = new BagChange
         {
-            Costs = [new BagCost(RoleItemType.OutSideItem, chest.OutSideItemId, openCnt)],
-            Grants = grants,
-            CoinGrants = coinGrants,
-            PokemonGrants = [.. pokemonIds.Select(pokemonId => new RolePokemonInfo(pokemonId, now, OpenAwardBoxReason, RolePokemonInfo.HasNewTag))],
+            Costs = [cost],
+            Grants = plan.Grants,
+            CoinGrants = plan.CoinGrants,
+            PokemonGrants = [.. plan.PokemonIds.Select(pokemonId => new RolePokemonInfo(pokemonId, now, reason, RolePokemonInfo.HasNewTag))],
+            ItemGrants = plan.Items,
         };
         var outcome = BagOutcome.From(await repository.CommitAsync(role.GameUlongUID, change, now));
         if (!outcome.Succeeded)
@@ -297,13 +647,25 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
             return outcome;
         }
 
-        foreach (var pokemonId in pokemonIds)
+        foreach (var pokemonId in plan.PokemonIds)
         {
-            role.GrantPokemon(pokemonId, now, OpenAwardBoxReason);
+            role.GrantPokemon(pokemonId, now, reason);
         }
 
-        return outcome with { Awards = awards, GrantedPokemonIds = pokemonIds };
+        foreach (var item in plan.Items)
+        {
+            role.GrantItem(item.ItemType, item.ItemId, item.GainTime, item.TimeLimited, item.NewTag);
+        }
+
+        return outcome with { Awards = plan.Awards, GrantedPokemonIds = plan.PokemonIds, GrantedItems = plan.Items, AwardReason = reason };
     }
+
+    private sealed record ResourceGrantPlan(
+        IReadOnlyList<BagGrant> Grants,
+        IReadOnlyDictionary<int, long> CoinGrants,
+        IReadOnlyList<pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO> Awards,
+        IReadOnlyList<int> PokemonIds,
+        IReadOnlyList<RoleItemInfo> Items);
 
     private List<int> FindDropPackIDs(int dropID)
     {
@@ -331,7 +693,9 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
         entries.Length > 0 && entries.All(entry =>
             entry.MinDropCount > 0
             && entry.MaxDropCount >= entry.MinDropCount
-            && (CoinID.IsGrantableCoin(entry.ResID) || gameData.OutSideItemBase.Contains(entry.ResID)));
+            && (CoinID.IsGrantableCoin(entry.ResID)
+                || gameData.OutSideItemBase.Contains(entry.ResID)
+                || CosmeticGrant.FindItemType(gameData, entry.ResID) is not null));
 
     private static ChestDrop RollDropPack(pbDrop_Pack[] entries)
     {

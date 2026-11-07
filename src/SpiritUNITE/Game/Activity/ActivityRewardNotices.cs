@@ -1,4 +1,5 @@
 using SpiritUNITE.Game.Bag;
+using SpiritUNITE.Game.PokemonAvatar;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.StarRoad;
 using SpiritUNITE.Game.Wallet;
@@ -36,6 +37,7 @@ public sealed class ActivityRewardNotices(StarRoadManager starRoad)
                 BagManager.BuildOutSideItemUpdateNotify(rewards.ChangedItems)));
         }
 
+        packets.AddRange(PokemonAvatarManager.BuildGainPushes(rewards.Items));
         foreach (var pokemonId in rewards.PokemonIds)
         {
             packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUpdatePokemonNtf, new pbSCUpdatePokemonNtf

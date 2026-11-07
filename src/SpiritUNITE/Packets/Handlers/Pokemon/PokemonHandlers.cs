@@ -2,12 +2,18 @@ using Microsoft.Extensions.Logging;
 using SpiritUNITE.Battle;
 using SpiritUNITE.Game.Newbie;
 using SpiritUNITE.Game.Pokemon;
+using SpiritUNITE.Game.PokemonAvatar;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers.Pokemon;
 
-public sealed class PokemonHandlers(RoleInfoStore roles, PokemonManager pokemon, DeskManager desks, ILogger<PokemonHandlers> logger)
+public sealed class PokemonHandlers(
+    RoleInfoStore roles,
+    PokemonManager pokemon,
+    PokemonAvatarManager pokemonAvatars,
+    DeskManager desks,
+    ILogger<PokemonHandlers> logger)
 {
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetPokemonListReq)]
     public async Task<GamePacket[]> OnGetPokemonListReq(GamePacket request)
@@ -103,15 +109,16 @@ public sealed class PokemonHandlers(RoleInfoStore roles, PokemonManager pokemon,
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidClearPokemonPasterNewTagReq)]
-    public GamePacket[] OnClearPokemonPasterNewTagReq(GamePacket request)
+    public async Task<GamePacket[]> OnClearPokemonPasterNewTagReq(GamePacket request)
     {
         var role = roles.Require(request.Uid);
         var clear = pbCSClearPokemonPasterNewTagReq.Parser.ParseFrom(request.PkgData);
-        var result = !role.OwnsPokemon(clear.PokemonId)
-            ? PB_ENUM_RES_ERROR_CODE.PbErrPasterWearPokemonIdinvalid
-            : clear.PasterID == PokemonManager.NoPaster
-                ? PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc
-                : PB_ENUM_RES_ERROR_CODE.PbErrPasterNotExists;
+        var (result, roleChanged) = await pokemonAvatars.ClearPasterNewTagAsync(role, clear.PokemonId, clear.PasterID);
+        if (roleChanged)
+        {
+            await roles.SaveAsync(role);
+        }
+
         return
         [
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidClearPokemonPasterNewTagRsp, new pbSCClearPokemonPasterNewTagRsp
@@ -149,16 +156,16 @@ public sealed class PokemonHandlers(RoleInfoStore roles, PokemonManager pokemon,
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetSkillEffectsExpandPackListReq)]
-    public GamePacket[] OnGetSkillEffectsExpandPackListReq(GamePacket request)
+    public async Task<GamePacket[]> OnGetSkillEffectsExpandPackListReq(GamePacket request)
     {
-        roles.Require(request.Uid);
+        var role = roles.Require(request.Uid);
         pbCSGetSkillEffectsExpandPackListReq.Parser.ParseFrom(request.PkgData);
         return
         [
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetSkillEffectsExpandPackListRsp, new pbSCGetSkillEffectsExpandPackListRsp
             {
                 ResultInfo = new pbResultInfo(),
-                SkillEffectsExpandPackList = new pbCOMDT_SKILL_EFFECTS_EXPAND_PACK_LIST(),
+                SkillEffectsExpandPackList = await pokemonAvatars.BuildSkillEffectsExpandPackListAsync(role),
             }),
         ];
     }

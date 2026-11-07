@@ -26,7 +26,7 @@ public sealed record UsedPokemonInfo(
 
     public UsedPokemonStatistics BattleStatistics => Statistics ?? UsedPokemonStatistics.None;
 
-    public pbCOMDT_USED_POKEMON_INFO ToUsedPokemonInfo(IEnumerable<int> recommendEquips) => new()
+    public pbCOMDT_USED_POKEMON_INFO ToUsedPokemonInfo(pbCOMDT_CARRYEQUIPMENT_PLAN_INFO carryEquipmentPlanInfo) => new()
     {
         PokemonId = PokemonId,
         HeldItemDesignInfo = BuildHeldItemDesignInfo(),
@@ -34,7 +34,7 @@ public sealed record UsedPokemonInfo(
         LastBattleTime = ToBattleTime(BattleStatistics.LastBattleTime),
         CurrentSeasonID = BattleStatistics.CurrentSeasonID,
         WearPasterID = WearPasterID,
-        CarryEquipmentPlanInfo = { new pbCOMDT_CARRYEQUIPMENT_PLAN_INFO { EquipmentID = { recommendEquips } } },
+        CarryEquipmentPlanInfo = { carryEquipmentPlanInfo.Clone() },
         SpecialEffectInfo = new pbCOMDT_POKEMON_SPECIALEFFECT_INFO(),
         LastCarryTrainerItemID = LastCarryTrainerItemID,
         LastHeldItemDesignInfo = new pbCOMDT_HELDITEM_DESIGN_INFO(),

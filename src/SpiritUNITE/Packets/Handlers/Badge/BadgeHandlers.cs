@@ -45,6 +45,27 @@ public sealed class BadgeHandlers(
         ];
     }
 
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidSetBadgePictureShowReq)]
+    public async Task<GamePacket[]> OnSetBadgePictureShowReq(GamePacket request)
+    {
+        var role = roles.Require(request.Uid);
+        var badgeShowList = pbCSSetBadgePictureShowReq.Parser.ParseFrom(request.PkgData).BadgeShowInfo?.BadgeShowList ?? [];
+        var result = await badges.SetBadgePictureShowAsync(role.GameUlongUID, badgeShowList);
+        logger.LogInformation(
+            "Emblem show list [{BadgeShowList}] for uid {Uid}: {Result}",
+            string.Join(',', badgeShowList),
+            role.GameUlongUID,
+            result);
+        return
+        [
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidSetBadgePictureShowRsp, new pbSCSetBadgePictureShowRsp
+            {
+                ResultInfo = new pbResultInfo { ResultId = (int)result },
+                BadgeShowInfo = await badges.GetBadgeShowInfoAsync(role.GameUlongUID),
+            }),
+        ];
+    }
+
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidClearBadgePictureRedReq)]
     public async Task<GamePacket[]> OnClearBadgePictureRedReq(GamePacket request)
     {

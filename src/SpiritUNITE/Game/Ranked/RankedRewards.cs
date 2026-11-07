@@ -1,5 +1,6 @@
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Bag;
+using SpiritUNITE.Game.PokemonAvatar;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Packets.Messages;
@@ -43,6 +44,15 @@ public sealed class RankedRewards(GameData gameData, BagManager bag)
             {
                 coins[drop.ResID] = coins.GetValueOrDefault(drop.ResID) + drop.ResNum;
                 awards.Add(BagManager.BuildCoinAward(drop.ResID, drop.ResNum));
+            }
+            else if (PasterGrant.IsPaster(gameData, drop.ResID))
+            {
+                if (PasterGrant.Plan(gameData, bag, role, drop.ResID, drop.ResNum, gainTime, items) is not { } paster)
+                {
+                    return null;
+                }
+
+                paster.AddTo(items, bagGrants, coins, awards);
             }
             else if (drop.ResNum == SinglePermanentItem && FindPermanentItems(drop.ResID) is { } owned)
             {

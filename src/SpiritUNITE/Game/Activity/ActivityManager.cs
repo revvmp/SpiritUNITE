@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Game.Pokemon;
+using SpiritUNITE.Game.PokemonAvatar;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Tasks;
@@ -288,7 +289,10 @@ public sealed class ActivityManager(
                 .GroupBy(item => (item.ItemType, item.ItemId))
                 .Select(group => group.Last())],
             [.. grants.SelectMany(grant => grant.Grant.PokemonIds)],
-            [.. grants.SelectMany(grant => grant.Grant.Awards)]);
+            [.. grants.SelectMany(grant => grant.Grant.Awards)])
+        {
+            Items = [.. grants.SelectMany(grant => grant.Grant.Items)],
+        };
     }
 
     private ActiveActivityTask[] FindAddResIdTasks(IReadOnlySet<int> resIds, DateTimeOffset now) =>
@@ -406,6 +410,15 @@ public sealed class ActivityManager(
                 }
 
                 license.AddTo(pokemonIds, coins, awards);
+            }
+            else if (PasterGrant.IsPaster(gameData, drop.ResID))
+            {
+                if (PasterGrant.Plan(gameData, bag, role, drop.ResID, drop.ResNum, rewardTime, items) is not { } paster)
+                {
+                    return null;
+                }
+
+                paster.AddTo(items, bagGrants, coins, awards);
             }
             else if (drop.ResNum == GrantableRewardCount && gameData.LobbyBg.Contains(drop.ResID))
             {
@@ -611,7 +624,10 @@ public sealed record ActivityRewardGroup(
     IReadOnlyDictionary<int, long> SpecialCoinsBefore,
     IReadOnlyList<BagItem> ChangedItems,
     IReadOnlyList<int> PokemonIds,
-    IReadOnlyList<pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO> Awards);
+    IReadOnlyList<pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO> Awards)
+{
+    public IReadOnlyList<RoleItemInfo> Items { get; init; } = [];
+}
 
 public sealed record ActivityTaskClaim(
     PB_ENUM_RES_ERROR_CODE Result,

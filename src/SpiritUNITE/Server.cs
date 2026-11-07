@@ -11,9 +11,11 @@ using SpiritUNITE.Database;
 using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Game.Credit;
 using SpiritUNITE.Game.Achievement;
+using SpiritUNITE.Game.ActivationCode;
 using SpiritUNITE.Game.Login;
 using SpiritUNITE.Game.Match;
 using SpiritUNITE.Game.Pokemon;
+using SpiritUNITE.Game.PokemonAvatar;
 using SpiritUNITE.Game.Tasks;
 using SpiritUNITE.Game.TrainerExpGift;
 using SpiritUNITE.Game.StarRoad;
@@ -179,6 +181,11 @@ public static class Server
             .Validate(options => options.IsValid(), "HeroPick settings are invalid: NpcHeroMaxReleaseOrder must be 0 or more")
             .ValidateOnStart();
 
+        builder.Services.AddOptions<ActivationCodeOptions>()
+            .BindConfiguration(ActivationCodeOptions.SectionName)
+            .Validate(options => options.IsValid(), "ActivationCode settings are invalid: codes must be distinct ASCII letters or digits of at most 32 characters, with a yyyyMMddHHmmss ValidEndTime or 0 and a MaxUseCnt of 0 or more")
+            .ValidateOnStart();
+
         builder.Services.AddOptions<HeldItemOptions>()
             .BindConfiguration(HeldItemOptions.SectionName)
             .Validate(options => options.IsValid(), "HeldItem settings are invalid")
@@ -214,6 +221,7 @@ public static class Server
         builder.Services.AddSingleton<NewbieGiftRepository>();
         builder.Services.AddSingleton<NewbieDropRepository>();
         builder.Services.AddSingleton<BagRepository>();
+        builder.Services.AddSingleton<PasterRepository>();
         builder.Services.AddSingleton<PokemonUsedRepository>();
         builder.Services.AddSingleton<HeldItemRepository>();
         builder.Services.AddSingleton<BadgeRepository>();
@@ -234,6 +242,9 @@ public static class Server
         builder.Services.AddSingleton<CreditRepository>();
         builder.Services.AddSingleton<WarmBattleRepository>();
         builder.Services.AddSingleton<RankedRepository>();
+        builder.Services.AddSingleton<RoleTmpNameRepository>();
+        builder.Services.AddSingleton<CarryEquipmentRepository>();
+        builder.Services.AddSingleton<ActivationCodeRepository>();
     }
 
     private static void AddGameData(IHostApplicationBuilder builder)
@@ -272,6 +283,9 @@ public static class Server
         builder.Services.AddSingleton<HeldItemManager>();
         builder.Services.AddSingleton<PokemonManager>();
         builder.Services.AddSingleton<BadgeManager>();
+        builder.Services.AddSingleton<TmpNameManager>();
+        builder.Services.AddSingleton<PokemonAvatarManager>();
+        builder.Services.AddSingleton<ActivationCodeManager>();
         builder.Services.AddSingleton<ActivitySchedule>();
         builder.Services.AddSingleton<ActivityManager>();
         builder.Services.AddSingleton<EeveeChallengePool>();

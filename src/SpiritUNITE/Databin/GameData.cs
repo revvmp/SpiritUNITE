@@ -90,6 +90,8 @@ public sealed class GameData
         AiInfoConfig = LoadMessages<pbAiInfoConfig>(row => row.ID);
         TrainerPokemon = LoadMessages<pbTrainerPokemon>(row => row.PokemonUnitId);
         PokemonAvatarBase = LoadMessages<pbPokemon_Avatar_Base>(row => row.PokemonAvatarId);
+        SkillEffectExpandPackBase = LoadMessages<pbSkillEffectExpandPack_Base>(row => row.SkillEffectsExpandPackID);
+        PokemonEquipment = LoadMessages<pbPokemon_Equipment>(row => row.EquipmentId);
         UnitBase = LoadMessages<pbUnit_Base>(row => row.UnitId);
         NationGroup = LoadRecords<pbNationGroup>(row => row.NationGroupID);
         TowerDefenseBase = LoadRecords<pbTowerDefenseBase>(row => row.PeriodID);
@@ -171,6 +173,8 @@ public sealed class GameData
     public DatabinTable<pbAiInfoConfig> AiInfoConfig { get; }
     public DatabinTable<pbTrainerPokemon> TrainerPokemon { get; }
     public DatabinTable<pbPokemon_Avatar_Base> PokemonAvatarBase { get; }
+    public DatabinTable<pbSkillEffectExpandPack_Base> SkillEffectExpandPackBase { get; }
+    public DatabinTable<pbPokemon_Equipment> PokemonEquipment { get; }
     public DatabinTable<pbUnit_Base> UnitBase { get; }
     public int DefaultLobbyBgId { get; }
 

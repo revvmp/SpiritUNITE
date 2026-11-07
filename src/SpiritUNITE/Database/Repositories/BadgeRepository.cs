@@ -1,3 +1,4 @@
+using System.Globalization;
 using Google.Protobuf;
 using LinqToDB;
 using LinqToDB.Async;
@@ -12,6 +13,7 @@ namespace SpiritUNITE.Database.Repositories;
 public sealed class BadgeRepository(DataOptions options)
 {
     private const int OneRow = 1;
+    private const char BadgeShowListSeparator = ',';
 
     public async Task<IReadOnlyList<BadgeSchedue>> LoadSchedulesAsync(ulong gameUlongUID)
     {
@@ -89,6 +91,25 @@ public sealed class BadgeRepository(DataOptions options)
         var wallet = await WalletRepository.ReadAsync(database, gameUlongUID);
         await transaction.CommitAsync();
         return (PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, wallet);
+    }
+
+    public async Task<int[]> LoadBadgeShowListAsync(ulong gameUlongUID)
+    {
+        await using var database = new DataConnection(options);
+        var row = await database.GetTable<RoleBadgeShow>().FirstOrDefaultAsync(show => show.GameUlongUID == gameUlongUID);
+        return row is null || row.BadgeShowList.Length == 0
+            ? []
+            : [.. row.BadgeShowList.Split(BadgeShowListSeparator).Select(badgeID => int.Parse(badgeID, CultureInfo.InvariantCulture))];
+    }
+
+    public async Task SaveBadgeShowListAsync(ulong gameUlongUID, IEnumerable<int> badgeShowList)
+    {
+        await using var database = new DataConnection(options);
+        await database.InsertOrReplaceAsync(new RoleBadgeShow
+        {
+            GameUlongUID = gameUlongUID,
+            BadgeShowList = string.Join(BadgeShowListSeparator, badgeShowList.Select(badgeID => badgeID.ToString(CultureInfo.InvariantCulture))),
+        });
     }
 
     private static RoleBadgeSchedue ToEntity(ulong gameUlongUID, BadgeSchedue schedue) => new()

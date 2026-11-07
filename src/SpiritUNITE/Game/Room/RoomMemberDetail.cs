@@ -6,7 +6,11 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Room;
 
-public sealed record RoomMemberProfile(pbCOMDT_ROLE_HEAD_URL_INFO UserPlantInfo, int ABModeType, bool IsGuestAccount);
+public sealed record RoomMemberProfile(
+    pbCOMDT_ROLE_HEAD_URL_INFO UserPlantInfo,
+    int ABModeType,
+    bool IsGuestAccount,
+    pbCOMDT_TMP_NAME_LIST TmpNameList);
 
 public static class RoomMemberDetail
 {
@@ -82,7 +86,7 @@ public static class RoomMemberDetail
                     TowerDefenseUnlockGameLevelInfo = new pbCOMDT_TOWER_DEFENSE_UNLOCK_GAME_LEVEL_INFO(),
                     HeavenTrainer = BuildHeavenTrainer(role),
                     UserPlantInfo = member.Profile.UserPlantInfo.Clone(),
-                    TmpNameList = new pbCOMDT_TMP_NAME_LIST(),
+                    TmpNameList = member.Profile.TmpNameList.Clone(),
                     BattleMemberConfigList = BuildBattleMemberConfigList(isValid: false),
                 },
             },

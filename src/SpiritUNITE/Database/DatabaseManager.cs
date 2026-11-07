@@ -30,6 +30,9 @@ public static class DatabaseManager
             await database.GetTable<Role>().FirstOrDefaultAsync();
             await database.GetTable<RolePokemon>().AnyAsync();
             await database.GetTable<RolePokemonTimeLimited>().AnyAsync();
+            await database.GetTable<RolePasterTimeLimited>().AnyAsync();
+            await database.GetTable<RolePasterSpray>().AnyAsync();
+            await database.GetTable<RoleSkillEffectsExpandPack>().AnyAsync();
             await database.GetTable<RoleEeveeChallenge>().AnyAsync();
             await database.GetTable<RoleItem>().FirstOrDefaultAsync();
             await database.GetTable<RoleCoin>().FirstOrDefaultAsync();
@@ -59,6 +62,11 @@ public static class DatabaseManager
             await database.GetTable<RoleRankedSeason>().FirstOrDefaultAsync();
             await database.GetTable<RoleRankedSeasonTaskAward>().FirstOrDefaultAsync();
             await database.GetTable<RoleWarmBattle>().AnyAsync();
+            await database.GetTable<RoleBadgeShow>().AnyAsync();
+            await database.GetTable<RoleTmpName>().AnyAsync();
+            await database.GetTable<RolePokemonCarryEquipment>().AnyAsync();
+            await database.GetTable<RoleActivationCode>().AnyAsync();
+            await database.GetTable<ActivationCodeUse>().AnyAsync();
         }
         catch (MySqlException exception)
         {

@@ -2,81 +2,106 @@
   {
     "SprayType": 1,
     "OnTime": "20240101000000",
-    "PasterSprayID": 1010700001
+    "PasterSprayID": 1010700001,
+    "SprayBuffID": 1003101
   },
   {
     "SprayType": 1,
     "OnTime": "20240101000000",
-    "PasterSprayID": 1010700002
+    "PasterSprayID": 1010700002,
+    "SprayBuffID": 1003102
   },
   {
     "SprayType": 1,
     "OnTime": "20240101000000",
-    "PasterSprayID": 1010700003
+    "PasterSprayID": 1010700003,
+    "SprayBuffID": 1003103
   },
   {
     "SprayType": 1,
     "OnTime": "20240101000000",
-    "PasterSprayID": 1010700004
+    "PasterSprayID": 1010700004,
+    "SprayBuffID": 1003104
   },
   {
     "SprayType": 3,
     "OnTime": "20240101000000",
-    "PasterSprayID": 1010700012
+    "PasterSprayID": 1010700012,
+    "SprayBuffID": 1003106
   },
   {
     "SprayType": 2,
     "OnTime": "20240101000000",
-    "PasterSprayID": 1010700013
+    "PasterSprayID": 1010700013,
+    "SprayBuffID": 1003105
   },
   {
     "SprayType": 1,
     "OnTime": "20240101000000",
-    "PasterSprayID": 1010700014
+    "PasterSprayID": 1010700014,
+    "SprayBuffID": 1003106,
+    "PokemonLimit": 245
   },
   {
     "SprayType": 2,
     "OnTime": "20250612070000",
-    "PasterSprayID": 1010700015
+    "PasterSprayID": 1010700015,
+    "SprayBuffID": 1003107
   },
   {
     "SprayType": 1,
     "OnTime": "20240101000000",
-    "PasterSprayID": 1010700016
+    "PasterSprayID": 1010700016,
+    "SprayBuffID": 1003106,
+    "PokemonLimit": 26
   },
   {
     "SprayType": 1,
     "OnTime": "20240101000000",
-    "PasterSprayID": 1010700017
+    "PasterSprayID": 1010700017,
+    "SprayBuffID": 1003106,
+    "PokemonLimit": 868
   },
   {
     "SprayType": 1,
     "OnTime": "20240101000000",
-    "PasterSprayID": 1010700018
+    "PasterSprayID": 1010700018,
+    "SprayBuffID": 1003106,
+    "PokemonLimit": 381
   },
   {
     "SprayType": 1,
     "OnTime": "20240101000000",
-    "PasterSprayID": 1010700019
+    "PasterSprayID": 1010700019,
+    "SprayBuffID": 1003106,
+    "PokemonLimit": 380
   },
   {
     "SprayType": 1,
     "OnTime": "20240101000000",
-    "PasterSprayID": 1010700020
+    "PasterSprayID": 1010700020,
+    "SprayBuffID": 1003106,
+    "PokemonLimit": 923
   },
   {
     "SprayType": 1,
     "OnTime": "20240101000000",
-    "PasterSprayID": 1010700021
+    "PasterSprayID": 1010700021,
+    "SprayBuffID": 1003106,
+    "PokemonLimit": 395
   },
   {
     "SprayType": 1,
     "OnTime": "20240101000000",
-    "PasterSprayID": 1010700022
+    "PasterSprayID": 1010700022,
+    "SprayBuffID": 1003106,
+    "PokemonLimit": 781
   },
   {
     "SprayType": 1,
     "OnTime": "20240101000000",
-    "PasterSprayID": 1010700023
+    "PasterSprayID": 1010700023,
+    "SprayBuffID": 1003106,
+    "PokemonLimit": 52
   }
 ]

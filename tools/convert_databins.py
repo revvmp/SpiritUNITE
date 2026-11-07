@@ -78,8 +78,16 @@ LUA_ONLY_FIELDS = {
         270106: Field("AchievementID", "int32"),
     },
     "pbBattlePassSeason": {
-        211257: Field("SeasonStartTime", "int64"),
+        205541: Field("ElitePassRealPrice", "int32"),
+        206330: Field("ElitePassDropID", "int32"),
+        220905: Field("FullLevelTreasureBox", "int32"),
         223064: Field("SeasonID", "int32"),
+        223390: Field("SeasonStartTime", "int64"),
+        236957: Field("PrimaryPackLevel", "int32"),
+        237363: Field("FullLevelTreasureBoxUpper", "int32"),
+        248624: Field("PrimaryPackPrice", "int32"),
+        252197: Field("ElitePassLevelUp", "int32"),
+        253707: Field("ElitePassCoinType", "int32"),
         255263: Field("SeasonEndTime", "int64"),
     },
     "pbReward_Pool": {
@@ -152,6 +160,8 @@ LUA_ONLY_FIELDS = {
         230559: Field("SprayType", "int32"),
         266240: Field("OnTime", "int64"),
         271147: Field("PasterSprayID", "int32"),
+        288997: Field("SprayBuffID", "int32"),
+        298384: Field("PokemonLimit", "int32"),
     },
     "pbBadgeColor": {
         241164: Field("BadgeColorLv", "int32"),
@@ -284,6 +294,16 @@ NESTED_MESSAGE_FIELDS = {
         252306: Field("Gold", "int32"),
         267875: Field("BadgeNum", "int32"),
     },
+    "pbEliteAward": {
+        260768: Field("Num", "int32"),
+        266127: Field("ID", "int32"),
+    },
+    "pbBPWeekTask": {
+        289808: Field("TaskID", "int32"),
+    },
+    "pbWelfareTask": {
+        289808: Field("TaskID", "int32"),
+    },
 }
 
 SHOP_SERVER_FIELDS = (
@@ -311,6 +331,8 @@ SHOP_SERVER_FIELDS = (
     "DiscountCouponsBuy",
     "IsCandysBuy",
     "IsFramentBuy",
+    "FramentBuy",
+    "DiscountFramentBuy",
     "IsCommonBuy",
     "IsBuyMixPay",
     "DiscountStartTime",
@@ -364,15 +386,34 @@ PVE_CHALLENGE_STAGE_ROUTE_SERVER_FIELDS = (
     "TaskID",
 )
 
-CONTESTANT_CARD_DECORATION_SERVER_FIELDS = ("DecorationID", "DecorationType", "IsDefault", "OnTime")
+CONTESTANT_CARD_DECORATION_SERVER_FIELDS = ("DecorationID", "DecorationType", "IsDefault", "OnTime", "Transmuteid", "TransmuteNum")
 
-HEAD_ICON_SERVER_FIELDS = ("HeadIconID", "IsOpen", "OnTime")
+HEAD_ICON_SERVER_FIELDS = ("HeadIconID", "IsOpen", "OnTime", "Transmuteid", "TransmuteNum")
 
 BATTLE_SIGNAL_COMMUNICATE_SERVER_FIELDS = ("Id", "SignalType", "PhraseLocation")
 
 NATION_SELECT_INFORMATION_SERVER_FIELDS = ("NationID",)
 
-POKEMON_AVATAR_BASE_SERVER_FIELDS = ("PokemonAvatarId", "PokemonId", "OnTime")
+POKEMON_AVATAR_BASE_SERVER_FIELDS = (
+    "PokemonAvatarId",
+    "PokemonId",
+    "OnTime",
+    "Quality",
+    "DefaultExpandEffectPackIDList",
+    "Transmuteid",
+    "TransmuteNum",
+)
+
+POKEMON_EQUIPMENT_SERVER_FIELDS = ("EquipmentId", "Category")
+
+SKILL_EFFECT_EXPAND_PACK_BASE_SERVER_FIELDS = (
+    "SkillEffectsExpandPackID",
+    "SkillEffectsExpandPackType",
+    "PokemonAvatarId",
+    "OnTime",
+    "Transmuteid",
+    "TransmuteNum",
+)
 
 SCENE_MAP_SERVER_FIELDS = (
     "SceneId",
@@ -521,6 +562,14 @@ TABLES = {
     "databin_TrainerPokemon": Table("pbTrainerPokemon", key_field="PokemonUnitId"),
     "databin_Pokemon_Avatar_Base": Table(
         "pbPokemon_Avatar_Base", key_field="PokemonAvatarId", kept_fields=POKEMON_AVATAR_BASE_SERVER_FIELDS
+    ),
+    "databin_Pokemon_Equipment": Table(
+        "pbPokemon_Equipment", key_field="EquipmentId", kept_fields=POKEMON_EQUIPMENT_SERVER_FIELDS
+    ),
+    "databin_SkillEffectExpandPack_Base": Table(
+        "pbSkillEffectExpandPack_Base",
+        key_field="SkillEffectsExpandPackID",
+        kept_fields=SKILL_EFFECT_EXPAND_PACK_BASE_SERVER_FIELDS,
     ),
     "databin_Pokemon_Hero": Table("pbUnit_Base", SERVER_FIELD_SUBSETS["pbUnit_Base"], key_field="UnitId"),
     "databin_Monster_Base_Monster": Table("pbUnit_Base", SERVER_FIELD_SUBSETS["pbUnit_Base"], key_field="UnitId"),

@@ -990,7 +990,10 @@ public sealed class DeskManager
             usableHeroes,
             loadout,
             randomPickHeroes,
-            randomPickItemNum);
+            randomPickItemNum)
+        {
+            UsablePasterList = await pokemon.BuildUsablePasterListAsync(role),
+        };
     }
 
     private Dictionary<int, RandomPickHero> BuildRandomPickHeroes(
@@ -1125,7 +1128,7 @@ public sealed class DeskManager
             },
             OpenID = acnt.Uid.ToString(CultureInfo.InvariantCulture),
             UsableHero = new pbCOMDT_ACNT_USABLE_HERO { HeroDetail = { profile.HeroDetails } },
-            UsablePasterList = new pbCOMDT_POKEMON_PASTER_LIST { SkillEffectsExpandPackInfo = new pbCOMDT_SKILL_EFFECTS_EXPAND_PACK_LIST() },
+            UsablePasterList = profile.UsablePasterList.Clone(),
             UsableTrainerItemList = new pbCOMDT_TRAINRE_ITEM_LIST { TrainerItemList = { profile.Loadout.TrainerItemIDs } },
             RoomSvrUniq = new pbCOMDT_ROOMSVR_UNIQ
             {
@@ -2093,5 +2096,8 @@ public sealed class DeskManager
         IReadOnlyDictionary<int, pbCOMDT_CHOICEHERO> UsableHeroes,
         HumanLoadout Loadout,
         IReadOnlyDictionary<int, RandomPickHero> RandomPickHeroes,
-        int RandomPickItemNum);
+        int RandomPickItemNum)
+    {
+        public pbCOMDT_POKEMON_PASTER_LIST UsablePasterList { get; init; } = new();
+    }
 }

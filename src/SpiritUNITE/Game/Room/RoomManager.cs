@@ -869,6 +869,25 @@ public sealed class RoomManager(
         }
     }
 
+    public RoomOutcome ChangeTmpNameList(ulong uid, pbCOMDT_TMP_NAME_LIST tmpNameList)
+    {
+        lock (gate)
+        {
+            if (!roomsByUid.TryGetValue(uid, out var room) || room.FindMember(uid) is not { } member)
+            {
+                return new RoomOutcome();
+            }
+
+            member.Profile = member.Profile with { TmpNameList = tmpNameList };
+            return BuildRoomMemberDT(member) is { } memberDT
+                ? new RoomOutcome().PushAll(
+                    MemberUids(room),
+                    PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf,
+                    RoomNotices.MemberInfoChg(room, memberDT.MemberDetail.MemberOfAcnt))
+                : new RoomOutcome();
+        }
+    }
+
     public RoomOutcome LeaveOnDisconnect(ulong uid)
     {
         lock (gate)
@@ -941,7 +960,7 @@ public sealed class RoomManager(
         var outcome = new RoomOutcome()
             .Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf, RoomNotices.LegendPokemonChg(room))
             .Reply(PB_ENUM_CS_MSGID_DEF.PbScidJoinRoomNtf, joinRoomNtf)
-            .PushAll(others, PB_ENUM_CS_MSGID_DEF.PbScidChatMsgNtf, RoomNotices.RoomChat(BuildRoomChatSender(role), RoomChatEnter))
+            .PushAll(others, PB_ENUM_CS_MSGID_DEF.PbScidChatMsgNtf, RoomNotices.RoomChat(BuildRoomChatSender(role, member), RoomChatEnter))
             .PushAll(others, PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf, RoomNotices.PlayerAdd(room, member, BuildRoomMemberDT(member)!))
             .PushAll(others, PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf, RoomNotices.LegendPokemonChg(room));
         foreach (var other in others)
@@ -1437,11 +1456,11 @@ public sealed class RoomManager(
         roomsByShowId.Remove(room.RoomShowId);
     }
 
-    private static pbCOMDT_CHAT_PLAYER_INFO BuildRoomChatSender(LMNRoleInfo role) => new()
+    private static pbCOMDT_CHAT_PLAYER_INFO BuildRoomChatSender(LMNRoleInfo role, RoomMember member) => new()
     {
         Uid = role.GameUlongUID,
         Name = role.InGameUsrName,
-        TmpNameList = new pbCOMDT_TMP_NAME_LIST(),
+        TmpNameList = member.Profile.TmpNameList.Clone(),
     };
 
     private bool IsSelectableNode(LMNRoleInfo role, int mapId, pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE selectNode) =>
@@ -1532,8 +1551,15 @@ public sealed class RoomManager(
                 member,
                 teamFlag,
                 anonymousUserNameID,
-                PveMatch.BuildTitleNameList(gameData, anonymousUserNameID))
+                BuildMatchTmpNameList(member, anonymousUserNameID))
             : null;
+
+    private pbCOMDT_TMP_NAME_LIST BuildMatchTmpNameList(RoomMember member, int anonymousUserNameID)
+    {
+        var tmpNameList = PveMatch.BuildTitleNameList(gameData, anonymousUserNameID);
+        tmpNameList.TmpNameInfo.Add(member.Profile.TmpNameList.TmpNameInfo.Select(tmpName => tmpName.Clone()));
+        return tmpNameList;
+    }
 
     private pbCOMDT_RANKED_DIVISION BuildRankedDivision(LMNRoleInfo role) =>
         RankedMatch.IsRankedMatchUnlocked(gameData, notices, role)

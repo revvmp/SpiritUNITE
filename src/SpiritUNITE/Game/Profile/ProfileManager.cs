@@ -234,7 +234,7 @@ public sealed class ProfileManager(
             RoleLevel = RoleProfile.GetLevel(gameData, role),
             RoleCurExp = role.RoleTotalExp,
             RoleGender = role.Gender,
-            FollowInfo = role.BuildFollowInfo(),
+            FollowInfo = await pokemon.BuildFollowInfoAsync(role),
             PokemonList = { pokemonList.PokemonList },
             UsedPokemonList = { usedPokemonList },
             HeadID = RoleImage.GetHeadID(gameData, role),
