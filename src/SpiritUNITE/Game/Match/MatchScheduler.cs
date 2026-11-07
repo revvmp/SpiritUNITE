@@ -1,11 +1,13 @@
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SpiritUNITE.Game.Credit;
 using SpiritUNITE.Game.Friend;
+using SpiritUNITE.Game.Room;
 using SpiritUNITE.Online;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
 
-namespace SpiritUNITE.Game.Room;
+namespace SpiritUNITE.Game.Match;
 
 public sealed class MatchScheduler(
     RoomManager rooms,
@@ -13,26 +15,25 @@ public sealed class MatchScheduler(
     FriendPresence presence,
     CreditManager credit,
     TimeProvider clock,
-    ILogger<MatchScheduler> logger)
+    ILogger<MatchScheduler> logger) : BackgroundService
 {
-    public event Func<MatchRoom, Task>? MatchConfirmed;
+    private static readonly TimeSpan FormInterval = TimeSpan.FromSeconds(1);
+
+    public event Func<PendingMatch, Task>? MatchConfirmed;
 
     public void Follow(RoomOutcome outcome)
     {
-        if (outcome.Search is { } search)
+        foreach (var search in outcome.Searches)
         {
-            logger.LogInformation(
-                "Room {RoomID} searches for a bot-filled match; bots fill it in {SearchSec} s",
-                search.Ticket.RoomID,
-                search.Delay.TotalSeconds);
-            _ = CompleteSearchAsync(search);
+            _ = FormAtAsync(search.FillAt);
         }
 
-        if (outcome.ConfirmWindow is { } window)
+        foreach (var window in outcome.ConfirmWindows)
         {
             logger.LogInformation(
-                "Room {RoomID} matched against bots; members confirm until {Deadline:O}, {NpcCount} NPCs confirm on their own",
-                window.Ticket.RoomID,
+                "Match {MatchID} on map {MapId}: humans confirm until {Deadline:O}, {NpcCount} NPCs confirm on their own",
+                window.Ticket.MatchID,
+                window.MapId,
                 window.Deadline,
                 window.NpcUids.Count);
             _ = ExpireConfirmAsync(window);
@@ -43,13 +44,39 @@ public sealed class MatchScheduler(
         }
     }
 
-    private async Task CompleteSearchAsync(MatchSearch search)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         try
         {
-            await Task.Delay(search.Delay, clock);
-            var outcome = rooms.CompleteSearch(search.Ticket);
-            if (outcome.ConfirmWindow is null)
+            while (true)
+            {
+                await Task.Delay(FormInterval, clock, stoppingToken);
+                await FormMatchesAsync();
+            }
+        }
+        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+        {
+            logger.LogInformation("Matchmaking stopped");
+        }
+    }
+
+    private async Task FormAtAsync(DateTimeOffset fillAt)
+    {
+        var remaining = fillAt - clock.GetUtcNow();
+        if (remaining > TimeSpan.Zero)
+        {
+            await Task.Delay(remaining, clock);
+        }
+
+        await FormMatchesAsync();
+    }
+
+    private async Task FormMatchesAsync()
+    {
+        try
+        {
+            var outcome = rooms.FormMatches();
+            if (outcome.ConfirmWindows.Count == 0)
             {
                 return;
             }
@@ -59,7 +86,7 @@ public sealed class MatchScheduler(
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Bot-filled match search for room {RoomID} failed", search.Ticket.RoomID);
+            logger.LogError(exception, "Forming matches failed");
         }
     }
 
@@ -70,15 +97,15 @@ public sealed class MatchScheduler(
             await Task.Delay(delay, clock);
             var outcome = rooms.ConfirmNpc(ticket, npcUid);
             await PushAllAsync(outcome);
-            if (outcome.StartedGame is { } room)
+            if (outcome.StartedGame is { } match)
             {
-                logger.LogInformation("Room {RoomID}: the last NPC confirmed; the match starts", room.RoomID);
-                await RaiseMatchConfirmedAsync(room);
+                logger.LogInformation("Match {MatchID}: the last NPC confirmed; the match starts", match.Ticket.MatchID);
+                await RaiseMatchConfirmedAsync(match);
             }
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "NPC {NpcUid} confirm for room {RoomID} failed", npcUid, ticket.RoomID);
+            logger.LogError(exception, "NPC {NpcUid} confirm for match {MatchID} failed", npcUid, ticket.MatchID);
         }
     }
 
@@ -99,9 +126,10 @@ public sealed class MatchScheduler(
             }
 
             logger.LogInformation(
-                "Room {RoomID} match aborted: uids {Uids} did not confirm within the confirm window",
-                window.Ticket.RoomID,
-                removedUids);
+                "Match {MatchID} aborted: uids {Uids} did not confirm within the confirm window; {RequeuedCount} confirmed parties search again",
+                window.Ticket.MatchID,
+                removedUids,
+                outcome.Searches.Count);
             var penalizedUids = new HashSet<ulong>();
             foreach (var uid in removedUids)
             {
@@ -112,6 +140,7 @@ public sealed class MatchScheduler(
             }
 
             await PushAllAsync(await WithCreditNoticesAsync(outcome.Pushes, penalizedUids));
+            Follow(outcome);
             foreach (var uid in removedUids)
             {
                 await presence.SetGameStateAsync(uid, PB_ENUM_E_ACNT_GAMESTATE.PbEacntGameidle, 0);
@@ -128,20 +157,20 @@ public sealed class MatchScheduler(
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Match confirm expiry for room {RoomID} failed", window.Ticket.RoomID);
+            logger.LogError(exception, "Match confirm expiry for match {MatchID} failed", window.Ticket.MatchID);
         }
     }
 
-    private async Task RaiseMatchConfirmedAsync(MatchRoom room)
+    private async Task RaiseMatchConfirmedAsync(PendingMatch match)
     {
         if (MatchConfirmed is not { } handlers)
         {
             return;
         }
 
-        foreach (var handler in handlers.GetInvocationList().Cast<Func<MatchRoom, Task>>())
+        foreach (var handler in handlers.GetInvocationList().Cast<Func<PendingMatch, Task>>())
         {
-            await handler(room);
+            await handler(match);
         }
     }
 

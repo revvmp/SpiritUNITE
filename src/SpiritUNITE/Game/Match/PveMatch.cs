@@ -1,22 +1,22 @@
 using SpiritUNITE.Databin;
+using SpiritUNITE.Game.Room;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
 
-namespace SpiritUNITE.Game.Room;
+namespace SpiritUNITE.Game.Match;
 
-public sealed record BotMatchSucc(pbSCMatchRsp MatchRsp, IReadOnlyDictionary<ulong, pbAiInfoConfig> NpcConfigs);
+public sealed record BotMatchSucc(pbSCMatchRsp MatchRsp, IReadOnlyDictionary<ulong, pbAiInfoConfig> NpcConfigs, int WarmBattleType = 0);
 
 public static class PveMatch
 {
-    public const int MinAILevel = 1;
-    public const int ConfirmTimeoutMs = 15000;
+    public const int MinAILevel = (int)PB_ENUM_RES_AI_DIFFICULTYLEVEL_TYPE.PbResAiDifficultylevelTypeWarmbattle;
 
     public const int ReadyConfirmUiType = 1;
     public const int GenericNpcType = (int)PB_ENUM_RES_NPC_TYPE.PbResNpcTypeNormal;
 
     private const int TrainerConfirmUiType = 2;
     private const int CatchGameType = (int)PB_ENUM_RES_MATCHGAMETYPE.PbMatchGameTypeCatch;
-    private const int CatchAILevel = 2;
+    private const int CatchAILevel = (int)PB_ENUM_RES_AI_DIFFICULTYLEVEL_TYPE.PbResAiDifficultylevelTypeEasy;
     private const int NpcAcntLevel = 1;
     private const int NpcMember = (int)PB_ENUM_COM_ROOM_MEMBEM_TYPE.PbComRoomMemberTnpc;
     private const int TitleNpcType = (int)PB_ENUM_RES_NPC_TYPE.PbResNpcTypeAnonymousUser;
@@ -59,7 +59,8 @@ public static class PveMatch
         MatchRoom room,
         IReadOnlyList<pbCOMDT_ROOMMEMBER_DT> members,
         int masterTrainerLevel,
-        long succTimeStamp)
+        long succTimeStamp,
+        int confirmTimeoutMs)
     {
         var npcConfigs = new Dictionary<ulong, pbAiInfoConfig>();
         var isCatchMap = gameData.SceneMap.Find(room.MapId)?.GameType == CatchGameType;
@@ -68,7 +69,7 @@ public static class PveMatch
             ? BuildCatchMemInfo(gameData, room, members, aiLevel, npcConfigs)
             : BuildHeavenTrainerMemInfo(gameData, room, members, aiLevel, npcConfigs);
 
-        var matchRsp = BuildMatchSuccRsp(room.MapId, aiLevel, memInfo, succTimeStamp, isCatchMap ? ReadyConfirmUiType : TrainerConfirmUiType);
+        var matchRsp = BuildMatchSuccRsp(room.MapId, aiLevel, memInfo, succTimeStamp, isCatchMap ? ReadyConfirmUiType : TrainerConfirmUiType, confirmTimeoutMs);
         return new BotMatchSucc(matchRsp, npcConfigs);
     }
 
@@ -77,7 +78,8 @@ public static class PveMatch
         int aiLevel,
         pbCOMDT_MULTROOMMEMBER_INFO memInfo,
         long succTimeStamp,
-        int confirmUiType) => new()
+        int confirmUiType,
+        int confirmTimeoutMs) => new()
         {
             MatchResult = new pbCOMDT_MATCH_RESULT
             {
@@ -97,7 +99,7 @@ public static class PveMatch
                         },
                         MemInfo = memInfo,
                         SuccTimeStamp = succTimeStamp,
-                        ConfirmTimeoutMs = ConfirmTimeoutMs,
+                        ConfirmTimeoutMs = confirmTimeoutMs,
                         ConfirmUiType = confirmUiType,
                     }),
                 },
