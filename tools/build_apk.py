@@ -35,6 +35,8 @@ RES_DATA_ENTRY = "assets/res.data"
 RESOURCES_ARCHIVE_ENTRY = "lib/arm64-v8a/libResources.so"
 METADATA_ARCHIVE_PATH = "Managed/Metadata/global-metadata.dat"
 MANIFEST_ENTRY = "AndroidManifest.xml"
+SOURCE_STAMP_ENTRY = "stamp-cert-sha256"
+SPLIT_ONLY_ENTRIES = frozenset({MANIFEST_ENTRY, SOURCE_STAMP_ENTRY})
 RESOURCE_TABLE_ENTRY = "resources.arsc"
 SHELL_DEX_ENTRY = "classes2.dex"
 SHELL_DEX_SHA256 = "0424acd386cc14745c209ccae1662259777889b026c04f60e71953855095d7d7"
@@ -64,6 +66,7 @@ DEFAULT_APP_LABEL = "SpiritUNITE"
 MAX_APP_LABEL_LENGTH = 50
 NETWORK_SECURITY_CONFIG_ATTRIBUTE = "networkSecurityConfig"
 USES_CLEARTEXT_TRAFFIC_ATTRIBUTE = "usesCleartextTraffic"
+REQUIRED_SPLIT_TYPES_ATTRIBUTE = "requiredSplitTypes"
 
 DEFAULT_DIR_PORT = 10001
 DEFAULT_HTTPS_PORT = 443
@@ -548,6 +551,53 @@ def application_attributes(
     return first, attribute_size, positions
 
 
+def remove_attribute(
+    manifest: bytearray, element: int, removed: int, attribute_size: int, first: int
+) -> None:
+    start = first + removed * attribute_size
+    del manifest[start : start + attribute_size]
+    struct.pack_into("<I", manifest, 4, len(manifest))
+    struct.pack_into(
+        "<I",
+        manifest,
+        element + 4,
+        struct.unpack_from("<I", manifest, element + 4)[0] - attribute_size,
+    )
+    struct.pack_into(
+        "<H",
+        manifest,
+        element + 28,
+        struct.unpack_from("<H", manifest, element + 28)[0] - 1,
+    )
+    for special_index in (element + 30, element + 32, element + 34):
+        one_based = struct.unpack_from("<H", manifest, special_index)[0]
+        if one_based == removed + 1:
+            struct.pack_into("<H", manifest, special_index, 0)
+        elif one_based > removed + 1:
+            struct.pack_into("<H", manifest, special_index, one_based - 1)
+
+
+def drop_required_split_types(manifest: bytes) -> bytes:
+    if struct.unpack_from("<HH", manifest, 0) != (0x0003, 8):
+        raise BuildError(f"{MANIFEST_ENTRY} is not binary XML.")
+    strings, first_chunk = read_manifest_strings(manifest)
+    for name, element in manifest_elements(manifest, strings, first_chunk):
+        if name != MANIFEST_ELEMENT:
+            continue
+        first, attribute_size, positions = application_attributes(
+            manifest, strings, element
+        )
+        removed = positions.get(REQUIRED_SPLIT_TYPES_ATTRIBUTE)
+        if removed is None:
+            raise BuildError(
+                f"{MANIFEST_ENTRY} has no android:{REQUIRED_SPLIT_TYPES_ATTRIBUTE} to remove."
+            )
+        patched = bytearray(manifest)
+        remove_attribute(patched, element, removed, attribute_size, first)
+        return bytes(patched)
+    raise BuildError(f"{MANIFEST_ENTRY} has no <manifest> element.")
+
+
 def allow_cleartext_traffic(manifest: bytes) -> bytes:
     if struct.unpack_from("<HH", manifest, 0) != (0x0003, 8):
         raise BuildError(f"{MANIFEST_ENTRY} is not binary XML.")
@@ -565,29 +615,8 @@ def allow_cleartext_traffic(manifest: bytes) -> bytes:
     patched[cleartext + 15] = AXML_TYPE_BOOLEAN
     struct.pack_into("<I", patched, cleartext + 16, AXML_TRUE)
     removed = positions.get(NETWORK_SECURITY_CONFIG_ATTRIBUTE)
-    if removed is None:
-        return bytes(patched)
-    start = first + removed * attribute_size
-    del patched[start : start + attribute_size]
-    struct.pack_into("<I", patched, 4, len(patched))
-    struct.pack_into(
-        "<I",
-        patched,
-        element + 4,
-        struct.unpack_from("<I", patched, element + 4)[0] - attribute_size,
-    )
-    struct.pack_into(
-        "<H",
-        patched,
-        element + 28,
-        struct.unpack_from("<H", patched, element + 28)[0] - 1,
-    )
-    for special_index in (element + 30, element + 32, element + 34):
-        one_based = struct.unpack_from("<H", patched, special_index)[0]
-        if one_based == removed + 1:
-            struct.pack_into("<H", patched, special_index, 0)
-        elif one_based > removed + 1:
-            struct.pack_into("<H", patched, special_index, one_based - 1)
+    if removed is not None:
+        remove_attribute(patched, element, removed, attribute_size, first)
     return bytes(patched)
 
 
@@ -1312,22 +1341,74 @@ def copy_range(source, destination, start: int, length: int) -> None:
         length -= len(chunk)
 
 
-def rewrite_apk(
-    source_path: Path, destination_path: Path, replacements: dict[str, bytes]
-) -> None:
+@dataclass
+class MergedApkPart:
+    path: Path
+    replacements: dict[str, bytes]
+    excluded: frozenset[str] = frozenset()
+
+
+def merge_apks(parts: list[MergedApkPart], destination_path: Path) -> None:
+    central_directory = bytearray()
+    written = 0
+    kept_entries = 0
+    merged_names = set()
+    with destination_path.open("wb") as destination:
+        for part in parts:
+            written, kept_entries = copy_apk_entries(
+                part,
+                destination,
+                central_directory,
+                merged_names,
+                written,
+                kept_entries,
+            )
+        if kept_entries >= 0xFFFF or written >= 0xFFFFFFFF:
+            raise BuildError(
+                f"{destination_path.name} would need ZIP64, which is not supported."
+            )
+        destination.write(central_directory)
+        destination.write(
+            ZIP_END_OF_CENTRAL_DIRECTORY.pack(
+                ZIP_END_SIGNATURE,
+                0,
+                0,
+                kept_entries,
+                kept_entries,
+                len(central_directory),
+                written,
+                0,
+            )
+        )
+
+
+def copy_apk_entries(
+    part: MergedApkPart,
+    destination,
+    central_directory: bytearray,
+    merged_names: set[str],
+    written: int,
+    kept_entries: int,
+) -> tuple[int, int]:
+    source_path, replacements = part.path, part.replacements
     with zipfile.ZipFile(source_path) as source_zip:
         entries = source_zip.infolist()
     names = {entry.filename for entry in entries}
     missing = sorted(set(replacements) - names)
     if missing:
         raise BuildError(f"{source_path.name} has no {', '.join(missing)}.")
-    central_directory = bytearray()
-    written = 0
-    kept_entries = 0
-    with source_path.open("rb") as source, destination_path.open("wb") as destination:
+    with source_path.open("rb") as source:
         for entry in entries:
-            if V1_SIGNATURE_FILE.match(entry.filename):
+            if (
+                V1_SIGNATURE_FILE.match(entry.filename)
+                or entry.filename in part.excluded
+            ):
                 continue
+            if entry.filename in merged_names:
+                raise BuildError(
+                    f"{source_path.name} repeats {entry.filename} from an earlier split."
+                )
+            merged_names.add(entry.filename)
             if (
                 entry.file_size >= 0xFFFFFFFF
                 or entry.compress_size >= 0xFFFFFFFF
@@ -1416,19 +1497,7 @@ def rewrite_apk(
                 + raw_name
             )
             kept_entries += 1
-        destination.write(central_directory)
-        destination.write(
-            ZIP_END_OF_CENTRAL_DIRECTORY.pack(
-                ZIP_END_SIGNATURE,
-                0,
-                0,
-                kept_entries,
-                kept_entries,
-                len(central_directory),
-                written,
-                0,
-            )
-        )
+    return written, kept_entries
 
 
 def find_java() -> Path:
@@ -1682,12 +1751,6 @@ def sign_apk(
     )
 
 
-def bundle_splits(signed_apks: list[Path], bundle: Path) -> None:
-    with zipfile.ZipFile(bundle, "w", zipfile.ZIP_STORED) as archive:
-        for apk in signed_apks:
-            archive.write(apk, apk.name)
-
-
 def disable_signature_shell(content: bytes) -> bytes:
     if hashlib.sha256(content).hexdigest() != SHELL_DEX_SHA256:
         raise BuildError(
@@ -1722,25 +1785,13 @@ def build_base_replacements(
                 target.package_name,
             ),
         }
-        manifest = base.read(MANIFEST_ENTRY)
+        manifest = drop_required_split_types(base.read(MANIFEST_ENTRY))
         if target.development:
             manifest = allow_cleartext_traffic(manifest)
         replacements[MANIFEST_ENTRY] = rename_manifest_package(
             manifest, OFFICIAL_PACKAGE_NAME, target.package_name, target.app_label
         )
         return replacements
-
-
-def build_split_manifest_replacement(
-    split: Path, target: HostTarget
-) -> dict[str, bytes]:
-    with zipfile.ZipFile(split) as archive:
-        manifest = archive.read(MANIFEST_ENTRY)
-    return {
-        MANIFEST_ENTRY: rename_manifest_package(
-            manifest, OFFICIAL_PACKAGE_NAME, target.package_name, None
-        )
-    }
 
 
 def build_native_replacements(
@@ -1790,38 +1841,31 @@ def build(arguments: argparse.Namespace) -> None:
     log(
         f"Renaming the app to {target.package_name} ({target.app_label!r}) so it installs next to the official app"
     )
-    base_replacements = build_base_replacements(splits, target, old_md5, new_md5)
-    replacements = {
-        BASE_APK: base_replacements,
-        NATIVE_APK: native_replacements
-        | build_split_manifest_replacement(splits[NATIVE_APK], target),
-        ASSET_PACK_APK: build_split_manifest_replacement(
-            splits[ASSET_PACK_APK], target
+    parts = [
+        MergedApkPart(
+            splits[BASE_APK],
+            build_base_replacements(splits, target, old_md5, new_md5),
         ),
-    }
+        MergedApkPart(
+            splits[NATIVE_APK], native_replacements, SPLIT_ONLY_ENTRIES
+        ),
+        MergedApkPart(splits[ASSET_PACK_APK], {}, SPLIT_ONLY_ENTRIES),
+    ]
     output_dir.mkdir(parents=True, exist_ok=True)
-    signed_apks = []
+    apk = output_dir / f"SpiritUNITE-{target.build_name}.apk"
     with tempfile.TemporaryDirectory(dir=work_dir) as temporary:
-        for name in SPLIT_APKS:
-            unsigned = Path(temporary) / name
-            signed = output_dir / name
-            log(f"Rebuilding and signing {name}")
-            rewrite_apk(splits[name], unsigned, replacements[name])
-            sign_apk(tools, keystore, password_file, unsigned, signed)
-            signed_apks.append(signed)
-    bundle = output_dir / f"SpiritUNITE-{target.build_name}.apks"
-    log(f"Bundling {bundle.name}")
-    bundle_splits(signed_apks, bundle)
+        unsigned = Path(temporary) / apk.name
+        log(f"Merging {', '.join(SPLIT_APKS)} into {apk.name} and signing it")
+        merge_apks(parts, unsigned)
+        sign_apk(tools, keystore, password_file, unsigned, apk)
     log("")
-    install_command = (
-        f"adb install-multiple -g {' '.join(str(apk) for apk in signed_apks)}"
-    )
+    install_command = f"adb install -g {apk}"
     if target.development:
-        report_development_build(target, bundle, install_command)
+        report_development_build(target, apk, install_command)
     else:
-        log(f"Done. Give players {bundle}")
+        log(f"Done. Give players {apk}")
         log(
-            f"It installs as {target.package_name} next to the official app; players install the .apks with a split APK installer such as SAI,"
+            f"It installs as {target.package_name} next to the official app; players open the .apk on their phone to install it,"
         )
         log(f"or from a computer: {install_command}")
         log(
@@ -1840,9 +1884,9 @@ def build(arguments: argparse.Namespace) -> None:
 
 
 def report_development_build(
-    target: HostTarget, bundle: Path, install_command: str
+    target: HostTarget, apk: Path, install_command: str
 ) -> None:
-    log(f"Done. Development client: {bundle}")
+    log(f"Done. Development client: {apk}")
     log(
         f"It installs as {target.package_name} next to the official app. Install it on the test device:"
     )
