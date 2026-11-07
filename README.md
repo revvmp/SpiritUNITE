@@ -66,7 +66,7 @@ Screenshots coming soon.
 | 8085 | Update server (resource update check on every start) |
 | 10001 | Directory server |
 | 10002 | Lobby server |
-| 10003 | Relay server |
+| 10003 | Relay server (UDP) |
 | 10081 | Account login and registration pages, and the resource archive download |
 
 All of these can be changed in `appsettings.json`, except the update server. The client only looks for it on port 8085 or 8080.
@@ -85,17 +85,17 @@ The directory server tells the client where to find the lobby server. By default
    }
    ```
 
-2. Set `TcpServer.BindAddress` to `0.0.0.0` so the directory and lobby servers accept outside connections. Keep `127.0.0.1` for local testing.
+2. Set `TcpServer.BindAddress` to `0.0.0.0` so the directory, lobby, update and relay servers accept outside connections. Keep `127.0.0.1` for local testing.
 
 
-3. Set up HTTPS on port `443` for your domain, forwarding requests to the account server on `127.0.0.1:10081`. Open TCP ports `443`, `8085`, `10001` and `10002` on your router and firewall.
+3. Set up HTTPS on port `443` for your domain, forwarding all paths to the account server on `127.0.0.1:10081`. Open TCP ports `80`, `443`, `8085`, `10001` and `10002`, and UDP port `10003` for battles, on your router and firewall.
    Then point the resource archive at your domain, so players download it through your proxy:
    ```json
    "ResourceArchive": {
      "BaseUrl": "https://play.example.com"
    }
    ```
-   The game downloads the archive over plain HTTP, so also open port `80` and have the proxy forward `/resources/` on port 80 to `127.0.0.1:10081` without redirecting it to HTTPS.
+   The game downloads the archive over plain HTTP, so have the proxy forward `/resources/` on port 80 to `127.0.0.1:10081` without redirecting it to HTTPS.
 
 
 4. Build the client for your domain:
