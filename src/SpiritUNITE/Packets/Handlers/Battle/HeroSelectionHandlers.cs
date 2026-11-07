@@ -1,12 +1,21 @@
 using Microsoft.Extensions.Logging;
 using SpiritUNITE.Battle;
+using SpiritUNITE.Game.Pokemon;
+using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Room;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers.Battle;
 
-public sealed class HeroSelectionHandlers(DeskManager desks, ILogger<HeroSelectionHandlers> logger)
+public sealed class HeroSelectionHandlers(
+    DeskManager desks,
+    PokemonManager pokemon,
+    RoleInfoStore roles,
+    ILogger<HeroSelectionHandlers> logger)
 {
+    private const int FromPokemonBox = 1;
+    private const int HeroPokemonIdBase = (int)PB_MACRO_HERO_POKEMON_ID_BASE.PbHeroPokemonIdBase;
+
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidChooseHeroReq)]
     public async Task<GamePacket[]> OnChooseHeroReq(GamePacket request)
     {
@@ -70,6 +79,86 @@ public sealed class HeroSelectionHandlers(DeskManager desks, ILogger<HeroSelecti
         return outcome.Succeeded
             ? await DeliverAsync(request, outcome)
             : [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidChgWayTipRsp, new pbSCChgWayTipRsp { ResultInfo = Result(outcome), WayTipType = wayTipType })];
+    }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidChgSkillRecommendTypeReq)]
+    public async Task<GamePacket[]> OnChgSkillRecommendTypeReq(GamePacket request)
+    {
+        var change = pbCSChgSkillRecommendTypeReq.Parser.ParseFrom(request.PkgData);
+        var outcome = change.IsFromPokemonBox == FromPokemonBox
+            ? new RoomOutcome()
+            : Enum.IsDefined((PB_ENUM_ENM_SKILL_RECOMMEND_TYPE)change.SkillRecommendType)
+                ? desks.ChangeSkillRecommend(
+                    request.Uid,
+                    change.HeroId,
+                    new pbCOMDT_SKILLRECOMMENDINFO { SkillRecommendType = change.SkillRecommendType },
+                    PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroChgRecommend)
+                : RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrSkillRecommendTypeInvalid);
+        var result = outcome.Succeeded
+            ? (await pokemon.SaveSkillRecommendTypeAsync(roles.Require(request.Uid), PokemonIdOf(change.HeroId), change.SkillRecommendType)).Result
+            : outcome.Result;
+        logger.LogInformation(
+            "Uid {Uid} sets the skill recommendation of hero {HeroId} to {SkillRecommendType} (from Pokemon box {IsFromPokemonBox}): {Result}",
+            request.Uid,
+            change.HeroId,
+            change.SkillRecommendType,
+            change.IsFromPokemonBox,
+            result);
+        var response = request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidChgSkillRecommendTypeRsp, new pbSCChgSkillRecommendTypeRsp
+        {
+            ResultInfo = new pbResultInfo { ResultId = (int)result },
+            SkillRecommendType = change.SkillRecommendType,
+            IsFromPokemonBox = change.IsFromPokemonBox,
+        });
+        return outcome.Succeeded ? [.. await DeliverAsync(request, outcome), response] : [response];
+    }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidChgUserDefineSkillRecommendReq)]
+    public async Task<GamePacket[]> OnChgUserDefineSkillRecommendReq(GamePacket request)
+    {
+        var change = pbCSChgUserDefineSkillRecommendReq.Parser.ParseFrom(request.PkgData);
+        var outcome = !PokemonManager.IsValidSkillSlotRecommend(change.SkillSlotRecommend)
+            ? RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrSkillRecommendTypeInvalid)
+            : change.IsFromPokemonBox == FromPokemonBox
+                ? new RoomOutcome()
+                : desks.ChangeSkillRecommend(
+                    request.Uid,
+                    change.HeroId,
+                    new pbCOMDT_SKILLRECOMMENDINFO
+                    {
+                        SkillRecommendType = (int)PB_ENUM_ENM_SKILL_RECOMMEND_TYPE.PbEnmSkillRecommendTypeUserdefine,
+                        SkillSlotRecommend = { change.SkillSlotRecommend },
+                    },
+                    PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroUserdefineSkill);
+        var result = outcome.Succeeded
+            ? (await pokemon.SaveUserDefineSkillRecommendAsync(roles.Require(request.Uid), PokemonIdOf(change.HeroId), change.SkillSlotRecommend)).Result
+            : outcome.Result;
+        logger.LogInformation(
+            "Uid {Uid} sets the user-defined moves of hero {HeroId} to {SkillSlotRecommend} (from Pokemon box {IsFromPokemonBox}): {Result}",
+            request.Uid,
+            change.HeroId,
+            string.Join(',', change.SkillSlotRecommend),
+            change.IsFromPokemonBox,
+            result);
+        var response = request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidChgUserDefineSkillRecommendRsp, new pbSCChgUserDefineSkillRecommendRsp
+        {
+            ResultInfo = new pbResultInfo { ResultId = (int)result },
+            SkillSlotRecommend = { change.SkillSlotRecommend },
+            IsFromPokemonBox = change.IsFromPokemonBox,
+        });
+        return outcome.Succeeded ? [.. await DeliverAsync(request, outcome), response] : [response];
+    }
+
+    private static int PokemonIdOf(int heroId) => heroId % HeroPokemonIdBase;
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidRandomChooseHeroReq)]
+    public async Task<GamePacket[]> OnRandomChooseHeroReq(GamePacket request)
+    {
+        var outcome = await desks.RandomChooseHeroAsync(request.Uid);
+        logger.LogInformation("Uid {Uid} rerolls the random hero: {Result}", request.Uid, outcome.Result);
+        return outcome.Succeeded
+            ? await DeliverAsync(request, outcome)
+            : [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRandomChooseHeroRsp, new pbSCRandomChooseHeroRsp { ResultInfo = Result(outcome) })];
     }
 
     private async Task<GamePacket[]> DeliverAsync(GamePacket request, RoomOutcome outcome) =>

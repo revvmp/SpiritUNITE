@@ -18,11 +18,10 @@ public sealed class RoomHandlers
 {
     private const int Accepted = 1;
     private const int DenyForFiveMinutes = 1;
+    private const int IsSubModeCompetition = 1;
 
     private readonly RoomManager rooms;
     private readonly RoomInvites invites;
-    private readonly MatchScheduler matches;
-    private readonly DeskManager desks;
     private readonly LobbyRoles lobbyRoles;
     private readonly FriendPresence presence;
     private readonly ProfileManager profiles;
@@ -40,7 +39,6 @@ public sealed class RoomHandlers
     public RoomHandlers(
         RoomManager rooms,
         RoomInvites invites,
-        MatchScheduler matches,
         DeskManager desks,
         RelayManager relays,
         LobbyRoles lobbyRoles,
@@ -59,8 +57,6 @@ public sealed class RoomHandlers
     {
         this.rooms = rooms;
         this.invites = invites;
-        this.matches = matches;
-        this.desks = desks;
         this.lobbyRoles = lobbyRoles;
         this.presence = presence;
         this.profiles = profiles;
@@ -77,7 +73,6 @@ public sealed class RoomHandlers
         lobbyRoles.RoleOffline += OnRoleOfflineAsync;
         desks.DeskClosed += presence.LeaveGameAsync;
         relays.RelayFinished += presence.LeaveGameAsync;
-        matches.MatchConfirmed += OnMatchConfirmedAsync;
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidCreateRoomReq)]
@@ -102,14 +97,16 @@ public sealed class RoomHandlers
                 create.SubMapMode,
                 create.FromSystemType,
                 MapList(create.UsableMapInfo),
-                create.PveChallengeSelectNode),
+                create.PveChallengeSelectNode,
+                create.IsSubModeCompetition == IsSubModeCompetition),
             await LoadMemberProfileAsync(request.Uid));
         logger.LogInformation(
-            "Create room for uid {Uid}: MapMode {MapMode}, MapID {MapID}, SubMapMode {SubMapMode}, ClientCreateType {ClientCreateType}, {MapCount} usable maps: {Result}",
+            "Create room for uid {Uid}: MapMode {MapMode}, MapID {MapID}, SubMapMode {SubMapMode}, IsSubModeCompetition {IsSubModeCompetition}, ClientCreateType {ClientCreateType}, {MapCount} usable maps: {Result}",
             request.Uid,
             create.MapMode,
             create.MapID,
             create.SubMapMode,
+            create.IsSubModeCompetition,
             create.ClientCreateType,
             create.UsableMapInfo?.MapList.Count ?? 0,
             outcome.Result);
@@ -261,67 +258,71 @@ public sealed class RoomHandlers
             return [CommErrcode(request, outcome.Result)];
         }
 
-        await MarkIdleAsync(targetUid!.Value);
+        if (targetUid is { } kickedUid)
+        {
+            await MarkIdleAsync(kickedUid);
+        }
+
         return await DeliverAsync(request, outcome);
     }
 
-    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidRoomStartGameReq)]
-    public async Task<GamePacket[]> OnRoomStartGameReq(GamePacket request)
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidAddRoomAireq)]
+    public async Task<GamePacket[]> OnAddRoomAIReq(GamePacket request)
     {
-        pbCSRoomStartGameReq.Parser.ParseFrom(request.PkgData);
-        if (await FindCreditShortfallAsync(request.Uid) is { } creditRefusal)
-        {
-            return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomStartGameRsp, new pbSCRoomStartGameRsp { ResultInfo = new pbResultInfo { ResultId = (int)creditRefusal } })];
-        }
-
-        var outcome = rooms.StartGame(request.Uid);
-        logger.LogInformation("Uid {Uid} starts matching: {Result}", request.Uid, outcome.Result);
-        if (!outcome.Succeeded)
-        {
-            return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomStartGameRsp, new pbSCRoomStartGameRsp { ResultInfo = Result(outcome) })];
-        }
-
-        var replies = await DeliverAsync(request, outcome);
-        matches.Follow(outcome);
-        return replies;
-    }
-
-    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidRoomConfirmReq)]
-    public async Task<GamePacket[]> OnRoomConfirmReq(GamePacket request)
-    {
-        pbCSRoomConfirmReq.Parser.ParseFrom(request.PkgData);
-        var outcome = rooms.ConfirmMatch(request.Uid);
-        logger.LogInformation("Uid {Uid} confirms the match: {Result}", request.Uid, outcome.Result);
-        if (!outcome.Succeeded)
-        {
-            return
-            [
-                request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomConfirmRsp, new pbSCRoomConfirmRsp
-                {
-                    Uid = request.Uid,
-                    FromGameEntity = MatchRoom.GameEntity,
-                    ResultInfo = Result(outcome),
-                }),
-            ];
-        }
-
-        var confirmReplies = await DeliverAsync(request, outcome);
-        if (outcome.StartedGame is not { } room)
-        {
-            return confirmReplies;
-        }
-
-        var deskOutcome = await BeginDeskAsync(room);
-        return [.. confirmReplies, .. await DeliverAsync(request, deskOutcome)];
-    }
-
-    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidCancelMatchReq)]
-    public async Task<GamePacket[]> OnCancelMatchReq(GamePacket request)
-    {
-        var outcome = rooms.CancelMatch(request.Uid);
-        logger.LogInformation("Uid {Uid} cancels matching: {Result}", request.Uid, outcome.Result);
-        var response = request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidCancelMatchRsp, new pbSCCancelMatchRsp { ResultInfo = Result(outcome) });
+        var campClient = pbCSAddRoomAIReq.Parser.ParseFrom(request.PkgData).CampClient;
+        var outcome = rooms.AddRoomAI(request.Uid, campClient);
+        logger.LogInformation("Uid {Uid} adds a CPU Trainer to camp {CampClient}: {Result}", request.Uid, campClient, outcome.Result);
+        var response = request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAddRoomAirsp, new pbSCAddRoomAIRsp { Result = Result(outcome) });
         return await DeliverAsync(request, outcome, response);
+    }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidUpdateFriendlyRoomRuleReq)]
+    public async Task<GamePacket[]> OnUpdateFriendlyRoomRuleReq(GamePacket request)
+    {
+        var ruleList = pbCSUpdateFriendlyRoomRuleReq.Parser.ParseFrom(request.PkgData).RoomRuleInfo?.RuleList.ToArray() ?? [];
+        var outcome = rooms.UpdateFriendlyRoomRule(request.Uid, ruleList);
+        logger.LogInformation(
+            "Uid {Uid} sets the custom room rules to {RuleList}: {Result}",
+            request.Uid,
+            string.Join(',', ruleList),
+            outcome.Result);
+        var response = request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdateFriendlyRoomRuleRsp, new pbSCUpdateFriendlyRoomRuleRsp { Result = Result(outcome) });
+        return await DeliverAsync(request, outcome, response);
+    }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidUpdateRoomGlobalBanListReq)]
+    public async Task<GamePacket[]> OnUpdateRoomGlobalBanListReq(GamePacket request)
+    {
+        var banPokemonList = pbCSUpdateRoomGlobalBanListReq.Parser.ParseFrom(request.PkgData).RoomGlobalBanList?.BanPokemonList.ToArray() ?? [];
+        var outcome = rooms.UpdateRoomGlobalBanList(request.Uid, banPokemonList);
+        logger.LogInformation(
+            "Uid {Uid} sets the room global ban list to {BanPokemonList}: {Result}",
+            request.Uid,
+            string.Join(',', banPokemonList),
+            outcome.Result);
+        var response = request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdateRoomGlobalBanListRsp, new pbSCUpdateRoomGlobalBanListRsp
+        {
+            Result = Result(outcome),
+            RoomGlobalBanList = new pbCOMDT_ROOM_GLOBAL_BAN_POKEMON_LIST { BanPokemonList = { rooms.FindRoomGlobalBanList(request.Uid) ?? [] } },
+        });
+        return await DeliverAsync(request, outcome, response);
+    }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetRoomGlobalBanListReq)]
+    public GamePacket[] OnGetRoomGlobalBanListReq(GamePacket request)
+    {
+        var banPokemonList = rooms.FindRoomGlobalBanList(request.Uid);
+        return
+        [
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetRoomGlobalBanListRsp, new pbSCGetRoomGlobalBanListRsp
+            {
+                Result = new pbResultInfo
+                {
+                    ResultId = (int)(banPokemonList is null ? PB_ENUM_RES_ERROR_CODE.PbErrRoomAcntNotInRoom : PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc),
+                },
+                RoomGlobalBanList = new pbCOMDT_ROOM_GLOBAL_BAN_POKEMON_LIST { BanPokemonList = { banPokemonList ?? [] } },
+            }),
+        ];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidRoomChgMapReq)]
@@ -489,59 +490,6 @@ public sealed class RoomHandlers
         return await DeliverAsync(request, outcome, response);
     }
 
-    private async Task<PB_ENUM_RES_ERROR_CODE?> FindCreditShortfallAsync(ulong uid)
-    {
-        if (rooms.FindRoomOf(uid) is not { } room)
-        {
-            return null;
-        }
-
-        var (mapId, mapSubMode, memberUids) = (room.MapId, room.MapSubMode, room.Members.Select(member => member.Uid).ToArray());
-        var needCredit = credit.FindGameStartNeedCredit(mapId);
-        foreach (var memberUid in memberUids)
-        {
-            var creditPoint = await credit.GetCreditPointAsync(memberUid);
-            if (creditPoint < needCredit)
-            {
-                logger.LogInformation(
-                    "Uid {Uid} cannot start map {MapId}: uid {MemberUid} has {CreditPoint} credit of the {NeedCredit} needed",
-                    uid,
-                    mapId,
-                    memberUid,
-                    creditPoint,
-                    needCredit);
-                return mapSubMode == (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceRank
-                    ? PB_ENUM_RES_ERROR_CODE.PbErrChangeRankRoomCreditNotEnough
-                    : PB_ENUM_RES_ERROR_CODE.PbErrChangeRoomCreditNotEnough;
-            }
-        }
-
-        return null;
-    }
-
-    private async Task OnMatchConfirmedAsync(MatchRoom room)
-    {
-        try
-        {
-            await PushAllAsync(await BeginDeskAsync(room));
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Desk start for room {RoomID} failed", room.RoomID);
-        }
-    }
-
-    private async Task<RoomOutcome> BeginDeskAsync(MatchRoom room)
-    {
-        var deskOutcome = await desks.BeginDeskAsync(room);
-        foreach (var member in room.Members)
-        {
-            await (deskOutcome.Succeeded ? MarkInGameAsync(member.Uid) : MarkIdleAsync(member.Uid));
-        }
-
-        return deskOutcome;
-    }
-
     private async Task<GamePacket[]> CompleteJoinAsync(GamePacket request, RoomOutcome outcome, GamePacket response)
     {
         if (!outcome.Succeeded)
@@ -617,9 +565,6 @@ public sealed class RoomHandlers
     private Task MarkInRoomAsync(ulong uid) =>
         presence.SetGameStateAsync(uid, PB_ENUM_E_ACNT_GAMESTATE.PbEacntGameroom, clock.GetUtcNow().ToUnixTimeSeconds());
 
-    private Task MarkInGameAsync(ulong uid) =>
-        presence.SetGameStateAsync(uid, PB_ENUM_E_ACNT_GAMESTATE.PbEacntGamemulti, clock.GetUtcNow().ToUnixTimeSeconds());
-
     private Task MarkIdleAsync(ulong uid) => presence.SetGameStateAsync(uid, PB_ENUM_E_ACNT_GAMESTATE.PbEacntGameidle, 0);
 
     private static GamePacket CommErrcode(GamePacket request, PB_ENUM_RES_ERROR_CODE result) =>
@@ -628,7 +573,7 @@ public sealed class RoomHandlers
             ResultInfo = new pbResultInfo { ResultId = (int)result },
         });
 
-    private static pbResultInfo Result(RoomOutcome outcome) => new() { ResultId = (int)outcome.Result };
+    private static pbResultInfo Result(RoomOutcome outcome) => new() { ResultId = (int)outcome.Result, Args = outcome.ResultArgs };
 
     private static IReadOnlyCollection<int> MapList(pbCOMDT_ROOMMAP_INFO? mapInfo) =>
         mapInfo is null ? [] : mapInfo.MapList;

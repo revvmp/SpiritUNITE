@@ -1,3 +1,4 @@
+using SpiritUNITE.Game.Match;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Room;
@@ -13,6 +14,7 @@ public sealed class RoomMember(
     public ulong Uid { get; } = uid;
     public int TeamFlag { get; } = teamFlag;
     public bool IsSettle { get; set; }
+    public bool SettlesAlone { get; set; }
     public int CampClient { get; set; } = campClient;
     public int PosOfCamp { get; set; } = posOfCamp;
     public pbCOMDT_ACNTMAP_INFO AcntMapInfo { get; set; } = acntMapInfo;
@@ -21,6 +23,8 @@ public sealed class RoomMember(
     public IReadOnlySet<int> UsableMaps =>
         AcntMapInfo.MapList.Where(map => map.CanUseType == RoomOptions.CanUseMap).Select(map => map.MapId).ToHashSet();
 }
+
+public sealed record RoomBot(ulong Uid, int CampClient, int PosOfCamp, pbAiInfoConfig Row);
 
 public sealed record RoomPosChange(int ChgSeq, ulong SenderUid, ulong ReceiverUid, long ExpiresAt);
 
@@ -34,6 +38,7 @@ public sealed class MatchRoom(int roomID, long roomSeq, int roomShowId, ulong ma
     public const int JudgeCampCapacity = (int)PB_MACRO_COM_MAX_JUDGE_NUM.PbComMaxJudgeNum;
 
     private const int FirstTeamFlag = 1;
+    private const ulong FirstBotUid = 1;
     private const int GameEntityTypeBits = 12;
     private const int LobbyGameEntityType = 0x008;
     private const int FirstGameEntityInstance = 1;
@@ -42,6 +47,7 @@ public sealed class MatchRoom(int roomID, long roomSeq, int roomShowId, ulong ma
     public static readonly int GameEntity = BuildLobbyGameEntity();
 
     private readonly List<RoomMember> members = [];
+    private readonly List<RoomBot> bots = [];
 
     public int RoomID { get; } = roomID;
     public long RoomSeq { get; } = roomSeq;
@@ -54,37 +60,32 @@ public sealed class MatchRoom(int roomID, long roomSeq, int roomShowId, ulong ma
     public int CampPlayerNum { get; set; }
     public int ManMachine { get; set; }
     public int RankedTeamMemberNumType { get; set; }
+    public int LastRankedTeamMemberNumType { get; init; }
     public PB_ENUM_COM_ROOMSVR_ROOM_STATE State { get; set; } = PB_ENUM_COM_ROOMSVR_ROOM_STATE.PbComRoomsvrRoomStateWait;
     public long MatchStartedAt { get; set; }
     public RoomPosChange? PendingPosChange { get; set; }
     public int NextChgSeq { get; set; } = 1;
     public pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE? PveChallengeSelectNode { get; set; }
-    public int MatchSeq { get; set; }
-    public HashSet<ulong> ConfirmedUids { get; } = [];
-    public HashSet<ulong> UnconfirmedNpcUids { get; } = [];
-    public pbCOMDT_MATCH_SUCC_DETAIL? MatchSucc { get; set; }
-    public IReadOnlyDictionary<ulong, pbAiInfoConfig> MatchNpcConfigs { get; set; } = new Dictionary<ulong, pbAiInfoConfig>();
+    public PendingMatch? Match { get; set; }
+    public FriendlyRoomRules FriendRoomRule { get; set; } = FriendlyRoomRules.None;
+    public IReadOnlyList<int> GlobalBanPokemonList { get; set; } = [];
+    public DateTimeOffset GlobalBanPokemonListChangedAt { get; set; } = DateTimeOffset.MinValue;
 
     public IReadOnlyList<RoomMember> Members => members;
 
+    public IReadOnlyList<RoomBot> Bots => bots;
+
+    public bool IsCustomRoom => RoomType == PB_ENUM_COM_ROOM_TYPE.PbComRoomTypeNormal;
+
     public bool IsMatching => State is PB_ENUM_COM_ROOMSVR_ROOM_STATE.PbComRoomsvrRoomStateReq or PB_ENUM_COM_ROOMSVR_ROOM_STATE.PbComRoomsvrRoomStateProc;
 
-    public bool IsSearching => State == PB_ENUM_COM_ROOMSVR_ROOM_STATE.PbComRoomsvrRoomStateProc && MatchSucc is null;
+    public bool IsSearching => State == PB_ENUM_COM_ROOMSVR_ROOM_STATE.PbComRoomsvrRoomStateProc && Match is null;
 
-    public bool IsConfirming => State == PB_ENUM_COM_ROOMSVR_ROOM_STATE.PbComRoomsvrRoomStateProc && MatchSucc is not null;
-
-    public bool IsMatchConfirmed => UnconfirmedNpcUids.Count == 0 && members.All(member => ConfirmedUids.Contains(member.Uid));
-
-    public MatchTicket Ticket => new(RoomID, RoomSeq, MatchSeq);
-
-    public bool Holds(MatchTicket ticket) => ticket.RoomID == RoomID && ticket.RoomSeq == RoomSeq && ticket.MatchSeq == MatchSeq;
+    public bool IsConfirming => State == PB_ENUM_COM_ROOMSVR_ROOM_STATE.PbComRoomsvrRoomStateProc && Match is not null;
 
     public void ClearMatch()
     {
-        MatchSucc = null;
-        MatchNpcConfigs = new Dictionary<ulong, pbAiInfoConfig>();
-        ConfirmedUids.Clear();
-        UnconfirmedNpcUids.Clear();
+        Match = null;
         MatchStartedAt = 0;
     }
 
@@ -109,14 +110,42 @@ public sealed class MatchRoom(int roomID, long roomSeq, int roomShowId, ulong ma
         _ => 0,
     };
 
-    public int CountIn(int campClient) => members.Count(member => member.CampClient == campClient);
+    public RoomBot? FindBotAt(int campClient, int posOfCamp) =>
+        bots.Find(bot => bot.CampClient == campClient && bot.PosOfCamp == posOfCamp);
+
+    public bool IsSeatFree(int campClient, int posOfCamp) =>
+        FindMemberAt(campClient, posOfCamp) is null && FindBotAt(campClient, posOfCamp) is null;
+
+    public int CountIn(int campClient) =>
+        members.Count(member => member.CampClient == campClient) + bots.Count(bot => bot.CampClient == campClient);
 
     public (int CampClient, int PosOfCamp)? FindFreeSeat() =>
         CampsInUse()
             .SelectMany(camp => Enumerable.Range(0, CapacityOf(camp)).Select(pos => (camp, pos)))
-            .Where(seat => FindMemberAt(seat.camp, seat.pos) is null)
+            .Where(seat => IsSeatFree(seat.camp, seat.pos))
             .Select(seat => ((int, int)?)seat)
             .FirstOrDefault();
+
+    public int? FindFreePosIn(int campClient) =>
+        Enumerable.Range(0, CapacityOf(campClient))
+            .Where(pos => IsSeatFree(campClient, pos))
+            .Select(pos => (int?)pos)
+            .FirstOrDefault();
+
+    public RoomBot AddBot(int campClient, int posOfCamp, pbAiInfoConfig row)
+    {
+        var uid = FirstBotUid;
+        while (bots.Any(bot => bot.Uid == uid) || members.Any(member => member.Uid == uid))
+        {
+            uid++;
+        }
+
+        var bot = new RoomBot(uid, campClient, posOfCamp, row);
+        bots.Add(bot);
+        return bot;
+    }
+
+    public void RemoveBot(RoomBot bot) => bots.Remove(bot);
 
     public RoomMember Add(ulong uid, int campClient, int posOfCamp, pbCOMDT_ACNTMAP_INFO acntMapInfo, RoomMemberProfile profile)
     {

@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Friend;
+using SpiritUNITE.Game.Ranked;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
@@ -12,6 +13,7 @@ public sealed class RoomInvites(
     FriendManager friends,
     FriendPresence presence,
     RoleInfoStore roles,
+    RankedManager ranked,
     GameData gameData,
     TimeProvider clock)
 {
@@ -21,6 +23,7 @@ public sealed class RoomInvites(
     private const int ClientJoinRoomTypeInvite = (int)PB_ENUM_ENM_CLIENT_JOIN_ROOM_TYPE.PbEnmClientJoinRoomTypeInvite;
 
     private readonly ConcurrentDictionary<(ulong InviterUid, ulong InviteeUid), long> deniedUntil = new();
+    private readonly ConcurrentDictionary<(ulong InviterUid, ulong InviteeUid), long> reinviteAllowedAt = new();
 
     public async Task<RoomOutcome> InviteAsync(ulong uid, ulong targetUid, int inviteType, int inviterType)
     {
@@ -49,6 +52,15 @@ public sealed class RoomInvites(
             return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrBattleInviteDenyLimit);
         }
 
+        var now = Now();
+        if (reinviteAllowedAt.TryGetValue((uid, targetUid), out var allowedAt) && allowedAt > now)
+        {
+            return RoomOutcome.Refused(
+                PB_ENUM_RES_ERROR_CODE.PbErrBattleInviteLimit,
+                new pbArgList { Args = { new pbArgData { Value = new pbArgDataValue { IntValue = (int)(allowedAt - now) } } } });
+        }
+
+        reinviteAllowedAt[(uid, targetUid)] = now + gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalFriendInviteDenyCd);
         return new RoomOutcome().Push(targetUid, PB_ENUM_CS_MSGID_DEF.PbScidFriendInviteJoinRoomNtf, EmptyChildren.Fill(new pbSCFriendInviteJoinRoomNtf
         {
             RoomID = room.RoomID,
@@ -151,7 +163,7 @@ public sealed class RoomInvites(
             RoleName = role.InGameUsrName,
             RoleLevel = RoleProfile.GetLevel(gameData, role),
             RoleGender = role.Gender,
-            RankedDivisionInfo = RoleBrief.BuildRankedDivisionInfo(gameData, clock.GetUtcNow()),
+            RankedDivisionInfo = RoleBrief.BuildRankedDivisionInfo(ranked.CurrentSeasonId, ranked.PositionOf(uid).RankedDivision),
             RoleAvatarInfo = role.RoleAvatarInfo.Clone(),
         });
     }

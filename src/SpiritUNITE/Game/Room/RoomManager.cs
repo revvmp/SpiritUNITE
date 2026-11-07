@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Options;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Lobby;
+using SpiritUNITE.Game.Match;
 using SpiritUNITE.Game.PveChallenge;
 using SpiritUNITE.Game.Ranked;
 using SpiritUNITE.Game.Role;
@@ -16,7 +17,8 @@ public sealed record RoomCreateRequest(
     int SubMapMode,
     int FromSystemType,
     IReadOnlyCollection<int> UsableMaps,
-    pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE? PveChallengeSelectNode = null);
+    pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE? PveChallengeSelectNode = null,
+    bool IsSubModeCompetition = false);
 
 public readonly record struct SearchWaitSamples(long TotalSeconds, int Count)
 {
@@ -29,9 +31,12 @@ public sealed class RoomManager(
     RoleInfoStore roles,
     GameData gameData,
     PveChallengeProgress pveChallenge,
+    RankedManager ranked,
+    WarmBattleManager warmBattles,
     LobbyNotices notices,
     LobbyRoles lobbyRoles,
     IOptions<RoomOptions> roomOptions,
+    IOptions<MatchOptions> matchOptions,
     IOptions<GVoiceOptions> gVoiceOptions,
     TimeProvider clock)
 {
@@ -48,6 +53,11 @@ public sealed class RoomManager(
     private const int NoEstimatedWaitTime = 0;
     private const int RoomChatEnter = (int)PB_ENUM_ENM_CHAT_ROOM_CHAT_TYPE.PbEnmChatRoomChatTypeEnter;
     private const long MillisecondsPerSecond = 1000;
+    private const int PartyTeamFlag = 1;
+    private const int SoloParty = 1;
+    private const int RightCampTeamFlag = PartyTeamFlag + 1;
+    private const int NoTeamFlag = 0;
+    private const int CompetitionSubMode = (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeCompetition;
 
     private static readonly PB_ENUM_COM_ROOMSVR_ROOM_STATE[] MatchRequestStates =
     [
@@ -61,9 +71,13 @@ public sealed class RoomManager(
     private readonly Dictionary<ulong, MatchRoom> roomsByUid = [];
     private readonly Dictionary<ulong, SettleRoomPlan> settleRoomsByUid = [];
     private readonly Dictionary<(int MapId, int PartySize), SearchWaitSamples> searchWaits = [];
+    private readonly Dictionary<int, PendingMatch> matchesById = [];
+    private readonly Matchmaker matchmaker = new();
     private readonly RoomOptions options = roomOptions.Value;
+    private readonly MatchOptions matching = matchOptions.Value;
     private readonly GVoiceOptions gVoice = gVoiceOptions.Value;
     private int nextRoomID = 1;
+    private int nextMatchID = 1;
 
     public MatchRoom? FindRoomOf(ulong uid)
     {
@@ -95,13 +109,15 @@ public sealed class RoomManager(
             }
             else
             {
-                var subMode = request.SubMapMode != 0 ? request.SubMapMode : (int)RoomMaps.DefaultSubModeOf(request.MapMode);
+                var subMode = request.IsSubModeCompetition ? CompetitionSubMode
+                    : request.SubMapMode != 0 ? request.SubMapMode
+                    : (int)RoomMaps.DefaultSubModeOf(request.MapMode);
                 if (subMode == (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeInvalid)
                 {
                     return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomMapModeInvalid);
                 }
 
-                scene = RoomMaps.FindDefaultMap(gameData, subMode, usableMaps);
+                scene = FindDefaultMap(subMode, usableMaps);
                 if (scene is null)
                 {
                     return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomNoMapCanUse);
@@ -132,6 +148,7 @@ public sealed class RoomManager(
 
             var room = new MatchRoom(nextRoomID++, clock.GetUtcNow().ToUnixTimeSeconds(), AllocateShowId(), uid);
             ApplyMap(room, scene);
+            room.RoomType = RoomTypeOf(scene.MapSubMode);
             room.PveChallengeSelectNode = pveChallengeSelectNode;
             room.RankedTeamMemberNumType = DefaultRankedTeamMemberNumType;
             room.Add(uid, MatchRoom.LeftCamp, 0, acntMapInfo, profile);
@@ -185,7 +202,13 @@ public sealed class RoomManager(
 
             if (plan.SettleRoom is { } settleRoom && roomsById.GetValueOrDefault(settleRoom.RoomID) == settleRoom)
             {
-                return Join(uid, settleRoom, finishedMember.AcntMapInfo, finishedMember.Profile, JoinRoomTypeSettle);
+                return Join(
+                    uid,
+                    settleRoom,
+                    finishedMember.AcntMapInfo,
+                    finishedMember.Profile,
+                    JoinRoomTypeSettle,
+                    (finishedMember.CampClient, finishedMember.PosOfCamp));
             }
 
             if (roles.Find(uid) is null)
@@ -203,8 +226,21 @@ public sealed class RoomManager(
                 MapId = finished.MapId,
                 CampPlayerNum = finished.CampPlayerNum,
                 RankedTeamMemberNumType = finished.RankedTeamMemberNumType,
+                LastRankedTeamMemberNumType = IsRanked(finished) ? finished.RankedTeamMemberNumType : 0,
+                FriendRoomRule = finished.FriendRoomRule,
+                GlobalBanPokemonList = finished.GlobalBanPokemonList,
             };
-            room.Add(uid, MatchRoom.LeftCamp, 0, finishedMember.AcntMapInfo, finishedMember.Profile).IsSettle = true;
+            foreach (var bot in finished.Bots)
+            {
+                room.AddBot(bot.CampClient, bot.PosOfCamp, bot.Row);
+            }
+
+            var (campClient, posOfCamp) = finished.IsCustomRoom
+                ? (finishedMember.CampClient, finishedMember.PosOfCamp)
+                : (MatchRoom.LeftCamp, 0);
+            var settlingMember = room.Add(uid, campClient, posOfCamp, finishedMember.AcntMapInfo, finishedMember.Profile);
+            settlingMember.IsSettle = true;
+            settlingMember.SettlesAlone = finished.Members.Count == SoloParty;
             roomsById[room.RoomID] = room;
             roomsByShowId[room.RoomShowId] = room;
             roomsByUid[uid] = room;
@@ -239,6 +275,15 @@ public sealed class RoomManager(
                 return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomMatching);
             }
 
+            if (room.FindBotAt(campClient, posOfCamp) is { } bot)
+            {
+                room.RemoveBot(bot);
+                return new RoomOutcome().PushAll(
+                    MemberUids(room),
+                    PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf,
+                    RoomNotices.PlayerLeave(room, bot.CampClient, bot.PosOfCamp));
+            }
+
             var target = room.FindMemberAt(campClient, posOfCamp);
             if (target is null || target.Uid == uid)
             {
@@ -264,14 +309,19 @@ public sealed class RoomManager(
                 return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomStateInvalid);
             }
 
+            if (room.IsCustomRoom)
+            {
+                return StartCustomGame(room);
+            }
+
             if (room.RoomType != PB_ENUM_COM_ROOM_TYPE.PbComRoomTypeMatch)
             {
                 return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrSystemNotOpen);
             }
 
-            if (IsRanked(room) && room.Members.Count > room.RankedTeamMemberNumType)
+            if (IsRanked(room) && RefuseRankedStart(room) is { } rankedRefusal)
             {
-                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomInvalidPlayerNum);
+                return RoomOutcome.Refused(rankedRefusal.Result, rankedRefusal.Args);
             }
 
             if (room.PveChallengeSelectNode is { } selectNode)
@@ -290,32 +340,17 @@ public sealed class RoomManager(
         }
     }
 
-    public RoomOutcome CompleteSearch(MatchTicket ticket)
+    public RoomOutcome FormMatches()
     {
         lock (gate)
         {
-            var isCpuMatch = false;
-            if (!roomsById.TryGetValue(ticket.RoomID, out var room)
-                || !room.Holds(ticket)
-                || !room.IsSearching
-                || !((isCpuMatch = CpuMatch.IsCpuMatch(room)) || IsWarmBattleRoom(room)))
+            var outcome = new RoomOutcome();
+            foreach (var group in matchmaker.FormMatches(clock.GetUtcNow(), matching.BotFill))
             {
-                return new RoomOutcome();
+                OpenMatch(group, outcome);
             }
 
-            var fillerRules = new CpuMatchFillerRules(
-                RankedMatch.GetRankedMatchUnlockLevel(gameData, notices),
-                RankedMatch.FindCurrentSeason(gameData, clock.GetUtcNow()).Season.SeasonId);
-            var succTimeStamp = NextSecond();
-            var matchSucc = isCpuMatch
-                ? CpuMatch.MatchSucc(gameData, room, BuildMatchMembers(room), options.TeamMMRScore, fillerRules, succTimeStamp)
-                : CpuMatch.WarmMatchSucc(gameData, room, BuildMatchMembers(room), options.TeamMMRScore, fillerRules, succTimeStamp);
-            if (isCpuMatch)
-            {
-                RecordSearchWait(room, succTimeStamp - room.MatchStartedAt);
-            }
-
-            return OpenConfirmWindow(room, matchSucc, npcsConfirm: true, new RoomOutcome());
+            return outcome;
         }
     }
 
@@ -323,16 +358,13 @@ public sealed class RoomManager(
     {
         lock (gate)
         {
-            if (!roomsById.TryGetValue(ticket.RoomID, out var room)
-                || !room.Holds(ticket)
-                || !room.IsConfirming
-                || !room.UnconfirmedNpcUids.Remove(npcUid))
+            if (!matchesById.TryGetValue(ticket.MatchID, out var match) || !match.UnconfirmedNpcUids.Remove(npcUid))
             {
                 return new RoomOutcome();
             }
 
-            var outcome = new RoomOutcome().PushAll(MemberUids(room), PB_ENUM_CS_MSGID_DEF.PbScidRoomConfirmRsp, RoomNotices.NpcConfirmed(npcUid));
-            return CompleteMatchIfConfirmed(room, outcome);
+            var outcome = new RoomOutcome().PushAll(match.HumanUids, PB_ENUM_CS_MSGID_DEF.PbScidRoomConfirmRsp, RoomNotices.NpcConfirmed(npcUid));
+            return CompleteMatchIfConfirmed(match, outcome);
         }
     }
 
@@ -345,13 +377,13 @@ public sealed class RoomManager(
                 return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomAcntNotInRoom);
             }
 
-            if (!room.IsConfirming || !room.ConfirmedUids.Add(uid))
+            if (!room.IsConfirming || room.Match is not { } match || !match.ConfirmedUids.Add(uid))
             {
                 return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomStateInvalid);
             }
 
-            var outcome = new RoomOutcome().PushAll(MemberUids(room), PB_ENUM_CS_MSGID_DEF.PbScidRoomConfirmRsp, RoomNotices.HumanConfirmed(uid));
-            return CompleteMatchIfConfirmed(room, outcome);
+            var outcome = new RoomOutcome().PushAll(match.HumanUids, PB_ENUM_CS_MSGID_DEF.PbScidRoomConfirmRsp, RoomNotices.HumanConfirmed(uid));
+            return CompleteMatchIfConfirmed(match, outcome);
         }
     }
 
@@ -360,37 +392,53 @@ public sealed class RoomManager(
         lock (gate)
         {
             removedUids = [];
-            if (!roomsById.TryGetValue(ticket.RoomID, out var room) || !room.Holds(ticket) || !room.IsConfirming)
+            if (!matchesById.Remove(ticket.MatchID, out var match))
             {
                 return new RoomOutcome();
             }
 
-            var unconfirmed = room.Members.Where(member => !room.ConfirmedUids.Contains(member.Uid)).ToArray();
-            removedUids = [.. unconfirmed.Select(member => member.Uid)];
             var outcome = new RoomOutcome();
-            foreach (var member in unconfirmed)
+            var removed = new List<ulong>();
+            foreach (var room in match.Rooms)
             {
-                outcome
-                    .Push(member.Uid, PB_ENUM_CS_MSGID_DEF.PbScidMultGameAbortNtf, RoomNotices.MatchAbort(PB_ENUM_RES_ERROR_CODE.PbErrRoomUnconfirm))
-                    .Push(member.Uid, PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf, RoomNotices.SelfBeKick(room));
+                var unconfirmed = room.Members
+                    .Where(member => member.CampClient != MatchRoom.JudgeCamp && !match.ConfirmedUids.Contains(member.Uid))
+                    .ToArray();
+                ulong[] unconfirmedUids = [.. unconfirmed.Select(member => member.Uid)];
+                removed.AddRange(unconfirmedUids);
+                foreach (var member in unconfirmed)
+                {
+                    outcome
+                        .Push(member.Uid, PB_ENUM_CS_MSGID_DEF.PbScidMultGameAbortNtf, RoomNotices.MatchAbort(PB_ENUM_RES_ERROR_CODE.PbErrRoomUnconfirm))
+                        .Push(member.Uid, PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf, RoomNotices.SelfBeKick(room));
+                }
+
+                if (unconfirmed.Length == room.Members.Count)
+                {
+                    Dissolve(room);
+                    continue;
+                }
+
+                if (unconfirmed.Length == 0)
+                {
+                    Requeue(match, room, outcome);
+                    continue;
+                }
+
+                var before = BuildCanUseMap(room);
+                AbortConfirm(room, PB_ENUM_RES_ERROR_CODE.PbErrRoomTeamerUnconfirm, outcome, unconfirmedUids);
+                foreach (var member in unconfirmed)
+                {
+                    room.Remove(member);
+                    roomsByUid.Remove(member.Uid);
+                    PushDeparture(room, member, outcome);
+                }
+
+                PushCanUseMapChange(room, before, outcome, MemberUids(room));
             }
 
-            if (unconfirmed.Length == room.Members.Count)
-            {
-                Dissolve(room);
-                return outcome;
-            }
-
-            var before = BuildCanUseMap(room);
-            AbortConfirm(room, PB_ENUM_RES_ERROR_CODE.PbErrRoomTeamerUnconfirm, outcome, removedUids);
-            foreach (var member in unconfirmed)
-            {
-                room.Remove(member);
-                roomsByUid.Remove(member.Uid);
-                PushDeparture(room, member, outcome);
-            }
-
-            return PushCanUseMapChange(room, before, outcome, MemberUids(room));
+            removedUids = [.. removed];
+            return outcome;
         }
     }
 
@@ -408,7 +456,7 @@ public sealed class RoomManager(
                 return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrMatchCancelFail);
             }
 
-            return StopMatching(room, uid, PB_ENUM_ENM_MATCHTEAM_DESTORY_REASON.PbEnmMatchteamDestoryReasonAcntcancel);
+            return StopMatching(room, uid, PB_ENUM_ENM_MATCHTEAM_DESTORY_REASON.PbEnmMatchteamDestoryReasonAcntcancel, new RoomOutcome());
         }
     }
 
@@ -464,13 +512,22 @@ public sealed class RoomManager(
                 return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomSameSubMode);
             }
 
-            var scene = RoomMaps.FindDefaultMap(gameData, subMode, room.CanUseMap());
+            var scene = FindDefaultMap(subMode, room.CanUseMap());
             if (scene is null)
             {
                 return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomInvalidSubMode);
             }
 
-            if (room.CampsInUse().Any(camp => room.CountIn(camp) > CapacityAfter(room, scene, camp)))
+            var roomType = RoomTypeOf(scene.MapSubMode);
+            var leavesCustomRoom = room.IsCustomRoom && roomType != PB_ENUM_COM_ROOM_TYPE.PbComRoomTypeNormal;
+            if (leavesCustomRoom && room.CountIn(MatchRoom.JudgeCamp) > 0)
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomFriendModeJudgeMent);
+            }
+
+            if (leavesCustomRoom
+                ? room.Members.Count > scene.CampPlayerNum
+                : room.CampsInUse().Any(camp => room.CountIn(camp) > CapacityAfter(room, scene, camp)))
             {
                 return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomMapInvalidToMorePlayer);
             }
@@ -480,6 +537,11 @@ public sealed class RoomManager(
             var outcome = new RoomOutcome()
                 .PushAll(MemberUids(room), PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf, RoomNotices.SubModeChg(room))
                 .PushAll(MemberUids(room), PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf, RoomNotices.MapChg(room));
+            if (roomType != room.RoomType)
+            {
+                ChangeRoomTypeTo(room, roomType, outcome);
+            }
+
             return PushCanUseMapChange(room, before, outcome, MemberUids(room));
         }
     }
@@ -527,34 +589,15 @@ public sealed class RoomManager(
             }
 
             var newType = (PB_ENUM_COM_ROOM_TYPE)roomType;
-            if (newType == PB_ENUM_COM_ROOM_TYPE.PbComRoomTypeMatch && room.Members.Count > room.CampPlayerNum)
+            if (newType != RoomTypeOf(room.MapSubMode) || (room.IsCustomRoom && manMachine == CpuMatch.ManMachine))
             {
-                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomInvalidPlayerNum);
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomTypeInvalid);
             }
 
             var outcome = new RoomOutcome()
                 .PushAll(MemberUids(room), PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf, RoomNotices.LegendPokemonChg(room));
-            room.RoomType = newType;
             room.ManMachine = manMachine;
             room.PendingPosChange = null;
-            if (newType == PB_ENUM_COM_ROOM_TYPE.PbComRoomTypeMatch)
-            {
-                foreach (var member in room.Members.Where(member => member.CampClient != MatchRoom.LeftCamp).ToList())
-                {
-                    var (oldCamp, oldPos) = (member.CampClient, member.PosOfCamp);
-                    var (newCamp, newPos) = room.FindFreeSeat()!.Value;
-                    (member.CampClient, member.PosOfCamp) = (newCamp, newPos);
-                    outcome.PushAll(
-                        MemberUids(room),
-                        PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf,
-                        RoomNotices.MemberPos(
-                            RoomNotices.PosData(member, oldCamp, oldPos),
-                            new pbCOMDT_CHGMEMBERPOS_DATA(),
-                            PB_ENUM_COM_CHGROOMPOS_TYPE.PbComChgroomposEmpty,
-                            room));
-                }
-            }
-
             return outcome.PushAll(MemberUids(room), PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf, RoomNotices.RoomTypeChg(room));
         }
     }
@@ -600,6 +643,11 @@ public sealed class RoomManager(
             if (posOfCamp < 0 || posOfCamp >= room.CapacityOf(campClient))
             {
                 return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomCampPosInvalid);
+            }
+
+            if (room.FindBotAt(campClient, posOfCamp) is not null)
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomChgposFail);
             }
 
             var sender = room.FindMember(uid)!;
@@ -687,6 +735,125 @@ public sealed class RoomManager(
         }
     }
 
+    public RoomOutcome AddRoomAI(ulong uid, int campClient)
+    {
+        lock (gate)
+        {
+            if (FindIdleMasterRoom(uid, out var room) is { } refusal)
+            {
+                return refusal;
+            }
+
+            if (!room.IsCustomRoom)
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomTypeInvalid);
+            }
+
+            if (campClient is not (MatchRoom.LeftCamp or MatchRoom.RightCamp))
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomCampInvalid);
+            }
+
+            pbAiInfoConfig[] freeRows =
+            [
+                .. gameData.AiInfoConfig.Rows
+                    .Where(row => row.NPCType == PveMatch.GenericNpcType && room.Bots.All(bot => bot.Row.ID != row.ID)),
+            ];
+            if (room.FindFreePosIn(campClient) is not { } posOfCamp || freeRows.Length == 0)
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomMemberFull);
+            }
+
+            var bot = room.AddBot(campClient, posOfCamp, freeRows[Random.Shared.Next(freeRows.Length)]);
+            return new RoomOutcome().PushAll(
+                MemberUids(room),
+                PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf,
+                RoomNotices.PlayerAdd(room, campClient, BuildRoomBotDT(bot)));
+        }
+    }
+
+    public RoomOutcome UpdateFriendlyRoomRule(ulong uid, IEnumerable<int> ruleList)
+    {
+        lock (gate)
+        {
+            if (FindIdleMasterRoom(uid, out var room) is { } refusal)
+            {
+                return refusal;
+            }
+
+            if (!room.IsCustomRoom || gameData.SceneMap.Find(room.MapId) is not { } scene)
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomTypeInvalid);
+            }
+
+            if (FriendlyRoomRules.Link(gameData, scene, ruleList) is not { } rules)
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid);
+            }
+
+            room.FriendRoomRule = rules;
+            return new RoomOutcome().PushAll(
+                MemberUids(room),
+                PB_ENUM_CS_MSGID_DEF.PbScidFriendlyRoomRuleInfoNtf,
+                RoomNotices.FriendlyRoomRuleInfo(room));
+        }
+    }
+
+    public IReadOnlyList<int>? FindRoomGlobalBanList(ulong uid)
+    {
+        lock (gate)
+        {
+            return roomsByUid.TryGetValue(uid, out var room) && room.IsCustomRoom ? room.GlobalBanPokemonList : null;
+        }
+    }
+
+    public RoomOutcome UpdateRoomGlobalBanList(ulong uid, IEnumerable<int> banPokemonList)
+    {
+        lock (gate)
+        {
+            if (FindIdleMasterRoom(uid, out var room) is { } refusal)
+            {
+                return refusal;
+            }
+
+            if (!room.IsCustomRoom)
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomTypeInvalid);
+            }
+
+            int[] requested = [.. banPokemonList.Distinct()];
+            if (requested.Any(pokemonId => gameData.PokemonBase.Find(pokemonId) is not { MainUnitId: > 0 }))
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid);
+            }
+
+            if (requested.Order().SequenceEqual(room.GlobalBanPokemonList.Order()))
+            {
+                return new RoomOutcome();
+            }
+
+            var now = clock.GetUtcNow();
+            var unlocksAt = room.GlobalBanPokemonListChangedAt + TimeSpan.FromSeconds(RoomBanPokemonListChgCd);
+            if (now < unlocksAt)
+            {
+                var waitSeconds = (int)Math.Ceiling((unlocksAt - now).TotalSeconds);
+                return RoomOutcome.Refused(
+                    PB_ENUM_RES_ERROR_CODE.PbErrRoomGlobalBanChgCd,
+                    new pbArgList { Args = { new pbArgData { Value = new pbArgDataValue { IntValue = waitSeconds } } } });
+            }
+
+            room.GlobalBanPokemonList = requested;
+            room.GlobalBanPokemonListChangedAt = now;
+            return new RoomOutcome().PushAll(
+                MemberUids(room).Where(memberUid => memberUid != uid),
+                PB_ENUM_CS_MSGID_DEF.PbScidUpdateRoomGlobalBanListNtf,
+                new pbSCUpdateRoomGlobalBanListNtf
+                {
+                    ResultInfo = new pbResultInfo { ResultId = (int)PB_ENUM_RES_ERROR_CODE.PbErrRoomGlobalBanPokemonChg },
+                });
+        }
+    }
+
     public RoomOutcome UpdateUsableMaps(ulong uid, IReadOnlyCollection<int> usableMaps)
     {
         lock (gate)
@@ -716,7 +883,13 @@ public sealed class RoomManager(
     private RoomOutcome Join(ulong uid, MatchRoom room, IReadOnlyCollection<int> usableMaps, RoomMemberProfile profile) =>
         Join(uid, room, RoomMemberDetail.BuildAcntMapInfo(gameData, options, usableMaps), profile, JoinRoomTypeNormal);
 
-    private RoomOutcome Join(ulong uid, MatchRoom room, pbCOMDT_ACNTMAP_INFO acntMapInfo, RoomMemberProfile profile, int joinRoomType)
+    private RoomOutcome Join(
+        ulong uid,
+        MatchRoom room,
+        pbCOMDT_ACNTMAP_INFO acntMapInfo,
+        RoomMemberProfile profile,
+        int joinRoomType,
+        (int CampClient, int PosOfCamp)? preferredSeat = null)
     {
         if (roomsByUid.TryGetValue(uid, out var current))
         {
@@ -735,12 +908,18 @@ public sealed class RoomManager(
             return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomMemberFull);
         }
 
-        if (room.FindFreeSeat() is not { } seat)
+        var seat = preferredSeat is { } preferred
+            && room.CampsInUse().Contains(preferred.CampClient)
+            && preferred.PosOfCamp < room.CapacityOf(preferred.CampClient)
+            && room.IsSeatFree(preferred.CampClient, preferred.PosOfCamp)
+                ? preferred
+                : room.FindFreeSeat();
+        if (seat is null)
         {
             return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomMemberFull);
         }
 
-        var (campClient, posOfCamp) = seat;
+        var (campClient, posOfCamp) = seat.Value;
 
         if (roles.Find(uid) is not { } role)
         {
@@ -823,18 +1002,34 @@ public sealed class RoomManager(
 
         var before = BuildCanUseMap(room);
         var wasSearching = room.IsSearching;
-        var wasConfirming = room.IsConfirming;
+        var confirmingMatch = room.IsConfirming ? room.Match : null;
         room.Remove(member);
         roomsByUid.Remove(member.Uid);
+        var outcome = new RoomOutcome();
+        if (wasSearching)
+        {
+            matchmaker.Remove(room);
+        }
+
+        if (confirmingMatch is not null)
+        {
+            RequeueOthers(confirmingMatch, room, outcome);
+        }
+
         if (room.Members.Count == 0)
         {
             roomsById.Remove(room.RoomID);
             roomsByShowId.Remove(room.RoomShowId);
-            return new RoomOutcome();
+            room.ClearMatch();
+            return outcome;
         }
 
-        var outcome = wasSearching ? StopMatching(room, member.Uid, reason) : new RoomOutcome();
-        if (wasConfirming)
+        if (wasSearching)
+        {
+            StopMatching(room, member.Uid, reason, outcome);
+        }
+
+        if (confirmingMatch is not null)
         {
             AbortConfirm(room, PB_ENUM_RES_ERROR_CODE.PbErrRoomTeamerLeave, outcome, [member.Uid]);
         }
@@ -856,14 +1051,34 @@ public sealed class RoomManager(
         }
     }
 
-    private RoomOutcome StopMatching(MatchRoom room, ulong byUid, PB_ENUM_ENM_MATCHTEAM_DESTORY_REASON reason)
+    private RoomOutcome StopMatching(MatchRoom room, ulong byUid, PB_ENUM_ENM_MATCHTEAM_DESTORY_REASON reason, RoomOutcome outcome)
     {
+        matchmaker.Remove(room);
         room.ClearMatch();
         var name = roles.Find(byUid)?.InGameUsrName ?? string.Empty;
         var others = MemberUids(room).Where(uid => uid != byUid).ToArray();
-        var outcome = new RoomOutcome().PushAll(others, PB_ENUM_CS_MSGID_DEF.PbScidCancelMatchNtf, RoomNotices.CancelMatch(reason, name));
+        outcome.PushAll(others, PB_ENUM_CS_MSGID_DEF.PbScidCancelMatchNtf, RoomNotices.CancelMatch(reason, name));
         ChangeState(room, PB_ENUM_COM_ROOMSVR_ROOM_STATE.PbComRoomsvrRoomStateWait, MemberUids(room), outcome);
         return outcome;
+    }
+
+    private void RequeueOthers(PendingMatch match, MatchRoom leavingRoom, RoomOutcome outcome)
+    {
+        matchesById.Remove(match.Ticket.MatchID);
+        foreach (var room in match.Rooms.Where(room => room != leavingRoom))
+        {
+            Requeue(match, room, outcome);
+        }
+    }
+
+    private void Requeue(PendingMatch match, MatchRoom room, RoomOutcome outcome)
+    {
+        var entry = match.QueueEntryOf(room)!;
+        room.Match = null;
+        matchmaker.Enqueue(entry);
+        outcome
+            .PushAll(MemberUids(room), PB_ENUM_CS_MSGID_DEF.PbScidMatchRsp, RoomNotices.MatchProcess(room, EstimateSearchWait(room), ConfirmTimeoutOf(room)))
+            .SearchFor(new MatchSearch(entry.FillAt));
     }
 
     private void AbortConfirm(MatchRoom room, PB_ENUM_RES_ERROR_CODE result, RoomOutcome outcome, IReadOnlyCollection<ulong> departingUids)
@@ -877,7 +1092,6 @@ public sealed class RoomManager(
     private RoomOutcome BeginMatch(MatchRoom room)
     {
         room.ClearMatch();
-        room.MatchSeq++;
         room.PendingPosChange = null;
         var uids = MemberUids(room);
         var outcome = new RoomOutcome();
@@ -898,14 +1112,20 @@ public sealed class RoomManager(
     {
         var outcome = BeginMatch(room);
         room.MatchStartedAt = NextSecond();
-        var isCpuMatch = CpuMatch.IsCpuMatch(room);
-        var isWarmBattle = !isCpuMatch && IsWarmBattleRoom(room);
-        var waitTime = isCpuMatch ? EstimateSearchWait(room) : isWarmBattle ? options.WarmBattleWaitTime : NoEstimatedWaitTime;
-        outcome.PushAll(MemberUids(room), PB_ENUM_CS_MSGID_DEF.PbScidMatchRsp, RoomNotices.MatchProcess(room, waitTime));
-        return isCpuMatch || isWarmBattle
-            ? outcome.SearchFor(new MatchSearch(room.Ticket, TimeSpan.FromSeconds(isCpuMatch ? options.ManMachineSearchSec : options.WarmBattleSearchSec)))
-            : outcome;
+        var isWarmBattle = IsWarmBattleRoom(room);
+        var now = clock.GetUtcNow();
+        var entry = new MatchQueueEntry(room, now, now + SearchDelayOf(room, isWarmBattle), isWarmBattle, RankedBandOf(room));
+        matchmaker.Enqueue(entry);
+        var waitTime = isWarmBattle ? matching.DrawWarmBattleWaitTime(room.MapSubMode) ?? warmBattles.WaitTime : EstimateSearchWait(room);
+        outcome.PushAll(MemberUids(room), PB_ENUM_CS_MSGID_DEF.PbScidMatchRsp, RoomNotices.MatchProcess(room, waitTime, ConfirmTimeoutOf(room)));
+        return outcome.SearchFor(new MatchSearch(entry.FillAt));
     }
+
+    private TimeSpan SearchDelayOf(MatchRoom room, bool isWarmBattle) =>
+        isWarmBattle ? warmBattles.PickSuccDelay(room.Members.Count)
+        : TimeSpan.FromSeconds(CpuMatch.IsCpuMatch(room) ? options.ManMachineSearchSec : matching.BotFillSearchSec);
+
+    private int ConfirmTimeoutOf(MatchRoom room) => MatchConfirmTimeout.Of(gameData, room.MapSubMode);
 
     private int EstimateSearchWait(MatchRoom room) =>
         searchWaits.TryGetValue((room.MapId, room.Members.Count), out var samples) ? samples.MeanSeconds : NoEstimatedWaitTime;
@@ -917,11 +1137,125 @@ public sealed class RoomManager(
     }
 
     private bool IsWarmBattleRoom(MatchRoom room) =>
-        room.RoomType == PB_ENUM_COM_ROOM_TYPE.PbComRoomTypeMatch
+        matching.BotFill
+        && room.RoomType == PB_ENUM_COM_ROOM_TYPE.PbComRoomTypeMatch
         && room.ManMachine != CpuMatch.ManMachine
-        && room.MapSubMode is (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceNormal or (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRelaxNormal
         && gameData.SceneMap.Find(room.MapId)?.GameType == (int)PB_ENUM_RES_MATCHGAMETYPE.PbMatchGameTypeCatch
-        && room.Members.All(member => roles.Find(member.Uid) is { } role && RoleProfile.GetLevel(gameData, role) <= options.WarmBattleMaxTrainerLevel);
+        && warmBattles.Admits(room.MapSubMode, [.. MemberUids(room)]);
+
+    private RoomOutcome StartCustomGame(MatchRoom room)
+    {
+        int[] playerCamps = [MatchRoom.LeftCamp, MatchRoom.RightCamp];
+        if (playerCamps.Any(camp => room.CountIn(camp) == 0))
+        {
+            return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomCampMustFull);
+        }
+
+        if (playerCamps.Any(camp => room.CountIn(camp) > room.CampPlayerNum))
+        {
+            return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomPlayerNumMoreThenMap);
+        }
+
+        if (RequiresFullCamps(room) && playerCamps.Any(camp => room.CountIn(camp) < room.CampPlayerNum))
+        {
+            return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomCampMustFull);
+        }
+
+        var outcome = BeginMatch(room);
+        var succTimeStamp = NextSecond();
+        room.MatchStartedAt = succTimeStamp;
+        var aiLevel = RoomAiDifficuty;
+        var npcConfigs = new Dictionary<ulong, pbAiInfoConfig>();
+        var memInfo = new pbCOMDT_MULTROOMMEMBER_INFO();
+        var judgeCamp = new pbCOMDT_MULTROOMMEMBER_CAMP { CampClient = MatchRoom.JudgeCamp };
+        foreach (var judge in room.Members.Where(member => member.CampClient == MatchRoom.JudgeCamp).OrderBy(member => member.PosOfCamp))
+        {
+            if (BuildMatchMemberDT(judge, NoTeamFlag, RoomMemberDetail.NoAnonymousUserNameID) is { } judgeDT)
+            {
+                judgeCamp.MemInfo.Add(judgeDT);
+            }
+        }
+
+        memInfo.CampMem.Add(judgeCamp);
+        foreach (var campClient in playerCamps)
+        {
+            var teamFlag = campClient == MatchRoom.LeftCamp ? PartyTeamFlag : RightCampTeamFlag;
+            var camp = new pbCOMDT_MULTROOMMEMBER_CAMP { CampClient = campClient };
+            var seats = room.Members
+                .Where(member => member.CampClient == campClient)
+                .Select(member => (member.PosOfCamp, Member: (RoomMember?)member, Bot: (RoomBot?)null))
+                .Concat(room.Bots
+                    .Where(bot => bot.CampClient == campClient)
+                    .Select(bot => (bot.PosOfCamp, Member: (RoomMember?)null, Bot: (RoomBot?)bot)))
+                .OrderBy(seat => seat.PosOfCamp);
+            foreach (var (_, member, bot) in seats)
+            {
+                if (bot is not null)
+                {
+                    npcConfigs[bot.Uid] = bot.Row;
+                    camp.MemInfo.Add(RoomMemberDetail.BuildRoomBot(gameData, bot, camp.MemInfo.Count, aiLevel));
+                }
+                else if (member is not null && BuildMatchMemberDT(member, teamFlag, RoomMemberDetail.NoAnonymousUserNameID) is { } memberDT)
+                {
+                    memberDT.PosOfCamp = camp.MemInfo.Count;
+                    camp.MemInfo.Add(memberDT);
+                }
+            }
+
+            memInfo.CampMem.Add(camp);
+        }
+
+        var matchSucc = new BotMatchSucc(
+            PveMatch.BuildMatchSuccRsp(room.MapId, aiLevel, memInfo, succTimeStamp, PveMatch.ReadyConfirmUiType, ConfirmTimeoutOf(room)),
+            npcConfigs);
+        return OpenConfirmWindow([room], [], matchSucc, npcsConfirm: false, outcome);
+    }
+
+    private bool RequiresFullCamps(MatchRoom room) =>
+        room.MapSubMode == CompetitionSubMode
+        || gameData.SceneMap.Find(room.MapId)?.PickHeroMode == (int)PB_ENUM_RES_PICK_HERO_MODE.PbResPickHeroModeBanpick;
+
+    private int RoomAiDifficuty => gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalRoomAiDifficuty);
+
+    private int RoomBanPokemonListChgCd => gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalRoomBanPokemonListChgCd);
+
+    private void ChangeRoomTypeTo(MatchRoom room, PB_ENUM_COM_ROOM_TYPE roomType, RoomOutcome outcome)
+    {
+        room.RoomType = roomType;
+        room.ManMachine = 0;
+        room.PendingPosChange = null;
+        if (roomType == PB_ENUM_COM_ROOM_TYPE.PbComRoomTypeMatch)
+        {
+            room.FriendRoomRule = FriendlyRoomRules.None;
+            foreach (var bot in room.Bots.ToArray())
+            {
+                room.RemoveBot(bot);
+                outcome.PushAll(MemberUids(room), PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf, RoomNotices.PlayerLeave(room, bot.CampClient, bot.PosOfCamp));
+            }
+
+            foreach (var member in room.Members.Where(member => member.CampClient != MatchRoom.LeftCamp).ToArray())
+            {
+                var (oldCamp, oldPos) = (member.CampClient, member.PosOfCamp);
+                var (newCamp, newPos) = room.FindFreeSeat()!.Value;
+                (member.CampClient, member.PosOfCamp) = (newCamp, newPos);
+                outcome.PushAll(
+                    MemberUids(room),
+                    PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf,
+                    RoomNotices.MemberPos(
+                        RoomNotices.PosData(member, oldCamp, oldPos),
+                        new pbCOMDT_CHGMEMBERPOS_DATA(),
+                        PB_ENUM_COM_CHGROOMPOS_TYPE.PbComChgroomposEmpty,
+                        room));
+            }
+        }
+
+        outcome.PushAll(MemberUids(room), PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf, RoomNotices.RoomTypeChg(room));
+    }
+
+    private static PB_ENUM_COM_ROOM_TYPE RoomTypeOf(int mapSubMode) =>
+        mapSubMode is (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeFriendly or CompetitionSubMode
+            ? PB_ENUM_COM_ROOM_TYPE.PbComRoomTypeNormal
+            : PB_ENUM_COM_ROOM_TYPE.PbComRoomTypeMatch;
 
     private RoomOutcome StartPveChallengeMatch(MatchRoom room)
     {
@@ -929,57 +1263,154 @@ public sealed class RoomManager(
         var succTimeStamp = NextSecond();
         room.MatchStartedAt = succTimeStamp;
         var masterTrainerLevel = roles.Find(room.MasterUid) is { } master ? RoleProfile.GetLevel(gameData, master) : PveMatch.MinAILevel;
-        var matchSucc = PveMatch.MatchSucc(gameData, room, BuildMatchMembers(room), masterTrainerLevel, succTimeStamp);
-        return OpenConfirmWindow(room, matchSucc, npcsConfirm: false, outcome);
+        var matchSucc = PveMatch.MatchSucc(
+            gameData,
+            room,
+            BuildMatchMembers(room, PartyTeamFlag),
+            masterTrainerLevel,
+            succTimeStamp,
+            ConfirmTimeoutOf(room));
+        return OpenConfirmWindow([room], [], matchSucc, npcsConfirm: false, outcome);
     }
 
-    private RoomOutcome OpenConfirmWindow(MatchRoom room, BotMatchSucc matchSucc, bool npcsConfirm, RoomOutcome outcome)
+    private void OpenMatch(MatchGroup group, RoomOutcome outcome)
     {
-        var detail = matchSucc.MatchRsp.MatchResult.MatchResDetail.MatchSucc;
-        room.MatchSucc = detail;
-        room.MatchNpcConfigs = matchSucc.NpcConfigs;
-        if (npcsConfirm)
+        var lead = group.LeadRoom;
+        var succTimeStamp = NextSecond();
+        MatchQueueEntry[] entries = [.. group.Entries];
+        var teamFlags = entries.Select((entry, index) => (entry.Room, TeamFlag: PartyTeamFlag + index)).ToDictionary();
+        pbCOMDT_ROOMMEMBER_DT[] Humans(IEnumerable<MatchQueueEntry> camp) =>
+            [.. camp.SelectMany(entry => BuildMatchMembers(entry.Room, teamFlags[entry.Room]))];
+
+        var request = new MatchSuccRequest(
+            lead.MapId,
+            lead.CampPlayerNum,
+            ConfirmTimeoutOf(lead),
+            succTimeStamp,
+            IsRanked(lead) ? ranked.TeamMMRScore : options.TeamMMRScore,
+            new CpuMatchFillerRules(
+                RankedMatch.GetRankedMatchUnlockLevel(gameData, notices),
+                RankedMatch.FindCurrentSeason(gameData, clock.GetUtcNow()).Season.SeasonId,
+                IsRanked(lead) ? ranked.FakePlayerWinPoint : null,
+                IsRanked(lead) ? PartyRankedDivisions(entries) : []));
+        var matchSucc = group.IsWarmBattle
+            ? CpuMatch.WarmMatchSucc(gameData, request, Humans(group.LeftCamp), group.WarmBattleType)
+            : CpuMatch.MatchSucc(gameData, request, new MatchCamps(
+                Humans(group.LeftCamp),
+                Humans(group.RightCamp),
+                AgainstBots: CpuMatch.IsCpuMatch(lead),
+                FillWithFakePlayers: matching.BotFill));
+        if (!group.IsWarmBattle)
         {
-            room.UnconfirmedNpcUids.UnionWith(matchSucc.NpcConfigs.Keys);
+            foreach (var entry in entries)
+            {
+                RecordSearchWait(entry.Room, succTimeStamp - entry.Room.MatchStartedAt);
+            }
         }
 
-        var deadline = DateTimeOffset.FromUnixTimeSeconds(detail.SuccTimeStamp).AddMilliseconds(detail.ConfirmTimeoutMs);
-        return outcome
-            .PushAll(MemberUids(room), PB_ENUM_CS_MSGID_DEF.PbScidMatchRsp, matchSucc.MatchRsp)
-            .AwaitConfirm(new MatchConfirmWindow(room.Ticket, room.MapId, deadline, [.. room.UnconfirmedNpcUids]));
+        OpenConfirmWindow([.. entries.Select(entry => entry.Room)], entries, matchSucc, npcsConfirm: true, outcome);
     }
 
-    private RoomOutcome CompleteMatchIfConfirmed(MatchRoom room, RoomOutcome outcome)
+    private RoomOutcome OpenConfirmWindow(
+        IReadOnlyList<MatchRoom> rooms,
+        IReadOnlyList<MatchQueueEntry> queueEntries,
+        BotMatchSucc matchSucc,
+        bool npcsConfirm,
+        RoomOutcome outcome)
     {
-        if (!room.IsMatchConfirmed)
+        var match = new PendingMatch(nextMatchID++, rooms, queueEntries, matchSucc, npcsConfirm);
+        matchesById[match.Ticket.MatchID] = match;
+        foreach (var room in rooms)
+        {
+            room.Match = match;
+        }
+
+        return outcome
+            .PushAll(match.HumanUids, PB_ENUM_CS_MSGID_DEF.PbScidMatchRsp, match.MatchRsp)
+            .AwaitConfirm(match.ConfirmWindow);
+    }
+
+    private RoomOutcome CompleteMatchIfConfirmed(PendingMatch match, RoomOutcome outcome)
+    {
+        if (!match.IsConfirmed)
         {
             return outcome;
         }
 
-        outcome.PushAll(
-            MemberUids(room),
-            PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf,
-            RoomNotices.Dismiss(room, PB_ENUM_ENUM_ROOM_DISMISS_REASON.PbEnumRoomDismissReasonGamestart));
-        Dissolve(room);
-        if (room.PveChallengeSelectNode is null)
+        matchesById.Remove(match.Ticket.MatchID);
+        foreach (var room in match.Rooms)
         {
-            var plan = new SettleRoomPlan(room);
-            foreach (var member in room.Members)
+            outcome.PushAll(
+                MemberUids(room),
+                PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf,
+                RoomNotices.Dismiss(room, PB_ENUM_ENUM_ROOM_DISMISS_REASON.PbEnumRoomDismissReasonGamestart));
+            Dissolve(room);
+            if (room.PveChallengeSelectNode is null)
             {
-                settleRoomsByUid[member.Uid] = plan;
+                var plan = new SettleRoomPlan(room);
+                foreach (var member in room.Members)
+                {
+                    settleRoomsByUid[member.Uid] = plan;
+                }
             }
         }
 
-        return outcome.StartGame(room);
+        return outcome.StartGame(match);
     }
 
-    private pbCOMDT_ROOMMEMBER_DT[] BuildMatchMembers(MatchRoom room) =>
+    private pbCOMDT_ROOMMEMBER_DT[] BuildMatchMembers(MatchRoom room, int teamFlag) =>
     [
         .. room.Members
             .OrderBy(member => member.PosOfCamp)
-            .Select((member, index) => BuildMatchMemberDT(member, RoomMemberDetail.FirstAnonymousUserNameID + index))
-            .OfType<pbCOMDT_ROOMMEMBER_DT>(),
+            .Select((member, index) => BuildMatchMemberDT(member, teamFlag, RoomMemberDetail.FirstAnonymousUserNameID + index))
+            .OfType<pbCOMDT_ROOMMEMBER_DT>()
+            .Select(memberDT => IsRanked(room) ? WithRankedDivision(memberDT) : memberDT),
     ];
+
+    private pbCOMDT_ROOMMEMBER_DT WithRankedDivision(pbCOMDT_ROOMMEMBER_DT memberDT)
+    {
+        memberDT.MemberDetail.MemberOfAcnt.RankedDivision = ranked.BuildRankedDivision(memberDT.MemberDetail.MemberOfAcnt.Uid);
+        return memberDT;
+    }
+
+    private RankedStartRefusal? RefuseRankedStart(MatchRoom room)
+    {
+        LMNRoleInfo[] members = [.. room.Members.Select(member => roles.Find(member.Uid)).OfType<LMNRoleInfo>()];
+        return members.Length != room.Members.Count || roles.Find(room.MasterUid) is not { } master
+            ? new RankedStartRefusal(PB_ENUM_RES_ERROR_CODE.PbErrRoomAcntInvalid)
+            : ranked.RefuseStart(room.MapId, room.RankedTeamMemberNumType, master, members);
+    }
+
+    private int[] PartyRankedDivisions(IEnumerable<MatchQueueEntry> entries)
+    {
+        int[] placedBigs =
+        [
+            .. entries.SelectMany(entry => entry.Room.Members)
+                .Where(member => ranked.PositionOf(member.Uid).RankedDivision != RankedLadder.UnplacedRankedDivision)
+                .Select(member => ranked.BigOf(member.Uid)),
+        ];
+        return placedBigs.Length == 0
+            ? []
+            : [.. Enumerable.Range(placedBigs.Min(), placedBigs.Max() - placedBigs.Min() + 1).SelectMany(ranked.Ladder.DivisionsOfBig)];
+    }
+
+    private RankedBand? RankedBandOf(MatchRoom room)
+    {
+        if (!IsRanked(room))
+        {
+            return null;
+        }
+
+        int[] bigs = [.. room.Members.Select(member => ranked.BigOf(member.Uid))];
+        var masterPoints = room.Members.All(member => ranked.MatchesByMasterPoint(member.Uid))
+            ? room.Members.Select(member => ranked.PositionOf(member.Uid).MasterPoint).ToArray()
+            : null;
+        return new RankedBand(
+            bigs.Min(),
+            bigs.Max(),
+            ranked.MatchDivisionBand(room.RankedTeamMemberNumType),
+            masterPoints is null ? null : new MasterPointBand(masterPoints.Min(), masterPoints.Max(), ranked.MasterPointMatchBand));
+    }
 
     private static void ChangeState(
         MatchRoom room,
@@ -1043,9 +1474,10 @@ public sealed class RoomManager(
             var campMembers = new pbCOMDT_ROOMMEMBER_CAMP { CampClient = camp };
             campMembers.MemList.AddRange(room.Members
                 .Where(member => member.CampClient == camp)
-                .OrderBy(member => member.PosOfCamp)
                 .Select(BuildRoomMemberDT)
-                .OfType<pbCOMDT_ROOMMEMBER_DT>());
+                .OfType<pbCOMDT_ROOMMEMBER_DT>()
+                .Concat(room.Bots.Where(bot => bot.CampClient == camp).Select(BuildRoomBotDT))
+                .OrderBy(memberDT => memberDT.PosOfCamp));
             allMemInfo.CampMemList.Add(campMembers);
         }
 
@@ -1071,7 +1503,8 @@ public sealed class RoomManager(
                     Feature = BattleVersion.Build(),
                     ManMachine = room.ManMachine,
                     RankedTeamMemberNumType = room.RankedTeamMemberNumType,
-                    FriendRoomRule = new pbCOMDT_FRIENDLY_ROOM_RULE_INFO(),
+                    LastRankedTeamMemberNumType = room.LastRankedTeamMemberNumType,
+                    FriendRoomRule = room.FriendRoomRule.Build(),
                     LegendPokemonInfo = new pbCOMDT_LEGEND_POKEMON_INFO(),
                     PveChallengeSelectNode = room.PveChallengeSelectNode?.Clone() ?? new pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE(),
                 },
@@ -1083,28 +1516,28 @@ public sealed class RoomManager(
         };
     }
 
+    private pbCOMDT_ROOMMEMBER_DT BuildRoomBotDT(RoomBot bot) =>
+        RoomMemberDetail.BuildRoomBot(gameData, bot, bot.PosOfCamp, RoomAiDifficuty);
+
     private pbCOMDT_ROOMMEMBER_DT? BuildRoomMemberDT(RoomMember member) =>
         roles.Find(member.Uid) is { } role
             ? RoomMemberDetail.BuildRoomMember(gameData, role, member, BuildRankedDivision(role))
             : null;
 
-    private pbCOMDT_ROOMMEMBER_DT? BuildMatchMemberDT(RoomMember member, int anonymousUserNameID) =>
+    private pbCOMDT_ROOMMEMBER_DT? BuildMatchMemberDT(RoomMember member, int teamFlag, int anonymousUserNameID) =>
         roles.Find(member.Uid) is { } role
             ? RoomMemberDetail.BuildMatchMember(
                 gameData,
                 role,
                 member,
+                teamFlag,
                 anonymousUserNameID,
                 PveMatch.BuildTitleNameList(gameData, anonymousUserNameID))
             : null;
 
     private pbCOMDT_RANKED_DIVISION BuildRankedDivision(LMNRoleInfo role) =>
         RankedMatch.IsRankedMatchUnlocked(gameData, notices, role)
-            ? new pbCOMDT_RANKED_DIVISION
-            {
-                RankedDivision = (int)RankedMatch.StartingRankedDivision,
-                SeasonId = RankedMatch.FindCurrentSeason(gameData, clock.GetUtcNow()).Season.SeasonId,
-            }
+            ? ranked.BuildRankedDivision(role.GameUlongUID)
             : new pbCOMDT_RANKED_DIVISION();
 
     private pbCOMDT_ROOMMAP_INFO BuildCanUseMap(MatchRoom room) =>
@@ -1122,6 +1555,13 @@ public sealed class RoomManager(
             : outcome.PushAll(uids, PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf, RoomNotices.CanUseMapChg(room, after));
     }
 
+    private pbScene_Map? FindDefaultMap(int mapSubMode, IReadOnlySet<int> usableMaps) =>
+        mapSubMode == (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceRank
+        && gameData.SceneMap.Find(ranked.CurrentMapId(clock.GetUtcNow().ToUnixTimeSeconds())) is { } openRankedMap
+        && usableMaps.Contains(openRankedMap.SceneId)
+            ? openRankedMap
+            : RoomMaps.FindDefaultMap(gameData, mapSubMode, usableMaps);
+
     private static HashSet<int> UsableMapsOf(pbCOMDT_ACNTMAP_INFO acntMapInfo) =>
         [.. acntMapInfo.MapList.Where(map => map.CanUseType == RoomOptions.CanUseMap).Select(map => map.MapId)];
 
@@ -1131,6 +1571,7 @@ public sealed class RoomManager(
         room.MapMode = scene.MapMode;
         room.MapSubMode = scene.MapSubMode;
         room.CampPlayerNum = scene.CampPlayerNum;
+        room.FriendRoomRule = room.FriendRoomRule.OfferedOn(scene);
         if (room.PveChallengeSelectNode is { } selectNode && !IsNodeOnMap(scene.SceneId, selectNode))
         {
             room.PveChallengeSelectNode = null;

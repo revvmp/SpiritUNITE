@@ -1,4 +1,5 @@
 using Google.Protobuf;
+using SpiritUNITE.Game.Match;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Room;
@@ -7,27 +8,25 @@ public sealed record RoomMessage(PB_ENUM_CS_MSGID_DEF MsgID, IMessage Message);
 
 public sealed record RoomPush(ulong Uid, RoomMessage Message);
 
-public sealed record MatchTicket(int RoomID, long RoomSeq, int MatchSeq);
-
-public sealed record MatchSearch(MatchTicket Ticket, TimeSpan Delay);
-
-public sealed record MatchConfirmWindow(MatchTicket Ticket, int MapId, DateTimeOffset Deadline, IReadOnlyList<ulong> NpcUids);
-
 public sealed class RoomOutcome
 {
     private readonly List<RoomMessage> replies = [];
     private readonly List<RoomPush> pushes = [];
+    private readonly List<MatchSearch> searches = [];
+    private readonly List<MatchConfirmWindow> confirmWindows = [];
 
     public PB_ENUM_RES_ERROR_CODE Result { get; private set; } = PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
+    public pbArgList? ResultArgs { get; private set; }
     public IReadOnlyList<RoomMessage> Replies => replies;
     public IReadOnlyList<RoomPush> Pushes => pushes;
     public bool Succeeded => Result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     public int RequesterPushesBeforeResponse { get; private set; }
-    public MatchRoom? StartedGame { get; private set; }
-    public MatchSearch? Search { get; private set; }
-    public MatchConfirmWindow? ConfirmWindow { get; private set; }
+    public PendingMatch? StartedGame { get; private set; }
+    public IReadOnlyList<MatchSearch> Searches => searches;
+    public IReadOnlyList<MatchConfirmWindow> ConfirmWindows => confirmWindows;
 
-    public static RoomOutcome Refused(PB_ENUM_RES_ERROR_CODE result) => new() { Result = result };
+    public static RoomOutcome Refused(PB_ENUM_RES_ERROR_CODE result, pbArgList? resultArgs = null) =>
+        new() { Result = result, ResultArgs = resultArgs };
 
     public RoomOutcome Reply(PB_ENUM_CS_MSGID_DEF msgID, IMessage message)
     {
@@ -35,21 +34,21 @@ public sealed class RoomOutcome
         return this;
     }
 
-    public RoomOutcome StartGame(MatchRoom room)
+    public RoomOutcome StartGame(PendingMatch match)
     {
-        StartedGame = room;
+        StartedGame = match;
         return this;
     }
 
     public RoomOutcome SearchFor(MatchSearch search)
     {
-        Search = search;
+        searches.Add(search);
         return this;
     }
 
     public RoomOutcome AwaitConfirm(MatchConfirmWindow window)
     {
-        ConfirmWindow = window;
+        confirmWindows.Add(window);
         return this;
     }
 

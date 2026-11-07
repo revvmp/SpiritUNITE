@@ -1,5 +1,6 @@
 using System.Globalization;
 using SpiritUNITE.Databin;
+using SpiritUNITE.Game.Match;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
 
@@ -10,9 +11,9 @@ public sealed record RoomMemberProfile(pbCOMDT_ROLE_HEAD_URL_INFO UserPlantInfo,
 public static class RoomMemberDetail
 {
     public const int FirstAnonymousUserNameID = 1;
+    public const int NoAnonymousUserNameID = 0;
 
     private const int AcntMember = (int)PB_ENUM_COM_ROOM_MEMBEM_TYPE.PbComRoomMemberTacnt;
-    private const int PartyTeamFlag = 1;
     private const int SettlingMember = 1;
     private const int ReturnedMember = 0;
     private const int GuestAccount = 1;
@@ -26,6 +27,8 @@ public static class RoomMemberDetail
     private const int MaleGender = (int)PB_ENUM_RES_GENDER_TYPE.PbResGenderTypeMale;
     private const int FemaleGender = (int)PB_ENUM_RES_GENDER_TYPE.PbResGenderTypeFemale;
     private const int AnonymousUserNpcType = (int)PB_ENUM_RES_NPC_TYPE.PbResNpcTypeAnonymousUser;
+
+    private static readonly IReadOnlyDictionary<int, string> NoTitles = new Dictionary<int, string>();
 
     private static readonly PB_ENUM_ENUM_SYNC_SETTINGS[] BattleMemberSettings =
     [
@@ -66,7 +69,7 @@ public static class RoomMemberDetail
                     MemberLevel = RoleProfile.GetLevel(gameData, role),
                     MemberHeadId = RoleImage.GetHeadID(gameData, role),
                     TeamFlag = member.TeamFlag,
-                    IsSettle = member.IsSettle ? SettlingMember : ReturnedMember,
+                    IsSettle = member.IsSettle && !member.SettlesAlone ? SettlingMember : ReturnedMember,
                     AcntMapInfo = member.AcntMapInfo.Clone(),
                     RoleAvatarInfo = role.RoleAvatarInfo.Clone(),
                     Gender = role.Gender,
@@ -89,6 +92,7 @@ public static class RoomMemberDetail
         GameData gameData,
         LMNRoleInfo role,
         RoomMember member,
+        int teamFlag,
         int anonymousUserNameID,
         pbCOMDT_TMP_NAME_LIST tmpNameList) => new()
         {
@@ -103,7 +107,7 @@ public static class RoomMemberDetail
                     MemberName = role.InGameUsrName,
                     MemberLevel = RoleProfile.GetLevel(gameData, role),
                     MemberHeadId = RoleImage.GetHeadID(gameData, role),
-                    TeamFlag = PartyTeamFlag,
+                    TeamFlag = teamFlag,
                     AcntMapInfo = new pbCOMDT_ACNTMAP_INFO(),
                     RoleAvatarInfo = role.RoleAvatarInfo.Clone(),
                     Gender = role.Gender,
@@ -121,6 +125,9 @@ public static class RoomMemberDetail
                 },
             },
         };
+
+    public static pbCOMDT_ROOMMEMBER_DT BuildRoomBot(GameData gameData, RoomBot bot, int posOfCamp, int aiLevel) =>
+        PveMatch.BuildNpc(gameData, bot.Row, posOfCamp, bot.Uid, NoAnonymousUserNameID, NoTitles, aiLevel);
 
     public static pbCOMDT_ROLE_AVATAR_INFO BuildDefaultRoleAvatarInfo(GameData gameData, int gender)
     {

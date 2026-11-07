@@ -6,7 +6,6 @@ namespace SpiritUNITE.Game.Room;
 
 public static class RoomDailyActivity
 {
-    private const int DailyActivityID = 323;
     private const int AllTasksRewarded = (int)PB_ENUM_ENM_ROOM_DAILY_ACTIVITY_REWARD_TYPE.PbEnmRoomDailyActivityRewardTypeNull;
     private const int RewardWaiting = (int)PB_ENUM_ENM_ROOM_DAILY_ACTIVITY_REWARD_TYPE.PbEnmRoomDailyActivityRewardTypeReward;
     private const int TasksInProgress = (int)PB_ENUM_ENM_ROOM_DAILY_ACTIVITY_REWARD_TYPE.PbEnmRoomDailyActivityRewardTypeTask;
@@ -53,7 +52,7 @@ public static class RoomDailyActivity
         IReadOnlyCollection<pbCOMDT_TASK_INFO> activityTaskInfos)
     {
         var dailyTasks = schedule.FindActive(now)
-            .Where(activity => activity.Row.ActivityID == DailyActivityID)
+            .Where(activity => activity.Row.ActivityID == schedule.DailyActivityId)
             .SelectMany(activity => activity.TaskGroupIds)
             .SelectMany(groupId => schedule.FindActiveTasksInGroup(groupId, now))
             .Select(activeTask => activeTask.Task)

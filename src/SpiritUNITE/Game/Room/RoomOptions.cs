@@ -15,7 +15,6 @@ public sealed class RoomOptions
 
     private const int MinManMachineSearchSec = 1;
     private const int MaxManMachineSearchSec = 3600;
-    private const int MaxManMachineWaitTime = 3600;
 
     public List<RoomMapCanUseType> MapCanUseTypes { get; init; } = [];
     public List<int> HiddenMapIds { get; init; } = [];
@@ -23,9 +22,6 @@ public sealed class RoomOptions
     public int TeamMMRScore { get; init; } = 1343;
     public int SettleTeamOfflineMinSec { get; init; } = 14;
     public int SettleTeamOfflineMaxSec { get; init; } = 52;
-    public int WarmBattleSearchSec { get; init; } = 3;
-    public int WarmBattleWaitTime { get; init; } = 10;
-    public int WarmBattleMaxTrainerLevel { get; init; }
 
     public bool IsValid()
     {
@@ -35,9 +31,6 @@ public sealed class RoomOptions
             && SettleTeamOfflineMinSec >= 0
             && SettleTeamOfflineMaxSec >= SettleTeamOfflineMinSec
             && SettleTeamOfflineMaxSec <= MaxManMachineSearchSec
-            && WarmBattleSearchSec is >= MinManMachineSearchSec and <= MaxManMachineSearchSec
-            && WarmBattleWaitTime is >= 0 and <= MaxManMachineWaitTime
-            && WarmBattleMaxTrainerLevel >= 0
             && MapCanUseTypes.All(entry => entry.CanUseType > CanUseMap)
             && mapIds.All(mapId => mapId > 0)
             && mapIds.Distinct().Count() == mapIds.Count;

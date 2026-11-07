@@ -58,15 +58,23 @@ public static class RoomNotices
         });
 
     public static pbSCRoomChgNtf PlayerAdd(MatchRoom room, RoomMember member, pbCOMDT_ROOMMEMBER_DT memberDT) =>
+        PlayerAdd(room, member.CampClient, memberDT);
+
+    public static pbSCRoomChgNtf PlayerAdd(MatchRoom room, int campClient, pbCOMDT_ROOMMEMBER_DT memberDT) =>
         ChgNtf(room, PB_ENUM_COM_ROOMCHGTYPE.PbComRoomchgPlayeradd, new pbCOMDT_ROOMCHG_DT
         {
             PlayerAdd = new pbCOMDT_ROOMCHG_PLAYERADD
             {
-                Camp = CampIndexOf(member.CampClient),
-                CampClient = member.CampClient,
+                Camp = CampIndexOf(campClient),
+                CampClient = campClient,
                 MemInfo = memberDT,
             },
         });
+
+    public static pbSCFriendlyRoomRuleInfoNtf FriendlyRoomRuleInfo(MatchRoom room) => new()
+    {
+        RoomRuleInfo = room.FriendRoomRule.Build(),
+    };
 
     public static pbSCChatMsgNtf RoomChat(pbCOMDT_CHAT_PLAYER_INFO from, int roomChatType) => new()
     {
@@ -153,7 +161,7 @@ public static class RoomNotices
             MapChg = new pbCOMDT_ROOMCHG_MAPCHG
             {
                 MapId = room.MapId,
-                RoomRule = new pbCOMDT_FRIENDLY_ROOM_RULE_INFO(),
+                RoomRule = room.FriendRoomRule.Build(),
                 ManMachine = room.ManMachine,
             },
         });
@@ -185,14 +193,14 @@ public static class RoomNotices
             },
         });
 
-    public static pbSCMatchRsp MatchProcess(MatchRoom room, int waitTime) => new()
+    public static pbSCMatchRsp MatchProcess(MatchRoom room, int waitTime, int confirmTimeoutMs) => new()
     {
         MatchResult = new pbCOMDT_MATCH_RESULT
         {
             Result = (int)PB_ENUM_COM_MATCH_RESULT.PbComMatchProcess,
             MatchResDetail = new pbCOMDT_MATCH_DETAIL
             {
-                MatchSucc = new pbCOMDT_MATCH_SUCC_DETAIL { ConfirmTimeoutMs = PveMatch.ConfirmTimeoutMs },
+                MatchSucc = new pbCOMDT_MATCH_SUCC_DETAIL { ConfirmTimeoutMs = confirmTimeoutMs },
                 MatchProcess = new pbCOMDT_MATCH_PRCESS_DETAIL
                 {
                     RoomEntity = MatchRoom.MatchRoomEntity,

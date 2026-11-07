@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using SpiritUNITE.Game.Room;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Battle;
@@ -42,10 +43,17 @@ public sealed class DeskPlayer(
     public int ChosenHeroID => ChoiceHero.HeroID;
     public bool IsHeroLocked => ChoiceHero.IsHeroLocked == HeroLocked;
     public int ObjId => PlayerInfo.ObjId;
+    public bool IsJudge => IsReferee(CampClient);
     public RelayTicket? RelayTicket { get; set; }
+    public IReadOnlyDictionary<int, RandomPickHero> RandomPickHeroes { get; set; } = new Dictionary<int, RandomPickHero>();
+
+    public static bool IsReferee(int campClient) =>
+        campClient is >= (int)PB_ENUM_COM_CAMP_CLIENT.PbCampClientJudgeBegin and <= (int)PB_ENUM_COM_CAMP_CLIENT.PbCampClientJudgeEnd;
 }
 
 public sealed record RelayTicket(int Token, string ZSDCode);
+
+public sealed record RandomPickHero(pbCOMDT_ACNT_USABLE_HERO_DETAIL Detail, pbCOMDT_CHOICEHERO Choice);
 
 public sealed class BattleDesk(
     int deskID,
@@ -61,16 +69,21 @@ public sealed class BattleDesk(
     public pbCOMDT_DESKINFO DeskInfo { get; } = deskInfo;
     public pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE? PveChallengeSelectNode { get; } = pveChallengeSelectNode;
     public IReadOnlyList<DeskPlayer> Players { get; } = players;
+    public IReadOnlyList<DeskPlayer> Judges { get; init; } = [];
     public int PickTimeOut { get; } = pickTimeOut;
     public int PickReminderSec { get; } = pickReminderSec;
     public DeskPhase Phase { get; set; } = DeskPhase.Picking;
+    public BanPickDraft? Draft { get; set; }
+    public FriendlyRoomRules FriendRoomRule { get; init; } = FriendlyRoomRules.None;
     public int RelayEntity { get; } = RandomNumberGenerator.GetInt32(int.MinValue, 0);
 
     public IEnumerable<DeskPlayer> Humans => Players.Where(player => !player.IsNpc);
 
-    public ulong[] HumanUids => [.. Humans.Select(player => player.Uid)];
+    public IEnumerable<DeskPlayer> Attendees => Humans.Concat(Judges);
 
-    public ulong[] HumanUidsOf(int campClient) => [.. Humans.Where(player => player.CampClient == campClient).Select(player => player.Uid)];
+    public ulong[] HumanUids => [.. Attendees.Select(player => player.Uid)];
+
+    public ulong[] HumanUidsOf(int campClient) => [.. Attendees.Where(player => player.CampClient == campClient || player.IsJudge).Select(player => player.Uid)];
 
     public bool AllHumansLocked => Humans.All(player => player.IsHeroLocked);
 
@@ -79,6 +92,10 @@ public sealed class BattleDesk(
     public DeskPlayer? FindPlayer(int objId) => Players.FirstOrDefault(player => player.ObjId == objId);
 
     public DeskPlayer? FindHuman(ulong uid) => Players.FirstOrDefault(player => !player.IsNpc && player.Uid == uid);
+
+    public DeskPlayer? FindJudge(ulong uid) => Judges.FirstOrDefault(judge => judge.Uid == uid);
+
+    public DeskPlayer? FindAttendee(ulong uid) => FindHuman(uid) ?? FindJudge(uid);
 
     public IEnumerable<DeskPlayer> CampOf(int campClient) => Players.Where(player => player.CampClient == campClient);
 
