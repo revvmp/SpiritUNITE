@@ -2,6 +2,7 @@ using SpiritUNITE.Auth;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Newbie;
 using SpiritUNITE.Game.Profile;
+using SpiritUNITE.Game.Ranked;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Room;
 using SpiritUNITE.Game.Settings;
@@ -15,10 +16,19 @@ public sealed class RoleBriefBuilder(
     SettingsManager settings,
     NewbieManager newbies,
     AccountManager accounts,
-    FriendPresence presence)
+    FriendPresence presence,
+    RankedManager ranked)
 {
     private const int GuestAccount = 1;
     private const int RegisteredAccount = 0;
+    private const int NoRankedDivision = 0;
+    private const int NoRankedBattles = 0;
+
+    public async Task<pbCOMDT_RANKED_DIVISION_INFO_IN_BRIEF> BuildRankedDivisionInfoAsync(ulong uid)
+    {
+        var season = (await ranked.LoadAsync(uid)).Season;
+        return RoleBrief.BuildRankedDivisionInfo(season.SeasonId, season.BattleCnt > NoRankedBattles ? season.Position.RankedDivision : NoRankedDivision);
+    }
 
     public async Task<pbCOMDT_ROLE_BRIEF_INFO> BuildRoleBriefInfoAsync(LMNRoleInfo role, long lastLogoutTime)
     {
@@ -32,7 +42,7 @@ public sealed class RoleBriefBuilder(
             RoleLevel = RoleProfile.GetLevel(gameData, role),
             RoleGender = role.Gender,
             LastLogoutTime = presence.IsOnline(uid) ? 0 : lastLogoutTime,
-            RankedDivisionInfo = new pbCOMDT_RANKED_DIVISION_INFO_IN_BRIEF(),
+            RankedDivisionInfo = await BuildRankedDivisionInfoAsync(uid),
             HeadID = RoleImage.GetHeadID(gameData, role),
             RoleAvatarInfo = role.RoleAvatarInfo.Clone(),
             CurHeadIconInfo = profiles.BuildHeadIconInfo(role, style).CurHeadIconInfo,

@@ -1,11 +1,13 @@
 using Microsoft.Extensions.Options;
 using SpiritUNITE.Database.Repositories;
+using SpiritUNITE.Databin;
+using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Wallet;
 
-public sealed class WalletManager(WalletRepository repository, IOptions<WalletOptions> options)
+public sealed class WalletManager(WalletRepository repository, GameData gameData, IOptions<WalletOptions> options)
 {
     private readonly IReadOnlyDictionary<int, long> startingBalances = options.Value.StartingBalances();
 
@@ -13,7 +15,10 @@ public sealed class WalletManager(WalletRepository repository, IOptions<WalletOp
 
     public async Task<GamePacket[]> GrantFirstLoginSpecialCoinsAsync(ulong gameUlongUID)
     {
-        var grants = options.Value.FirstLoginSpecialCoins.ToDictionary(coin => coin.Key, coin => (long)coin.Value);
+        var grants = NewPlayerDefaultGrants.RowsOf(gameData, PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesResattr)
+            .Where(row => CoinID.IsSpecialCoin(row.ResourceId))
+            .GroupBy(row => row.ResourceId)
+            .ToDictionary(coin => coin.Key, coin => coin.Sum(row => (long)row.ResourceNum));
         if (grants.Count == 0)
         {
             return [];

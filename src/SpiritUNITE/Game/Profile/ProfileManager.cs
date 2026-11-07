@@ -68,8 +68,8 @@ public sealed class ProfileManager(
 
     public pbSCProfileGainResNtf[] GrantRegistGive(LMNRoleInfo role)
     {
-        if (ContestantCard.GetRegistGiveDecorationIDs()
-            .Any(decorationID => role.OwnsItem(RoleItemType.ContestantCardDecoration, decorationID)))
+        var registGiveDecorationIDs = ContestantCard.FindRegistGiveDecorationIDs(gameData);
+        if (registGiveDecorationIDs.Any(decorationID => role.OwnsItem(RoleItemType.ContestantCardDecoration, decorationID)))
         {
             return [];
         }
@@ -78,7 +78,7 @@ public sealed class ProfileManager(
         role.GrantItem(RoleItemType.LobbyBg, gameData.DefaultLobbyBgId, gainTime);
         var gains = new List<pbSCProfileGainResNtf>();
         GrantDecorations(role, ContestantCard.FindRegistDefaultPokemonEffectIDs(gameData, CurrentSvrCfgTime), gainTime, gains);
-        foreach (var decorationID in ContestantCard.GetRegistGiveDecorationIDs())
+        foreach (var decorationID in registGiveDecorationIDs)
         {
             GrantDecorations(role, [decorationID], gainTime, gains);
         }
@@ -86,7 +86,7 @@ public sealed class ProfileManager(
         return [.. gains];
     }
 
-    private static void GrantDecorations(LMNRoleInfo role, int[] decorationIDs, long gainTime, List<pbSCProfileGainResNtf> gains)
+    private void GrantDecorations(LMNRoleInfo role, int[] decorationIDs, long gainTime, List<pbSCProfileGainResNtf> gains)
     {
         var granted = decorationIDs
             .Select(decorationID => role.GrantItem(RoleItemType.ContestantCardDecoration, decorationID, gainTime))
@@ -94,7 +94,7 @@ public sealed class ProfileManager(
             .Count();
         if (granted > 0)
         {
-            gains.Add(new pbSCProfileGainResNtf { ContestantResList = ContestantCard.BuildContestantResList(role) });
+            gains.Add(new pbSCProfileGainResNtf { ContestantResList = ContestantCard.BuildContestantResList(gameData, role) });
         }
     }
 
@@ -259,10 +259,10 @@ public sealed class ProfileManager(
         QueryUid = role.GameUlongUID,
     };
 
-    public static pbCOMDT_PLAYER_CONTESTANT_INFO BuildLoginPlayerContestantInfo(LMNRoleInfo role, ProfileStyle style)
+    public pbCOMDT_PLAYER_CONTESTANT_INFO BuildLoginPlayerContestantInfo(LMNRoleInfo role, ProfileStyle style)
     {
         var info = style.PlayerContestantInfo;
-        info.ContestantResList = ContestantCard.BuildContestantResList(role);
+        info.ContestantResList = ContestantCard.BuildContestantResList(gameData, role);
         return info;
     }
 
@@ -316,12 +316,12 @@ public sealed class ProfileManager(
         HeadFrameInfo = BuildPersonStyleHeadInfo(role, style),
     };
 
-    public static pbCOMDT_PLAYER_CONTESTANT_INFO BuildPlayerContestantInfo(LMNRoleInfo role, ProfileStyle style)
+    public pbCOMDT_PLAYER_CONTESTANT_INFO BuildPlayerContestantInfo(LMNRoleInfo role, ProfileStyle style)
     {
         var info = style.PlayerContestantInfo;
         info.OnlinePeriod ??= new pbCOMDT_ONLINE_PERIOD();
         info.TrainerImageInfo ??= BuildDefaultTrainerImageInfo();
-        info.ContestantResList = ContestantCard.BuildContestantResList(role);
+        info.ContestantResList = ContestantCard.BuildContestantResList(gameData, role);
         info.RoleAvatarInfo = role.RoleAvatarInfo.Clone();
         return info;
     }

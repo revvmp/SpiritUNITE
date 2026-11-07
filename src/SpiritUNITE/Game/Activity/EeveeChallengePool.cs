@@ -16,22 +16,22 @@ public sealed class EeveeChallengePool
     private const int ExpireDateParamIndex = 1;
     private const int ExpireTimeParamIndex = 2;
     private const long ConfigDateShift = 1_000_000;
-    private const int NoCondition = 0;
+    private const int NoTaskID = 0;
 
     private readonly Dictionary<int, EeveeChallengeEevee[]> eeveesByActivity;
 
     public EeveeChallengePool(GameData gameData)
     {
-        var tasksByGroup = gameData.TaskBase.Rows.ToLookup(task => task.GroupID);
         var expireTimeItems = gameData.OutSideItemBase.Rows
             .Where(item => item.OutSideItemType == (int)PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypePokemonexpiretime
                 && item.ItemParam.Count > ExpireTimeParamIndex
                 && item.ItemParam[ExpirePokemonParamIndex] > 0)
             .OrderBy(item => item.OutSideItemId)
             .ToArray();
+        var challengesByActivity = gameData.EeveeChallenge.Rows.ToLookup(challenge => challenge.ActivityID);
         eeveesByActivity = gameData.ActivityBase.Rows
             .Where(activity => activity.ActivityType == (int)PB_ENUM_RES_ACTIVITY_TYPE.PbResActivityTypeEeveeChallenge)
-            .ToDictionary(activity => activity.ActivityID, activity => BuildEevees(activity, expireTimeItems, tasksByGroup));
+            .ToDictionary(activity => activity.ActivityID, activity => BuildEevees(activity, challengesByActivity[activity.ActivityID], expireTimeItems));
     }
 
     public IReadOnlyList<EeveeChallengeEevee> Find(int activityID) => eeveesByActivity.GetValueOrDefault(activityID) ?? [];
@@ -41,34 +41,20 @@ public sealed class EeveeChallengePool
 
     private static EeveeChallengeEevee[] BuildEevees(
         pbActivity_Base activity,
-        pbOutSideItem_Base[] expireTimeItems,
-        ILookup<int, pbTask_Base> tasksByGroup)
-    {
-        var items = expireTimeItems.Where(item => ExpireConfigTimeOf(item) == activity.ValidEndTime).ToArray();
-        if (items.Length == 0)
-        {
-            return [];
-        }
-
-        var tasks = tasksByGroup[activity.ActivityParam].OrderBy(task => task.TaskID).ToArray();
-        var tasksPerEevee = tasks.Length % items.Length == 0 ? tasks.Length / items.Length : 0;
-        return
+        IEnumerable<pbEeveeChallenge> challenges,
+        pbOutSideItem_Base[] expireTimeItems) =>
         [
-            .. items.Select((item, index) =>
-            {
-                var eeveeID = item.ItemParam[ExpirePokemonParamIndex];
-                var block = tasks.Skip(index * tasksPerEevee).Take(tasksPerEevee).ToArray();
-                var blockNamesEevee = block.Any(task => task.FinishCondition
-                    .Any(condition => condition.ID != NoCondition && condition.ParamA.Contains(eeveeID)));
-                return new EeveeChallengeEevee(
+            .. challenges
+                .Select(challenge => (Challenge: challenge, Item: expireTimeItems.FirstOrDefault(item =>
+                    item.ItemParam[ExpirePokemonParamIndex] == challenge.EeveeID && ExpireConfigTimeOf(item) == activity.ValidEndTime)))
+                .Where(pair => pair.Item is not null)
+                .Select(pair => new EeveeChallengeEevee(
                     activity.ActivityID,
-                    eeveeID,
-                    item,
-                    ActivitySchedule.ParseConfigTime(ExpireConfigTimeOf(item)).ToUnixTimeSeconds(),
-                    blockNamesEevee ? [.. block.Select(task => task.TaskID)] : []);
-            }),
+                    pair.Challenge.EeveeID,
+                    pair.Item!,
+                    ActivitySchedule.ParseConfigTime(ExpireConfigTimeOf(pair.Item!)).ToUnixTimeSeconds(),
+                    [.. pair.Challenge.TaskIDList.Where(taskID => taskID != NoTaskID)])),
         ];
-    }
 
     private static long ExpireConfigTimeOf(pbOutSideItem_Base item) =>
         item.ItemParam[ExpireDateParamIndex] * ConfigDateShift + item.ItemParam[ExpireTimeParamIndex];

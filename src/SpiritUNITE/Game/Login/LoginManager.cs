@@ -13,6 +13,7 @@ using SpiritUNITE.Game.Friend;
 using SpiritUNITE.Game.HeldItem;
 using SpiritUNITE.Game.Lobby;
 using SpiritUNITE.Game.Mail;
+using SpiritUNITE.Game.Match;
 using SpiritUNITE.Game.Newbie;
 using SpiritUNITE.Game.Pokemon;
 using SpiritUNITE.Game.Profile;
@@ -56,6 +57,8 @@ public sealed class LoginManager(
     MailManager mail,
     EnergyManager energies,
     CreditManager credit,
+    RankedManager ranked,
+    WarmBattleManager warmBattles,
     TimeProvider clock,
     ILogger<LoginManager> logger)
 {
@@ -110,6 +113,8 @@ public sealed class LoginManager(
         var clientSettings = await settings.LoadAsync(role.GameUlongUID);
         await trainerExpGiftManager.LoadAsync(role.GameUlongUID);
         var registerTime = await newbies.GetRegisterTimeAsync(role);
+        await ranked.LoadAsync(role.GameUlongUID, reload: true);
+        await warmBattles.LoadAsync(role.GameUlongUID);
 
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
         return new pbSCAcntLoginRsp
@@ -139,8 +144,9 @@ public sealed class LoginManager(
             SeasonPoint = TrainerExpGiftManager.GetSeasonPoint(role),
             ReachMaxSeasonGift = trainerExpGiftManager.GetReachMaxSeasonGift(role),
             RankedDivision = RankedMatch.IsRankedMatchUnlocked(gameData, notices, role)
-                ? (int)RankedMatch.StartingRankedDivision
+                ? ranked.PositionOf(role.GameUlongUID).RankedDivision
                 : NoRankedDivision,
+            ProtectCardSelectStatus = ranked.ProtectCardSelectStatusOf(role.GameUlongUID),
             TotalCoupons = FirstpayTotalCoupons,
             CoinInfo = wallet.BuildCoinInfo(),
             AcntRealCoupous = wallet.AcntRealCoupous,
@@ -149,7 +155,7 @@ public sealed class LoginManager(
             HeldItemSlotUnlockInfo = await heldItems.BuildHeldItemSlotUnlockInfoAsync(role),
             AcceptChatConvention = await chat.GetAcceptChatConventionAsync(role.GameUlongUID),
             HeadIconInfo = profiles.BuildHeadIconInfo(role, style),
-            PlayerContestantInfo = ProfileManager.BuildLoginPlayerContestantInfo(role, style),
+            PlayerContestantInfo = profiles.BuildLoginPlayerContestantInfo(role, style),
             IsAnonymity = style.IsAnonymity,
             IsHideInfo = style.IsHideInfo,
             PersonStyleInfo = ProfileManager.BuildPersonStyleInfo(role, style),
@@ -158,7 +164,7 @@ public sealed class LoginManager(
             MenuInfo = clientSettings.MenuInfo,
             ABMode = clientSettings.ABMode,
             CountryCode = clientSettings.CountryCode,
-            IsInvisible = clientSettings.IsInvisible,
+            IsInvisible = clientSettings.IsForeverInvisible,
             IsCloseIntimacyShow = clientSettings.IsCloseIntimacyShow,
             UserSchemeSelectInfo = notices.BuildUserSchemeSelectInfo(),
             PokemonID = role.FollowPokemonId,
@@ -170,7 +176,7 @@ public sealed class LoginManager(
             PrivilePlatInfo = new pbCOMDT_PRIVILE_PLAT_INFO(),
             GroupInfo = new pbCOMDT_GROUP_INFO(),
             DailyUniqTaskInfo = new pbCOMDT_DAILY_UNIQ_TASK_INFO(),
-            HighestRankedDivisionInHistory = new pbCOMDT_RANKED_DIVISION(),
+            HighestRankedDivisionInHistory = await ranked.BuildHighestRankedDivisionInHistoryAsync(role.GameUlongUID),
             AchievementInfo = new pbCOMDT_ROLE_ACHIEVEMENT_INFO(),
             BanInfo = EmptyChildren.Fill(new pbCOMDT_BAN_INFO()),
             NoneRechargeInfo = new pbCOMDT_NONE_RECHARGE_ACTIVITY_VIEW_INFO(),

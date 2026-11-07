@@ -95,7 +95,7 @@ public sealed class EntrycardHandlers(RoleInfoStore roles, ProfileManager profil
         var response = new pbSCContestantCardEditRsp
         {
             ResultInfo = Result(result),
-            PlayerContestantInfo = ProfileManager.BuildPlayerContestantInfo(role, style),
+            PlayerContestantInfo = profiles.BuildPlayerContestantInfo(role, style),
         };
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidContestantCardEditRsp, EmptyChildren.Fill(response))];
     }

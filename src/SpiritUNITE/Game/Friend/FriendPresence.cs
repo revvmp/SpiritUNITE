@@ -11,6 +11,7 @@ public sealed class FriendPresence(LobbyRoles lobbyRoles)
     private const int Offline = 0;
 
     private const int Invisible = 1;
+    private const int NotInvisible = 0;
 
     private readonly ConcurrentDictionary<ulong, (int GameStateType, long GameRealStartTime)> gameStates = new();
     private readonly ConcurrentDictionary<ulong, pbCOMDT_PLAYER_INVISIBLE_INFO> invisibleInfos = new();
@@ -19,11 +20,11 @@ public sealed class FriendPresence(LobbyRoles lobbyRoles)
 
     public bool IsOnline(ulong uid) => lobbyRoles.IsOnline(uid);
 
-    public void RestoreInvisible(ulong uid, bool isInvisible, long loginTime)
+    public void RestoreForeverInvisible(ulong uid, bool isForeverInvisible, long loginTime)
     {
-        if (isInvisible)
+        if (isForeverInvisible)
         {
-            invisibleInfos[uid] = new pbCOMDT_PLAYER_INVISIBLE_INFO { IsInvisible = Invisible, SelfInvisibleTime = loginTime };
+            invisibleInfos[uid] = new pbCOMDT_PLAYER_INVISIBLE_INFO { IsForeverInvisible = Invisible, ForeverInvisibleTime = loginTime };
         }
         else
         {
@@ -53,6 +54,11 @@ public sealed class FriendPresence(LobbyRoles lobbyRoles)
             await changed(uid);
         }
     }
+
+    public int GetSelfInvisible(ulong uid) =>
+        invisibleInfos.TryGetValue(uid, out var invisibleInfo) && (invisibleInfo.IsInvisible == Invisible || invisibleInfo.IsForeverInvisible == Invisible)
+            ? Invisible
+            : NotInvisible;
 
     public pbCOMDT_PLAYER_INVISIBLE_INFO BuildInvisibleInfo(ulong uid) =>
         invisibleInfos.TryGetValue(uid, out var invisibleInfo) ? invisibleInfo.Clone() : new pbCOMDT_PLAYER_INVISIBLE_INFO();

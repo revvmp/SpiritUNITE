@@ -2,6 +2,7 @@ using Google.Protobuf;
 using Microsoft.Extensions.Options;
 using SpiritUNITE.Game.Activity;
 using SpiritUNITE.Databin;
+using SpiritUNITE.Game.Credit;
 using SpiritUNITE.Tools;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets;
@@ -32,6 +33,7 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
     private const int OfficialAcntSysPlat = 1;
     private const int RegistBubTipID = 10;
     private const int RegistBubTipBadgeNum = 1;
+    private const long CfgTimeOfDayBase = 1_000_000;
 
     private static readonly (int FieldNumber, long Value)[] SubscriptionInterfaceUnnamedVarints = [(9, 200), (10, 30)];
 
@@ -56,10 +58,17 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
 
     public pbSCCompetitionOpenInfoNtf BuildCompetitionOpenInfoNtf() => new()
     {
-        IsOpen = rules.CompetitionOpen.IsOpen,
-        BeginTime = rules.CompetitionOpen.BeginTime,
-        EndTime = rules.CompetitionOpen.EndTime,
+        IsOpen = gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalCompetitionSwitch),
+        BeginTime = GlobalCfgTime(
+            PB_ENUM_RES_RESGLOBAL.PbResgolbalstrMapCompetitionBeginTimeYymmdd,
+            PB_ENUM_RES_RESGLOBAL.PbResgolbalstrMapCompetitionBeginTimeHhmmss),
+        EndTime = GlobalCfgTime(
+            PB_ENUM_RES_RESGLOBAL.PbResgolbalstrMapCompetitionEndTimeYymmdd,
+            PB_ENUM_RES_RESGLOBAL.PbResgolbalstrMapCompetitionEndTimeHhmmss),
     };
+
+    private long GlobalCfgTime(PB_ENUM_RES_RESGLOBAL yymmdd, PB_ENUM_RES_RESGLOBAL hhmmss) =>
+        UTCTimeUtil.CfgTime2ServerUnixTime((gameData.GetGlobalIntData(yymmdd) * CfgTimeOfDayBase) + gameData.GetGlobalIntData(hhmmss));
 
     public static pbSCLimitTimeReddotNtf BuildLimitTimeReddotNtf() => new();
 
@@ -313,12 +322,12 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
 
     private pbCOMDT_TASK_INFO BuildCreditPointTaskInfo(int taskID, int targetProcess, long recvTime)
     {
-        var completed = rules.StartingCreditPoint >= targetProcess;
+        var completed = CreditManager.StartingCreditPoint >= targetProcess;
         var taskInfo = new pbCOMDT_TASK_INFO
         {
             TaskId = taskID,
             TaskSystem = (int)PB_ENUM_ENM_TASKSYSTEM.PbEnmTasksystemCreditpoint,
-            TaskProcess = { Math.Min(rules.StartingCreditPoint, targetProcess) },
+            TaskProcess = { Math.Min(CreditManager.StartingCreditPoint, targetProcess) },
             Status = (int)(completed ? PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusComplete : PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusRecved),
             RecvTime = recvTime,
             NewTag = TaskNewTag,

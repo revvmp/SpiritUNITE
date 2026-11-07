@@ -12,6 +12,7 @@ using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Game.Credit;
 using SpiritUNITE.Game.Achievement;
 using SpiritUNITE.Game.Login;
+using SpiritUNITE.Game.Match;
 using SpiritUNITE.Game.Pokemon;
 using SpiritUNITE.Game.Tasks;
 using SpiritUNITE.Game.TrainerExpGift;
@@ -32,6 +33,7 @@ using SpiritUNITE.Game.MSDKNotice;
 using SpiritUNITE.Game.FightHistory;
 using SpiritUNITE.Game.Profile;
 using SpiritUNITE.Game.PveChallenge;
+using SpiritUNITE.Game.Ranked;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Room;
 using SpiritUNITE.Game.Settings;
@@ -128,7 +130,7 @@ public static class Server
 
         builder.Services.AddOptions<WalletOptions>()
             .BindConfiguration(WalletOptions.SectionName)
-            .Validate(options => options.IsValid(), "Wallet settings are invalid: starting balances must be 0 or more and FirstLoginSpecialCoins must map special coin ids to positive counts")
+            .Validate(options => options.IsValid(), "Wallet settings are invalid: starting balances must be 0 or more")
             .ValidateOnStart();
 
         builder.Services.AddOptions<PokemonOptions>()
@@ -155,6 +157,16 @@ public static class Server
         builder.Services.AddOptions<RoomOptions>()
             .BindConfiguration(RoomOptions.SectionName)
             .Validate(options => options.IsValid(), "Room settings are invalid")
+            .ValidateOnStart();
+
+        builder.Services.AddOptions<MatchOptions>()
+            .BindConfiguration(MatchOptions.SectionName)
+            .Validate(options => options.IsValid(), "Match settings are invalid: BotFillSearchSec must be 1-3600 and every WarmBattleWaitTime a MapSubMode with [min, max] seconds, 0 <= min <= max")
+            .ValidateOnStart();
+
+        builder.Services.AddOptions<RankedOptions>()
+            .BindConfiguration(RankedOptions.SectionName)
+            .Validate(options => options.IsValid(), "Ranked settings are invalid: WinPoint and LoseBasePoint need one value per BigRankedDivision (points 0 or more), TeamMMRScore 0 or more and FakePlayerWinPointMin at most FakePlayerWinPointMax")
             .ValidateOnStart();
 
         builder.Services.AddOptions<BattleSettlementOptions>()
@@ -220,6 +232,8 @@ public static class Server
         builder.Services.AddSingleton<EnergyRepository>();
         builder.Services.AddSingleton<EeveeChallengeRepository>();
         builder.Services.AddSingleton<CreditRepository>();
+        builder.Services.AddSingleton<WarmBattleRepository>();
+        builder.Services.AddSingleton<RankedRepository>();
     }
 
     private static void AddGameData(IHostApplicationBuilder builder)
@@ -244,6 +258,11 @@ public static class Server
         builder.Services.AddSingleton<FriendManager>();
         builder.Services.AddSingleton<MailManager>();
         builder.Services.AddSingleton<CreditManager>();
+        builder.Services.AddSingleton<RankedLadder>();
+        builder.Services.AddSingleton<RankedRewards>();
+        builder.Services.AddSingleton<RankedManager>();
+        builder.Services.AddSingleton<RankedRankingBoard>();
+        builder.Services.AddSingleton<WarmBattleManager>();
         builder.Services.AddSingleton<ChatManager>();
         builder.Services.AddSingleton<RoleInfoStore>();
         builder.Services.AddSingleton<WalletManager>();
@@ -271,6 +290,7 @@ public static class Server
         builder.Services.AddSingleton<RoomManager>();
         builder.Services.AddSingleton<RoomInvites>();
         builder.Services.AddSingleton<MatchScheduler>();
+        builder.Services.AddHostedService(services => services.GetRequiredService<MatchScheduler>());
         builder.Services.AddSingleton<SettleTeamPresence>();
         builder.Services.AddSingleton<ActivityRewardNotices>();
         builder.Services.AddSingleton<DeskManager>();
@@ -280,6 +300,7 @@ public static class Server
         builder.Services.AddSingleton<NewbieChallengeManager>();
         builder.Services.AddSingleton<NewbieChallengeTaskManager>();
         builder.Services.AddSingleton<MvpScore>();
+        builder.Services.AddSingleton<RankPointMedals>();
         builder.Services.AddSingleton<BattleSettlement>();
         builder.Services.AddSingleton<RelayManager>();
     }

@@ -1,5 +1,6 @@
 using Google.Protobuf;
 using SpiritUNITE.Database.Repositories;
+using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Badge;
 using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Game.Lobby;
@@ -9,25 +10,20 @@ using SpiritUNITE.Packets.Messages;
 namespace SpiritUNITE.Game.Role;
 
 public sealed class AppearanceGift(
+    GameData gameData,
     BagManager bag,
     BagRepository bagRepository,
     BadgeManager badges,
     TaskUpdates taskUpdates,
     RoleInfoStore roles)
 {
-    private const int SingleBadge = 1;
-    private const int SingleOutSideItem = 1;
     private const int UnlimitedBadgeStack = int.MaxValue;
     private const int NoItemLevel = 0;
-
-    private static readonly int[] GiftAvatarIDs = [1004001103, 1004003801];
-    private static readonly int[] GiftBadgeIDs = [1007100191, 1007100211, 1007100841, 1007100161, 1007100831];
-    private const int GiftOutSideItemID = 1002000054;
 
     public async Task<IReadOnlyList<(PB_ENUM_CS_MSGID_DEF MsgID, IMessage Body)>> GrantAsync(LMNRoleInfo role, long gainTime)
     {
         var pushes = new List<(PB_ENUM_CS_MSGID_DEF MsgID, IMessage Body)>();
-        foreach (var avatarID in GiftAvatarIDs)
+        foreach (var avatarID in NewPlayerDefaultGrants.ResourceIdsOf(gameData, PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesAvatar))
         {
             if (role.GrantItem(RoleItemType.AvatarItem, avatarID, gainTime) is not { } avatar)
             {
@@ -44,9 +40,9 @@ public sealed class AppearanceGift(
             pushes.Add(await BuildOwnershipTasksAsync(role));
         }
 
-        foreach (var badgeID in GiftBadgeIDs)
+        foreach (var badge in NewPlayerDefaultGrants.RowsOf(gameData, PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesBadge))
         {
-            var grant = new BagGrant(RoleItemType.Badge, badgeID, SingleBadge, UnlimitedBadgeStack, NoItemLevel, BadgeManager.ShowNewTag);
+            var grant = new BagGrant(RoleItemType.Badge, badge.ResourceId, badge.ResourceNum, UnlimitedBadgeStack, NoItemLevel, BadgeManager.ShowNewTag);
             var commit = await bagRepository.CommitAsync(role.GameUlongUID, new BagChange { Grants = [grant] }, gainTime);
             if (commit.Result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
             {
@@ -59,8 +55,13 @@ public sealed class AppearanceGift(
             pushes.Add(await BuildOwnershipTasksAsync(role));
         }
 
-        if (bag.CreateOutSideItemGrant(GiftOutSideItemID, SingleOutSideItem) is { } itemGrant)
+        foreach (var outSideItem in NewPlayerDefaultGrants.RowsOf(gameData, PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem))
         {
+            if (bag.CreateOutSideItemGrant(outSideItem.ResourceId, outSideItem.ResourceNum) is not { } itemGrant)
+            {
+                continue;
+            }
+
             var commit = await bagRepository.CommitAsync(role.GameUlongUID, new BagChange { Grants = [itemGrant] }, gainTime);
             if (commit.Result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
             {

@@ -179,7 +179,7 @@ public sealed class FriendManager
         logger.LogInformation("Uid {Uid} sent a friend request to uid {TargetUid}", uid, targetUid);
         await lobbyRoles.PushAsync(targetUid, GamePacket.Create(
             PB_ENUM_CS_MSGID_DEF.PbScidNewFriendRequestNtf,
-            new pbSCNewFriendRequestNtf { FriendRequest = BuildFriendRequest(request, role, 0) }));
+            new pbSCNewFriendRequestNtf { FriendRequest = await BuildFriendRequestAsync(request, role, 0) }));
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
@@ -191,7 +191,7 @@ public sealed class FriendManager
         {
             if (await roles.FindAsync(request.RequestUid) is { } requester)
             {
-                list.Add(BuildFriendRequest(request, requester, list.Count));
+                list.Add(await BuildFriendRequestAsync(request, requester, list.Count));
             }
         }
 
@@ -353,7 +353,7 @@ public sealed class FriendManager
                 Online = gameState.Online,
                 GameStateType = gameState.GameStateType,
                 GameRealStartTime = gameState.GameRealStartTime,
-                RankedDivision = new pbCOMDT_RANKED_DIVISION_INFO_IN_BRIEF(),
+                RankedDivision = await briefs.BuildRankedDivisionInfoAsync(uid),
                 LastLogoutTime = lastLogoutTimes.GetValueOrDefault(uid),
             }));
         }
@@ -436,7 +436,7 @@ public sealed class FriendManager
         }),
     };
 
-    private pbCOMDT_FRIEND_REQUEST BuildFriendRequest(RoleFriendRequest request, LMNRoleInfo requester, int listIndex) =>
+    private async Task<pbCOMDT_FRIEND_REQUEST> BuildFriendRequestAsync(RoleFriendRequest request, LMNRoleInfo requester, int listIndex) =>
         EmptyChildren.Fill(new pbCOMDT_FRIEND_REQUEST
         {
             RequestUid = request.RequestUid,
@@ -446,7 +446,7 @@ public sealed class FriendManager
             FromType = request.FromType,
             SelfCamp = request.SelfCamp,
             ListIndex = listIndex,
-            RankedDivision = new pbCOMDT_RANKED_DIVISION_INFO_IN_BRIEF(),
+            RankedDivision = await briefs.BuildRankedDivisionInfoAsync(request.RequestUid),
             Time = request.RequestTime,
             RoleAvatarInfo = requester.RoleAvatarInfo.Clone(),
         });
@@ -461,7 +461,7 @@ public sealed class FriendManager
     private async Task OnRoleOnlineAsync(ulong uid)
     {
         var saved = await settings.LoadAsync(uid);
-        presence.RestoreInvisible(uid, saved.IsInvisible == RoleSettings.On, clock.GetUtcNow().ToUnixTimeSeconds());
+        presence.RestoreForeverInvisible(uid, saved.IsForeverInvisible == RoleSettings.On, clock.GetUtcNow().ToUnixTimeSeconds());
         await NotifyGameStateAsync(uid);
     }
 

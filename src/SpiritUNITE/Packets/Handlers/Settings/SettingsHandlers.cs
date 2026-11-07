@@ -134,7 +134,9 @@ public sealed class SettingsHandlers(
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidSetSelfInvisibleRsp, new pbSCSetSelfInvisibleRsp
         {
             ResultInfo = new pbResultInfo { ResultId = (int)result },
-            IsInvisible = SettingsManager.GetSelfInvisible(saved, selfInvisible.InvisibleType),
+            IsInvisible = SettingsManager.IsNoFriendInviteInvisible(selfInvisible.InvisibleType)
+                ? saved.IsNoFriendInviteInvisible
+                : presence.GetSelfInvisible(role.GameUlongUID),
             InvisibleType = selfInvisible.InvisibleType,
         })];
     }

@@ -21,26 +21,21 @@ public static class ContestantCard
     private const int MaxEffectResNum =
         (int)PB_MACRO_COM_MAX_CONTESTANT_EFFECT_RES_NUM.PbComMaxContestantEffectResNum;
 
-    private static readonly int[] RegistGiveDecorationIDs =
-    [
-        1007001001, 1007001002, 1007001003,
-        1007002001, 1007002002,
-        1007003001, 1007003002, 1007003003, 1007003004, 1007003005, 1007003006,
-        1007004001, 1007004002, 1007004003, 1007004004,
-        1007005002, 1007005003, 1007005004,
-        1007006002, 1007006003, 1007006004,
-    ];
+    public static int[] FindRegistDefaultPokemonEffectIDs(GameData gameData, long svrCfgTime)
+    {
+        var registGiveDecorationIDs = FindRegistGiveDecorationIDs(gameData);
+        return
+        [
+            .. gameData.ContestantCardDecoration.Rows
+                .Where(decoration => decoration.DecorationType == PokemonEffectType
+                    && IsReleasedDefault(decoration, svrCfgTime)
+                    && !registGiveDecorationIDs.Contains(decoration.DecorationID))
+                .Select(decoration => decoration.DecorationID),
+        ];
+    }
 
-    public static int[] FindRegistDefaultPokemonEffectIDs(GameData gameData, long svrCfgTime) =>
-    [
-        .. gameData.ContestantCardDecoration.Rows
-            .Where(decoration => decoration.DecorationType == PokemonEffectType
-                && IsReleasedDefault(decoration, svrCfgTime)
-                && !RegistGiveDecorationIDs.Contains(decoration.DecorationID))
-            .Select(decoration => decoration.DecorationID),
-    ];
-
-    public static IReadOnlyList<int> GetRegistGiveDecorationIDs() => RegistGiveDecorationIDs;
+    public static int[] FindRegistGiveDecorationIDs(GameData gameData) =>
+        NewPlayerDefaultGrants.ResourceIdsOf(gameData, PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesContestantCardRecoration);
 
     public static bool IsDecorationType(int decorationType) => decorationType is >= EffectType and <= PokemonEffectType;
 
@@ -61,13 +56,19 @@ public static class ContestantCard
         && decoration.OnTime != 0
         && svrCfgTime >= decoration.OnTime;
 
-    public static pbCOMDT_PLAYER_CONTESTANT_RES_LIST BuildContestantResList(LMNRoleInfo role) => new()
+    public static pbCOMDT_PLAYER_CONTESTANT_RES_LIST BuildContestantResList(GameData gameData, LMNRoleInfo role)
+    {
+        var registGiveDecorationIDs = FindRegistGiveDecorationIDs(gameData);
+        return BuildContestantResList(role, registGiveDecorationIDs);
+    }
+
+    private static pbCOMDT_PLAYER_CONTESTANT_RES_LIST BuildContestantResList(LMNRoleInfo role, int[] registGiveDecorationIDs) => new()
     {
         ResInfoList =
         {
             role.GetOwnedItems(RoleItemType.ContestantCardDecoration)
                 .OrderBy(item => item.GainTime)
-                .ThenBy(item => RegistGiveDecorationIDs.Contains(item.ItemId))
+                .ThenBy(item => registGiveDecorationIDs.Contains(item.ItemId))
                 .ThenBy(item => item.ItemId)
                 .Select(item => new pbCOMDT_CONTESTANT_RES_INFO
             {

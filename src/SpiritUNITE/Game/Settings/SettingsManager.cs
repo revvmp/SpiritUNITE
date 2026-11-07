@@ -19,6 +19,7 @@ public sealed class SettingsManager(SettingsRepository repository, GameData game
     private const int RedDotSwitchedOff = 1;
     private const int SwitchOn = 1;
     private const int NoFriendInviteInvisibleType = (int)PB_ENUM_ENM_INVISIBLE_TYPE.PbEnmInvisibleTypeNofriendInvite;
+    private const int ForeverInvisibleType = (int)PB_ENUM_ENM_INVISIBLE_TYPE.PbEnmInvisibleTypeForever;
 
     private readonly ConcurrentDictionary<ulong, RoleSettingsEntry> entries = new();
 
@@ -197,14 +198,14 @@ public sealed class SettingsManager(SettingsRepository repository, GameData game
             return PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
         }
 
+        var isForeverInvisible = invisibleType == ForeverInvisibleType ? SwitchOn : RoleSettings.Off;
         await ChangeAsync(gameUlongUID, settings => invisibleType == NoFriendInviteInvisibleType
             ? Assign(settings.IsNoFriendInviteInvisible, isInvisible, value => settings.IsNoFriendInviteInvisible = value)
-            : Assign(settings.IsInvisible, isInvisible, value => settings.IsInvisible = value));
+            : Assign(settings.IsForeverInvisible, isForeverInvisible, value => settings.IsForeverInvisible = value));
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
-    public static int GetSelfInvisible(RoleSettings settings, int invisibleType) =>
-        invisibleType == NoFriendInviteInvisibleType ? settings.IsNoFriendInviteInvisible : settings.IsInvisible;
+    public static bool IsNoFriendInviteInvisible(int invisibleType) => invisibleType == NoFriendInviteInvisibleType;
 
     private static bool IsSwitch(int value) => value is RoleSettings.Off or SwitchOn;
 

@@ -1,5 +1,3 @@
-using SpiritUNITE.Databin;
-using SpiritUNITE.Game.Ranked;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
@@ -8,10 +6,10 @@ namespace SpiritUNITE.Game.Friend;
 
 public static class RoleBrief
 {
-    public static pbCOMDT_RANKED_DIVISION_INFO_IN_BRIEF BuildRankedDivisionInfo(GameData gameData, DateTimeOffset now) => new()
+    public static pbCOMDT_RANKED_DIVISION_INFO_IN_BRIEF BuildRankedDivisionInfo(int seasonId, int rankedDivision) => new()
     {
-        RankedDivisionSeasonId = RankedMatch.FindCurrentSeason(gameData, now).Season.SeasonId,
-        RankedDivision = (int)RankedMatch.StartingRankedDivision,
+        RankedDivisionSeasonId = seasonId,
+        RankedDivision = rankedDivision,
     };
 
     public static pbCOMDT_HEAD_INFO BuildHeadInfo(LMNRoleInfo role) => EmptyChildren.Fill(new pbCOMDT_HEAD_INFO

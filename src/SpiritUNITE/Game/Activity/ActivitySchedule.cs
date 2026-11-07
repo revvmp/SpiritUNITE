@@ -20,9 +20,12 @@ public sealed class ActivitySchedule
         tasksByGroup = gameData.TaskBase.Rows.ToLookup(task => task.GroupID);
         dropsById = gameData.DropStatic.Rows.OrderBy(drop => drop.SDropSeq).ToLookup(drop => drop.SDropID);
         TaskBase = gameData.TaskBase;
+        DailyActivityId = gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalDailyActivityId);
     }
 
     public DatabinTable<pbTask_Base> TaskBase { get; }
+
+    public int DailyActivityId { get; }
 
     public ScheduledActivity[] FindActive(DateTimeOffset now) =>
         [.. activities.Where(activity => activity.IsValidAt(now))];

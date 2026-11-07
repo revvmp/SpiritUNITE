@@ -13,7 +13,7 @@ public sealed class RoleSettings(
     pbCOMDT_RED_DOT_INFO redDotInfo,
     pbCOMDT_BUB_TIP_INFO bubTipInfo,
     int isCloseIntimacyShow,
-    int isInvisible,
+    int isForeverInvisible,
     int isNoFriendInviteInvisible)
 {
     public const int NoCountryCode = 0;
@@ -30,7 +30,7 @@ public sealed class RoleSettings(
     public pbCOMDT_RED_DOT_INFO RedDotInfo { get; } = redDotInfo;
     public pbCOMDT_BUB_TIP_INFO BubTipInfo { get; } = bubTipInfo;
     public int IsCloseIntimacyShow { get; set; } = isCloseIntimacyShow;
-    public int IsInvisible { get; set; } = isInvisible;
+    public int IsForeverInvisible { get; set; } = isForeverInvisible;
     public int IsNoFriendInviteInvisible { get; set; } = isNoFriendInviteInvisible;
 
     public RoleSettings Clone() => new(
@@ -44,7 +44,7 @@ public sealed class RoleSettings(
         RedDotInfo.Clone(),
         BubTipInfo.Clone(),
         IsCloseIntimacyShow,
-        IsInvisible,
+        IsForeverInvisible,
         IsNoFriendInviteInvisible);
 
     public static RoleSettings CreateDefault() => new(
