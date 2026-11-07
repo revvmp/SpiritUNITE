@@ -80,6 +80,13 @@ CLOUD_CONTROL_REPLACEMENT_HOST = "spiritunite.invalid"
 IMAGE_CDN_ROUTE = "/cdn"
 CENTAURI_RELEASE_MODE = "release"
 HOSTNAME_LABEL = re.compile(r"^(?!-)[A-Za-z0-9-]{1,63}(?<!-)$")
+OFFICIAL_BUNDLE_IDENTIFIER = "jp.pokemon.pokemonunite"
+BUNDLE_IDENTIFIER_PREFIX = "org.spiritunite"
+DEVELOPMENT_BUNDLE_SEGMENT = "dev"
+BUNDLE_IDENTIFIER_SEGMENT = re.compile(r"^[A-Za-z0-9-]+$")
+MAX_BUNDLE_IDENTIFIER_LENGTH = 155
+DEFAULT_APP_LABEL = "SpiritUNITE"
+MAX_APP_LABEL_LENGTH = 50
 
 OFFICIAL_DIR_ADDRESS = "trunk_global_dist|dirsvr.pokemon-unitepgame.com:10001"
 OFFICIAL_CLOUD_CONTROL_HOST = "gcloudctrl.iegcom.com"
@@ -110,6 +117,8 @@ class HostTarget:
     dir_port: int
     web_port: int
     development: bool
+    bundle_identifier: str
+    app_label: str
 
     @property
     def web_origin(self) -> str:
@@ -203,6 +212,49 @@ def validate_host(host: str) -> str:
     return host
 
 
+def validate_bundle_identifier(bundle_identifier: str) -> str:
+    segments = bundle_identifier.split(".")
+    if (
+        len(segments) < 2
+        or not all(BUNDLE_IDENTIFIER_SEGMENT.match(segment) for segment in segments)
+        or len(bundle_identifier) > MAX_BUNDLE_IDENTIFIER_LENGTH
+    ):
+        raise BuildError(
+            f"{bundle_identifier!r} is not a valid bundle identifier: use at least two dot-separated parts of letters, digits and hyphens, at most {MAX_BUNDLE_IDENTIFIER_LENGTH} characters."
+        )
+    if bundle_identifier.lower() == OFFICIAL_BUNDLE_IDENTIFIER:
+        raise BuildError(
+            f"--bundle-id {OFFICIAL_BUNDLE_IDENTIFIER} is the official app's identifier; the build would replace the official app."
+        )
+    return bundle_identifier
+
+
+def default_bundle_identifier(host: str, development: bool) -> str:
+    segments = [BUNDLE_IDENTIFIER_PREFIX]
+    if development:
+        segments.append(DEVELOPMENT_BUNDLE_SEGMENT)
+    segments.append(re.sub(r"[^A-Za-z0-9]", "-", host.lower()))
+    bundle_identifier = ".".join(segments)
+    if len(bundle_identifier) > MAX_BUNDLE_IDENTIFIER_LENGTH:
+        raise BuildError(
+            f"The bundle identifier derived from {host} is too long; pass a shorter one with --bundle-id."
+        )
+    return bundle_identifier
+
+
+def validate_app_label(label: str) -> str:
+    label = label.strip()
+    if (
+        not label
+        or len(label) > MAX_APP_LABEL_LENGTH
+        or any(not character.isprintable() for character in label)
+    ):
+        raise BuildError(
+            f"--label must be 1 to {MAX_APP_LABEL_LENGTH} printable characters."
+        )
+    return label
+
+
 def validate_port(value: int, option: str) -> int:
     if not 1 <= value <= 65535:
         raise BuildError(f"{option} must be between 1 and 65535, got {value}.")
@@ -267,7 +319,13 @@ def resolve_target(arguments: argparse.Namespace) -> HostTarget:
         raise BuildError(
             f"UpdateServer.Port is {update_port}; the client only looks for the update server on port {allowed}."
         )
-    return HostTarget(host, dir_port, web_port, arguments.dev)
+    bundle_identifier = validate_bundle_identifier(
+        arguments.bundle_id or default_bundle_identifier(host, arguments.dev)
+    )
+    app_label = validate_app_label(arguments.label or DEFAULT_APP_LABEL)
+    return HostTarget(
+        host, dir_port, web_port, arguments.dev, bundle_identifier, app_label
+    )
 
 
 def replace_ini_value(text: str, key: str, value: str) -> str:
@@ -638,8 +696,28 @@ def allow_development_http(info_plist: dict) -> dict:
     return patched
 
 
+def rename_bundle(plist: dict, target: HostTarget) -> dict:
+    if plist.get("CFBundleIdentifier") != OFFICIAL_BUNDLE_IDENTIFIER:
+        raise BuildError(
+            f"Info.plist CFBundleIdentifier is {plist.get('CFBundleIdentifier')!r}, not {OFFICIAL_BUNDLE_IDENTIFIER}."
+        )
+    plist["CFBundleIdentifier"] = target.bundle_identifier
+    plist["CFBundleDisplayName"] = target.app_label
+    url_types = plist.get("CFBundleURLTypes") or []
+    if not isinstance(url_types, list):
+        raise BuildError("Info.plist CFBundleURLTypes is not a list.")
+    plist["CFBundleURLTypes"] = [
+        {**url_type, "CFBundleURLName": target.bundle_identifier}
+        if isinstance(url_type, dict)
+        and url_type.get("CFBundleURLName") == OFFICIAL_BUNDLE_IDENTIFIER
+        else url_type
+        for url_type in url_types
+    ]
+    return plist
+
+
 def patch_info_plist(info_plist: dict, target: HostTarget) -> dict:
-    plist = dict(info_plist)
+    plist = rename_bundle(dict(info_plist), target)
     cloud_config = plist.get("GCloudCore")
     if cloud_config is not None:
         if not isinstance(cloud_config, dict):
@@ -802,7 +880,9 @@ def build_replacements(
     replacements[plist_name] = plistlib.dumps(
         patch_info_plist(bundle.info_plist, target), fmt=bundle.info_plist_format
     )
-    log(f"Patched {plist_name}")
+    log(
+        f"Patched {plist_name}: bundle identifier {target.bundle_identifier}, name {target.app_label!r}"
+    )
     return replacements
 
 
@@ -858,7 +938,7 @@ def build(arguments: argparse.Namespace) -> None:
     rewrite_ipa(arguments.ipa, destination, replacements)
     log(f"\nBuilt {destination} for {target.dir_address}.")
     log(
-        "Sign it with your own Apple provisioning (for example Sideloadly, AltStore or zsign) and install it after removing the official app."
+        f"Sign it with your own Apple provisioning for {target.bundle_identifier} (for example Sideloadly, AltStore or zsign); it installs next to the official app."
     )
     log("Not handled yet:")
     for change in PENDING_CLIENT_CHANGES:
@@ -896,6 +976,14 @@ def parse_arguments() -> argparse.Namespace:
         "--dev",
         action="store_true",
         help="build a development client that talks plain HTTP to a server on your LAN",
+    )
+    parser.add_argument(
+        "--bundle-id",
+        help=f"bundle identifier of the build (default: {BUNDLE_IDENTIFIER_PREFIX}.<host>, or {BUNDLE_IDENTIFIER_PREFIX}.{DEVELOPMENT_BUNDLE_SEGMENT}.<host> with --dev); keep it the same across rebuilds so players can update in place",
+    )
+    parser.add_argument(
+        "--label",
+        help=f"app name shown on the home screen (default: {DEFAULT_APP_LABEL})",
     )
     parser.add_argument(
         "--out",

@@ -36,6 +36,7 @@ RES_DATA_ENTRY = "assets/res.data"
 RESOURCES_ARCHIVE_ENTRY = "lib/arm64-v8a/libResources.so"
 METADATA_ARCHIVE_PATH = "Managed/Metadata/global-metadata.dat"
 MANIFEST_ENTRY = "AndroidManifest.xml"
+RESOURCE_TABLE_ENTRY = "resources.arsc"
 SHELL_DEX_ENTRY = "classes2.dex"
 SHELL_DEX_SHA256 = "0424acd386cc14745c209ccae1662259777889b026c04f60e71953855095d7d7"
 ATTACH_BASE_CONTEXT_SHELL_INSTRUCTIONS = 0x3081B8
@@ -43,9 +44,25 @@ ATTACH_BASE_CONTEXT_SHELL_INSTRUCTIONS = 0x3081B8
 AXML_STRING_POOL = 0x0001
 AXML_START_ELEMENT = 0x0102
 AXML_UTF8_FLAG = 0x100
+AXML_TYPE_STRING = 0x03
 AXML_TYPE_BOOLEAN = 0x12
 AXML_TRUE = 0xFFFFFFFF
+AXML_STRING_POOL_HEADER_SIZE = 28
+RESOURCE_TABLE_TYPE = 0x0002
+RESOURCE_TABLE_PACKAGE_TYPE = 0x0200
+RESOURCE_TABLE_PACKAGE_NAME_UNITS = 128
 APPLICATION_ELEMENT = "application"
+MANIFEST_ELEMENT = "manifest"
+PACKAGE_ATTRIBUTE = "package"
+LABEL_ATTRIBUTE = "label"
+LABELLED_ELEMENTS = ("application", "activity", "activity-alias")
+OFFICIAL_PACKAGE_NAME = "jp.pokemon.pokemonunite"
+PACKAGE_NAME_PREFIX = "org.spiritunite"
+DEVELOPMENT_PACKAGE_SEGMENT = "dev"
+PACKAGE_NAME_SEGMENT = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
+MAX_PACKAGE_NAME_LENGTH = RESOURCE_TABLE_PACKAGE_NAME_UNITS - 1
+DEFAULT_APP_LABEL = "SpiritUNITE"
+MAX_APP_LABEL_LENGTH = 50
 NETWORK_SECURITY_CONFIG_ATTRIBUTE = "networkSecurityConfig"
 USES_CLEARTEXT_TRAFFIC_ATTRIBUTE = "usesCleartextTraffic"
 
@@ -176,6 +193,8 @@ class HostTarget:
     web_port: int
     update_port: int
     development: bool
+    package_name: str
+    app_label: str
 
     @property
     def web_origin(self) -> str:
@@ -263,6 +282,52 @@ def validate_port(value: int, option: str) -> int:
     return value
 
 
+def validate_package_name(package_name: str) -> str:
+    segments = package_name.split(".")
+    if (
+        len(segments) < 2
+        or not all(PACKAGE_NAME_SEGMENT.match(segment) for segment in segments)
+        or len(package_name) > MAX_PACKAGE_NAME_LENGTH
+    ):
+        raise BuildError(
+            f"{package_name!r} is not a valid Android package name: use at least two dot-separated parts of letters, digits and underscores, each starting with a letter, at most {MAX_PACKAGE_NAME_LENGTH} characters."
+        )
+    if package_name == OFFICIAL_PACKAGE_NAME:
+        raise BuildError(
+            f"--package {OFFICIAL_PACKAGE_NAME} is the official app's name; the build would replace the official app."
+        )
+    return package_name
+
+
+def default_package_name(host: str, development: bool) -> str:
+    host_segment = re.sub(r"[^A-Za-z0-9]", "_", host.lower())
+    if not host_segment[0].isalpha():
+        host_segment = f"h{host_segment}"
+    segments = [PACKAGE_NAME_PREFIX]
+    if development:
+        segments.append(DEVELOPMENT_PACKAGE_SEGMENT)
+    segments.append(host_segment)
+    package_name = ".".join(segments)
+    if len(package_name) > MAX_PACKAGE_NAME_LENGTH:
+        raise BuildError(
+            f"The package name derived from {host} is too long; pass a shorter one with --package."
+        )
+    return package_name
+
+
+def validate_app_label(label: str) -> str:
+    label = label.strip()
+    if (
+        not label
+        or len(label) > MAX_APP_LABEL_LENGTH
+        or any(not character.isprintable() for character in label)
+    ):
+        raise BuildError(
+            f"--label must be 1 to {MAX_APP_LABEL_LENGTH} printable characters."
+        )
+    return label
+
+
 def read_appsettings() -> dict:
     if not APPSETTINGS_PATH.is_file():
         return {}
@@ -330,8 +395,19 @@ def resolve_target(arguments: argparse.Namespace) -> HostTarget:
         raise BuildError(
             f"UpdateServer.Port is {update_port}; the client only looks for the update server on port {allowed}."
         )
+    package_name = validate_package_name(
+        arguments.package or default_package_name(host, arguments.dev)
+    )
+    app_label = validate_app_label(arguments.label or DEFAULT_APP_LABEL)
     target = HostTarget(
-        host, dir_port, lobby_port, web_port, update_port, arguments.dev
+        host,
+        dir_port,
+        lobby_port,
+        web_port,
+        update_port,
+        arguments.dev,
+        package_name,
+        app_label,
     )
     longest_supported = min(
         len(known.dir_address.original)
@@ -513,6 +589,161 @@ def allow_cleartext_traffic(manifest: bytes) -> bytes:
             struct.pack_into("<H", patched, special_index, 0)
         elif one_based > removed + 1:
             struct.pack_into("<H", patched, special_index, one_based - 1)
+    return bytes(patched)
+
+
+def encode_pool_length(length: int, utf8: bool) -> bytes:
+    if utf8:
+        if length > 0x7FFF:
+            raise BuildError(f"{MANIFEST_ENTRY} string is too long to encode.")
+        if length > 0x7F:
+            return bytes((0x80 | (length >> 8), length & 0xFF))
+        return bytes((length,))
+    if length > 0x7FFF:
+        return struct.pack("<HH", 0x8000 | (length >> 16), length & 0xFFFF)
+    return struct.pack("<H", length)
+
+
+def encode_pool_string(text: str, utf8: bool) -> bytes:
+    utf16 = text.encode("utf-16-le")
+    if not utf8:
+        return encode_pool_length(len(utf16) // 2, False) + utf16 + b"\x00\x00"
+    encoded = text.encode("utf-8")
+    return (
+        encode_pool_length(len(utf16) // 2, True)
+        + encode_pool_length(len(encoded), True)
+        + encoded
+        + b"\x00"
+    )
+
+
+def encode_string_pool(strings: list[str], flags: int) -> bytes:
+    utf8 = bool(flags & AXML_UTF8_FLAG)
+    offsets = []
+    data = bytearray()
+    for text in strings:
+        offsets.append(len(data))
+        data += encode_pool_string(text, utf8)
+    data += b"\x00" * (-len(data) % 4)
+    strings_start = AXML_STRING_POOL_HEADER_SIZE + 4 * len(strings)
+    header = struct.pack(
+        "<HHI5I",
+        AXML_STRING_POOL,
+        AXML_STRING_POOL_HEADER_SIZE,
+        strings_start + len(data),
+        len(strings),
+        0,
+        flags,
+        strings_start,
+        0,
+    )
+    return header + struct.pack(f"<{len(strings)}I", *offsets) + bytes(data)
+
+
+def manifest_elements(manifest: bytes, strings: list[str], position: int):
+    while position + 8 <= len(manifest):
+        chunk_type, _, chunk_size = struct.unpack_from("<HHI", manifest, position)
+        if chunk_size < 8:
+            raise BuildError(f"{MANIFEST_ENTRY} has a corrupt chunk.")
+        if chunk_type == AXML_START_ELEMENT:
+            name_index = struct.unpack_from("<I", manifest, position + 20)[0]
+            if name_index < len(strings):
+                yield strings[name_index], position
+        position += chunk_size
+
+
+def manifest_package_name(manifest: bytes) -> str:
+    strings, first_chunk = read_manifest_strings(manifest)
+    for name, element in manifest_elements(manifest, strings, first_chunk):
+        if name != MANIFEST_ELEMENT:
+            continue
+        first, attribute_size, positions = application_attributes(
+            manifest, strings, element
+        )
+        if PACKAGE_ATTRIBUTE in positions:
+            attribute = first + positions[PACKAGE_ATTRIBUTE] * attribute_size
+            return strings[struct.unpack_from("<I", manifest, attribute + 8)[0]]
+    raise BuildError(f"{MANIFEST_ENTRY} has no package name.")
+
+
+def set_literal_labels(
+    manifest: bytearray, strings: list[str], label_index: int
+) -> int:
+    _, first_chunk = read_manifest_strings(bytes(manifest))
+    labelled = 0
+    for name, element in manifest_elements(bytes(manifest), strings, first_chunk):
+        if name not in LABELLED_ELEMENTS:
+            continue
+        first, attribute_size, positions = application_attributes(
+            bytes(manifest), strings, element
+        )
+        if LABEL_ATTRIBUTE not in positions:
+            continue
+        attribute = first + positions[LABEL_ATTRIBUTE] * attribute_size
+        struct.pack_into("<I", manifest, attribute + 8, label_index)
+        manifest[attribute + 15] = AXML_TYPE_STRING
+        struct.pack_into("<I", manifest, attribute + 16, label_index)
+        labelled += 1
+    return labelled
+
+
+def rename_manifest_package(
+    manifest: bytes, official_package: str, package_name: str, label: str | None
+) -> bytes:
+    if struct.unpack_from("<HH", manifest, 0) != (0x0003, 8):
+        raise BuildError(f"{MANIFEST_ENTRY} is not binary XML.")
+    strings, pool_end = read_manifest_strings(manifest)
+    style_count, flags = struct.unpack_from("<4xII", manifest, 16)
+    if style_count:
+        raise BuildError(
+            f"{MANIFEST_ENTRY} has styled strings, which are not supported."
+        )
+    if manifest_package_name(manifest) != official_package:
+        raise BuildError(
+            f"{MANIFEST_ENTRY} names package {manifest_package_name(manifest)}, not {official_package}."
+        )
+    renamed = [text.replace(official_package, package_name) for text in strings]
+    if label is not None:
+        renamed.append(label)
+    pool = encode_string_pool(renamed, flags)
+    patched = bytearray(manifest[:8] + pool + manifest[pool_end:])
+    struct.pack_into("<I", patched, 4, len(patched))
+    if label is not None and not set_literal_labels(patched, renamed, len(renamed) - 1):
+        raise BuildError(f"{MANIFEST_ENTRY} has no android:label to replace.")
+    return bytes(patched)
+
+
+def rename_resource_table_package(
+    table: bytes, official_package: str, package_name: str
+) -> bytes:
+    chunk_type, header_size, chunk_size = struct.unpack_from("<HHI", table, 0)
+    if chunk_type != RESOURCE_TABLE_TYPE or chunk_size != len(table):
+        raise BuildError(f"{RESOURCE_TABLE_ENTRY} is not a resource table.")
+    patched = bytearray(table)
+    name_bytes = RESOURCE_TABLE_PACKAGE_NAME_UNITS * 2
+    renamed = 0
+    position = header_size
+    while position + 8 <= len(table):
+        chunk_type, _, chunk_size = struct.unpack_from("<HHI", table, position)
+        if chunk_size < 8:
+            raise BuildError(f"{RESOURCE_TABLE_ENTRY} has a corrupt chunk.")
+        if chunk_type == RESOURCE_TABLE_PACKAGE_TYPE:
+            name_start = position + 12
+            name = (
+                table[name_start : name_start + name_bytes]
+                .decode("utf-16-le")
+                .split("\x00", 1)[0]
+            )
+            if name == official_package:
+                patched[name_start : name_start + name_bytes] = package_name.encode(
+                    "utf-16-le"
+                ).ljust(name_bytes, b"\x00")
+                renamed += 1
+        position += chunk_size
+    if renamed != 1:
+        raise BuildError(
+            f"{RESOURCE_TABLE_ENTRY} has {renamed} packages named {official_package}, expected one."
+        )
     return bytes(patched)
 
 
@@ -1486,12 +1717,31 @@ def build_base_replacements(
                 base.read(RES_DATA_ENTRY), old_metadata_md5, new_metadata_md5
             ),
             SHELL_DEX_ENTRY: disable_signature_shell(base.read(SHELL_DEX_ENTRY)),
+            RESOURCE_TABLE_ENTRY: rename_resource_table_package(
+                base.read(RESOURCE_TABLE_ENTRY),
+                OFFICIAL_PACKAGE_NAME,
+                target.package_name,
+            ),
         }
+        manifest = base.read(MANIFEST_ENTRY)
         if target.development:
-            replacements[MANIFEST_ENTRY] = allow_cleartext_traffic(
-                base.read(MANIFEST_ENTRY)
-            )
+            manifest = allow_cleartext_traffic(manifest)
+        replacements[MANIFEST_ENTRY] = rename_manifest_package(
+            manifest, OFFICIAL_PACKAGE_NAME, target.package_name, target.app_label
+        )
         return replacements
+
+
+def build_split_manifest_replacement(
+    split: Path, target: HostTarget
+) -> dict[str, bytes]:
+    with zipfile.ZipFile(split) as archive:
+        manifest = archive.read(MANIFEST_ENTRY)
+    return {
+        MANIFEST_ENTRY: rename_manifest_package(
+            manifest, OFFICIAL_PACKAGE_NAME, target.package_name, None
+        )
+    }
 
 
 def build_native_replacements(
@@ -1538,11 +1788,17 @@ def build(arguments: argparse.Namespace) -> None:
     log("Disabling AnoApplication signature-shell initialization")
     if target.development:
         log("Allowing cleartext HTTP in AndroidManifest.xml")
+    log(
+        f"Renaming the app to {target.package_name} ({target.app_label!r}) so it installs next to the official app"
+    )
     base_replacements = build_base_replacements(splits, target, old_md5, new_md5)
     replacements = {
         BASE_APK: base_replacements,
-        NATIVE_APK: native_replacements,
-        ASSET_PACK_APK: {},
+        NATIVE_APK: native_replacements
+        | build_split_manifest_replacement(splits[NATIVE_APK], target),
+        ASSET_PACK_APK: build_split_manifest_replacement(
+            splits[ASSET_PACK_APK], target
+        ),
     }
     output_dir.mkdir(parents=True, exist_ok=True)
     signed_apks = []
@@ -1566,7 +1822,7 @@ def build(arguments: argparse.Namespace) -> None:
     else:
         log(f"Done. Give players {bundle}")
         log(
-            "They uninstall the official app first, then install the .apks with a split APK installer such as SAI,"
+            f"It installs as {target.package_name} next to the official app; players install the .apks with a split APK installer such as SAI,"
         )
         log(f"or from a computer: {install_command}")
         log(
@@ -1588,7 +1844,9 @@ def report_development_build(
     target: HostTarget, bundle: Path, install_command: str
 ) -> None:
     log(f"Done. Development client: {bundle}")
-    log("Uninstall the official app on the test device, then install it:")
+    log(
+        f"It installs as {target.package_name} next to the official app. Install it on the test device:"
+    )
     log(f"  {install_command}")
     if is_loopback(target.host):
         log(
@@ -1635,6 +1893,14 @@ def parse_arguments() -> argparse.Namespace:
         "--dev",
         action="store_true",
         help="build a local development client that talks plain HTTP to the server (no certificate or root needed)",
+    )
+    parser.add_argument(
+        "--package",
+        help=f"Android package name of the build (default: {PACKAGE_NAME_PREFIX}.<host>, or {PACKAGE_NAME_PREFIX}.{DEVELOPMENT_PACKAGE_SEGMENT}.<host> with --dev); keep it the same across rebuilds so players can update in place",
+    )
+    parser.add_argument(
+        "--label",
+        help=f"app name shown on the home screen (default: {DEFAULT_APP_LABEL})",
     )
     parser.add_argument(
         "--out",
