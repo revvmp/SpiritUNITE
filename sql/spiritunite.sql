@@ -469,6 +469,96 @@ CREATE TABLE IF NOT EXISTS `role_warm_battle` (
     CONSTRAINT fk_role_warm_battle_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `guild` (
+    guild_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    guild_name VARCHAR(64) NOT NULL,
+    notice VARCHAR(512) NOT NULL DEFAULT '',
+    join_type INT NOT NULL,
+    label_1 INT NOT NULL,
+    label_2 INT NOT NULL DEFAULT 0,
+    label_3 INT NOT NULL DEFAULT 0,
+    build_time BIGINT NOT NULL,
+    PRIMARY KEY (guild_id),
+    UNIQUE KEY ux_guild_name (guild_name)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `guild_member` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    guild_id BIGINT UNSIGNED NOT NULL,
+    office INT NOT NULL,
+    join_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid),
+    KEY ix_guild_member_guild (guild_id),
+    CONSTRAINT fk_guild_member_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE,
+    CONSTRAINT fk_guild_member_guild FOREIGN KEY (guild_id) REFERENCES `guild` (guild_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `guild_join_request` (
+    guild_id BIGINT UNSIGNED NOT NULL,
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    request_time BIGINT NOT NULL,
+    PRIMARY KEY (guild_id, game_ulong_uid),
+    KEY ix_guild_join_request_role (game_ulong_uid),
+    CONSTRAINT fk_guild_join_request_guild FOREIGN KEY (guild_id) REFERENCES `guild` (guild_id) ON DELETE CASCADE,
+    CONSTRAINT fk_guild_join_request_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `guild_comment` (
+    guild_id BIGINT UNSIGNED NOT NULL,
+    comment_index BIGINT NOT NULL,
+    comment_type INT NOT NULL,
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    member_name VARCHAR(64) NOT NULL,
+    other_uid BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    other_name VARCHAR(64) NOT NULL DEFAULT '',
+    content VARCHAR(256) NOT NULL DEFAULT '',
+    text_id INT NOT NULL DEFAULT 0,
+    comment_time BIGINT NOT NULL,
+    PRIMARY KEY (guild_id, comment_index),
+    CONSTRAINT fk_guild_comment_guild FOREIGN KEY (guild_id) REFERENCES `guild` (guild_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `guild_activity` (
+    guild_id BIGINT UNSIGNED NOT NULL,
+    period_id INT NOT NULL,
+    reward_id INT NOT NULL DEFAULT 0,
+    guild_score INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (guild_id, period_id),
+    CONSTRAINT ck_guild_activity_score CHECK (guild_score >= 0),
+    CONSTRAINT fk_guild_activity_guild FOREIGN KEY (guild_id) REFERENCES `guild` (guild_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_guild` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    last_quit_time BIGINT NOT NULL DEFAULT 0,
+    quit_cnt INT NOT NULL DEFAULT 0,
+    history_label_1 INT NOT NULL DEFAULT 0,
+    history_label_2 INT NOT NULL DEFAULT 0,
+    history_label_3 INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid),
+    CONSTRAINT ck_role_guild_quit_cnt CHECK (quit_cnt >= 0),
+    CONSTRAINT fk_role_guild_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_guild_activity_reward` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    period_id INT NOT NULL,
+    reward_gear INT NOT NULL,
+    reward_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, period_id, reward_gear),
+    CONSTRAINT fk_role_guild_activity_reward_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_guild_activity_task` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    task_id INT NOT NULL,
+    period_start BIGINT NOT NULL,
+    guild_id BIGINT UNSIGNED NOT NULL,
+    reward_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, task_id, period_start),
+    CONSTRAINT fk_role_guild_activity_task_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `role_badge_show` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     badge_show_list VARCHAR(64) NOT NULL DEFAULT '',

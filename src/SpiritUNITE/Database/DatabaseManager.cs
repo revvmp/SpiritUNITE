@@ -70,6 +70,14 @@ public static class DatabaseManager
             await database.GetTable<RolePokemonCarryEquipment>().AnyAsync();
             await database.GetTable<RoleActivationCode>().AnyAsync();
             await database.GetTable<ActivationCodeUse>().AnyAsync();
+            await database.GetTable<Guild>().AnyAsync();
+            await database.GetTable<GuildMember>().AnyAsync();
+            await database.GetTable<GuildJoinRequest>().AnyAsync();
+            await database.GetTable<GuildComment>().AnyAsync();
+            await database.GetTable<GuildActivity>().AnyAsync();
+            await database.GetTable<RoleGuild>().AnyAsync();
+            await database.GetTable<RoleGuildActivityReward>().AnyAsync();
+            await database.GetTable<RoleGuildActivityTask>().AnyAsync();
         }
         catch (MySqlException exception)
         {

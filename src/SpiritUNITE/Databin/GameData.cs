@@ -108,6 +108,12 @@ public sealed class GameData
         PasterSpray = LoadRecords<pbPasterSpray>(row => row.PasterSprayID);
         NewPlayerDefaultRes = LoadRecords<pbNewPlayerDefaultRes>(row => row.NewplayerRewardId);
         EeveeChallenge = LoadRecords<pbEeveeChallenge>(row => pbEeveeChallenge.Key(row.EeveeID, row.ActivityID));
+        GuildLabel = LoadRecords<pbGuildLabel>(row => row.LableID);
+        GuildActivityBase = LoadRecords<pbGuildActivity_Base>(row => row.PeriodID);
+        GuildActivityRewardPool = LoadRecords<pbGuildActivity_RewardPool>(row => row.PoolID);
+        GuildActivityScoreGear = LoadRecords<pbGuildActivity_ScoreGear>(row => row.GearID);
+        GuildActivityScoreReward = LoadRecords<pbGuildActivity_ScoreReward>(row => pbGuildActivity_ScoreReward.Key(row.RewardID, row.GearID));
+        GuildActivityTask = LoadRecords<pbGuildActivity_Task>(row => row.RewardID);
         DefaultLobbyBgId = FindDefaultLobbyBgId(LobbyBg);
     }
 
@@ -190,6 +196,12 @@ public sealed class GameData
     public DatabinTable<pbSkillEffectExpandPack_Base> SkillEffectExpandPackBase { get; }
     public DatabinTable<pbPokemon_Equipment> PokemonEquipment { get; }
     public DatabinTable<pbUnit_Base> UnitBase { get; }
+    public DatabinTable<pbGuildLabel> GuildLabel { get; }
+    public DatabinTable<pbGuildActivity_Base> GuildActivityBase { get; }
+    public DatabinTable<pbGuildActivity_RewardPool> GuildActivityRewardPool { get; }
+    public DatabinTable<pbGuildActivity_ScoreGear> GuildActivityScoreGear { get; }
+    public DatabinTable<pbGuildActivity_ScoreReward> GuildActivityScoreReward { get; }
+    public DatabinTable<pbGuildActivity_Task> GuildActivityTask { get; }
     public int DefaultLobbyBgId { get; }
 
     public static GameData Load(string directory) => new(directory);

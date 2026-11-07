@@ -1,0 +1,22 @@
+[
+  {
+    "GearID": 1,
+    "Score": 1000
+  },
+  {
+    "GearID": 2,
+    "Score": 2000
+  },
+  {
+    "GearID": 3,
+    "Score": 3000
+  },
+  {
+    "GearID": 4,
+    "Score": 4000
+  },
+  {
+    "GearID": 5,
+    "Score": 5000
+  }
+]

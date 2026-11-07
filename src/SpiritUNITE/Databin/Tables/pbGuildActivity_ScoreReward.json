@@ -1,0 +1,302 @@
+[
+  {
+    "GearID": 1,
+    "SDropID": 12003,
+    "RewardID": 1
+  },
+  {
+    "GearID": 2,
+    "SDropID": 12101,
+    "RewardID": 1
+  },
+  {
+    "GearID": 3,
+    "SDropID": 12001,
+    "RewardID": 1
+  },
+  {
+    "GearID": 4,
+    "SDropID": 12002,
+    "RewardID": 1
+  },
+  {
+    "GearID": 5,
+    "SDropID": 12123,
+    "RewardID": 1
+  },
+  {
+    "GearID": 1,
+    "SDropID": 12003,
+    "RewardID": 2
+  },
+  {
+    "GearID": 2,
+    "SDropID": 12102,
+    "RewardID": 2
+  },
+  {
+    "GearID": 3,
+    "SDropID": 12001,
+    "RewardID": 2
+  },
+  {
+    "GearID": 4,
+    "SDropID": 12002,
+    "RewardID": 2
+  },
+  {
+    "GearID": 5,
+    "SDropID": 12123,
+    "RewardID": 2
+  },
+  {
+    "GearID": 1,
+    "SDropID": 12003,
+    "RewardID": 3
+  },
+  {
+    "GearID": 2,
+    "SDropID": 12103,
+    "RewardID": 3
+  },
+  {
+    "GearID": 3,
+    "SDropID": 12001,
+    "RewardID": 3
+  },
+  {
+    "GearID": 4,
+    "SDropID": 12002,
+    "RewardID": 3
+  },
+  {
+    "GearID": 5,
+    "SDropID": 12123,
+    "RewardID": 3
+  },
+  {
+    "GearID": 1,
+    "SDropID": 12003,
+    "RewardID": 4
+  },
+  {
+    "GearID": 2,
+    "SDropID": 12104,
+    "RewardID": 4
+  },
+  {
+    "GearID": 3,
+    "SDropID": 12001,
+    "RewardID": 4
+  },
+  {
+    "GearID": 4,
+    "SDropID": 12002,
+    "RewardID": 4
+  },
+  {
+    "GearID": 5,
+    "SDropID": 12123,
+    "RewardID": 4
+  },
+  {
+    "GearID": 1,
+    "SDropID": 12003,
+    "RewardID": 5
+  },
+  {
+    "GearID": 2,
+    "SDropID": 12105,
+    "RewardID": 5
+  },
+  {
+    "GearID": 3,
+    "SDropID": 12001,
+    "RewardID": 5
+  },
+  {
+    "GearID": 4,
+    "SDropID": 12002,
+    "RewardID": 5
+  },
+  {
+    "GearID": 5,
+    "SDropID": 12123,
+    "RewardID": 5
+  },
+  {
+    "GearID": 1,
+    "SDropID": 12003,
+    "RewardID": 6
+  },
+  {
+    "GearID": 2,
+    "SDropID": 12106,
+    "RewardID": 6
+  },
+  {
+    "GearID": 3,
+    "SDropID": 12001,
+    "RewardID": 6
+  },
+  {
+    "GearID": 4,
+    "SDropID": 12002,
+    "RewardID": 6
+  },
+  {
+    "GearID": 5,
+    "SDropID": 12123,
+    "RewardID": 6
+  },
+  {
+    "GearID": 1,
+    "SDropID": 12003,
+    "RewardID": 7
+  },
+  {
+    "GearID": 2,
+    "SDropID": 12111,
+    "RewardID": 7
+  },
+  {
+    "GearID": 3,
+    "SDropID": 12001,
+    "RewardID": 7
+  },
+  {
+    "GearID": 4,
+    "SDropID": 12002,
+    "RewardID": 7
+  },
+  {
+    "GearID": 5,
+    "SDropID": 12123,
+    "RewardID": 7
+  },
+  {
+    "GearID": 1,
+    "SDropID": 12003,
+    "RewardID": 8
+  },
+  {
+    "GearID": 2,
+    "SDropID": 12112,
+    "RewardID": 8
+  },
+  {
+    "GearID": 3,
+    "SDropID": 12001,
+    "RewardID": 8
+  },
+  {
+    "GearID": 4,
+    "SDropID": 12002,
+    "RewardID": 8
+  },
+  {
+    "GearID": 5,
+    "SDropID": 12123,
+    "RewardID": 8
+  },
+  {
+    "GearID": 1,
+    "SDropID": 12003,
+    "RewardID": 9
+  },
+  {
+    "GearID": 2,
+    "SDropID": 12113,
+    "RewardID": 9
+  },
+  {
+    "GearID": 3,
+    "SDropID": 12001,
+    "RewardID": 9
+  },
+  {
+    "GearID": 4,
+    "SDropID": 12002,
+    "RewardID": 9
+  },
+  {
+    "GearID": 5,
+    "SDropID": 12123,
+    "RewardID": 9
+  },
+  {
+    "GearID": 1,
+    "SDropID": 12003,
+    "RewardID": 10
+  },
+  {
+    "GearID": 2,
+    "SDropID": 12114,
+    "RewardID": 10
+  },
+  {
+    "GearID": 3,
+    "SDropID": 12001,
+    "RewardID": 10
+  },
+  {
+    "GearID": 4,
+    "SDropID": 12002,
+    "RewardID": 10
+  },
+  {
+    "GearID": 5,
+    "SDropID": 12123,
+    "RewardID": 10
+  },
+  {
+    "GearID": 1,
+    "SDropID": 12003,
+    "RewardID": 11
+  },
+  {
+    "GearID": 2,
+    "SDropID": 12115,
+    "RewardID": 11
+  },
+  {
+    "GearID": 3,
+    "SDropID": 12001,
+    "RewardID": 11
+  },
+  {
+    "GearID": 4,
+    "SDropID": 12002,
+    "RewardID": 11
+  },
+  {
+    "GearID": 5,
+    "SDropID": 12123,
+    "RewardID": 11
+  },
+  {
+    "GearID": 1,
+    "SDropID": 12003,
+    "RewardID": 12
+  },
+  {
+    "GearID": 2,
+    "SDropID": 12116,
+    "RewardID": 12
+  },
+  {
+    "GearID": 3,
+    "SDropID": 12001,
+    "RewardID": 12
+  },
+  {
+    "GearID": 4,
+    "SDropID": 12002,
+    "RewardID": 12
+  },
+  {
+    "GearID": 5,
+    "SDropID": 12123,
+    "RewardID": 12
+  }
+]

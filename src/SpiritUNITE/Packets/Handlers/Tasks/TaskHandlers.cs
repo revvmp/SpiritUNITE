@@ -1,6 +1,8 @@
 using SpiritUNITE.Game.Achievement;
 using SpiritUNITE.Game.Activity;
 using SpiritUNITE.Game.Bag;
+using SpiritUNITE.Game.BattlePass;
+using SpiritUNITE.Game.Guild;
 using SpiritUNITE.Game.Newbie;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.StarRoad;
@@ -16,7 +18,10 @@ public sealed class TaskHandlers(
     AchievementManager achievementManager,
     NewbieChallengeTaskManager newbieChallengeTaskManager,
     TaskUpdates taskUpdates,
-    ActivityRewardNotices rewardNotices)
+    ActivityRewardNotices rewardNotices,
+    BattlePassTasks battlePassTasks,
+    BattlePassManager battlePass,
+    GuildActivityTasks guildActivityTasks)
 {
     private const int SingleTask = 0;
 
@@ -43,6 +48,16 @@ public sealed class TaskHandlers(
             case PB_ENUM_ENM_CLIENT_TASKMODULE.PbEnmClientTaskmoduleNewbiechallenge:
                 response.TaskInfoList.Add(await newbieChallengeTaskManager.BuildTaskInfoListAsync(roles.Require(request.Uid)));
                 break;
+            case PB_ENUM_ENM_CLIENT_TASKMODULE.PbEnmClientTaskmoduleBattlepass:
+                var battlePassRole = roles.Require(request.Uid);
+                await activityManager.RecordLoginDayAsync(battlePassRole.GameUlongUID);
+                var battlePassTaskInfo = await battlePassTasks.BuildTaskInfoRspAsync(battlePassRole);
+                response.TaskInfoList.Add(battlePassTaskInfo.TaskInfoList);
+                response.TaskSysExtraInfo = battlePassTaskInfo.TaskSysExtraInfo;
+                break;
+            case PB_ENUM_ENM_CLIENT_TASKMODULE.PbEnmClientTaskmoduleGuildActivity:
+                response.TaskInfoList.Add(await guildActivityTasks.BuildTaskInfoListAsync(roles.Require(request.Uid).GameUlongUID));
+                break;
         }
 
         return
@@ -66,6 +81,16 @@ public sealed class TaskHandlers(
         if (claimRequest.ModuleType == (int)PB_ENUM_ENM_TASKSYSTEM.PbEnmTasksystemNewbiechallenge)
         {
             return await ClaimNewbieChallengeAsync(request, claimRequest, role);
+        }
+
+        if (BattlePassTasks.IsBattlePassModule(claimRequest.ModuleType))
+        {
+            return await ClaimBattlePassAsync(request, claimRequest, role);
+        }
+
+        if (claimRequest.ModuleType == (int)PB_ENUM_ENM_CLIENT_TASKMODULE.PbEnmClientTaskmoduleGuildActivity)
+        {
+            return await ClaimGuildActivityAsync(request, claimRequest, role);
         }
 
         var achievementCompleteCountBefore = await achievementManager.CountCompleteTasksAsync(role);
@@ -116,6 +141,51 @@ public sealed class TaskHandlers(
         return claimRequest.IsBatch == SingleTask
             ? [taskUpdate, redDot, .. rewards, response]
             : [.. rewards, taskUpdate, redDot, response];
+    }
+
+    private async Task<GamePacket[]> ClaimBattlePassAsync(GamePacket request, pbCSGetTaskRewardReq claimRequest, LMNRoleInfo role)
+    {
+        var claim = await battlePassTasks.ClaimAsync(role, claimRequest.TaskId, claimRequest.IsBatch != SingleTask);
+        var response = BuildRewardResponse(request, claimRequest, claim.Result);
+        if (claim.Commit is not { } commit)
+        {
+            return [response];
+        }
+
+        var taskUpdate = BuildUpdateTaskInfoNtf(request, claim.UpdatedTasks);
+        GamePacket[] rewards =
+        [
+            .. (await battlePass.BuildChangePacketsAsync(role, commit, PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonTaskaward))
+                .Select(packet => packet with { Uid = request.Uid, ClientSeq = request.ClientSeq }),
+        ];
+        return claimRequest.IsBatch == SingleTask
+            ? [taskUpdate, .. rewards, response]
+            : [.. rewards, taskUpdate, response];
+    }
+
+    private async Task<GamePacket[]> ClaimGuildActivityAsync(GamePacket request, pbCSGetTaskRewardReq claimRequest, LMNRoleInfo role)
+    {
+        var claim = claimRequest.IsBatch == SingleTask
+            ? await guildActivityTasks.ClaimAsync(role, claimRequest.TaskId)
+            : GuildActivityTaskClaim.Refused(PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid);
+        var response = BuildRewardResponse(request, claimRequest, claim.Result);
+        if (claim is not { TaskInfo: { } taskInfo, Rewards: { } rewards })
+        {
+            return [response];
+        }
+
+        return
+        [
+            BuildUpdateTaskInfoNtf(request, [taskInfo]),
+            .. await BuildRewardGroupPacketsAsync(request, role, rewards),
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidResourcesAwardNotify, new pbSCResourcesAwardNotify
+            {
+                ResultInfo = new pbResultInfo(),
+                AwardReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonTaskaward,
+                ResourcesList = { rewards.Awards },
+            }),
+            response,
+        ];
     }
 
     private async Task<GamePacket[]> BuildRewardGroupPacketsAsync(GamePacket request, LMNRoleInfo role, ActivityRewardGroup? rewards) =>

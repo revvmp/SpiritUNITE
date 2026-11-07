@@ -30,6 +30,7 @@ using SpiritUNITE.Game.HeldItem;
 using SpiritUNITE.Game.Lobby;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Friend;
+using SpiritUNITE.Game.Guild;
 using SpiritUNITE.Game.Mail;
 using SpiritUNITE.Game.Newbie;
 using SpiritUNITE.Game.MSDKNotice;
@@ -247,6 +248,7 @@ public static class Server
         builder.Services.AddSingleton<RoleTmpNameRepository>();
         builder.Services.AddSingleton<CarryEquipmentRepository>();
         builder.Services.AddSingleton<ActivationCodeRepository>();
+        builder.Services.AddSingleton<GuildRepository>();
     }
 
     private static void AddGameData(IHostApplicationBuilder builder)
@@ -269,6 +271,11 @@ public static class Server
         builder.Services.AddSingleton<FriendPresence>();
         builder.Services.AddSingleton<RoleBriefBuilder>();
         builder.Services.AddSingleton<FriendManager>();
+        builder.Services.AddSingleton<GuildInfoBuilder>();
+        builder.Services.AddSingleton<GuildComments>();
+        builder.Services.AddSingleton<GuildActivityManager>();
+        builder.Services.AddSingleton<GuildActivityTasks>();
+        builder.Services.AddSingleton<GuildManager>();
         builder.Services.AddSingleton<MailManager>();
         builder.Services.AddSingleton<CreditManager>();
         builder.Services.AddSingleton<RankedLadder>();

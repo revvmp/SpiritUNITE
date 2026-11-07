@@ -10,6 +10,7 @@ using SpiritUNITE.Game.Credit;
 using SpiritUNITE.Game.Energy;
 using SpiritUNITE.Game.FightHistory;
 using SpiritUNITE.Game.Friend;
+using SpiritUNITE.Game.Guild;
 using SpiritUNITE.Game.HeldItem;
 using SpiritUNITE.Game.Lobby;
 using SpiritUNITE.Game.Match;
@@ -115,6 +116,7 @@ public sealed class BattleSettlement
     private readonly SettleTeamPresence teamPresence;
     private readonly FriendPresence presence;
     private readonly ActivityRewardNotices rewardNotices;
+    private readonly GuildActivityTasks guildActivityTasks;
     private readonly GVoiceOptions gVoice;
     private readonly BattleSettlementOptions options;
     private readonly TimeProvider clock;
@@ -152,6 +154,7 @@ public sealed class BattleSettlement
         SettleTeamPresence teamPresence,
         FriendPresence presence,
         ActivityRewardNotices rewardNotices,
+        GuildActivityTasks guildActivityTasks,
         IOptions<GVoiceOptions> gVoiceOptions,
         IOptions<BattleSettlementOptions> options,
         TimeProvider clock,
@@ -184,6 +187,7 @@ public sealed class BattleSettlement
         this.teamPresence = teamPresence;
         this.presence = presence;
         this.rewardNotices = rewardNotices;
+        this.guildActivityTasks = guildActivityTasks;
         gVoice = gVoiceOptions.Value;
         this.options = options.Value;
         this.clock = clock;
@@ -309,6 +313,11 @@ public sealed class BattleSettlement
         settleGains[uid] = gain;
         _ = ForgetSettleGainAsync(uid, gain);
         var battleTasks = IsCustomBattle(result) ? NoBattleTasks : await RecordBattleTasksAsync(role, result, plan, now);
+        if (!IsCustomBattle(result))
+        {
+            await guildActivityTasks.RecordBattleAsync(uid, BuildGuildBattle(result, mvp));
+        }
+
         var creditPointNtf = result.QuitByExitButton ? null
             : hangupType != PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeNone ? await credit.PenalizeHangupAsync(uid, result.Desk.DeskInfo.MapId, hangupType)
             : await credit.RecoverAfterBattleAsync(uid, result.Desk.DeskInfo.MapId, result.Desk.DeskInfo.ManMachine == CpuMatch.ManMachine);
@@ -704,6 +713,23 @@ public sealed class BattleSettlement
             BattleTasks.AddCounts(sceneInteraction?.PickRecoverBerry ?? 0, sceneInteraction?.PickMoveBerry ?? 0),
             heldItemIDs.Any(heldItemID => heldItemID != NoHeldItem),
             joinKills);
+    }
+
+    private static GuildBattle BuildGuildBattle(BattleResult result, MvpResult mvp)
+    {
+        var statistic = result.Gameover.AcntInfo
+            .FirstOrDefault(info => info.AcntUid == result.Human.Uid && info.ObjType == AcntObjType)?
+            .CommonData?.PokemonData?.PokemonBattleStatistic;
+        var baseStatistic = statistic?.BaseStatistic;
+        return new GuildBattle(
+            result.Won,
+            mvp.WinMvpObjID == result.Human.ObjId || mvp.LoseMvpObjID == result.Human.ObjId,
+            baseStatistic?.KillCnt ?? 0,
+            baseStatistic?.AssistCnt ?? 0,
+            statistic?.ScoreCnt ?? 0,
+            statistic?.GetScoreCnt ?? 0,
+            baseStatistic?.UseUltimateSkillCnt ?? 0,
+            [.. result.Desk.CampOf(result.Human.CampClient).Where(player => !player.IsNpc && player != result.Human).Select(player => player.Uid)]);
     }
 
     private bool IsStarTaskDone(int taskId, bool won, int pokemonLevel) =>

@@ -1,4 +1,6 @@
 using Microsoft.Extensions.Logging;
+using SpiritUNITE.Game.Badge;
+using SpiritUNITE.Game.Guild;
 using SpiritUNITE.Game.Lobby;
 using SpiritUNITE.Game.Profile;
 using SpiritUNITE.Game.Role;
@@ -6,7 +8,12 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers.Profile;
 
-public sealed class EntrycardHandlers(RoleInfoStore roles, ProfileManager profiles, ILogger<EntrycardHandlers> logger)
+public sealed class EntrycardHandlers(
+    RoleInfoStore roles,
+    ProfileManager profiles,
+    GuildManager guilds,
+    BadgeManager badges,
+    ILogger<EntrycardHandlers> logger)
 {
     private const int MaximumContextLength = 64;
 
@@ -35,6 +42,8 @@ public sealed class EntrycardHandlers(RoleInfoStore roles, ProfileManager profil
         {
             var style = await profiles.LoadAsync(queried.GameUlongUID);
             response.ProfileDetail = await profiles.BuildProfileDetailAsync(queried, style);
+            (response.ProfileDetail.GuildName, response.ProfileDetail.GuildOffice) = await guilds.FindProfileGuildAsync(queried.GameUlongUID);
+            response.ProfileDetail.BadgeShowInfo = await badges.GetBadgeShowInfoAsync(queried.GameUlongUID);
         }
 
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetAcntProfileNewRsp, EmptyChildren.Fill(response))];

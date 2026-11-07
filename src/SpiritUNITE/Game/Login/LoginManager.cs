@@ -10,6 +10,7 @@ using SpiritUNITE.Game.Energy;
 using SpiritUNITE.Game.Chat;
 using SpiritUNITE.Game.Credit;
 using SpiritUNITE.Game.Friend;
+using SpiritUNITE.Game.Guild;
 using SpiritUNITE.Game.HeldItem;
 using SpiritUNITE.Game.Lobby;
 using SpiritUNITE.Game.Mail;
@@ -45,6 +46,7 @@ public sealed class LoginManager(
     SettingsManager settings,
     ShopManager shop,
     FriendManager friends,
+    GuildManager guilds,
     NewbieManager newbies,
     NewbieChallengeManager newbieChallenges,
     NewbieGiftManager newbieGifts,
@@ -172,7 +174,7 @@ public sealed class LoginManager(
             LoginCountryCode = clientSettings.CountryCode,
             RegisterCountryCode = clientSettings.CountryCode,
             AntiAdditionInfo = new pbCOMDT_ANTIADDITION_INFO(),
-            GuildInfo = new pbCOMDT_ACNT_GUILD_INFO(),
+            GuildInfo = await guilds.BuildAcntGuildInfoAsync(role.GameUlongUID),
             NewbiChallengeUnlockInfo = await newbieChallenges.BuildUnlockInfoAsync(role),
             PrivilePlatInfo = new pbCOMDT_PRIVILE_PLAT_INFO(),
             GroupInfo = new pbCOMDT_GROUP_INFO(),

@@ -31,6 +31,34 @@ class Table:
 
 
 LUA_ONLY_FIELDS = {
+    "pbGuildLabel": {
+        225525: Field("LableID", "int32"),
+        246154: Field("LabelType", "int32"),
+    },
+    "pbGuildActivity_Base": {
+        225340: Field("PeriodID", "int32"),
+        201006: Field("PrepareTime", "int64"),
+        288591: Field("StartTime", "int64"),
+        294988: Field("EndTime", "int64"),
+        278744: Field("RewardPoolID", "int32"),
+    },
+    "pbGuildActivity_RewardPool": {
+        232271: Field("PoolID", "int32"),
+        271458: Field("RewardID", "int32", repeated=True),
+    },
+    "pbGuildActivity_ScoreGear": {
+        205430: Field("GearID", "int32"),
+        223098: Field("Score", "int32"),
+    },
+    "pbGuildActivity_ScoreReward": {
+        271458: Field("RewardID", "int32"),
+        205430: Field("GearID", "int32"),
+        256687: Field("SDropID", "int32"),
+    },
+    "pbGuildActivity_Task": {
+        271458: Field("RewardID", "int32"),
+        289808: Field("TaskID", "int32", repeated=True),
+    },
     "pbMvp_Conf": {
         244570: Field("GameType", "int32"),
         284285: Field("ParamVec", "int32", repeated=True),
@@ -487,6 +515,22 @@ MAP_BASE_SERVER_FIELDS = ("MapBaseId", "MatchTime")
 POKEMON_RELEASE_SERVER_FIELDS = ("PokemonId", "OnTime", "Order")
 
 TABLES = {
+    "databin_GuildLabel": Table("pbGuildLabel", LUA_ONLY_FIELDS["pbGuildLabel"], key_field="LableID"),
+    "databin_GuildActivity_Base": Table(
+        "pbGuildActivity_Base", LUA_ONLY_FIELDS["pbGuildActivity_Base"], key_field="PeriodID"
+    ),
+    "databin_GuildActivity_RewardPool": Table(
+        "pbGuildActivity_RewardPool", LUA_ONLY_FIELDS["pbGuildActivity_RewardPool"], key_field="PoolID"
+    ),
+    "databin_GuildActivity_ScoreGear": Table(
+        "pbGuildActivity_ScoreGear", LUA_ONLY_FIELDS["pbGuildActivity_ScoreGear"], key_field="GearID"
+    ),
+    "databin_GuildActivity_ScoreReward": Table(
+        "pbGuildActivity_ScoreReward", LUA_ONLY_FIELDS["pbGuildActivity_ScoreReward"]
+    ),
+    "databin_GuildActivity_Task": Table(
+        "pbGuildActivity_Task", LUA_ONLY_FIELDS["pbGuildActivity_Task"], key_field="RewardID"
+    ),
     "databin_ActivityTask": Table("pbTask_Base", SERVER_FIELD_SUBSETS["pbTask_Base"], key_field="TaskID"),
     "databin_Activity_Base": Table(
         "pbActivity_Base", SERVER_FIELD_SUBSETS["pbActivity_Base"], key_field="ActivityID"
