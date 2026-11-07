@@ -20,32 +20,27 @@ Screenshots coming soon.
 
 ## Server Setup
 
-1. Generate the protocol files from your own copy of the client. Nothing taken from the client is included in this repository.
-   ```powershell
-   python tools/generate_protos.py path/to/dump.cs
-   ```
-
-2. Create the database and its tables.
+1. Create the database and its tables.
    ```powershell
    mariadb -u root -p < sql/spiritunite.sql
    ```
 
 
-3. Create a database user for the server.
+2. Create a database user for the server.
    ```sql
    CREATE USER 'spiritunite'@'localhost' IDENTIFIED BY 'your-password';
    GRANT ALL PRIVILEGES ON spiritunite.* TO 'spiritunite'@'localhost';
    ```
 
-4. Copy the example settings and put your database password in the connection string.
+3. Copy the example settings and put your database password in the connection string.
    ```powershell
    copy src/SpiritUNITE/appsettings.example.json src/SpiritUNITE/appsettings.json
    ```
 
-5. Put the game's resource archive in `resources/1169/`. The game downloads about 7 GB from it on first launch and checks it on every start, so players cannot get past "Checking update data" without it. See [resources/README.md](resources/README.md).
+4. Put the game's resource archive in `resources/1169/`. The game downloads about 7 GB from it on first launch and checks it on every start, so players cannot get past "Checking update data" without it. See [resources/README.md](resources/README.md).
 
 
-6. Build and start the server from the root directory.
+5. Build and start the server from the root directory.
    ```powershell
    dotnet run --project src/SpiritUNITE
    ```
