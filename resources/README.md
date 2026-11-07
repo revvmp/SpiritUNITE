@@ -5,7 +5,7 @@ The game downloads about 7 GB of resources on first launch, and loads shop, outf
 ```
 resources/
   1169/     669535640_1169_<version>_<build>_dyncures.ifs    Android archive
-  1117/     669535640_1117_<version>_<build>_dyncures.ifs    iOS archive
+  1170/     669535640_1170_<version>_<build>_dyncures.ifs    iOS archive
   images/   cdn_hash_md5_size.bytes                          image index
             Default/<uri>/<name>.bytes                       images for every language
             En/<uri>/<name>.bytes                            images for one language (Chs, Jp, Ko, Fr, ...)
