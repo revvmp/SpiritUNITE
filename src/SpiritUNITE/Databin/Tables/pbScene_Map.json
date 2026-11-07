@@ -4,6 +4,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -15,6 +23,7 @@
     "OpenHeroMode": 9,
     "Timeout": 1500,
     "MapBaseId": 9999,
+    "PickAdjustSec": 49,
     "PickTimeOut": 60
   },
   {
@@ -22,6 +31,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 2,
@@ -34,6 +51,8 @@
     "Timeout": 1500,
     "MapBaseId": 10001,
     "HangupSchemeID": 1,
+    "PickAdjustSec": 49,
+    "CampOneBanPickRuleID": 500,
     "SortPriority": 150,
     "PickTimeOut": 55
   },
@@ -42,6 +61,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 2,
@@ -54,6 +81,8 @@
     "Timeout": 1500,
     "MapBaseId": 10000,
     "HangupSchemeID": 1,
+    "PickAdjustSec": 49,
+    "CampOneBanPickRuleID": 500,
     "SortPriority": 150,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -63,6 +92,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 2,
@@ -75,6 +112,8 @@
     "Timeout": 1500,
     "MapBaseId": 20807,
     "HangupSchemeID": 1,
+    "PickAdjustSec": 49,
+    "CampOneBanPickRuleID": 500,
     "SortPriority": 150,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -84,6 +123,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 2,
@@ -96,6 +143,8 @@
     "Timeout": 1500,
     "MapBaseId": 20809,
     "HangupSchemeID": 1,
+    "PickAdjustSec": 49,
+    "CampOneBanPickRuleID": 500,
     "SortPriority": 150,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -105,6 +154,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 2,
@@ -117,6 +174,8 @@
     "Timeout": 1500,
     "MapBaseId": 20810,
     "HangupSchemeID": 1,
+    "PickAdjustSec": 49,
+    "CampOneBanPickRuleID": 500,
     "SortPriority": 150,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -126,6 +185,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -138,6 +205,7 @@
     "Timeout": 1500,
     "MapBaseId": 20805,
     "HangupSchemeID": 2,
+    "PickAdjustSec": 49,
     "SortPriority": 150,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -147,6 +215,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -159,6 +235,7 @@
     "Timeout": 1500,
     "MapBaseId": 20806,
     "HangupSchemeID": 2,
+    "PickAdjustSec": 49,
     "SortPriority": 150,
     "PickTimeOut": 55
   },
@@ -167,6 +244,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -179,6 +264,7 @@
     "Timeout": 1500,
     "MapBaseId": 20807,
     "HangupSchemeID": 2,
+    "PickAdjustSec": 49,
     "SortPriority": 130,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -188,6 +274,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -200,6 +294,7 @@
     "Timeout": 1500,
     "MapBaseId": 20809,
     "HangupSchemeID": 2,
+    "PickAdjustSec": 49,
     "SortPriority": 140,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -209,6 +304,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -221,6 +324,7 @@
     "Timeout": 1500,
     "MapBaseId": 20810,
     "HangupSchemeID": 2,
+    "PickAdjustSec": 49,
     "SortPriority": 140,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -230,6 +334,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -242,6 +354,7 @@
     "Timeout": 1500,
     "MapBaseId": 20808,
     "HangupSchemeID": 2,
+    "PickAdjustSec": 49,
     "SortPriority": 120,
     "PickTimeOut": 55
   },
@@ -250,6 +363,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -262,6 +383,7 @@
     "Timeout": 1500,
     "MapBaseId": 20808,
     "HangupSchemeID": 2,
+    "PickAdjustSec": 49,
     "SortPriority": 120,
     "PickTimeOut": 55
   },
@@ -270,6 +392,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -282,6 +412,7 @@
     "Timeout": 1500,
     "MapBaseId": 20808,
     "HangupSchemeID": 2,
+    "PickAdjustSec": 49,
     "SortPriority": 120,
     "PickTimeOut": 55
   },
@@ -290,6 +421,14 @@
     "CampMatchPlayerNum": 4,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -302,6 +441,7 @@
     "Timeout": 1500,
     "MapBaseId": 301,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 190,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -311,6 +451,14 @@
     "CampMatchPlayerNum": 4,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -323,6 +471,7 @@
     "Timeout": 1500,
     "MapBaseId": 304,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 180,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -332,6 +481,14 @@
     "CampMatchPlayerNum": 4,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -344,6 +501,7 @@
     "Timeout": 1500,
     "MapBaseId": 310,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 200,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -353,6 +511,14 @@
     "CampMatchPlayerNum": 3,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -365,6 +531,7 @@
     "Timeout": 1500,
     "MapBaseId": 319,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 100,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -374,6 +541,14 @@
     "CampMatchPlayerNum": 4,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -386,6 +561,7 @@
     "Timeout": 1500,
     "MapBaseId": 402,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 200,
     "PickTimeOut": 60,
     "ShowInList": 1
@@ -395,7 +571,16 @@
     "CampMatchPlayerNum": 4,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
+    "PickHeroMode": 1,
     "PickReminderSec": 15,
     "MapSubMode": 3,
     "SurrenderInvalidTime": 20,
@@ -407,6 +592,7 @@
     "Timeout": 1500,
     "MapBaseId": 403,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 150,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -416,6 +602,14 @@
     "CampMatchPlayerNum": 4,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -428,6 +622,7 @@
     "Timeout": 1500,
     "MapBaseId": 404,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 210,
     "PickTimeOut": 30,
     "ShowInList": 1
@@ -437,6 +632,14 @@
     "CampMatchPlayerNum": 4,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -449,6 +652,7 @@
     "Timeout": 1500,
     "MapBaseId": 405,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -458,6 +662,14 @@
     "CampMatchPlayerNum": 4,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -470,6 +682,7 @@
     "Timeout": 1500,
     "MapBaseId": 411,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 230,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -479,6 +692,14 @@
     "CampMatchPlayerNum": 4,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -491,6 +712,7 @@
     "Timeout": 1500,
     "MapBaseId": 412,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 150,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -500,6 +722,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -512,6 +742,7 @@
     "Timeout": 1500,
     "MapBaseId": 20809,
     "HangupSchemeID": 2,
+    "PickAdjustSec": 49,
     "SortPriority": 149,
     "PickTimeOut": 55
   },
@@ -520,6 +751,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -532,6 +771,7 @@
     "Timeout": 1500,
     "MapBaseId": 20809,
     "HangupSchemeID": 2,
+    "PickAdjustSec": 49,
     "SortPriority": 149,
     "PickTimeOut": 55
   },
@@ -540,6 +780,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -552,6 +800,7 @@
     "Timeout": 1500,
     "MapBaseId": 20809,
     "HangupSchemeID": 2,
+    "PickAdjustSec": 49,
     "SortPriority": 149,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -561,6 +810,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -573,6 +830,7 @@
     "Timeout": 1500,
     "MapBaseId": 20810,
     "HangupSchemeID": 2,
+    "PickAdjustSec": 49,
     "SortPriority": 149,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -582,6 +840,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -593,6 +859,7 @@
     "OpenHeroMode": 14,
     "Timeout": 1500,
     "MapBaseId": 20302,
+    "PickAdjustSec": 49,
     "PickTimeOut": 60
   },
   {
@@ -600,6 +867,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 2,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -611,6 +886,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20301,
+    "PickAdjustSec": 49,
     "SortPriority": 100,
     "PickTimeOut": 60
   },
@@ -619,6 +895,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -630,6 +914,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20900,
+    "PickAdjustSec": 49,
     "PickTimeOut": 60
   },
   {
@@ -637,6 +922,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -648,6 +941,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20901,
+    "PickAdjustSec": 49,
     "PickTimeOut": 60
   },
   {
@@ -655,6 +949,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -666,6 +968,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20890,
+    "PickAdjustSec": 49,
     "PickTimeOut": 60
   },
   {
@@ -673,6 +976,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -684,6 +995,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20902,
+    "PickAdjustSec": 49,
     "PickTimeOut": 60
   },
   {
@@ -691,6 +1003,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -702,6 +1022,7 @@
     "OpenHeroMode": 14,
     "Timeout": 1500,
     "MapBaseId": 20896,
+    "PickAdjustSec": 49,
     "PickTimeOut": 60
   },
   {
@@ -709,6 +1030,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -720,6 +1049,7 @@
     "OpenHeroMode": 9,
     "Timeout": 1500,
     "MapBaseId": 20895,
+    "PickAdjustSec": 49,
     "PickTimeOut": 60
   },
   {
@@ -727,6 +1057,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -738,6 +1076,7 @@
     "OpenHeroMode": 9,
     "Timeout": 1500,
     "MapBaseId": 20894,
+    "PickAdjustSec": 49,
     "PickTimeOut": 60
   },
   {
@@ -745,6 +1084,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -756,6 +1103,7 @@
     "OpenHeroMode": 14,
     "Timeout": 1500,
     "MapBaseId": 20892,
+    "PickAdjustSec": 49,
     "PickTimeOut": 60
   },
   {
@@ -763,6 +1111,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -774,6 +1130,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 90001,
+    "PickAdjustSec": 49,
     "SortPriority": 250,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -783,6 +1140,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 1,
@@ -795,6 +1160,7 @@
     "Timeout": 1500,
     "MapBaseId": 900011,
     "HangupSchemeID": 2,
+    "PickAdjustSec": 49,
     "SortPriority": 140,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -804,6 +1170,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -815,6 +1189,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 900011,
+    "PickAdjustSec": 49,
     "SortPriority": 240,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -824,6 +1199,14 @@
     "CampMatchPlayerNum": 4,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -835,6 +1218,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 90002,
+    "PickAdjustSec": 49,
     "SortPriority": 190,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -844,6 +1228,14 @@
     "CampMatchPlayerNum": 4,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -855,6 +1247,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 90003,
+    "PickAdjustSec": 49,
     "SortPriority": 200,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -864,6 +1257,14 @@
     "CampMatchPlayerNum": 3,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -875,6 +1276,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 90004,
+    "PickAdjustSec": 49,
     "SortPriority": 100,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -884,6 +1286,14 @@
     "CampMatchPlayerNum": 4,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -895,6 +1305,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 90006,
+    "PickAdjustSec": 49,
     "SortPriority": 150,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -904,6 +1315,14 @@
     "CampMatchPlayerNum": 4,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -915,6 +1334,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 90007,
+    "PickAdjustSec": 49,
     "SortPriority": 180,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -924,6 +1344,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -935,6 +1363,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20807,
+    "PickAdjustSec": 49,
     "SortPriority": 230,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -944,7 +1373,16 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
+    "PickHeroMode": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
     "SurrenderInvalidTime": 20,
@@ -955,6 +1393,8 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20807,
+    "PickAdjustSec": 49,
+    "CampOneBanPickRuleID": 500,
     "SortPriority": 230,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -964,6 +1404,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -975,6 +1423,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20809,
+    "PickAdjustSec": 49,
     "SortPriority": 240,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -984,7 +1433,16 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
+    "PickHeroMode": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
     "SurrenderInvalidTime": 20,
@@ -995,6 +1453,8 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20809,
+    "PickAdjustSec": 49,
+    "CampOneBanPickRuleID": 500,
     "SortPriority": 240,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -1004,6 +1464,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -1015,6 +1483,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20810,
+    "PickAdjustSec": 49,
     "SortPriority": 240,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -1024,7 +1493,16 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
+    "PickHeroMode": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
     "SurrenderInvalidTime": 20,
@@ -1035,6 +1513,8 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20810,
+    "PickAdjustSec": 49,
+    "CampOneBanPickRuleID": 500,
     "SortPriority": 240,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -1044,6 +1524,14 @@
     "CampMatchPlayerNum": 4,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -1055,6 +1543,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 90011,
+    "PickAdjustSec": 49,
     "SortPriority": 210,
     "PickTimeOut": 30,
     "ShowInList": 1
@@ -1064,6 +1553,14 @@
     "CampMatchPlayerNum": 4,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -1075,6 +1572,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 90012,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -1084,6 +1582,14 @@
     "CampMatchPlayerNum": 4,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -1095,6 +1601,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 402,
+    "PickAdjustSec": 49,
     "SortPriority": 200,
     "PickTimeOut": 60,
     "ShowInList": 1
@@ -1104,6 +1611,14 @@
     "CampMatchPlayerNum": 4,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -1115,6 +1630,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 411,
+    "PickAdjustSec": 49,
     "SortPriority": 200,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -1124,6 +1640,14 @@
     "CampMatchPlayerNum": 4,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -1135,6 +1659,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 412,
+    "PickAdjustSec": 49,
     "SortPriority": 150,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -1144,6 +1669,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -1155,6 +1688,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20809,
+    "PickAdjustSec": 49,
     "SortPriority": 249,
     "PickTimeOut": 55
   },
@@ -1163,6 +1697,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -1174,6 +1716,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20806,
+    "PickAdjustSec": 49,
     "SortPriority": 230,
     "PickTimeOut": 55
   },
@@ -1182,6 +1725,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -1193,6 +1744,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20809,
+    "PickAdjustSec": 49,
     "SortPriority": 249,
     "PickTimeOut": 55
   },
@@ -1201,6 +1753,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -1212,6 +1772,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20809,
+    "PickAdjustSec": 49,
     "SortPriority": 249,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -1221,6 +1782,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -1232,6 +1801,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20810,
+    "PickAdjustSec": 49,
     "SortPriority": 249,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -1241,6 +1811,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 6,
@@ -1252,6 +1830,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20809,
+    "PickAdjustSec": 49,
     "SortPriority": 250,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -1259,9 +1838,19 @@
   {
     "SurrenderCDTime": 60,
     "CampMatchPlayerNum": 5,
+    "CampTwoBanPickRuleID": 600,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      6,
+      7
+    ],
     "SurrenderTimesLimit": 3,
+    "PickHeroMode": 3,
     "PickReminderSec": 15,
     "MapSubMode": 6,
     "SurrenderInvalidTime": 20,
@@ -1272,6 +1861,8 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20809,
+    "PickAdjustSec": 49,
+    "CampOneBanPickRuleID": 400,
     "SortPriority": 240,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -1279,9 +1870,19 @@
   {
     "SurrenderCDTime": 60,
     "CampMatchPlayerNum": 5,
+    "CampTwoBanPickRuleID": 800,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      6,
+      7
+    ],
     "SurrenderTimesLimit": 3,
+    "PickHeroMode": 3,
     "PickReminderSec": 15,
     "MapSubMode": 6,
     "SurrenderInvalidTime": 20,
@@ -1292,6 +1893,8 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20809,
+    "PickAdjustSec": 49,
+    "CampOneBanPickRuleID": 700,
     "SortPriority": 240,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -1301,6 +1904,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 6,
@@ -1312,6 +1923,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20807,
+    "PickAdjustSec": 49,
     "SortPriority": 250,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -1319,9 +1931,19 @@
   {
     "SurrenderCDTime": 60,
     "CampMatchPlayerNum": 5,
+    "CampTwoBanPickRuleID": 600,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      6,
+      7
+    ],
     "SurrenderTimesLimit": 3,
+    "PickHeroMode": 3,
     "PickReminderSec": 15,
     "MapSubMode": 6,
     "SurrenderInvalidTime": 20,
@@ -1332,6 +1954,8 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20807,
+    "PickAdjustSec": 49,
+    "CampOneBanPickRuleID": 400,
     "SortPriority": 240,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -1339,9 +1963,19 @@
   {
     "SurrenderCDTime": 60,
     "CampMatchPlayerNum": 5,
+    "CampTwoBanPickRuleID": 800,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      6,
+      7
+    ],
     "SurrenderTimesLimit": 3,
+    "PickHeroMode": 3,
     "PickReminderSec": 15,
     "MapSubMode": 6,
     "SurrenderInvalidTime": 20,
@@ -1352,6 +1986,8 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20807,
+    "PickAdjustSec": 49,
+    "CampOneBanPickRuleID": 700,
     "SortPriority": 240,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -1361,6 +1997,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 6,
@@ -1372,6 +2016,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20810,
+    "PickAdjustSec": 49,
     "SortPriority": 250,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -1379,9 +2024,19 @@
   {
     "SurrenderCDTime": 60,
     "CampMatchPlayerNum": 5,
+    "CampTwoBanPickRuleID": 600,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      6,
+      7
+    ],
     "SurrenderTimesLimit": 3,
+    "PickHeroMode": 3,
     "PickReminderSec": 15,
     "MapSubMode": 6,
     "SurrenderInvalidTime": 20,
@@ -1392,6 +2047,8 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20810,
+    "PickAdjustSec": 49,
+    "CampOneBanPickRuleID": 400,
     "SortPriority": 240,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -1399,9 +2056,19 @@
   {
     "SurrenderCDTime": 60,
     "CampMatchPlayerNum": 5,
+    "CampTwoBanPickRuleID": 800,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      6,
+      7
+    ],
     "SurrenderTimesLimit": 3,
+    "PickHeroMode": 3,
     "PickReminderSec": 15,
     "MapSubMode": 6,
     "SurrenderInvalidTime": 20,
@@ -1412,6 +2079,8 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20810,
+    "PickAdjustSec": 49,
+    "CampOneBanPickRuleID": 700,
     "SortPriority": 240,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -1421,6 +2090,14 @@
     "CampMatchPlayerNum": 3,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 6,
@@ -1432,6 +2109,7 @@
     "OpenHeroMode": 2,
     "Timeout": 3000,
     "MapBaseId": 413,
+    "PickAdjustSec": 49,
     "SortPriority": 400,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -1441,7 +2119,16 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
+    "PickHeroMode": 3,
     "PickReminderSec": 15,
     "MapSubMode": 7,
     "SurrenderInvalidTime": 20,
@@ -1452,6 +2139,8 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20807,
+    "PickAdjustSec": 49,
+    "CampOneBanPickRuleID": 700,
     "SortPriority": 250,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -1461,7 +2150,16 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
+    "PickHeroMode": 3,
     "PickReminderSec": 15,
     "MapSubMode": 7,
     "SurrenderInvalidTime": 20,
@@ -1472,6 +2170,8 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20805,
+    "PickAdjustSec": 49,
+    "CampOneBanPickRuleID": 700,
     "SortPriority": 250,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -1481,7 +2181,16 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
+    "PickHeroMode": 3,
     "PickReminderSec": 15,
     "MapSubMode": 7,
     "SurrenderInvalidTime": 20,
@@ -1492,6 +2201,8 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20809,
+    "PickAdjustSec": 49,
+    "CampOneBanPickRuleID": 700,
     "SortPriority": 250,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -1501,7 +2212,16 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
+    "PickHeroMode": 3,
     "PickReminderSec": 15,
     "MapSubMode": 7,
     "SurrenderInvalidTime": 20,
@@ -1512,6 +2232,8 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 20810,
+    "PickAdjustSec": 49,
+    "CampOneBanPickRuleID": 700,
     "SortPriority": 250,
     "PickTimeOut": 55,
     "ShowInList": 1
@@ -1521,6 +2243,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -1534,6 +2264,7 @@
     "Timeout": 1500,
     "MapBaseId": 501,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50
   },
@@ -1542,6 +2273,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -1555,6 +2294,7 @@
     "Timeout": 1500,
     "MapBaseId": 502,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50
   },
@@ -1563,6 +2303,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -1576,6 +2324,7 @@
     "Timeout": 1500,
     "MapBaseId": 503,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50
   },
@@ -1584,6 +2333,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -1595,6 +2352,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 1501,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50
   },
@@ -1603,6 +2361,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -1614,6 +2380,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 1502,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50
   },
@@ -1622,6 +2389,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -1633,6 +2408,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 1503,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50
   },
@@ -1641,6 +2417,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -1654,6 +2438,7 @@
     "Timeout": 1500,
     "MapBaseId": 2501,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50
   },
@@ -1662,6 +2447,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -1675,6 +2468,7 @@
     "Timeout": 1500,
     "MapBaseId": 2502,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50
   },
@@ -1683,6 +2477,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -1696,6 +2498,7 @@
     "Timeout": 1500,
     "MapBaseId": 2503,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50
   },
@@ -1704,6 +2507,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -1717,6 +2528,7 @@
     "Timeout": 1500,
     "MapBaseId": 511,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50
   },
@@ -1725,6 +2537,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -1738,6 +2558,7 @@
     "Timeout": 1500,
     "MapBaseId": 512,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50
   },
@@ -1746,6 +2567,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -1759,6 +2588,7 @@
     "Timeout": 1500,
     "MapBaseId": 513,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50
   },
@@ -1767,6 +2597,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -1778,6 +2616,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 1511,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50
   },
@@ -1786,6 +2625,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -1797,6 +2644,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 1512,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50
   },
@@ -1805,6 +2653,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -1816,6 +2672,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 1513,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50
   },
@@ -1824,6 +2681,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -1837,6 +2702,7 @@
     "Timeout": 1500,
     "MapBaseId": 2511,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50
   },
@@ -1845,6 +2711,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -1858,6 +2732,7 @@
     "Timeout": 1500,
     "MapBaseId": 2512,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50
   },
@@ -1866,6 +2741,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -1879,6 +2762,7 @@
     "Timeout": 1500,
     "MapBaseId": 2513,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50
   },
@@ -1887,6 +2771,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -1900,6 +2792,7 @@
     "Timeout": 1500,
     "MapBaseId": 521,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -1909,6 +2802,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -1922,6 +2823,7 @@
     "Timeout": 1500,
     "MapBaseId": 522,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -1931,6 +2833,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -1944,6 +2854,7 @@
     "Timeout": 1500,
     "MapBaseId": 523,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -1953,6 +2864,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -1964,6 +2883,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 1521,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50
   },
@@ -1972,6 +2892,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -1983,6 +2911,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 1522,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50
   },
@@ -1991,6 +2920,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -2002,6 +2939,7 @@
     "OpenHeroMode": 2,
     "Timeout": 1500,
     "MapBaseId": 1523,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50
   },
@@ -2010,6 +2948,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -2023,6 +2969,7 @@
     "Timeout": 1500,
     "MapBaseId": 2521,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -2032,6 +2979,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -2045,6 +3000,7 @@
     "Timeout": 1500,
     "MapBaseId": 2522,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -2054,6 +3010,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -2067,6 +3031,7 @@
     "Timeout": 1500,
     "MapBaseId": 2523,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -2076,6 +3041,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 10,
     "MapSubMode": 3,
@@ -2089,6 +3062,7 @@
     "Timeout": 3000,
     "MapBaseId": 601,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 250,
     "PickTimeOut": 60,
     "ShowInList": 1
@@ -2098,6 +3072,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 10,
     "MapSubMode": 3,
@@ -2111,6 +3093,7 @@
     "Timeout": 3000,
     "MapBaseId": 602,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 250,
     "PickTimeOut": 60,
     "ShowInList": 1
@@ -2120,6 +3103,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 10,
     "MapSubMode": 3,
@@ -2133,6 +3124,7 @@
     "Timeout": 3000,
     "MapBaseId": 603,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 250,
     "PickTimeOut": 60,
     "ShowInList": 1
@@ -2142,6 +3134,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 10,
     "MapSubMode": 3,
@@ -2155,6 +3155,7 @@
     "Timeout": 3000,
     "MapBaseId": 604,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 250,
     "PickTimeOut": 60,
     "ShowInList": 1
@@ -2164,6 +3165,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 10,
     "MapSubMode": 3,
@@ -2177,6 +3186,7 @@
     "Timeout": 3000,
     "MapBaseId": 611,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 250,
     "PickTimeOut": 60,
     "ShowInList": 1
@@ -2186,6 +3196,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 10,
     "MapSubMode": 3,
@@ -2199,6 +3217,7 @@
     "Timeout": 3000,
     "MapBaseId": 612,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 250,
     "PickTimeOut": 60,
     "ShowInList": 1
@@ -2208,6 +3227,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 10,
     "MapSubMode": 3,
@@ -2221,6 +3248,7 @@
     "Timeout": 3000,
     "MapBaseId": 613,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 250,
     "PickTimeOut": 60,
     "ShowInList": 1
@@ -2230,6 +3258,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 10,
     "MapSubMode": 3,
@@ -2243,6 +3279,7 @@
     "Timeout": 3000,
     "MapBaseId": 614,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 250,
     "PickTimeOut": 60,
     "ShowInList": 1
@@ -2252,6 +3289,14 @@
     "CampMatchPlayerNum": 3,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -2264,6 +3309,7 @@
     "Timeout": 3000,
     "MapBaseId": 413,
     "HangupSchemeID": 5,
+    "PickAdjustSec": 49,
     "SortPriority": 400,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -2273,6 +3319,14 @@
     "CampMatchPlayerNum": 3,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -2284,6 +3338,7 @@
     "OpenHeroMode": 2,
     "Timeout": 3000,
     "MapBaseId": 413,
+    "PickAdjustSec": 49,
     "SortPriority": 400,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -2293,6 +3348,14 @@
     "CampMatchPlayerNum": 3,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 3,
@@ -2305,6 +3368,7 @@
     "Timeout": 3000,
     "MapBaseId": 802,
     "HangupSchemeID": 3,
+    "PickAdjustSec": 49,
     "SortPriority": 400,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -2314,6 +3378,14 @@
     "CampMatchPlayerNum": 3,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      1,
+      2,
+      3,
+      4,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 5,
@@ -2325,6 +3397,7 @@
     "OpenHeroMode": 2,
     "Timeout": 3000,
     "MapBaseId": 802,
+    "PickAdjustSec": 49,
     "SortPriority": 400,
     "PickTimeOut": 50,
     "ShowInList": 1
@@ -2334,6 +3407,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2346,6 +3427,7 @@
     "Timeout": 1500,
     "MapBaseId": 920805,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 150,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2355,6 +3437,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2367,6 +3457,7 @@
     "Timeout": 1500,
     "MapBaseId": 920807,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 130,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2376,6 +3467,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2388,6 +3487,7 @@
     "Timeout": 1500,
     "MapBaseId": 920809,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 140,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2397,6 +3497,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2409,6 +3517,7 @@
     "Timeout": 1500,
     "MapBaseId": 920810,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 140,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2418,6 +3527,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2430,6 +3547,7 @@
     "Timeout": 1500,
     "MapBaseId": 920812,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 120,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2439,6 +3557,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2451,6 +3577,7 @@
     "Timeout": 1500,
     "MapBaseId": 920812,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 120,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2460,6 +3587,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2472,6 +3607,7 @@
     "Timeout": 1500,
     "MapBaseId": 920812,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 120,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2481,6 +3617,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2493,6 +3637,7 @@
     "Timeout": 1500,
     "MapBaseId": 920813,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 120,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2502,6 +3647,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2514,6 +3667,7 @@
     "Timeout": 1500,
     "MapBaseId": 920811,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 120,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2523,6 +3677,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2535,6 +3697,7 @@
     "Timeout": 1500,
     "MapBaseId": 920811,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 120,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2544,6 +3707,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2556,6 +3727,7 @@
     "Timeout": 1500,
     "MapBaseId": 920813,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 120,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2565,6 +3737,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2577,6 +3757,7 @@
     "Timeout": 1500,
     "MapBaseId": 920812,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 120,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2586,6 +3767,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2598,6 +3787,7 @@
     "Timeout": 1500,
     "MapBaseId": 920811,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 120,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2607,6 +3797,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2619,6 +3817,7 @@
     "Timeout": 1500,
     "MapBaseId": 920812,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 120,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2628,6 +3827,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2640,6 +3847,7 @@
     "Timeout": 1500,
     "MapBaseId": 920811,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 120,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2649,6 +3857,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2661,6 +3877,7 @@
     "Timeout": 1500,
     "MapBaseId": 920812,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 120,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2670,6 +3887,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2682,6 +3907,7 @@
     "Timeout": 1500,
     "MapBaseId": 920813,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 120,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2691,6 +3917,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2703,6 +3937,7 @@
     "Timeout": 1500,
     "MapBaseId": 920814,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 150,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2712,6 +3947,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2724,6 +3967,7 @@
     "Timeout": 1500,
     "MapBaseId": 920811,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 120,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2733,6 +3977,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2745,6 +3997,7 @@
     "Timeout": 1500,
     "MapBaseId": 920812,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 120,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2754,6 +4007,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2766,6 +4027,7 @@
     "Timeout": 1500,
     "MapBaseId": 920813,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 120,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2775,6 +4037,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2787,6 +4057,7 @@
     "Timeout": 1500,
     "MapBaseId": 920814,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 150,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2796,6 +4067,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2808,6 +4087,7 @@
     "Timeout": 1500,
     "MapBaseId": 920811,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 120,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2817,6 +4097,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2829,6 +4117,7 @@
     "Timeout": 1500,
     "MapBaseId": 920812,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 120,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2838,6 +4127,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2850,6 +4147,7 @@
     "Timeout": 1500,
     "MapBaseId": 920813,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 120,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2859,6 +4157,14 @@
     "CampMatchPlayerNum": 1,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2871,6 +4177,7 @@
     "Timeout": 1500,
     "MapBaseId": 920814,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 150,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2880,6 +4187,14 @@
     "CampMatchPlayerNum": 4,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2892,6 +4207,7 @@
     "Timeout": 1500,
     "MapBaseId": 9301,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 190,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2901,6 +4217,14 @@
     "CampMatchPlayerNum": 4,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2913,6 +4237,7 @@
     "Timeout": 1500,
     "MapBaseId": 9304,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 180,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2922,6 +4247,14 @@
     "CampMatchPlayerNum": 4,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2934,6 +4267,7 @@
     "Timeout": 1500,
     "MapBaseId": 9310,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 200,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2943,6 +4277,14 @@
     "CampMatchPlayerNum": 3,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2955,6 +4297,7 @@
     "Timeout": 1500,
     "MapBaseId": 9319,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 100,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2964,6 +4307,14 @@
     "CampMatchPlayerNum": 4,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2976,6 +4327,7 @@
     "Timeout": 1500,
     "MapBaseId": 9403,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 150,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -2985,6 +4337,14 @@
     "CampMatchPlayerNum": 3,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -2997,6 +4357,7 @@
     "Timeout": 3000,
     "MapBaseId": 9413,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 400,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -3006,6 +4367,14 @@
     "CampMatchPlayerNum": 3,
     "CampNum": 2,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -3018,6 +4387,7 @@
     "Timeout": 3000,
     "MapBaseId": 9802,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 400,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -3027,6 +4397,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -3040,6 +4418,7 @@
     "Timeout": 1500,
     "MapBaseId": 92521,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -3049,6 +4428,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -3062,6 +4449,7 @@
     "Timeout": 1500,
     "MapBaseId": 92522,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 300,
     "ShowInList": 1
@@ -3071,6 +4459,14 @@
     "CampMatchPlayerNum": 5,
     "CampNum": 1,
     "MapMode": 1,
+    "SubModeFriendRule": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
     "SurrenderTimesLimit": 3,
     "PickReminderSec": 15,
     "MapSubMode": 13,
@@ -3084,6 +4480,7 @@
     "Timeout": 1500,
     "MapBaseId": 92523,
     "HangupSchemeID": 4,
+    "PickAdjustSec": 49,
     "SortPriority": 220,
     "PickTimeOut": 300,
     "ShowInList": 1

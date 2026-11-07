@@ -1,0 +1,286 @@
+[
+  {
+    "Index": 1,
+    "MedalPoint": 1,
+    "BigRankedDivision": 1,
+    "RankedDivision": 28,
+    "UpgradeWinPoint": 20
+  },
+  {
+    "Index": 2,
+    "MedalPoint": 1,
+    "BigRankedDivision": 1,
+    "RankedDivision": 27,
+    "UpgradeWinPoint": 50
+  },
+  {
+    "Index": 3,
+    "MedalPoint": 1,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "UpgradeWinPoint": 50
+  },
+  {
+    "Index": 4,
+    "MedalPoint": 1,
+    "BigRankedDivision": 1,
+    "RankedDivision": 2,
+    "UpgradeWinPoint": 50
+  },
+  {
+    "Index": 5,
+    "MedalPoint": 1,
+    "BigRankedDivision": 1,
+    "RankedDivision": 3,
+    "UpgradeWinPoint": 50
+  },
+  {
+    "DivisionFallProtect": 1,
+    "Index": 6,
+    "TicketConsume": 4,
+    "MedalPoint": 1,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "UpgradeWinPoint": 70
+  },
+  {
+    "Index": 7,
+    "TicketConsume": 4,
+    "MedalPoint": 1,
+    "BigRankedDivision": 2,
+    "RankedDivision": 4,
+    "UpgradeWinPoint": 70
+  },
+  {
+    "Index": 8,
+    "TicketConsume": 4,
+    "MedalPoint": 1,
+    "BigRankedDivision": 2,
+    "RankedDivision": 5,
+    "UpgradeWinPoint": 70
+  },
+  {
+    "Index": 9,
+    "TicketConsume": 4,
+    "MedalPoint": 1,
+    "BigRankedDivision": 2,
+    "RankedDivision": 6,
+    "UpgradeWinPoint": 70
+  },
+  {
+    "Index": 10,
+    "TicketConsume": 4,
+    "MedalPoint": 1,
+    "BigRankedDivision": 2,
+    "RankedDivision": 7,
+    "UpgradeWinPoint": 70
+  },
+  {
+    "DivisionFallProtect": 1,
+    "Index": 11,
+    "TicketConsume": 6,
+    "MedalPoint": 1,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "UpgradeWinPoint": 80
+  },
+  {
+    "Index": 12,
+    "TicketConsume": 6,
+    "MedalPoint": 1,
+    "BigRankedDivision": 3,
+    "RankedDivision": 9,
+    "UpgradeWinPoint": 80
+  },
+  {
+    "Index": 13,
+    "TicketConsume": 6,
+    "MedalPoint": 1,
+    "BigRankedDivision": 3,
+    "RankedDivision": 10,
+    "UpgradeWinPoint": 80
+  },
+  {
+    "Index": 14,
+    "TicketConsume": 6,
+    "MedalPoint": 1,
+    "BigRankedDivision": 3,
+    "RankedDivision": 11,
+    "UpgradeWinPoint": 80
+  },
+  {
+    "Index": 15,
+    "TicketConsume": 6,
+    "MedalPoint": 1,
+    "BigRankedDivision": 3,
+    "RankedDivision": 12,
+    "UpgradeWinPoint": 80
+  },
+  {
+    "DivisionFallProtect": 1,
+    "Index": 16,
+    "TicketConsume": 8,
+    "MedalPoint": 1,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "UpgradeWinPoint": 100
+  },
+  {
+    "Index": 17,
+    "TicketConsume": 8,
+    "MedalPoint": 1,
+    "BigRankedDivision": 4,
+    "RankedDivision": 14,
+    "UpgradeWinPoint": 100
+  },
+  {
+    "Index": 18,
+    "TicketConsume": 8,
+    "MedalPoint": 1,
+    "BigRankedDivision": 4,
+    "RankedDivision": 15,
+    "UpgradeWinPoint": 100
+  },
+  {
+    "Index": 19,
+    "TicketConsume": 8,
+    "MedalPoint": 1,
+    "BigRankedDivision": 4,
+    "RankedDivision": 16,
+    "UpgradeWinPoint": 100
+  },
+  {
+    "Index": 20,
+    "TicketConsume": 8,
+    "MedalPoint": 1,
+    "BigRankedDivision": 4,
+    "RankedDivision": 17,
+    "UpgradeWinPoint": 100
+  },
+  {
+    "DivisionFallProtect": 1,
+    "Index": 21,
+    "TicketConsume": 14,
+    "MedalPoint": 1,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "UpgradeWinPoint": 100
+  },
+  {
+    "Index": 22,
+    "TicketConsume": 14,
+    "MedalPoint": 1,
+    "BigRankedDivision": 5,
+    "RankedDivision": 19,
+    "UpgradeWinPoint": 100
+  },
+  {
+    "Index": 23,
+    "TicketConsume": 14,
+    "MedalPoint": 1,
+    "BigRankedDivision": 5,
+    "RankedDivision": 20,
+    "UpgradeWinPoint": 100
+  },
+  {
+    "Index": 24,
+    "TicketConsume": 14,
+    "MedalPoint": 1,
+    "BigRankedDivision": 5,
+    "RankedDivision": 21,
+    "UpgradeWinPoint": 100
+  },
+  {
+    "Index": 25,
+    "TicketConsume": 14,
+    "MedalPoint": 1,
+    "BigRankedDivision": 5,
+    "RankedDivision": 22,
+    "UpgradeWinPoint": 100
+  },
+  {
+    "DivisionFallProtect": 1,
+    "Index": 26,
+    "MasterPointCeil": 249,
+    "TicketConsume": 38,
+    "MedalPoint": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 23,
+    "UpgradeWinPoint": 250
+  },
+  {
+    "Index": 27,
+    "MasterPointCeil": 499,
+    "TicketConsume": 41,
+    "MedalPoint": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 24,
+    "MasterPointFloor": 250,
+    "UpgradeWinPoint": 250
+  },
+  {
+    "Index": 28,
+    "MasterPointCeil": 749,
+    "TicketConsume": 44,
+    "MedalPoint": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 25,
+    "MasterPointFloor": 500,
+    "UpgradeWinPoint": 250
+  },
+  {
+    "Index": 29,
+    "MasterPointCeil": 999,
+    "TicketConsume": 48,
+    "MedalPoint": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 26,
+    "MasterPointFloor": 750,
+    "UpgradeWinPoint": 250
+  },
+  {
+    "Index": 30,
+    "MasterPointCeil": 1199,
+    "TicketConsume": 45,
+    "BigRankedDivision": 7,
+    "RankedDivision": 30,
+    "MasterPointFloor": 1000,
+    "UpgradeWinPoint": 200
+  },
+  {
+    "Index": 31,
+    "MasterPointCeil": 1399,
+    "TicketConsume": 46,
+    "BigRankedDivision": 7,
+    "RankedDivision": 31,
+    "MasterPointFloor": 1200,
+    "UpgradeWinPoint": 200
+  },
+  {
+    "Index": 32,
+    "MasterPointCeil": 1599,
+    "TicketConsume": 48,
+    "BigRankedDivision": 7,
+    "RankedDivision": 32,
+    "MasterPointFloor": 1400,
+    "UpgradeWinPoint": 200
+  },
+  {
+    "Index": 33,
+    "MasterPointCeil": 1799,
+    "TicketConsume": 50,
+    "BigRankedDivision": 7,
+    "RankedDivision": 33,
+    "MasterPointFloor": 1600,
+    "UpgradeWinPoint": 200
+  },
+  {
+    "Index": 34,
+    "MasterPointCeil": 99999,
+    "TicketConsume": 51,
+    "BigRankedDivision": 7,
+    "RankedDivision": 34,
+    "MasterPointFloor": 1800,
+    "UpgradeWinPoint": 9999
+  }
+]

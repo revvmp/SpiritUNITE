@@ -1,0 +1,188 @@
+[
+  {
+    "NewplayerRewardId": 1,
+    "ResourceNum": 1,
+    "ResourceType": 6,
+    "ResourceId": 1000000118
+  },
+  {
+    "NewplayerRewardId": 2,
+    "ResourceNum": 1,
+    "ResourceType": 8,
+    "ResourceId": 1007001001
+  },
+  {
+    "NewplayerRewardId": 3,
+    "ResourceNum": 1,
+    "ResourceType": 8,
+    "ResourceId": 1007001002
+  },
+  {
+    "NewplayerRewardId": 4,
+    "ResourceNum": 1,
+    "ResourceType": 8,
+    "ResourceId": 1007001003
+  },
+  {
+    "NewplayerRewardId": 5,
+    "ResourceNum": 1,
+    "ResourceType": 8,
+    "ResourceId": 1007002001
+  },
+  {
+    "NewplayerRewardId": 6,
+    "ResourceNum": 1,
+    "ResourceType": 8,
+    "ResourceId": 1007002002
+  },
+  {
+    "NewplayerRewardId": 7,
+    "ResourceNum": 1,
+    "ResourceType": 8,
+    "ResourceId": 1007003001
+  },
+  {
+    "NewplayerRewardId": 8,
+    "ResourceNum": 1,
+    "ResourceType": 8,
+    "ResourceId": 1007003002
+  },
+  {
+    "NewplayerRewardId": 9,
+    "ResourceNum": 1,
+    "ResourceType": 8,
+    "ResourceId": 1007003003
+  },
+  {
+    "NewplayerRewardId": 10,
+    "ResourceNum": 1,
+    "ResourceType": 8,
+    "ResourceId": 1007003004
+  },
+  {
+    "NewplayerRewardId": 11,
+    "ResourceNum": 1,
+    "ResourceType": 8,
+    "ResourceId": 1007003005
+  },
+  {
+    "NewplayerRewardId": 12,
+    "ResourceNum": 1,
+    "ResourceType": 8,
+    "ResourceId": 1007003006
+  },
+  {
+    "NewplayerRewardId": 13,
+    "ResourceNum": 1,
+    "ResourceType": 8,
+    "ResourceId": 1007004001
+  },
+  {
+    "NewplayerRewardId": 14,
+    "ResourceNum": 1,
+    "ResourceType": 8,
+    "ResourceId": 1007004002
+  },
+  {
+    "NewplayerRewardId": 15,
+    "ResourceNum": 1,
+    "ResourceType": 8,
+    "ResourceId": 1007004003
+  },
+  {
+    "NewplayerRewardId": 16,
+    "ResourceNum": 1,
+    "ResourceType": 8,
+    "ResourceId": 1007004004
+  },
+  {
+    "NewplayerRewardId": 17,
+    "ResourceNum": 1,
+    "ResourceType": 8,
+    "ResourceId": 1007005002
+  },
+  {
+    "NewplayerRewardId": 18,
+    "ResourceNum": 1,
+    "ResourceType": 8,
+    "ResourceId": 1007005003
+  },
+  {
+    "NewplayerRewardId": 19,
+    "ResourceNum": 1,
+    "ResourceType": 8,
+    "ResourceId": 1007005004
+  },
+  {
+    "NewplayerRewardId": 20,
+    "ResourceNum": 1,
+    "ResourceType": 8,
+    "ResourceId": 1007006002
+  },
+  {
+    "NewplayerRewardId": 21,
+    "ResourceNum": 1,
+    "ResourceType": 8,
+    "ResourceId": 1007006003
+  },
+  {
+    "NewplayerRewardId": 22,
+    "ResourceNum": 1,
+    "ResourceType": 8,
+    "ResourceId": 1007006004
+  },
+  {
+    "NewplayerRewardId": 23,
+    "ResourceNum": 1,
+    "ResourceType": 7,
+    "ResourceId": 1007000001
+  },
+  {
+    "NewplayerRewardId": 24,
+    "ResourceNum": 1,
+    "ResourceType": 4,
+    "ResourceId": 1004001103
+  },
+  {
+    "NewplayerRewardId": 25,
+    "ResourceNum": 1,
+    "ResourceType": 4,
+    "ResourceId": 1004003801
+  },
+  {
+    "NewplayerRewardId": 26,
+    "ResourceNum": 1,
+    "ResourceType": 10,
+    "ResourceId": 1007100191
+  },
+  {
+    "NewplayerRewardId": 27,
+    "ResourceNum": 1,
+    "ResourceType": 10,
+    "ResourceId": 1007100211
+  },
+  {
+    "NewplayerRewardId": 28,
+    "ResourceNum": 1,
+    "ResourceType": 10,
+    "ResourceId": 1007100841
+  },
+  {
+    "NewplayerRewardId": 29,
+    "ResourceNum": 1,
+    "ResourceType": 10,
+    "ResourceId": 1007100161
+  },
+  {
+    "NewplayerRewardId": 30,
+    "ResourceNum": 1,
+    "ResourceType": 10,
+    "ResourceId": 1007100831
+  },
+  {
+    "NewplayerRewardId": 31,
+    "ResourceNum": 1,
+    "ResourceType": 3,
+    "ResourceId": 1002000054
+  }
+]

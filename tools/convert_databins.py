@@ -172,6 +172,60 @@ LUA_ONLY_FIELDS = {
         246521: Field("DropPackID", "int32"),
         290483: Field("DropPackSeq", "int32"),
     },
+    "pbRankedMatchMapOpenTime": {
+        217335: Field("MapID", "int32"),
+        223064: Field("SeasonID", "int32"),
+        223148: Field("Index", "int32"),
+        265497: Field("CloseTime", "int64"),
+        285755: Field("OpenTime", "int64"),
+        287307: Field("TrainMapID", "int32"),
+    },
+    "pbRankMatchPointMedal": {
+        223098: Field("Score", "int32"),
+        232230: Field("MedalGroup", "int32"),
+        254318: Field("MedalID", "int32"),
+        266513: Field("MedalType", "int32"),
+        280152: Field("Priority", "int32"),
+    },
+    "pbRankedMatchSeasonTaskAward": {
+        230196: Field("HistoryDivisionCanAward", "int32"),
+        256687: Field("SDropID", "int32"),
+        262339: Field("IsRecvShow", "int32"),
+        274622: Field("BigRankedDivision", "int32"),
+        285632: Field("RankedDivision", "int32"),
+        299833: Field("AwardGroupId", "int32"),
+    },
+    "pbNewPlayerDefaultRes": {
+        218513: Field("NewplayerRewardId", "int32"),
+        232620: Field("ResourceNum", "int32"),
+        239380: Field("ResourceType", "int32"),
+        282173: Field("ResourceId", "int32"),
+    },
+    "pbEeveeChallenge": {
+        205577: Field("EeveeID", "int32"),
+        244760: Field("ActivityID", "int32"),
+        258104: Field("TaskIDList", "int32", repeated=True),
+    },
+    "pbBanPickRule": {
+        200698: Field("BanMode", "int32"),
+        248168: Field("Round", "int32", repeated=True),
+        269833: Field("ExceptBanCD", "int32"),
+        272931: Field("BanPickRuleId", "int32"),
+        274750: Field("ViewVoteBanNum", "int32"),
+        287974: Field("VoteCampBanNum", "int32"),
+    },
+    "pbFriendlyRoomRule": {
+        203336: Field("RelationClose", "int32", repeated=True),
+        242484: Field("RelationOpen", "int32", repeated=True),
+        266095: Field("Id", "int32"),
+    },
+    "pbRoundRule": {
+        220405: Field("BanOrPick", "int32"),
+        237529: Field("RoundRuleId", "int32"),
+        239263: Field("TimeOut", "int32"),
+        247017: Field("CampTwoPos", "int32", repeated=True),
+        251891: Field("CampOnePos", "int32", repeated=True),
+    },
 }
 
 SERVER_FIELD_SUBSETS = {
@@ -280,6 +334,8 @@ OUT_SIDE_ITEM_SERVER_FIELDS = (
     "IsCanLevelUp",
     "Transmuteid",
     "TransmuteNum",
+    "ExpireTransId",
+    "ExpireTransNum",
 )
 
 HELD_ITEM_LEVEL_UP_DESIGN_SERVER_FIELDS = ("Id", "GroupId", "Level", "LevelUpCost", "LevelUpCostID")
@@ -340,6 +396,23 @@ SCENE_MAP_SERVER_FIELDS = (
     "SurrenderInvalidTime",
     "SurrenderTimesLimit",
     "Timeout",
+    "CampOneBanPickRuleID",
+    "CampTwoBanPickRuleID",
+    "PickHeroMode",
+    "PickAdjustSec",
+    "SubModeFriendRule",
+)
+
+RANKED_DIVISION_SERVER_FIELDS = (
+    "Index",
+    "RankedDivision",
+    "BigRankedDivision",
+    "UpgradeWinPoint",
+    "TicketConsume",
+    "DivisionFallProtect",
+    "MasterPointFloor",
+    "MasterPointCeil",
+    "MedalPoint",
 )
 
 MAP_BASE_SERVER_FIELDS = ("MapBaseId", "MatchTime")
@@ -365,6 +438,24 @@ TABLES = {
         "pbOutSideItem_Base", key_field="OutSideItemId", kept_fields=OUT_SIDE_ITEM_SERVER_FIELDS
     ),
     "databin_RankedMatchSeason": Table("pbRankedMatchSeason", key_field="SeasonId"),
+    "databin_RankedDivision": Table("pbRankedDivision", key_field="Index", kept_fields=RANKED_DIVISION_SERVER_FIELDS),
+    "databin_RankedMatchMapOpenTime": Table(
+        "pbRankedMatchMapOpenTime", LUA_ONLY_FIELDS["pbRankedMatchMapOpenTime"], key_field="Index"
+    ),
+    "databin_RankMatchPointMedal": Table(
+        "pbRankMatchPointMedal", LUA_ONLY_FIELDS["pbRankMatchPointMedal"], key_field="MedalID"
+    ),
+    "databin_RankedMatchSeasonAward": Table("pbRankedMatchSeasonAward"),
+    "databin_RankedMatchSeasonTaskAward": Table(
+        "pbRankedMatchSeasonTaskAward", LUA_ONLY_FIELDS["pbRankedMatchSeasonTaskAward"]
+    ),
+    "databin_NewPlayerDefaultRes": Table(
+        "pbNewPlayerDefaultRes", LUA_ONLY_FIELDS["pbNewPlayerDefaultRes"], key_field="NewplayerRewardId"
+    ),
+    "databin_EeveeChallenge": Table("pbEeveeChallenge", LUA_ONLY_FIELDS["pbEeveeChallenge"]),
+    "databin_BanPickRule": Table("pbBanPickRule", LUA_ONLY_FIELDS["pbBanPickRule"], key_field="BanPickRuleId"),
+    "databin_RoundRule": Table("pbRoundRule", LUA_ONLY_FIELDS["pbRoundRule"], key_field="RoundRuleId"),
+    "databin_FriendlyRoomRule": Table("pbFriendlyRoomRule", LUA_ONLY_FIELDS["pbFriendlyRoomRule"], key_field="Id"),
     "databin_RoleImage": Table("pbRoleImage"),
     "databin_Scene_Map": Table("pbScene_Map", key_field="SceneId", kept_fields=SCENE_MAP_SERVER_FIELDS),
     "databin_MapBase": Table("pbMapBase", key_field="MapBaseId", kept_fields=MAP_BASE_SERVER_FIELDS),
@@ -434,6 +525,8 @@ TABLES = {
     ),
     "databin_Pokemon_Hero": Table("pbUnit_Base", SERVER_FIELD_SUBSETS["pbUnit_Base"], key_field="UnitId"),
     "databin_Monster_Base_Monster": Table("pbUnit_Base", SERVER_FIELD_SUBSETS["pbUnit_Base"], key_field="UnitId"),
+    "databin_Battle_Global_Base": Table("pbGlobal_Base", key_field="GlobalId"),
+    "databin_Outside_Global_Base": Table("pbGlobal_Base", key_field="GlobalId"),
 }
 
 TABLE_MAGIC = b"pbc"

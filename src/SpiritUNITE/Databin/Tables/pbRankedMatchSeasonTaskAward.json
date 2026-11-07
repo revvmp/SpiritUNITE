@@ -1,0 +1,2255 @@
+[
+  {
+    "SDropID": 10116,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 1
+  },
+  {
+    "SDropID": 10005,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 1
+  },
+  {
+    "SDropID": 90011,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 1
+  },
+  {
+    "SDropID": 10115,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 1
+  },
+  {
+    "SDropID": 90012,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 1
+  },
+  {
+    "SDropID": 90014,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 1
+  },
+  {
+    "SDropID": 90013,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 1
+  },
+  {
+    "SDropID": 90015,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1800,
+    "AwardGroupId": 1
+  },
+  {
+    "SDropID": 10116,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 2
+  },
+  {
+    "SDropID": 10005,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 2
+  },
+  {
+    "SDropID": 90016,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 2
+  },
+  {
+    "SDropID": 10115,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 2
+  },
+  {
+    "SDropID": 90017,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 2
+  },
+  {
+    "SDropID": 90019,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 2
+  },
+  {
+    "SDropID": 90018,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 2
+  },
+  {
+    "SDropID": 90020,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1800,
+    "AwardGroupId": 2
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 3
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 3
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 3
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 3
+  },
+  {
+    "SDropID": 90022,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 3
+  },
+  {
+    "SDropID": 90024,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 3
+  },
+  {
+    "SDropID": 90023,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 3
+  },
+  {
+    "SDropID": 90025,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 3
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 4
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 4
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 4
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 4
+  },
+  {
+    "SDropID": 90027,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 4
+  },
+  {
+    "SDropID": 90029,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 4
+  },
+  {
+    "SDropID": 90028,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 4
+  },
+  {
+    "SDropID": 90030,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 4
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 5
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 5
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 5
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 5
+  },
+  {
+    "SDropID": 90031,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 5
+  },
+  {
+    "SDropID": 90033,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 5
+  },
+  {
+    "SDropID": 90032,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 5
+  },
+  {
+    "SDropID": 90034,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 5
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 6
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 6
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 6
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 6
+  },
+  {
+    "SDropID": 90035,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 6
+  },
+  {
+    "SDropID": 90037,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 6
+  },
+  {
+    "SDropID": 90036,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 6
+  },
+  {
+    "SDropID": 90038,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 6
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 7
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 7
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 7
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 7
+  },
+  {
+    "SDropID": 90039,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 7
+  },
+  {
+    "SDropID": 90041,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 7
+  },
+  {
+    "SDropID": 90040,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 7
+  },
+  {
+    "SDropID": 90042,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 7
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 8
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 8
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 8
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 8
+  },
+  {
+    "SDropID": 90043,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 8
+  },
+  {
+    "SDropID": 90045,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 8
+  },
+  {
+    "SDropID": 90044,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 8
+  },
+  {
+    "SDropID": 90046,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 8
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 9
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 9
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 9
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 9
+  },
+  {
+    "SDropID": 90047,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 9
+  },
+  {
+    "SDropID": 90049,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 9
+  },
+  {
+    "SDropID": 90048,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 9
+  },
+  {
+    "SDropID": 90050,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 9
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 10
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 10
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 10
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 10
+  },
+  {
+    "SDropID": 90051,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 10
+  },
+  {
+    "SDropID": 90053,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 10
+  },
+  {
+    "SDropID": 90052,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 10
+  },
+  {
+    "SDropID": 90054,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 10
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 11
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 11
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 11
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 11
+  },
+  {
+    "SDropID": 90055,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 11
+  },
+  {
+    "SDropID": 90057,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 11
+  },
+  {
+    "SDropID": 90056,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 11
+  },
+  {
+    "SDropID": 90058,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 11
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 12
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 12
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 12
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 12
+  },
+  {
+    "SDropID": 90059,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 12
+  },
+  {
+    "SDropID": 90061,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 12
+  },
+  {
+    "SDropID": 90060,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 12
+  },
+  {
+    "SDropID": 90062,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 12
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 13
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 13
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 13
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 13
+  },
+  {
+    "SDropID": 90063,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 13
+  },
+  {
+    "SDropID": 90065,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 13
+  },
+  {
+    "SDropID": 90064,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 13
+  },
+  {
+    "SDropID": 90066,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 13
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 14
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 14
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 14
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 14
+  },
+  {
+    "SDropID": 90067,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 14
+  },
+  {
+    "SDropID": 90069,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 14
+  },
+  {
+    "SDropID": 90068,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 14
+  },
+  {
+    "SDropID": 90070,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 14
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 15
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 15
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 15
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 15
+  },
+  {
+    "SDropID": 90071,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 15
+  },
+  {
+    "SDropID": 90073,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 15
+  },
+  {
+    "SDropID": 90072,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 15
+  },
+  {
+    "SDropID": 90074,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 15
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 16
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 16
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 16
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 16
+  },
+  {
+    "SDropID": 90075,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 16
+  },
+  {
+    "SDropID": 90077,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 16
+  },
+  {
+    "SDropID": 90076,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 16
+  },
+  {
+    "SDropID": 90078,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 16
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 17
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 17
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 17
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 17
+  },
+  {
+    "SDropID": 90079,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 17
+  },
+  {
+    "SDropID": 90081,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 17
+  },
+  {
+    "SDropID": 90080,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 17
+  },
+  {
+    "SDropID": 90082,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 17
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 18
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 18
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 18
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 18
+  },
+  {
+    "SDropID": 90083,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 18
+  },
+  {
+    "SDropID": 90085,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 18
+  },
+  {
+    "SDropID": 90084,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 18
+  },
+  {
+    "SDropID": 90086,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 18
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 19
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 19
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 19
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 19
+  },
+  {
+    "SDropID": 90087,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 19
+  },
+  {
+    "SDropID": 90089,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 19
+  },
+  {
+    "SDropID": 90088,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 19
+  },
+  {
+    "SDropID": 90090,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 19
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 20
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 20
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 20
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 20
+  },
+  {
+    "SDropID": 90091,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 20
+  },
+  {
+    "SDropID": 90093,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 20
+  },
+  {
+    "SDropID": 90092,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 20
+  },
+  {
+    "SDropID": 90094,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 20
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 21
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 21
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 21
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 21
+  },
+  {
+    "SDropID": 90095,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 21
+  },
+  {
+    "SDropID": 90096,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 21
+  },
+  {
+    "SDropID": 90097,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 21
+  },
+  {
+    "SDropID": 90098,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 21
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 22
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 22
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 22
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 22
+  },
+  {
+    "SDropID": 91001,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 22
+  },
+  {
+    "SDropID": 91002,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 22
+  },
+  {
+    "SDropID": 91003,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 22
+  },
+  {
+    "SDropID": 91004,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 22
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 23
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 23
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 23
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 23
+  },
+  {
+    "SDropID": 91005,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 23
+  },
+  {
+    "SDropID": 91006,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 23
+  },
+  {
+    "SDropID": 91007,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 23
+  },
+  {
+    "SDropID": 91008,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 23
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 24
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 24
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 24
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 24
+  },
+  {
+    "SDropID": 91009,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 24
+  },
+  {
+    "SDropID": 91010,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 24
+  },
+  {
+    "SDropID": 91011,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 24
+  },
+  {
+    "SDropID": 91012,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 24
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 25
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 25
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 25
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 25
+  },
+  {
+    "SDropID": 91013,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 25
+  },
+  {
+    "SDropID": 91014,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 25
+  },
+  {
+    "SDropID": 91015,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 25
+  },
+  {
+    "SDropID": 91016,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 25
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 26
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 26
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 26
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 26
+  },
+  {
+    "SDropID": 91017,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 26
+  },
+  {
+    "SDropID": 91018,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 26
+  },
+  {
+    "SDropID": 91019,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 26
+  },
+  {
+    "SDropID": 91020,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 26
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 27
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 27
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 27
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 27
+  },
+  {
+    "SDropID": 91021,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 27
+  },
+  {
+    "SDropID": 91022,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 27
+  },
+  {
+    "SDropID": 91023,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 27
+  },
+  {
+    "SDropID": 91024,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 27
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 28
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 28
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 28
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 28
+  },
+  {
+    "SDropID": 91026,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 28
+  },
+  {
+    "SDropID": 91027,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 28
+  },
+  {
+    "SDropID": 91028,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 28
+  },
+  {
+    "SDropID": 91029,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 28
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 29
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 29
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 29
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 29
+  },
+  {
+    "SDropID": 91031,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 29
+  },
+  {
+    "SDropID": 91032,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1200,
+    "AwardGroupId": 29
+  },
+  {
+    "SDropID": 91033,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1400,
+    "AwardGroupId": 29
+  },
+  {
+    "SDropID": 91034,
+    "BigRankedDivision": 6,
+    "RankedDivision": 1600,
+    "AwardGroupId": 29
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 30
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 30
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 30
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 30
+  },
+  {
+    "SDropID": 91036,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 30
+  },
+  {
+    "SDropID": 91037,
+    "BigRankedDivision": 6,
+    "AwardGroupId": 30
+  },
+  {
+    "SDropID": 91038,
+    "BigRankedDivision": 6,
+    "RankedDivision": 250,
+    "AwardGroupId": 30
+  },
+  {
+    "SDropID": 91039,
+    "BigRankedDivision": 6,
+    "RankedDivision": 500,
+    "AwardGroupId": 30
+  },
+  {
+    "SDropID": 91040,
+    "BigRankedDivision": 7,
+    "RankedDivision": 1000,
+    "AwardGroupId": 30
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 31
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 31
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 31
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 31
+  },
+  {
+    "SDropID": 91041,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 31
+  },
+  {
+    "SDropID": 91042,
+    "BigRankedDivision": 6,
+    "AwardGroupId": 31
+  },
+  {
+    "SDropID": 91043,
+    "BigRankedDivision": 6,
+    "RankedDivision": 250,
+    "AwardGroupId": 31
+  },
+  {
+    "SDropID": 91044,
+    "BigRankedDivision": 6,
+    "RankedDivision": 500,
+    "AwardGroupId": 31
+  },
+  {
+    "SDropID": 91045,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 7,
+    "RankedDivision": 1000,
+    "AwardGroupId": 31
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 32
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 32
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 32
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 32
+  },
+  {
+    "SDropID": 91046,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 32
+  },
+  {
+    "SDropID": 91047,
+    "BigRankedDivision": 6,
+    "AwardGroupId": 32
+  },
+  {
+    "SDropID": 91048,
+    "BigRankedDivision": 6,
+    "RankedDivision": 250,
+    "AwardGroupId": 32
+  },
+  {
+    "SDropID": 91049,
+    "BigRankedDivision": 6,
+    "RankedDivision": 500,
+    "AwardGroupId": 32
+  },
+  {
+    "SDropID": 91050,
+    "BigRankedDivision": 7,
+    "RankedDivision": 1000,
+    "AwardGroupId": 32
+  },
+  {
+    "SDropID": 10119,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 33
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 33
+  },
+  {
+    "SDropID": 10117,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 33
+  },
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 33
+  },
+  {
+    "SDropID": 91051,
+    "BigRankedDivision": 5,
+    "RankedDivision": 18,
+    "AwardGroupId": 33
+  },
+  {
+    "SDropID": 91052,
+    "BigRankedDivision": 6,
+    "AwardGroupId": 33
+  },
+  {
+    "SDropID": 91053,
+    "BigRankedDivision": 6,
+    "RankedDivision": 250,
+    "AwardGroupId": 33
+  },
+  {
+    "SDropID": 91054,
+    "BigRankedDivision": 6,
+    "RankedDivision": 500,
+    "AwardGroupId": 33
+  },
+  {
+    "SDropID": 91055,
+    "BigRankedDivision": 7,
+    "RankedDivision": 1000,
+    "AwardGroupId": 33
+  },
+  {
+    "SDropID": 10119,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 34
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 34
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 34
+  },
+  {
+    "SDropID": 10003,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 34
+  },
+  {
+    "SDropID": 91056,
+    "BigRankedDivision": 6,
+    "AwardGroupId": 34
+  },
+  {
+    "SDropID": 91057,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 250,
+    "AwardGroupId": 34
+  },
+  {
+    "SDropID": 91058,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 500,
+    "AwardGroupId": 34
+  },
+  {
+    "SDropID": 91060,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 7,
+    "RankedDivision": 1000,
+    "AwardGroupId": 34
+  },
+  {
+    "SDropID": 10119,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 35
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 35
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 35
+  },
+  {
+    "SDropID": 10003,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 35
+  },
+  {
+    "SDropID": 91061,
+    "BigRankedDivision": 6,
+    "AwardGroupId": 35
+  },
+  {
+    "SDropID": 91057,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 250,
+    "AwardGroupId": 35
+  },
+  {
+    "SDropID": 91058,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 500,
+    "AwardGroupId": 35
+  },
+  {
+    "SDropID": 91065,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 7,
+    "RankedDivision": 1000,
+    "AwardGroupId": 35
+  },
+  {
+    "SDropID": 10119,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 36
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 36
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 36
+  },
+  {
+    "SDropID": 10003,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 36
+  },
+  {
+    "SDropID": 91066,
+    "BigRankedDivision": 6,
+    "AwardGroupId": 36
+  },
+  {
+    "SDropID": 91057,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 250,
+    "AwardGroupId": 36
+  },
+  {
+    "SDropID": 91058,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 500,
+    "AwardGroupId": 36
+  },
+  {
+    "SDropID": 91070,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 7,
+    "RankedDivision": 1000,
+    "AwardGroupId": 36
+  },
+  {
+    "SDropID": 10119,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 37
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 37
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 37
+  },
+  {
+    "SDropID": 10003,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 37
+  },
+  {
+    "SDropID": 91071,
+    "BigRankedDivision": 6,
+    "AwardGroupId": 37
+  },
+  {
+    "SDropID": 91057,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 250,
+    "AwardGroupId": 37
+  },
+  {
+    "SDropID": 91058,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 500,
+    "AwardGroupId": 37
+  },
+  {
+    "SDropID": 91075,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 7,
+    "RankedDivision": 1000,
+    "AwardGroupId": 37
+  },
+  {
+    "SDropID": 10119,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 38
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 38
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 38
+  },
+  {
+    "SDropID": 10003,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 38
+  },
+  {
+    "SDropID": 91076,
+    "BigRankedDivision": 6,
+    "AwardGroupId": 38
+  },
+  {
+    "SDropID": 91057,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 250,
+    "AwardGroupId": 38
+  },
+  {
+    "SDropID": 91058,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 500,
+    "AwardGroupId": 38
+  },
+  {
+    "SDropID": 91079,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 7,
+    "RankedDivision": 1000,
+    "AwardGroupId": 38
+  },
+  {
+    "SDropID": 10119,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 39
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 39
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 39
+  },
+  {
+    "SDropID": 10003,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 39
+  },
+  {
+    "SDropID": 91080,
+    "BigRankedDivision": 6,
+    "AwardGroupId": 39
+  },
+  {
+    "SDropID": 91057,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 250,
+    "AwardGroupId": 39
+  },
+  {
+    "SDropID": 91058,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 500,
+    "AwardGroupId": 39
+  },
+  {
+    "SDropID": 91083,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 7,
+    "RankedDivision": 1000,
+    "AwardGroupId": 39
+  },
+  {
+    "SDropID": 10119,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 40
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 40
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 40
+  },
+  {
+    "SDropID": 10003,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 40
+  },
+  {
+    "SDropID": 91084,
+    "BigRankedDivision": 6,
+    "AwardGroupId": 40
+  },
+  {
+    "SDropID": 91057,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 250,
+    "AwardGroupId": 40
+  },
+  {
+    "SDropID": 91058,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 500,
+    "AwardGroupId": 40
+  },
+  {
+    "SDropID": 91087,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 7,
+    "RankedDivision": 1000,
+    "AwardGroupId": 40
+  },
+  {
+    "SDropID": 10119,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 41
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 41
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 41
+  },
+  {
+    "SDropID": 10003,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 41
+  },
+  {
+    "SDropID": 91088,
+    "BigRankedDivision": 6,
+    "AwardGroupId": 41
+  },
+  {
+    "SDropID": 91057,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 250,
+    "AwardGroupId": 41
+  },
+  {
+    "SDropID": 91058,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 500,
+    "AwardGroupId": 41
+  },
+  {
+    "SDropID": 91091,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 7,
+    "RankedDivision": 1000,
+    "AwardGroupId": 41
+  },
+  {
+    "SDropID": 10119,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 42
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 42
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 42
+  },
+  {
+    "SDropID": 10003,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 42
+  },
+  {
+    "SDropID": 91092,
+    "BigRankedDivision": 6,
+    "AwardGroupId": 42
+  },
+  {
+    "SDropID": 91057,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 250,
+    "AwardGroupId": 42
+  },
+  {
+    "SDropID": 91058,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 500,
+    "AwardGroupId": 42
+  },
+  {
+    "SDropID": 91095,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 7,
+    "RankedDivision": 1000,
+    "AwardGroupId": 42
+  },
+  {
+    "SDropID": 10119,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 43
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 43
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 43
+  },
+  {
+    "SDropID": 10003,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 43
+  },
+  {
+    "SDropID": 91096,
+    "BigRankedDivision": 6,
+    "AwardGroupId": 43
+  },
+  {
+    "SDropID": 91057,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 250,
+    "AwardGroupId": 43
+  },
+  {
+    "SDropID": 91058,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 500,
+    "AwardGroupId": 43
+  },
+  {
+    "SDropID": 91099,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 7,
+    "RankedDivision": 1000,
+    "AwardGroupId": 43
+  },
+  {
+    "SDropID": 10119,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 44
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 44
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 44
+  },
+  {
+    "SDropID": 10003,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 44
+  },
+  {
+    "SDropID": 91100,
+    "BigRankedDivision": 6,
+    "AwardGroupId": 44
+  },
+  {
+    "SDropID": 91057,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 250,
+    "AwardGroupId": 44
+  },
+  {
+    "SDropID": 91058,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 500,
+    "AwardGroupId": 44
+  },
+  {
+    "SDropID": 91103,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 7,
+    "RankedDivision": 1000,
+    "AwardGroupId": 44
+  },
+  {
+    "SDropID": 10119,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 1,
+    "RankedDivision": 1,
+    "AwardGroupId": 45
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 2,
+    "RankedDivision": 29,
+    "AwardGroupId": 45
+  },
+  {
+    "SDropID": 10117,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 3,
+    "RankedDivision": 8,
+    "AwardGroupId": 45
+  },
+  {
+    "SDropID": 10003,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 4,
+    "RankedDivision": 13,
+    "AwardGroupId": 45
+  },
+  {
+    "SDropID": 91104,
+    "BigRankedDivision": 6,
+    "AwardGroupId": 45
+  },
+  {
+    "SDropID": 91057,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 250,
+    "AwardGroupId": 45
+  },
+  {
+    "SDropID": 91058,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 6,
+    "RankedDivision": 500,
+    "AwardGroupId": 45
+  },
+  {
+    "SDropID": 91107,
+    "IsRecvShow": 1,
+    "BigRankedDivision": 7,
+    "RankedDivision": 1000,
+    "AwardGroupId": 45
+  }
+]

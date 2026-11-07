@@ -1,0 +1,37 @@
+[
+  {
+    "SDropID": 10003,
+    "BigRankedDivision": 1,
+    "AwardId": 1001
+  },
+  {
+    "SDropID": 10005,
+    "BigRankedDivision": 2,
+    "AwardId": 1001
+  },
+  {
+    "SDropID": 10006,
+    "BigRankedDivision": 3,
+    "AwardId": 1001
+  },
+  {
+    "SDropID": 10007,
+    "BigRankedDivision": 4,
+    "AwardId": 1001
+  },
+  {
+    "SDropID": 10008,
+    "BigRankedDivision": 5,
+    "AwardId": 1001
+  },
+  {
+    "SDropID": 10010,
+    "BigRankedDivision": 6,
+    "AwardId": 1001
+  },
+  {
+    "SDropID": 10010,
+    "BigRankedDivision": 7,
+    "AwardId": 1001
+  }
+]

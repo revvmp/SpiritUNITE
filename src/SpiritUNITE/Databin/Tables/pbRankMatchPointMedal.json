@@ -1,0 +1,289 @@
+[
+  {
+    "Score": 3,
+    "MedalGroup": 1,
+    "MedalID": 1,
+    "MedalType": 24,
+    "Priority": 1
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 1,
+    "MedalID": 2,
+    "MedalType": 25,
+    "Priority": 3
+  },
+  {
+    "Score": 3,
+    "MedalGroup": 2,
+    "MedalID": 3,
+    "MedalType": 26,
+    "Priority": 1
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 2,
+    "MedalID": 4,
+    "MedalType": 27,
+    "Priority": 3
+  },
+  {
+    "Score": 3,
+    "MedalGroup": 3,
+    "MedalID": 5,
+    "MedalType": 28,
+    "Priority": 1
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 3,
+    "MedalID": 6,
+    "MedalType": 29,
+    "Priority": 3
+  },
+  {
+    "Score": 3,
+    "MedalGroup": 4,
+    "MedalID": 7,
+    "MedalType": 1,
+    "Priority": 1
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 4,
+    "MedalID": 8,
+    "MedalType": 2,
+    "Priority": 3
+  },
+  {
+    "Score": 3,
+    "MedalGroup": 5,
+    "MedalID": 9,
+    "MedalType": 5,
+    "Priority": 1
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 5,
+    "MedalID": 10,
+    "MedalType": 6,
+    "Priority": 3
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 6,
+    "MedalID": 11,
+    "MedalType": 30,
+    "Priority": 2
+  },
+  {
+    "Score": 3,
+    "MedalGroup": 7,
+    "MedalID": 12,
+    "MedalType": 15,
+    "Priority": 1
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 8,
+    "MedalID": 15,
+    "MedalType": 32,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 9,
+    "MedalID": 21,
+    "MedalType": 7,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 10,
+    "MedalID": 22,
+    "MedalType": 9,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 11,
+    "MedalID": 24,
+    "MedalType": 11,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 12,
+    "MedalID": 25,
+    "MedalType": 17,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 13,
+    "MedalID": 26,
+    "MedalType": 13,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 14,
+    "MedalID": 27,
+    "MedalType": 19,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 15,
+    "MedalID": 28,
+    "MedalType": 21,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 16,
+    "MedalID": 29,
+    "MedalType": 36,
+    "Priority": 2
+  },
+  {
+    "Score": 3,
+    "MedalGroup": 17,
+    "MedalID": 30,
+    "MedalType": 23,
+    "Priority": 1
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 18,
+    "MedalID": 31,
+    "MedalType": 38,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 19,
+    "MedalID": 32,
+    "MedalType": 39,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 20,
+    "MedalID": 33,
+    "MedalType": 40,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 21,
+    "MedalID": 34,
+    "MedalType": 41,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 22,
+    "MedalID": 35,
+    "MedalType": 42,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 23,
+    "MedalID": 36,
+    "MedalType": 43,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 24,
+    "MedalID": 37,
+    "MedalType": 44,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 25,
+    "MedalID": 38,
+    "MedalType": 45,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 26,
+    "MedalID": 39,
+    "MedalType": 46,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 27,
+    "MedalID": 40,
+    "MedalType": 47,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 28,
+    "MedalID": 41,
+    "MedalType": 48,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 29,
+    "MedalID": 42,
+    "MedalType": 49,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 30,
+    "MedalID": 43,
+    "MedalType": 50,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 31,
+    "MedalID": 44,
+    "MedalType": 51,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 32,
+    "MedalID": 45,
+    "MedalType": 52,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 33,
+    "MedalID": 46,
+    "MedalType": 53,
+    "Priority": 2
+  },
+  {
+    "Score": 1,
+    "MedalGroup": 34,
+    "MedalID": 47,
+    "MedalType": 54,
+    "Priority": 2
+  },
+  {
+    "Score": 3,
+    "MedalGroup": 35,
+    "MedalID": 48,
+    "MedalType": 55,
+    "Priority": 1
+  },
+  {
+    "Score": 3,
+    "MedalGroup": 36,
+    "MedalID": 49,
+    "MedalType": 56,
+    "Priority": 1
+  }
+]

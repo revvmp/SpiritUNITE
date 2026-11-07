@@ -48,7 +48,17 @@ public sealed class GameData
         AvatarSuit = LoadMessages<pbAvatarSuit>(row => row.AvatarSuitId);
         OutSideItemBase = LoadMessages<pbOutSideItem_Base>(row => row.OutSideItemId);
         RankedMatchSeason = LoadMessages<pbRankedMatchSeason>(row => row.SeasonId);
+        RankedDivision = LoadMessages<pbRankedDivision>(row => row.Index);
+        RankedMatchMapOpenTime = LoadRecords<pbRankedMatchMapOpenTime>(row => row.Index);
+        RankMatchPointMedal = LoadRecords<pbRankMatchPointMedal>(row => row.MedalID);
+        RankedMatchSeasonAward = LoadMessages<pbRankedMatchSeasonAward>(row => pbRankedMatchSeasonAward.Key(row.AwardId, row.BigRankedDivision));
+        RankedMatchSeasonTaskAward = LoadRecords<pbRankedMatchSeasonTaskAward>(row =>
+            pbRankedMatchSeasonTaskAward.Key(row.AwardGroupId, row.BigRankedDivision, row.RankedDivision));
+        BanPickRule = LoadRecords<pbBanPickRule>(row => row.BanPickRuleId);
+        RoundRule = LoadRecords<pbRoundRule>(row => row.RoundRuleId);
+        FriendlyRoomRule = LoadRecords<pbFriendlyRoomRule>(row => row.Id);
         SceneMap = LoadMessages<pbScene_Map>(row => row.SceneId);
+        GlobalBase = LoadMessages<pbGlobal_Base>(row => row.GlobalId);
         MapBase = LoadMessages<pbMapBase>(row => row.MapBaseId);
         MvpConf = LoadRecords<pbMvp_Conf>(row => pbMvp_Conf.Key(row.GameType, row.ParamType));
         Achievement = LoadRecords<pbAchievement>(row => row.AchievementID);
@@ -87,6 +97,8 @@ public sealed class GameData
         TrainerExpGift = LoadRecords<pbTrainerExpGift>(row => pbTrainerExpGift.Key(row.SchemeId, row.TotalExp));
         TrainerSeasonExpGift = LoadRecords<pbTrainerSeasonExpGift>(row => pbTrainerSeasonExpGift.Key(row.SeasonID, row.TotalExp));
         PasterSpray = LoadRecords<pbPasterSpray>(row => row.PasterSprayID);
+        NewPlayerDefaultRes = LoadRecords<pbNewPlayerDefaultRes>(row => row.NewplayerRewardId);
+        EeveeChallenge = LoadRecords<pbEeveeChallenge>(row => pbEeveeChallenge.Key(row.EeveeID, row.ActivityID));
         DefaultLobbyBgId = FindDefaultLobbyBgId(LobbyBg);
     }
 
@@ -107,6 +119,8 @@ public sealed class GameData
     public DatabinTable<pbTrainerExpGift> TrainerExpGift { get; }
     public DatabinTable<pbTrainerSeasonExpGift> TrainerSeasonExpGift { get; }
     public DatabinTable<pbPasterSpray> PasterSpray { get; }
+    public DatabinTable<pbNewPlayerDefaultRes> NewPlayerDefaultRes { get; }
+    public DatabinTable<pbEeveeChallenge> EeveeChallenge { get; }
     public DatabinTable<pbTask_Base> TaskBase { get; }
     public DatabinTable<pbDrop_Static> DropStatic { get; }
     public DatabinTable<pbResIDTypeMatch_Base> ResIDTypeMatchBase { get; }
@@ -117,7 +131,16 @@ public sealed class GameData
     public DatabinTable<pbAvatarSuit> AvatarSuit { get; }
     public DatabinTable<pbOutSideItem_Base> OutSideItemBase { get; }
     public DatabinTable<pbRankedMatchSeason> RankedMatchSeason { get; }
+    public DatabinTable<pbRankedDivision> RankedDivision { get; }
+    public DatabinTable<pbRankedMatchMapOpenTime> RankedMatchMapOpenTime { get; }
+    public DatabinTable<pbRankMatchPointMedal> RankMatchPointMedal { get; }
+    public DatabinTable<pbRankedMatchSeasonAward> RankedMatchSeasonAward { get; }
+    public DatabinTable<pbRankedMatchSeasonTaskAward> RankedMatchSeasonTaskAward { get; }
+    public DatabinTable<pbBanPickRule> BanPickRule { get; }
+    public DatabinTable<pbRoundRule> RoundRule { get; }
+    public DatabinTable<pbFriendlyRoomRule> FriendlyRoomRule { get; }
     public DatabinTable<pbScene_Map> SceneMap { get; }
+    public DatabinTable<pbGlobal_Base> GlobalBase { get; }
     public DatabinTable<pbMapBase> MapBase { get; }
     public DatabinTable<pbMvp_Conf> MvpConf { get; }
     public DatabinTable<pbAchievement> Achievement { get; }
@@ -152,6 +175,10 @@ public sealed class GameData
     public int DefaultLobbyBgId { get; }
 
     public static GameData Load(string directory) => new(directory);
+
+    public int GetGlobalIntData(PB_ENUM_RES_RESGLOBAL globalId) =>
+        GlobalBase.Find((long)globalId)?.Value
+        ?? throw new InvalidDataException($"Game data table {GlobalBase.TableName} has no row for {globalId}");
 
     private DatabinTable<TRow> LoadMessages<TRow>(Func<TRow, long> keySelector)
         where TRow : class, IMessage<TRow>, new()

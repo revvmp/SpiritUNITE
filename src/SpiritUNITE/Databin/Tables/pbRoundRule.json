@@ -1,0 +1,969 @@
+[
+  {
+    "RoundRuleId": 1,
+    "TimeOut": 20000,
+    "CampTwoPos": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "CampOnePos": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 2,
+    "TimeOut": 20000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      1,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 3,
+    "TimeOut": 20000,
+    "CampTwoPos": [
+      1,
+      2,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 4,
+    "TimeOut": 20000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      2,
+      3,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 5,
+    "TimeOut": 20000,
+    "CampTwoPos": [
+      3,
+      4,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 6,
+    "TimeOut": 20000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      4,
+      5,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 7,
+    "TimeOut": 20000,
+    "CampTwoPos": [
+      5,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 8,
+    "TimeOut": 60000,
+    "CampTwoPos": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "CampOnePos": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  {
+    "RoundRuleId": 9,
+    "TimeOut": 25000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      4,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "RoundRuleId": 10,
+    "TimeOut": 15000,
+    "CampTwoPos": [
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "RoundRuleId": 11,
+    "TimeOut": 15000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      5,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "RoundRuleId": 12,
+    "TimeOut": 15000,
+    "CampTwoPos": [
+      5,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 13,
+    "TimeOut": 20000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      1,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 14,
+    "TimeOut": 25000,
+    "CampTwoPos": [
+      1,
+      2,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 15,
+    "TimeOut": 25000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      2,
+      3,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 16,
+    "TimeOut": 25000,
+    "CampTwoPos": [
+      3,
+      4,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 17,
+    "TimeOut": 25000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      4,
+      5,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 18,
+    "TimeOut": 20000,
+    "CampTwoPos": [
+      5,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "RoundRuleId": 21,
+    "TimeOut": 25000,
+    "CampTwoPos": [
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "RoundRuleId": 22,
+    "TimeOut": 15000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      4,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "RoundRuleId": 23,
+    "TimeOut": 15000,
+    "CampTwoPos": [
+      5,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "RoundRuleId": 24,
+    "TimeOut": 15000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      5,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 25,
+    "TimeOut": 20000,
+    "CampTwoPos": [
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 26,
+    "TimeOut": 25000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      1,
+      2,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 27,
+    "TimeOut": 25000,
+    "CampTwoPos": [
+      2,
+      3,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 28,
+    "TimeOut": 25000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      3,
+      4,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 29,
+    "TimeOut": 25000,
+    "CampTwoPos": [
+      4,
+      5,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 30,
+    "TimeOut": 20000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      5,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "RoundRuleId": 31,
+    "TimeOut": 20000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      3,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "RoundRuleId": 32,
+    "TimeOut": 15000,
+    "CampTwoPos": [
+      3,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "RoundRuleId": 33,
+    "TimeOut": 15000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      4,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "RoundRuleId": 34,
+    "TimeOut": 15000,
+    "CampTwoPos": [
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "RoundRuleId": 35,
+    "TimeOut": 15000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      5,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "RoundRuleId": 36,
+    "TimeOut": 15000,
+    "CampTwoPos": [
+      5,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 37,
+    "TimeOut": 20000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      1,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 38,
+    "TimeOut": 25000,
+    "CampTwoPos": [
+      1,
+      2,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 39,
+    "TimeOut": 25000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      2,
+      3,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 40,
+    "TimeOut": 25000,
+    "CampTwoPos": [
+      3,
+      4,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 41,
+    "TimeOut": 25000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      4,
+      5,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 42,
+    "TimeOut": 20000,
+    "CampTwoPos": [
+      5,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "RoundRuleId": 43,
+    "TimeOut": 20000,
+    "CampTwoPos": [
+      3,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "RoundRuleId": 44,
+    "TimeOut": 15000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      3,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "RoundRuleId": 45,
+    "TimeOut": 15000,
+    "CampTwoPos": [
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "RoundRuleId": 46,
+    "TimeOut": 15000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      4,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "RoundRuleId": 47,
+    "TimeOut": 15000,
+    "CampTwoPos": [
+      5,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "RoundRuleId": 48,
+    "TimeOut": 15000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      5,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 49,
+    "TimeOut": 20000,
+    "CampTwoPos": [
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 50,
+    "TimeOut": 25000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      1,
+      2,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 51,
+    "TimeOut": 25000,
+    "CampTwoPos": [
+      2,
+      3,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 52,
+    "TimeOut": 25000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      3,
+      4,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 53,
+    "TimeOut": 25000,
+    "CampTwoPos": [
+      4,
+      5,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BanOrPick": 1,
+    "RoundRuleId": 54,
+    "TimeOut": 20000,
+    "CampTwoPos": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "CampOnePos": [
+      5,
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+]
