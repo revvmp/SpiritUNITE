@@ -10,7 +10,6 @@ public readonly record struct RankedMatchSeasonState(pbRankedMatchSeason Season,
 
 public static class RankedMatch
 {
-    public const PB_ENUM_RES_RANK_DIVISION StartingRankedDivision = PB_ENUM_RES_RANK_DIVISION.PbResRankDivisionBeginner5;
     public const int AllSeasonTaskAwards = -1;
 
     public static bool IsRankedMatchUnlocked(GameData gameData, LobbyNotices notices, LMNRoleInfo role) =>
@@ -45,24 +44,4 @@ public static class RankedMatch
             : PB_ENUM_COM_RANK_STATE_TYPE.PbComRankStateOfSeasonover;
         return new(started, state);
     }
-
-    public static pbCSDT_RANKED_MATCH_DETAIL BuildStartingDetail(GameData gameData, DateTimeOffset now)
-    {
-        var current = FindCurrentSeason(gameData, now);
-        return new pbCSDT_RANKED_MATCH_DETAIL
-        {
-            RankedMatchState = (int)current.RankedMatchState,
-            CurrentRankedDivision = new pbCOMDT_RANKED_DIVISION
-            {
-                RankedDivision = (int)StartingRankedDivision,
-                SeasonId = current.Season.SeasonId,
-            },
-            AwardedInfo = new pbCOMDT_RANKED_MATCH_AWARDED_INFO(),
-        };
-    }
-
-    public static PB_ENUM_RES_ERROR_CODE RefuseSeasonTaskAward(int rankedDivision) =>
-        rankedDivision == AllSeasonTaskAwards || Enum.IsDefined((PB_ENUM_RES_RANK_DIVISION)rankedDivision)
-            ? PB_ENUM_RES_ERROR_CODE.PbErrCommonFailed
-            : PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
 }

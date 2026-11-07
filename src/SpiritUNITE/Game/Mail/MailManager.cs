@@ -109,6 +109,7 @@ public sealed class MailManager(
             FromName = mail.FromName,
             Subject = mail.Subject,
             Content = mail.Content,
+            ContentParam = BuildContentParam(mail).ToByteArray(),
             SendTime = now,
             ExpireTime = now + ((long)mail.ValidDays * SecondsPerDay),
             AccessInfo = accessInfo.ToByteArray(),
@@ -322,6 +323,9 @@ public sealed class MailManager(
                 case PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesLobbyBackground:
                     AddItemGrant(role, RoleItemType.LobbyBg, award.ResID, now, items);
                     break;
+                case PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesHeadicon:
+                    AddItemGrant(role, RoleItemType.HeadIcon, award.ResID, now, items);
+                    break;
                 case PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesPokemon:
                     if (!role.OwnsPokemon(award.ResID) && !pokemonIds.Contains(award.ResID))
                     {
@@ -350,29 +354,34 @@ public sealed class MailManager(
             || mail.Attachments.Count > MailBox.MaxMailAccess
             || Encoding.UTF8.GetByteCount(mail.Subject) > MailBox.MaxMailSubject
             || Encoding.UTF8.GetByteCount(mail.Content) > MailBox.MaxMailContent
-            || Encoding.UTF8.GetByteCount(mail.FromName) > MailBox.MaxFromName)
+            || Encoding.UTF8.GetByteCount(mail.FromName) > MailBox.MaxFromName
+            || (mail.ContentParams ?? []).Count > MailBox.MaxMailContentParamNum
+            || (mail.ContentParams ?? []).Any(param => Encoding.UTF8.GetByteCount(param.Param) > MailBox.MaxMailParamLen))
         {
             throw new ArgumentException("System mail does not fit the client mail limits", nameof(mail));
         }
 
         foreach (var award in mail.Attachments)
         {
-            var valid = award.ResCnt > 0 && (PB_ENUM_RES_RESOURCES_TYPE)award.ResType switch
-            {
-                PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesCoin => award.ResID > 0,
-                PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesAvatar => gameData.AvatarItem.Contains(award.ResID),
-                PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesLobbyBackground =>
-                    gameData.LobbyBg.Contains(award.ResID) && award.ResID != gameData.DefaultLobbyBgId,
-                PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesPokemon => award.ResID > 0 && award.ResCnt == AwardedPokemonCount,
-                PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem => UniteLicense.IsUniteLicense(gameData, award.ResID),
-                _ => false,
-            };
-            if (!valid)
+            if (!CanAttach(award))
             {
                 throw new ArgumentException($"System mail attachment {award.ResType}:{award.ResID}x{award.ResCnt} cannot be granted", nameof(mail));
             }
         }
     }
+
+    public bool CanAttach(pbCOMDT_ONE_RESOURCE_AWARD_INFO award) =>
+        award.ResCnt > 0 && (PB_ENUM_RES_RESOURCES_TYPE)award.ResType switch
+        {
+            PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesCoin => award.ResID > 0,
+            PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesAvatar => gameData.AvatarItem.Contains(award.ResID),
+            PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesHeadicon => gameData.HeadIconBase.Contains(award.ResID),
+            PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesLobbyBackground =>
+                gameData.LobbyBg.Contains(award.ResID) && award.ResID != gameData.DefaultLobbyBgId,
+            PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesPokemon => award.ResID > 0 && award.ResCnt == AwardedPokemonCount,
+            PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem => UniteLicense.IsUniteLicense(gameData, award.ResID),
+            _ => false,
+        };
 
     private static pbCOMDT_MAIL_ITEM BuildMailItem(RoleMail mail) => new()
     {
@@ -401,7 +410,17 @@ public sealed class MailManager(
         Content = mail.Content,
         AccessInfo = BuildAccessInfo(mail),
         HyperLink = new pbCOMDT_MAIL_HYPERLINK_INFO { LinkData = new pbCOMDT_MAIL_HYPERLINK_DETAIL() },
-        ParamInfo = new pbCOMDT_MAIL_CONTENT_PARAM(),
+        ParamInfo = mail.ContentParam.Length > 0
+            ? pbCOMDT_MAIL_CONTENT_PARAM.Parser.ParseFrom(mail.ContentParam)
+            : new pbCOMDT_MAIL_CONTENT_PARAM(),
+    };
+
+    private static pbCOMDT_MAIL_CONTENT_PARAM BuildContentParam(SystemMail mail) => new()
+    {
+        ParamList =
+        {
+            (mail.ContentParams ?? []).Select(param => new pbCOMDT_MAIL_PARAM_DETAIL { Param = param.Param, Type = param.Type }),
+        },
     };
 
     private static pbCOMDT_MAILACCESS_INFO BuildAccessInfo(RoleMail mail)

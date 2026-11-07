@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SpiritUNITE.Game.Bag;
+using SpiritUNITE.Game.Ranked;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.StarRoad;
 using SpiritUNITE.Game.Tasks;
@@ -11,6 +12,7 @@ namespace SpiritUNITE.Packets.Handlers.Bag;
 public sealed class BagHandlers(
     RoleInfoStore roles,
     BagManager bag,
+    RankedManager ranked,
     StarRoadManager starRoad,
     TaskUpdates taskUpdates,
     ILogger<BagHandlers> logger)
@@ -57,6 +59,11 @@ public sealed class BagHandlers(
     {
         var role = roles.Require(request.Uid);
         var use = pbCSUseOutSideItemReq.Parser.ParseFrom(request.PkgData);
+        if (bag.IsFreeTicketCard(use.ResID))
+        {
+            return await UseFreeTicketCardAsync(request, role, use);
+        }
+
         var outcome = await bag.UseOutSideItemAsync(role, use.ResID, use.GridUniqueID, use.ResCnt);
         logger.LogInformation(
             "Use of {ResCnt} outside item {ResID} by uid {Uid}: {Result}",
@@ -72,6 +79,38 @@ public sealed class BagHandlers(
             ResCnt = use.ResCnt,
         });
         return outcome.Succeeded ? [.. await BuildUseAwardPacketsAsync(request, role, outcome), reply] : [reply];
+    }
+
+    private async Task<GamePacket[]> UseFreeTicketCardAsync(GamePacket request, LMNRoleInfo role, pbCSUseOutSideItemReq use)
+    {
+        var cardUse = await ranked.UseFreeTicketCardAsync(role.GameUlongUID, use.ResID, use.GridUniqueID, use.ResCnt);
+        logger.LogInformation(
+            "Use of {ResCnt} free ticket card {ResID} by uid {Uid}: {Result}",
+            use.ResCnt,
+            use.ResID,
+            role.GameUlongUID,
+            cardUse.Result);
+        var packets = new List<GamePacket>();
+        if (cardUse.ChangedItems.Count > 0)
+        {
+            packets.Add(request.Reply(
+                PB_ENUM_CS_MSGID_DEF.PbScidOutSideItemUpdateNotify,
+                BagManager.BuildOutSideItemUpdateNotify(cardUse.ChangedItems)));
+        }
+
+        if (cardUse.InfoNtf is { } infoNtf)
+        {
+            packets.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRankedMatchInfoNtf, infoNtf));
+        }
+
+        packets.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUseOutSideItemRsp, new pbSCUseOutSideItemRsp
+        {
+            ResultInfo = new pbResultInfo { ResultId = (int)cardUse.Result },
+            ResID = use.ResID,
+            GridUniqueID = use.GridUniqueID,
+            ResCnt = use.ResCnt,
+        }));
+        return [.. packets];
     }
 
     private async Task<GamePacket[]> BuildUseAwardPacketsAsync(GamePacket request, LMNRoleInfo role, BagOutcome outcome)

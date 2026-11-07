@@ -43,6 +43,7 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
     private const int NoDropID = 0;
     private const int FirstDropSeq = 1;
     private const int OpenAwardBoxReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonOpenawardbox;
+    private const ulong NoGridUniqueID = 0;
 
     public async Task<BagItem[]> GetOwnedOutSideItemsAsync(ulong gameUlongUID) =>
         [.. (await repository.LoadAsync(gameUlongUID, RoleItemType.OutSideItem)).Where(item => item.IsOwned)];
@@ -127,23 +128,40 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
         return BagOutcome.From(await repository.CommitAsync(gameUlongUID, change, clock.GetUtcNow().ToUnixTimeSeconds()));
     }
 
+    public async Task<BagOutcome> ConsumeOutSideItemAsync(ulong gameUlongUID, int itemId, int cnt) =>
+        BagOutcome.From(await repository.CommitAsync(
+            gameUlongUID,
+            new BagChange { Costs = [new BagCost(RoleItemType.OutSideItem, itemId, cnt)] },
+            clock.GetUtcNow().ToUnixTimeSeconds()));
+
     public async Task<BagOutcome> UseOutSideItemAsync(LMNRoleInfo role, int resID, ulong gridUniqueID, int resCnt)
     {
-        var validation = ValidateGrid(resID, gridUniqueID, resCnt, out var config);
+        var (validation, config) = await ValidateUseAsync(role.GameUlongUID, resID, gridUniqueID, resCnt);
         if (config is null)
         {
             return BagOutcome.Refused(validation);
         }
 
-        var owned = await FindOwnedOutSideItemAsync(role.GameUlongUID, resID);
-        if (owned is null || owned.Cnt < resCnt)
-        {
-            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemDeleteNotEnough);
-        }
-
         return config.OutSideItemType == (int)PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypeChest
             ? await OpenChestAsync(role, config, resCnt)
             : BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemUnKnownUseType);
+    }
+
+    public bool IsFreeTicketCard(int resID) =>
+        gameData.OutSideItemBase.Find(resID)?.OutSideItemType == (int)PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypeFreeTicketCard;
+
+    public async Task<(PB_ENUM_RES_ERROR_CODE Result, pbOutSideItem_Base? Config)> ValidateUseAsync(ulong gameUlongUID, int resID, ulong gridUniqueID, int resCnt)
+    {
+        var validation = ValidateGrid(resID, gridUniqueID, resCnt, out var config);
+        if (config is null)
+        {
+            return (validation, null);
+        }
+
+        var owned = await FindOwnedOutSideItemAsync(gameUlongUID, resID);
+        return owned is null || owned.Cnt < resCnt
+            ? (PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemDeleteNotEnough, null)
+            : (PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, config);
     }
 
     public async Task<PB_ENUM_RES_ERROR_CODE> ClearOutSideItemRedDotAsync(ulong gameUlongUID, ulong gridUniqueID)
@@ -346,7 +364,7 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
             return PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemInvalidNum;
         }
 
-        if (!TryGetItemId(gridUniqueID, out var itemId) || itemId != resID)
+        if (gridUniqueID != NoGridUniqueID && (!TryGetItemId(gridUniqueID, out var itemId) || itemId != resID))
         {
             return PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemResIduniqueIdnotMatch;
         }

@@ -10,4 +10,14 @@ public sealed record SystemMail(
     int MailID = 0,
     string FromName = MailBox.SysFromName,
     ulong FromUid = 0,
-    int ValidDays = MailBox.MaxMailDays);
+    int ValidDays = MailBox.MaxMailDays,
+    IReadOnlyList<MailContentParam>? ContentParams = null);
+
+public sealed record MailContentParam(string Param, int Type)
+{
+    public static MailContentParam Text(string text) => new(text, MailBox.TextParamType);
+
+    public static MailContentParam Number(long number) => new(number.ToString(System.Globalization.CultureInfo.InvariantCulture), MailBox.TextParamType);
+
+    public static MailContentParam Item(int resID) => new(resID.ToString(System.Globalization.CultureInfo.InvariantCulture), MailBox.ItemParamType);
+}

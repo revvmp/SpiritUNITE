@@ -15,6 +15,10 @@ public static class MailBox
     public const int MaxMailSubject = (int)PB_MACRO_COM_MAX_MAIL_SUBJECT.PbComMaxMailSubject;
     public const int MaxMailContent = (int)PB_MACRO_COM_MAX_MAIL_CONTENT.PbComMaxMailContent;
     public const int MaxFromName = 64;
+    public const int MaxMailParamLen = (int)PB_MACRO_COM_MAX_MAILPARAM_LEN.PbComMaxMailparamLen;
+    public const int MaxMailContentParamNum = (int)PB_MACRO_COM_MAX_MAIL_CONTENT_PARAM_NUM.PbComMaxMailContentParamNum;
+    public const int TextParamType = 1;
+    public const int ItemParamType = 3;
     public const int MailTypeCount = (int)PB_ENUM_RES_MAIL_TYPE.PbResMailTypeMax;
     public const int Sys = (int)PB_ENUM_RES_MAIL_TYPE.PbResMailTypeSys;
     public const string SysFromName = "System";
