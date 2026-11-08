@@ -62,6 +62,7 @@ public sealed class LoginManager(
     RankedManager ranked,
     BattlePassManager battlePass,
     WarmBattleManager warmBattles,
+    InviteFriendManager inviteFriends,
     TimeProvider clock,
     ILogger<LoginManager> logger)
 {
@@ -137,6 +138,7 @@ public sealed class LoginManager(
             RoleAvatarInfo = role.RoleAvatarInfo,
             NewbieState = role.BuildNewbieState(),
             RegisterTime = registerTime,
+            FriendShortId = await inviteFriends.FindFriendShortIdAsync(role.GameUlongUID),
             MonthUseCouponsInfo = LobbyNotices.BuildMonthUseCouponsInfo(registerTime),
             FirstPokemonId = role.FirstPokemonId,
             ServerGameTimeStamp = now,

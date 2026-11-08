@@ -239,6 +239,7 @@ public static class Server
         builder.Services.AddSingleton<PveChallengeRepository>();
         builder.Services.AddSingleton<ActivityExchangeRepository>();
         builder.Services.AddSingleton<FirstChargeRepository>();
+        builder.Services.AddSingleton<InviteFriendRepository>();
         builder.Services.AddSingleton<AccusationRepository>();
         builder.Services.AddSingleton<FabulousRepository>();
         builder.Services.AddSingleton<AchievementRepository>();
@@ -324,6 +325,7 @@ public static class Server
         builder.Services.AddSingleton<ActivityExchangeManager>();
         builder.Services.AddSingleton<RechargeManager>();
         builder.Services.AddSingleton<FirstChargeManager>();
+        builder.Services.AddSingleton<InviteFriendManager>();
         builder.Services.AddSingleton<EeveeChallengePool>();
         builder.Services.AddSingleton<EeveeChallengeManager>();
         builder.Services.AddSingleton<AchievementManager>();
