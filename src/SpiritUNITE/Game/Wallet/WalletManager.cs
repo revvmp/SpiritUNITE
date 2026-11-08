@@ -7,11 +7,9 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Wallet;
 
-public sealed class WalletManager(WalletRepository repository, GameData gameData, IOptions<WalletOptions> options)
+public sealed class WalletManager(WalletRepository repository, GameData gameData, IOptionsMonitor<WalletOptions> options)
 {
-    private readonly IReadOnlyDictionary<int, long> startingBalances = options.Value.StartingBalances();
-
-    public Task<RoleWallet> LoadAsync(ulong gameUlongUID) => repository.LoadAsync(gameUlongUID, startingBalances);
+    public Task<RoleWallet> LoadAsync(ulong gameUlongUID) => repository.LoadAsync(gameUlongUID, options.CurrentValue.StartingBalances());
 
     public async Task<GamePacket[]> GrantFirstLoginSpecialCoinsAsync(ulong gameUlongUID)
     {

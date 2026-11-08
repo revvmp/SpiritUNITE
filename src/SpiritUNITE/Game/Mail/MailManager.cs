@@ -17,10 +17,13 @@ using SpiritUNITE.Online;
 
 namespace SpiritUNITE.Game.Mail;
 
-public sealed record MailClaim(RoleMail Mail, MailGrant Grant, RoleWallet Wallet, IReadOnlyDictionary<int, long> BeforeCoinNums)
+public record GrantOutcome(MailGrant Grant, RoleWallet Wallet, IReadOnlyDictionary<int, long> BeforeCoinNums)
 {
     public IReadOnlyList<BagItem> ChangedBagItems { get; init; } = [];
 }
+
+public sealed record MailClaim(RoleMail Mail, MailGrant Grant, RoleWallet Wallet, IReadOnlyDictionary<int, long> BeforeCoinNums)
+    : GrantOutcome(Grant, Wallet, BeforeCoinNums);
 
 public sealed class MailManager(
     MailRepository repository,
@@ -32,6 +35,7 @@ public sealed class MailManager(
 {
     private const int SecondsPerDay = 86400;
     private const int AwardedPokemonCount = 1;
+    private const int ProbeItemCount = 1;
     private const int WelcomeMailID = 5;
 
     private static readonly SystemMail WelcomeMail = new(
@@ -224,6 +228,43 @@ public sealed class MailManager(
         }
     }
 
+    public async Task<GrantOutcome?> GrantDirectAsync(LMNRoleInfo role, IReadOnlyList<pbCOMDT_ONE_RESOURCE_AWARD_INFO> awards)
+    {
+        var uid = role.GameUlongUID;
+        var gate = claimGates.GetOrAdd(uid, _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync();
+        try
+        {
+            var now = clock.GetUtcNow().ToUnixTimeSeconds();
+            var accessInfo = new pbCOMDT_MAILACCESS_INFO();
+            accessInfo.Access.Add(awards.Select(award => new pbCOMDT_MAILACCESS { ResInfo = award }));
+            if (BuildGrant(role, accessInfo, now) is not { } grant)
+            {
+                return null;
+            }
+
+            var (result, wallet, beforeCoinNums, changedBagItems) = await repository.GrantAsync(uid, grant, now);
+            if (result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc || wallet is null)
+            {
+                logger.LogInformation("Direct grant refused for uid {Uid}: {Result}", uid, result);
+                return null;
+            }
+
+            ApplyToRole(role, grant, now);
+            logger.LogInformation(
+                "Direct grant to uid {Uid}: {ItemCount} items, {PokemonCount} Pokemon, {BagCount} bag items",
+                uid,
+                grant.Items.Count,
+                grant.PokemonIds.Count,
+                grant.BagGrants.Count);
+            return new GrantOutcome(grant, wallet, beforeCoinNums) { ChangedBagItems = changedBagItems };
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
+
     public async Task<(PB_ENUM_RES_ERROR_CODE Result, MailClaim[] Claims)> BatchGetAccessAsync(LMNRoleInfo role, int mailType)
     {
         var mails = await repository.GetMailsAsync(role.GameUlongUID, mailType, clock.GetUtcNow().ToUnixTimeSeconds(), MailBox.MaxMailNum);
@@ -250,7 +291,7 @@ public sealed class MailManager(
         MailState = mail.MailState,
     };
 
-    public static pbSCResourcesAwardNotify BuildResourcesAwardNotify(IEnumerable<MailClaim> claims)
+    public static pbSCResourcesAwardNotify BuildResourcesAwardNotify(IEnumerable<GrantOutcome> claims)
     {
         var notify = new pbSCResourcesAwardNotify
         {
@@ -288,16 +329,7 @@ public sealed class MailManager(
             return (result, null);
         }
 
-        foreach (var item in grant.Items)
-        {
-            role.GrantItem(item.ItemType, item.ItemId, item.GainTime, item.TimeLimited, item.NewTag);
-        }
-
-        foreach (var pokemonId in grant.PokemonIds)
-        {
-            role.GrantPokemon(pokemonId, now, (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonMail);
-        }
-
+        ApplyToRole(role, grant, now);
         mail.AccessState = MailBox.AccessGeted;
         mail.MailState = MailBox.Haveread;
         logger.LogInformation(
@@ -308,6 +340,19 @@ public sealed class MailManager(
             grant.Items.Count,
             string.Join(',', grant.PokemonIds));
         return (result, new MailClaim(mail, grant, wallet, beforeCoinNums) { ChangedBagItems = changedBagItems });
+    }
+
+    private static void ApplyToRole(LMNRoleInfo role, MailGrant grant, long now)
+    {
+        foreach (var item in grant.Items)
+        {
+            role.GrantItem(item.ItemType, item.ItemId, item.GainTime, item.TimeLimited, item.NewTag);
+        }
+
+        foreach (var pokemonId in grant.PokemonIds)
+        {
+            role.GrantPokemon(pokemonId, now, (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonMail);
+        }
     }
 
     private MailGrant? BuildGrant(LMNRoleInfo role, pbCOMDT_MAILACCESS_INFO accessInfo, long now)
@@ -321,12 +366,36 @@ public sealed class MailManager(
         {
             if ((PB_ENUM_RES_RESOURCES_TYPE)award.ResType == PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem)
             {
+                if (!UniteLicense.IsUniteLicense(gameData, award.ResID))
+                {
+                    if (bag.CreateOutSideItemGrant(award.ResID, award.ResCnt) is not { } bagGrant)
+                    {
+                        return null;
+                    }
+
+                    bagGrants.Add(bagGrant);
+                    awards.Add(new pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO { FinallyAwardInfo = award });
+                    continue;
+                }
+
                 if (UniteLicense.PlanGrant(gameData, role, award.ResID, award.ResCnt, pokemonIds) is not { } license)
                 {
                     return null;
                 }
 
                 license.AddTo(pokemonIds, coins, awards);
+                continue;
+            }
+
+            if ((PB_ENUM_RES_RESOURCES_TYPE)award.ResType == PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesBadge)
+            {
+                if (bag.CreateBadgeGrant(award.ResID, award.ResCnt) is not { } badgeGrant)
+                {
+                    return null;
+                }
+
+                bagGrants.Add(badgeGrant);
+                awards.Add(new pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO { FinallyAwardInfo = award });
                 continue;
             }
 
@@ -427,9 +496,15 @@ public sealed class MailManager(
             PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesLobbyBackground =>
                 gameData.LobbyBg.Contains(award.ResID) && award.ResID != gameData.DefaultLobbyBgId,
             PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesPokemon => award.ResID > 0 && award.ResCnt == AwardedPokemonCount,
-            PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem => UniteLicense.IsUniteLicense(gameData, award.ResID),
+            PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem =>
+                UniteLicense.IsUniteLicense(gameData, award.ResID) || IsBagOutSideItem(award.ResID),
+            PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesBadge => gameData.BadgeBase.Contains(award.ResID),
             _ => false,
         };
+
+    private bool IsBagOutSideItem(int outSideItemId) =>
+        CoinID.GetResIDType(outSideItemId) == PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem
+        && bag.CreateOutSideItemGrant(outSideItemId, ProbeItemCount) is not null;
 
     private static pbCOMDT_MAIL_ITEM BuildMailItem(RoleMail mail) => new()
     {

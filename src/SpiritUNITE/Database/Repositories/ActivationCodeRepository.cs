@@ -49,6 +49,16 @@ public sealed class ActivationCodeRepository(DataOptions options)
         return await database.GetTable<ActivationCodeUse>().CountAsync(use => use.ActivationCode == activationCode);
     }
 
+    public async Task<Dictionary<string, int>> CountUsesByCodeAsync()
+    {
+        await using var database = new DataConnection(options);
+        var counts = await database.GetTable<ActivationCodeUse>()
+            .GroupBy(use => use.ActivationCode)
+            .Select(uses => new { ActivationCode = uses.Key, UseCnt = uses.Count() })
+            .ToArrayAsync();
+        return counts.ToDictionary(count => count.ActivationCode, count => count.UseCnt, StringComparer.OrdinalIgnoreCase);
+    }
+
     public async Task<bool> HasUsedAsync(string activationCode, ulong gameUlongUID)
     {
         await using var database = new DataConnection(options);

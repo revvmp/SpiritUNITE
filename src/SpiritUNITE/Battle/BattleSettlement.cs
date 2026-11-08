@@ -128,7 +128,7 @@ public sealed class BattleSettlement
     private readonly TenGamesBattleRecorder tenGamesBattles;
     private readonly FriendRepository friends;
     private readonly GVoiceOptions gVoice;
-    private readonly BattleSettlementOptions options;
+    private readonly IOptionsMonitor<BattleSettlementOptions> options;
     private readonly TimeProvider clock;
     private readonly ILogger<BattleSettlement> logger;
     private readonly IReadOnlyDictionary<int, int> pokemonIdByHeroID;
@@ -173,7 +173,7 @@ public sealed class BattleSettlement
         TenGamesBattleRecorder tenGamesBattles,
         FriendRepository friends,
         IOptions<GVoiceOptions> gVoiceOptions,
-        IOptions<BattleSettlementOptions> options,
+        IOptionsMonitor<BattleSettlementOptions> options,
         TimeProvider clock,
         ILogger<BattleSettlement> logger)
     {
@@ -212,7 +212,7 @@ public sealed class BattleSettlement
         this.tenGamesBattles = tenGamesBattles;
         this.friends = friends;
         gVoice = gVoiceOptions.Value;
-        this.options = options.Value;
+        this.options = options;
         this.clock = clock;
         this.logger = logger;
         pokemonIdByHeroID = gameData.PokemonBase.Rows
@@ -612,8 +612,8 @@ public sealed class BattleSettlement
         var isCustomBattle = IsCustomBattle(result);
         var matchMinutes = isMatch && !isCustomBattle ? FindMatchMinutes(result) : 0;
         var baseExp = isCustomBattle ? 0
-            : isMatch ? credit.ReduceHangupIncome(matchMinutes * (won ? options.MatchWinExpPerMinute : options.MatchLoseExpPerMinute), hangupType)
-            : won ? options.PveChallengeWinBaseExp : options.PveChallengeLoseBaseExp;
+            : isMatch ? credit.ReduceHangupIncome(matchMinutes * (won ? options.CurrentValue.MatchWinExpPerMinute : options.CurrentValue.MatchLoseExpPerMinute), hangupType)
+            : won ? options.CurrentValue.PveChallengeWinBaseExp : options.CurrentValue.PveChallengeLoseBaseExp;
         var extraExpOfNewbie = newbieBenefitActive ? NewbiePrivilegeShareOf(baseExp, PB_ENUM_RES_RESGLOBAL.PbResglobalNewbiePrivilegeAcntExp) : 0;
         var starTasks = route is null ? [] : route.TaskID.Where(taskId => taskId != NoDrop)
             .Select(taskId => new StarTask(taskId, won && IsStarTaskDone(taskId, won, pokemonLevel)))
@@ -764,10 +764,10 @@ public sealed class BattleSettlement
     {
         var energyGain = credit.ReduceHangupIncome((won, isRankedMatch) switch
         {
-            (true, true) => options.RankedMatchWinEnergy,
-            (false, true) => options.RankedMatchLoseEnergy,
-            (true, false) => options.MatchWinEnergy,
-            (false, false) => matchMinutes * options.MatchLoseEnergyPerMinute,
+            (true, true) => options.CurrentValue.RankedMatchWinEnergy,
+            (false, true) => options.CurrentValue.RankedMatchLoseEnergy,
+            (true, false) => options.CurrentValue.MatchWinEnergy,
+            (false, false) => matchMinutes * options.CurrentValue.MatchLoseEnergyPerMinute,
         }, hangupType);
         if (energyGain <= 0)
         {

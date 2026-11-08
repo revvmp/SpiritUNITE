@@ -20,7 +20,7 @@ public sealed class HeldItemManager(
     PokemonManager pokemon,
     HeldItemRepository heldItems,
     LobbyNotices notices,
-    IOptions<HeldItemOptions> options,
+    IOptionsMonitor<HeldItemOptions> options,
     TimeProvider clock)
 {
     public const int HeldItemLevelUpConsumableId = 1002001001;
@@ -69,7 +69,7 @@ public sealed class HeldItemManager(
                 && item.OutSideItemTypeParam.Count > BindPokemonIdTypeParam
                 && item.OutSideItemTypeParam[BindPokemonIdTypeParam] != NoBindPokemon)
             .Select(item => new BagGrant(RoleItemType.OutSideItem, item.OutSideItemId, 1, item.OutSideItemStackSize, maxLevel));
-        var starterGrants = options.Value.UnlockGrantItemIdsOrOfficial
+        var starterGrants = options.CurrentValue.UnlockGrantItemIdsOrOfficial
             .Select(itemId => bag.CreateOutSideItemGrant(itemId, 1))
             .OfType<BagGrant>();
         return [.. starterGrants.Concat(boundGrants).Where(grant => !owned.Contains(grant.ItemId)).DistinctBy(grant => grant.ItemId)];

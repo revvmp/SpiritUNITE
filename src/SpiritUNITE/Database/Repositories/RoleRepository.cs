@@ -10,6 +10,8 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Database.Repositories;
 
+public sealed record RoleName(ulong GameUlongUID, string InGameUsrName);
+
 public sealed class RoleRepository(DataOptions options, TimeProvider clock)
 {
     private const int OneRow = 1;
@@ -95,6 +97,54 @@ public sealed class RoleRepository(DataOptions options, TimeProvider clock)
         return await database.ExecuteAsync<long>(
             "SELECT UNIX_TIMESTAMP(created_at) FROM role WHERE game_ulong_uid = @gameUlongUID",
             new DataParameter("gameUlongUID", gameUlongUID, DataType.UInt64));
+    }
+
+    public async Task<RoleName[]> SearchNamesAsync(string text, int limit)
+    {
+        await using var database = new DataConnection(options);
+        return await database.GetTable<Role>()
+            .Where(role => role.InGameUsrName.Contains(text))
+            .OrderBy(role => role.GameUlongUID)
+            .Take(limit)
+            .Select(role => new RoleName(role.GameUlongUID, role.InGameUsrName))
+            .ToArrayAsync();
+    }
+
+    public async Task<RoleName[]> FindNamesAsync(IReadOnlyCollection<ulong> gameUlongUIDs)
+    {
+        await using var database = new DataConnection(options);
+        return await database.GetTable<Role>()
+            .Where(role => gameUlongUIDs.Contains(role.GameUlongUID))
+            .Select(role => new RoleName(role.GameUlongUID, role.InGameUsrName))
+            .ToArrayAsync();
+    }
+
+    public async Task<bool> RenameAsync(ulong gameUlongUID, string inGameUsrName)
+    {
+        await using var database = new DataConnection(options);
+        try
+        {
+            return await database.GetTable<Role>()
+                .Where(role => role.GameUlongUID == gameUlongUID)
+                .Set(role => role.InGameUsrName, inGameUsrName)
+                .UpdateAsync() == 1;
+        }
+        catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
+        {
+            return false;
+        }
+    }
+
+    public async Task<ulong[]> ListUidsAsync()
+    {
+        await using var database = new DataConnection(options);
+        return await database.GetTable<Role>().Select(role => role.GameUlongUID).ToArrayAsync();
+    }
+
+    public async Task<int> CountAsync()
+    {
+        await using var database = new DataConnection(options);
+        return await database.GetTable<Role>().CountAsync();
     }
 
     private static async Task SavePokemonAsync(DataConnection database, LMNRoleInfo role)

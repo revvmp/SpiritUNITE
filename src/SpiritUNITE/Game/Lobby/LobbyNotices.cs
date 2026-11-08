@@ -5,12 +5,13 @@ using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Credit;
 using SpiritUNITE.Tools;
 using SpiritUNITE.Game.Role;
+using SpiritUNITE.Game.ServerContent;
 using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Lobby;
 
-public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, IOptions<LobbyOptions> options, TimeProvider clock)
+public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, IOptionsMonitor<LobbyOptions> options, ServerLists lists, TimeProvider clock)
 {
     public const int PbScidPasterSprayerListNtf = 127750;
     public const int PbScidPasterSprayerAcntInfoNtf = 127752;
@@ -37,13 +38,13 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
 
     private static readonly (int FieldNumber, long Value)[] SubscriptionInterfaceUnnamedVarints = [(9, 200), (10, 30)];
 
-    private readonly LobbyOptions rules = options.Value;
+    private LobbyOptions Rules => options.CurrentValue;
 
     public pbCOMDT_USER_SCHEME_SELECT_INFO BuildUserSchemeSelectInfo() => new()
     {
         UserSchemeInfo =
         {
-            rules.UserSchemesOrOfficial.Select(scheme => new pbCOMDT_USER_SCHEME_INFO
+            Rules.UserSchemesOrOfficial.Select(scheme => new pbCOMDT_USER_SCHEME_INFO
             {
                 BusinessType = scheme.BusinessType,
                 SchemeId = scheme.SchemeId,
@@ -52,7 +53,7 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
     };
 
     public int GetBusinessSchemeId(PB_ENUM_RES_USER_SCHEME_BUSINESS_TYPE businessType) =>
-        rules.UserSchemesOrOfficial.FirstOrDefault(scheme => scheme.BusinessType == (int)businessType)?.SchemeId ?? DefaultSchemeId;
+        Rules.UserSchemesOrOfficial.FirstOrDefault(scheme => scheme.BusinessType == (int)businessType)?.SchemeId ?? DefaultSchemeId;
 
     public static pbSCBanPokemonListNtf BuildBanPokemonListNtf() => new();
 
@@ -76,7 +77,7 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
     {
         NewSaleList =
         {
-            rules.NewSaleShopIDs
+            lists.Current.NewSaleShopIDs
                 .Where(shopID => gameData.Shop.Contains(shopID))
                 .Select(shopID => new pbCOMDT_SHOP_NEW_SALE_INFO { ShopID = shopID, NewTag = NewSaleTag }),
         },
@@ -124,7 +125,7 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
 
     public pbSCSubscriptionStatusNtf BuildSubscriptionStatusNtf() => new()
     {
-        IsOpen = rules.SubscriptionIsOpen,
+        IsOpen = Rules.SubscriptionIsOpen,
         AcntSysPlat = OfficialAcntSysPlat,
     };
 
@@ -206,7 +207,7 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
         .. BuildCouponsRefreshPackets(coupons, grantSubscriptionOpen: false),
     ];
 
-    public pbSCRedDotReplaceNtf? BuildSubscriptionOpenRedDotNtf() => rules.SubscriptionIsOpen == 0
+    public pbSCRedDotReplaceNtf? BuildSubscriptionOpenRedDotNtf() => Rules.SubscriptionIsOpen == 0
         ? null
         : BuildRedDotReplaceNtf(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdSubscriptionOpen, RedDotBadgeOne);
 
@@ -227,8 +228,8 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
             },
             new pbCOMDT_ACNT_SUBSCRIPTION_FREE_INFO
             {
-                FreePokemonList = { rules.SubscriptionFree.FreePokemonList },
-                FreePasterList = { rules.SubscriptionFree.FreePasterList },
+                FreePokemonList = { lists.Current.SubscriptionFreePokemonList },
+                FreePasterList = { lists.Current.SubscriptionFreePasterList },
             });
         using var buffer = new MemoryStream();
         using (var output = new CodedOutputStream(buffer))

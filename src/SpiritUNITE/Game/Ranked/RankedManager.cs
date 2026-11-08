@@ -105,7 +105,7 @@ public sealed class RankedManager
     private readonly RankedRewards rewards;
     private readonly MailManager mail;
     private readonly LobbyNotices notices;
-    private readonly RankedOptions options;
+    private readonly IOptionsMonitor<RankedOptions> rankedOptions;
     private readonly TimeProvider clock;
     private readonly ILogger<RankedManager> logger;
     private readonly ConcurrentDictionary<ulong, RankedState> states = new();
@@ -120,7 +120,7 @@ public sealed class RankedManager
         RankedRewards rewards,
         MailManager mail,
         LobbyNotices notices,
-        IOptions<RankedOptions> options,
+        IOptionsMonitor<RankedOptions> options,
         TimeProvider clock,
         ILogger<RankedManager> logger)
     {
@@ -131,23 +131,14 @@ public sealed class RankedManager
         this.rewards = rewards;
         this.mail = mail;
         this.notices = notices;
-        this.options = options.Value;
+        rankedOptions = options;
         this.clock = clock;
         this.logger = logger;
-        if (this.options.WinPointOrOfficial.Count != ladder.MaxBig)
-        {
-            throw new InvalidDataException(
-                $"gamesettings Ranked WinPoint and LoseBasePoint need one value per BigRankedDivision 1-{ladder.MaxBig}, not {this.options.WinPointOrOfficial.Count}");
-        }
-
-        foreach (var (from, to) in this.options.SeasonInheritRankedDivisionOrOfficial.Where(pair => !ladder.IsKnown(pair.Key) || !ladder.IsKnown(pair.Value)))
-        {
-            throw new InvalidDataException(
-                $"gamesettings Ranked SeasonInheritRankedDivision maps {from} to {to}, and both must be pbRankedDivision RankedDivision ids");
-        }
     }
 
     public RankedLadder Ladder => ladder;
+
+    private RankedOptions Options => rankedOptions.CurrentValue;
 
     public int CurrentSeasonId => RankedMatch.FindCurrentSeason(gameData, clock.GetUtcNow()).Season.SeasonId;
 
@@ -515,7 +506,7 @@ public sealed class RankedManager
         ? PB_ENUM_RES_RESGLOBAL.PbResglobalRankMatachQuarantineDivisionFive
         : PB_ENUM_RES_RESGLOBAL.PbResglobalRankMatachQuarantineDivision);
 
-    public int TeamMMRScore => options.TeamMMRScore;
+    public int TeamMMRScore => Options.TeamMMRScore;
 
     public pbSCRoomMicTipsInfoNtf BuildMicTipsInfoNtf(ulong uid)
     {
@@ -528,7 +519,7 @@ public sealed class RankedManager
         };
     }
 
-    public FakePlayerWinPointRange FakePlayerWinPoint => new(options.FakePlayerWinPointMin, options.FakePlayerWinPointMax);
+    public FakePlayerWinPointRange FakePlayerWinPoint => new(Options.FakePlayerWinPointMin, Options.FakePlayerWinPointMax);
 
     public int CurrentMapId(long now) =>
         gameData.RankedMatchMapOpenTime.Rows
@@ -623,8 +614,8 @@ public sealed class RankedManager
             var ticket = season.Entry?.TicketConsume ?? NoTicketConsume;
             var big = ladder.BigOf((season.Entry?.Before ?? old).RankedDivision);
             var basePoint = battle.IsDraw ? 0
-                : battle.Won ? options.WinPointOf(big)
-                : options.LoseBasePointOf(big);
+                : battle.Won ? Options.WinPointOf(big)
+                : Options.LoseBasePointOf(big);
             var medals = ladder.RowOf((season.Entry?.Before ?? old).RankedDivision).MedalPoint > NoMedalPoint ? battle.Medals : [];
             var medalPoint = medals.Sum(medal => medal.Score);
             var battleAddSumPoint = basePoint + medalPoint;
@@ -929,7 +920,7 @@ public sealed class RankedManager
 
     private RankedPosition InheritedPosition(RankedPosition old)
     {
-        if (!options.SeasonInheritRankedDivisionOrOfficial.TryGetValue(old.RankedDivision, out var inheritedDivision))
+        if (!Options.SeasonInheritRankedDivisionOrOfficial.TryGetValue(old.RankedDivision, out var inheritedDivision))
         {
             return old;
         }

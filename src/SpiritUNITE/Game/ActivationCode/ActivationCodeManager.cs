@@ -1,5 +1,6 @@
+using System.Globalization;
 using System.Security.Cryptography;
-using Microsoft.Extensions.Options;
+using SpiritUNITE.Database.Models;
 using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Activity;
@@ -13,7 +14,7 @@ public sealed class ActivationCodeManager(
     GameData gameData,
     ActivationCodeRepository repository,
     ActivitySchedule schedule,
-    IOptions<ActivationCodeOptions> options,
+    ServerContentRepository content,
     TimeProvider clock)
 {
     public const int MaxActivationCodeLength = 32;
@@ -23,11 +24,13 @@ public sealed class ActivationCodeManager(
     public const int DrawOpen = 1;
     public const int DrawFinished = 2;
     public const long NoFreshTime = 0;
+    public const int MaxHostActivationCodes = 1000;
 
     private const ulong NoUid = 0;
     private const int DrawnActivationCodeLength = 10;
     private const int MaxDrawAttempts = 8;
     private const string DrawnActivationCodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    private const string CfgTimeFormat = "yyyyMMddHHmmss";
 
     private readonly SemaphoreSlim useGate = new(1, 1);
 
@@ -44,7 +47,7 @@ public sealed class ActivationCodeManager(
         await useGate.WaitAsync();
         try
         {
-            return options.Value.Codes.FirstOrDefault(host => host.ActivationCode == activationCode) is { } hostCode
+            return (await ListHostCodesAsync()).FirstOrDefault(host => host.ActivationCode == activationCode) is { } hostCode
                 ? await UseHostCodeAsync(gameUlongUID, activationCode, hostCode)
                 : await UseDrawnCodeAsync(gameUlongUID, activationCode);
         }
@@ -53,6 +56,53 @@ public sealed class ActivationCodeManager(
             useGate.Release();
         }
     }
+
+    public async Task<HostActivationCodeEntry[]> ListHostCodeEntriesAsync()
+    {
+        var uses = await repository.CountUsesByCodeAsync();
+        return
+        [
+            .. (await ListHostCodesAsync()).Select(code => new HostActivationCodeEntry(
+                code.ActivationCode,
+                code.ValidEndTime,
+                code.MaxUseCnt,
+                uses.GetValueOrDefault(code.ActivationCode))),
+        ];
+    }
+
+    public async Task<string?> AddHostCodeAsync(HostActivationCode code)
+    {
+        if (!IsWellFormed(code.ActivationCode))
+        {
+            return $"Codes are 1 to {MaxActivationCodeLength} letters or digits";
+        }
+
+        if (!IsCfgTime(code.ValidEndTime))
+        {
+            return "Valid until must be a date or empty";
+        }
+
+        if (code.MaxUseCnt < HostActivationCode.UnlimitedUseCnt)
+        {
+            return "Max uses must be 0 or more";
+        }
+
+        if (await content.CountHostActivationCodesAsync() >= MaxHostActivationCodes)
+        {
+            return $"There can be at most {MaxHostActivationCodes} codes";
+        }
+
+        if (await repository.FindDrawnAsync(code.ActivationCode) is not null)
+        {
+            return "A player already drew this code";
+        }
+
+        var row = new HostActivationCodeRow { ActivationCode = code.ActivationCode, ValidEndTime = code.ValidEndTime, MaxUseCnt = code.MaxUseCnt };
+        return await content.TryInsertHostActivationCodeAsync(row) ? null : "This code exists already (upper and lower case count as the same)";
+    }
+
+    public Task<bool> RemoveHostCodeAsync(string activationCode) =>
+        IsWellFormed(activationCode) ? content.DeleteHostActivationCodeAsync(activationCode) : Task.FromResult(false);
 
     public async Task<pbCOMDT_ACTIVATION_CODE_INFO> BuildActivationCodeInfoAsync(ulong gameUlongUID)
     {
@@ -93,10 +143,11 @@ public sealed class ActivationCodeManager(
         }
 
         var getTime = clock.GetUtcNow().ToUnixTimeSeconds();
+        var hostCodes = await ListHostCodesAsync();
         for (var attempt = 0; attempt < MaxDrawAttempts; attempt++)
         {
             var code = RandomNumberGenerator.GetString(DrawnActivationCodeAlphabet, DrawnActivationCodeLength);
-            if (options.Value.Codes.Any(host => string.Equals(host.ActivationCode, code, StringComparison.OrdinalIgnoreCase)))
+            if (hostCodes.Any(host => string.Equals(host.ActivationCode, code, StringComparison.OrdinalIgnoreCase)))
             {
                 continue;
             }
@@ -149,4 +200,18 @@ public sealed class ActivationCodeManager(
             ? PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc
             : PB_ENUM_RES_ERROR_CODE.PbErrActivationCodeUsed;
     }
+
+    private static bool IsCfgTime(long cfgTime) =>
+        cfgTime == HostActivationCode.NoValidEndTime
+        || DateTime.TryParseExact(cfgTime.ToString(CultureInfo.InvariantCulture), CfgTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out _);
+
+    private async Task<HostActivationCode[]> ListHostCodesAsync() =>
+    [
+        .. (await content.ListHostActivationCodesAsync()).Select(row => new HostActivationCode
+        {
+            ActivationCode = row.ActivationCode,
+            ValidEndTime = row.ValidEndTime,
+            MaxUseCnt = row.MaxUseCnt,
+        }),
+    ];
 }

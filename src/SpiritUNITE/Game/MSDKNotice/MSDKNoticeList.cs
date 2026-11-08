@@ -1,12 +1,13 @@
 namespace SpiritUNITE.Game.MSDKNotice;
 
-public sealed class NoticeOptions
+public sealed class MSDKNoticeList
 {
-    public const string SectionName = "MSDKNotice";
+    public const int MaxNoticeCount = 100;
 
     public List<MSDKNoticeInfo> NoticeInfoList { get; init; } = [];
 
     public bool IsValid() =>
+        NoticeInfoList.Count <= MaxNoticeCount &&
         NoticeInfoList.All(notice => notice.IsValid()) &&
         NoticeInfoList.DistinctBy(notice => notice.NoticeId).Count() == NoticeInfoList.Count;
 }

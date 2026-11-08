@@ -2,16 +2,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SpiritUNITE.Game.Lobby;
 using SpiritUNITE.Game.RallyChallenge;
-using SpiritUNITE.Game.Settings;
-using SpiritUNITE.Online;
-using SpiritUNITE.Packets;
 
 namespace SpiritUNITE.Servers.Lobby;
 
 public sealed class LobbyRefreshTick(
-    LobbyRoles lobbyRoles,
-    LobbyNotices notices,
-    SettingsManager settings,
+    LobbyBroadcast broadcast,
     RallyChallengeManager rallyChallenge,
     TimeProvider clock,
     ILogger<LobbyRefreshTick> logger) : BackgroundService
@@ -35,7 +30,7 @@ public sealed class LobbyRefreshTick(
         while (true)
         {
             await Task.Delay(RefreshInterval, clock, stoppingToken);
-            await RefreshOnlineRolesAsync();
+            await broadcast.PushRefreshAsync();
         }
     }
 
@@ -67,26 +62,5 @@ public sealed class LobbyRefreshTick(
         {
             logger.LogError(exception, "Unite Challenge close push failed");
         }
-    }
-
-    private async Task<GamePacket[]> BuildRefreshPacketsAsync(ulong uid) =>
-        notices.BuildRefreshPackets((await settings.LoadAsync(uid)).CountryCode);
-
-    private async Task RefreshOnlineRolesAsync()
-    {
-        var onlineUids = lobbyRoles.OnlineUids;
-        foreach (var uid in onlineUids)
-        {
-            try
-            {
-                await lobbyRoles.PushAsync(uid, await BuildRefreshPacketsAsync(uid));
-            }
-            catch (Exception exception)
-            {
-                logger.LogError(exception, "Lobby refresh failed for uid {Uid}", uid);
-            }
-        }
-
-        logger.LogInformation("Lobby refresh pushed to {OnlineCount} online roles", onlineUids.Count);
     }
 }

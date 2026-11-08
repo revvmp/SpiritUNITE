@@ -81,6 +81,15 @@ public static class DatabaseManager
             await database.GetTable<RoleGuild>().AnyAsync();
             await database.GetTable<RoleGuildActivityReward>().AnyAsync();
             await database.GetTable<RoleGuildActivityTask>().AnyAsync();
+            await database.GetTable<AccountBan>().AnyAsync();
+            await database.GetTable<AdminToken>().AnyAsync();
+            await database.GetTable<AdminAudit>().AnyAsync();
+            await database.GetTable<MsdkNotice>().AnyAsync();
+            await database.GetTable<HostActivationCodeRow>().AnyAsync();
+            await database.GetTable<GiftCodeRow>().AnyAsync();
+            await database.GetTable<GiftCodeAward>().AnyAsync();
+            await database.GetTable<GiftCodeUse>().AnyAsync();
+            await database.GetTable<ServerList>().AnyAsync();
         }
         catch (MySqlException exception)
         {

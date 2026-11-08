@@ -19,6 +19,16 @@ public sealed class AccusationRepository(DataOptions options)
         await transaction.CommitAsync();
     }
 
+    public async Task<RoleAccusation[]> ListAsync(ulong beforeAccusationId, int limit)
+    {
+        await using var database = new DataConnection(options);
+        return await database.GetTable<RoleAccusation>()
+            .Where(accusation => beforeAccusationId == 0 || accusation.AccusationId < beforeAccusationId)
+            .OrderByDescending(accusation => accusation.AccusationId)
+            .Take(limit)
+            .ToArrayAsync();
+    }
+
     public async Task<bool> ExistsAsync(ulong gameUlongUID, ulong accusedUid, int scene, string battleID)
     {
         await using var database = new DataConnection(options);

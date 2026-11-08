@@ -139,7 +139,7 @@ public static class AccountPages
     private static string Link(string path, AuthorizationRequest request) =>
         Html.Encode(path + QueryString.Create(request.ToParameters()));
 
-    private static string Page(string title, string heading, string? error, string body) =>
+    internal static string Page(string title, string heading, string? error, string body) =>
         $$"""
         <!doctype html>
         <html lang="en">
@@ -167,6 +167,9 @@ public static class AccountPages
             --error-bg: #fff0ef;
             --error-border: #f5c2bd;
             --error-text: #a3261d;
+            --notice-bg: #eefaf2;
+            --notice-border: #b5e3c4;
+            --notice-text: #17703a;
           }
           * { box-sizing: border-box; }
           html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
@@ -285,6 +288,17 @@ public static class AccountPages
             color: var(--error-text);
             font-weight: 550;
           }
+          .notice {
+            margin: 0 0 24px;
+            padding: 12px 16px;
+            border: 1px solid var(--notice-border);
+            border-radius: 6px;
+            background: var(--notice-bg);
+            color: var(--notice-text);
+            font-weight: 550;
+          }
+          .trainer { margin: -16px 0 28px; text-align: center; color: var(--muted); }
+          .trainer strong { color: var(--text); }
           .status { display: flex; flex-direction: column; align-items: center; gap: 18px; }
           .spinner { width: 32px; height: 32px; flex: none; border-radius: 50%; border: 3px solid var(--track); border-top-color: var(--green); animation: spin .8s linear infinite; }
           @keyframes spin { to { transform: rotate(360deg); } }

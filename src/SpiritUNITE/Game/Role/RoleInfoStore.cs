@@ -55,6 +55,23 @@ public sealed class RoleInfoStore(RoleRepository repository)
         return error != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc ? error : await repository.RegisterAsync(uid, userName);
     }
 
+    public async Task<PB_ENUM_RES_ERROR_CODE> RenameAsync(ulong uid, string userName)
+    {
+        var error = ValidateName(userName);
+        if (error != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+        {
+            return error;
+        }
+
+        if (!await repository.RenameAsync(uid, userName))
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrRegisterNameDup;
+        }
+
+        Find(uid)?.ChgInGameUsrName(userName);
+        return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
+    }
+
     public static PB_ENUM_RES_ERROR_CODE ValidateName(string userName)
     {
         if (string.IsNullOrWhiteSpace(userName))

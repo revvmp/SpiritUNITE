@@ -96,6 +96,11 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
         },
     };
 
+    public BagGrant? CreateBadgeGrant(int badgeId, int cnt) =>
+        gameData.BadgeBase.Contains(badgeId) && cnt > 0
+            ? new BagGrant(RoleItemType.Badge, badgeId, cnt, UnlimitedStackSize, NoItemLevel, ShowNewTag)
+            : null;
+
     public BagGrant? CreateOutSideItemGrant(int outSideItemId, int cnt)
     {
         if (gameData.OutSideItemBase.Find(outSideItemId) is not { } config || cnt <= 0)
@@ -616,9 +621,9 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
                 grants.Add(grant);
                 awards.Add(BuildAward(resID, resCnt, PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem));
             }
-            else if (gameData.BadgeBase.Contains(resID))
+            else if (CreateBadgeGrant(resID, resCnt) is { } badgeGrant)
             {
-                grants.Add(new BagGrant(RoleItemType.Badge, resID, resCnt, UnlimitedStackSize, NoItemLevel, ShowNewTag));
+                grants.Add(badgeGrant);
                 awards.Add(BuildAward(resID, resCnt, PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesBadge));
             }
             else

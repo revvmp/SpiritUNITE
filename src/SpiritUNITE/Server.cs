@@ -14,7 +14,9 @@ using SpiritUNITE.Game.Credit;
 using SpiritUNITE.Game.Accusation;
 using SpiritUNITE.Game.BattleVoice;
 using SpiritUNITE.Game.Achievement;
+using SpiritUNITE.Game.Admin;
 using SpiritUNITE.Game.ActivationCode;
+using SpiritUNITE.Game.GiftCode;
 using SpiritUNITE.Game.Login;
 using SpiritUNITE.Game.Match;
 using SpiritUNITE.Game.Pokemon;
@@ -48,6 +50,7 @@ using SpiritUNITE.Game.TowerDefense;
 using SpiritUNITE.Game.RallyChallenge;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Room;
+using SpiritUNITE.Game.ServerContent;
 using SpiritUNITE.Game.Settings;
 using SpiritUNITE.Game.Shop;
 using SpiritUNITE.Game.Video;
@@ -73,6 +76,9 @@ public static class Server
     private const string LogFileTemplate = "{Timestamp:HH:mm:ss.fff} [{Level:u5}] {Message:lj}{NewLine}{Exception}";
     private const int RetainedLogFiles = 7;
     private const string GameSettingsFile = "gamesettings.json";
+
+    private static readonly string[] MovedToDatabaseSettings =
+        ["MSDKNotice", "ActivationCode", "Pokemon:FreePokemonList", "LobbyRules:NewSaleShopIDs", "LobbyRules:SubscriptionFree"];
 
     public static async Task Main(string[] args)
     {
@@ -117,6 +123,7 @@ public static class Server
         builder.Services.AddSerilog(logger => logger
             .MinimumLevel.Debug()
             .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .Filter.ByExcluding(GiftCodeEndpoints.CarriesWebViewToken)
             .WriteTo.Async(sink => sink.Console(new SpiritConsoleFormatter()))
             .WriteTo.Async(sink => sink.File(
                 Path.Combine(AppContext.BaseDirectory, "logs", "spiritunite-.log"),
@@ -139,22 +146,15 @@ public static class Server
 
         builder.Services.AddOptions<LobbyOptions>()
             .BindConfiguration(LobbyOptions.SectionName)
+            .Validate(
+                _ => !MovedToDatabaseSettings.Any(key => builder.Configuration.GetSection(key).Exists()),
+                $"{string.Join(", ", MovedToDatabaseSettings)} moved to the database: remove them from gamesettings.json and edit them on the admin panel")
             .Validate(options => options.IsValid(), "LobbyRules settings are invalid")
             .ValidateOnStart();
 
         builder.Services.AddOptions<WalletOptions>()
             .BindConfiguration(WalletOptions.SectionName)
             .Validate(options => options.IsValid(), "Wallet settings are invalid: starting balances must be 0 or more")
-            .ValidateOnStart();
-
-        builder.Services.AddOptions<PokemonOptions>()
-            .BindConfiguration(PokemonOptions.SectionName)
-            .Validate(options => options.IsValid(), "Pokemon settings are invalid")
-            .ValidateOnStart();
-
-        builder.Services.AddOptions<NoticeOptions>()
-            .BindConfiguration(NoticeOptions.SectionName)
-            .Validate(options => options.IsValid(), "MSDKNotice settings are invalid")
             .ValidateOnStart();
 
         builder.Services.AddOptions<LobbyAddressOptions>()
@@ -181,6 +181,7 @@ public static class Server
         builder.Services.AddOptions<RankedOptions>()
             .BindConfiguration(RankedOptions.SectionName)
             .Validate(options => options.IsValid(), "Ranked settings are invalid: WinPoint and LoseBasePoint need one value per BigRankedDivision (points 0 or more), TeamMMRScore 0 or more and FakePlayerWinPointMin at most FakePlayerWinPointMax")
+            .Validate<RankedLadder>((options, ladder) => options.FitsLadder(ladder), "Ranked settings are invalid: WinPoint and LoseBasePoint need one value per pbRankedDivision BigRankedDivision, and SeasonInheritRankedDivision must map pbRankedDivision RankedDivision ids")
             .ValidateOnStart();
 
         builder.Services.AddOptions<BattleSettlementOptions>()
@@ -191,11 +192,6 @@ public static class Server
         builder.Services.AddOptions<HeroPickOptions>()
             .BindConfiguration(HeroPickOptions.SectionName)
             .Validate(options => options.IsValid(), "HeroPick settings are invalid: NpcHeroMaxReleaseOrder must be 0 or more")
-            .ValidateOnStart();
-
-        builder.Services.AddOptions<ActivationCodeOptions>()
-            .BindConfiguration(ActivationCodeOptions.SectionName)
-            .Validate(options => options.IsValid(), "ActivationCode settings are invalid: codes must be distinct ASCII letters or digits of at most 32 characters, with a yyyyMMddHHmmss ValidEndTime or 0 and a MaxUseCnt of 0 or more")
             .ValidateOnStart();
 
         builder.Services.AddOptions<MegaEvolutionOptions>()
@@ -276,10 +272,13 @@ public static class Server
         builder.Services.AddSingleton<RoleTmpNameRepository>();
         builder.Services.AddSingleton<CarryEquipmentRepository>();
         builder.Services.AddSingleton<ActivationCodeRepository>();
+        builder.Services.AddSingleton<GiftCodeRepository>();
         builder.Services.AddSingleton<VideoHistoryRepository>();
         builder.Services.AddSingleton<GuildRepository>();
         builder.Services.AddSingleton<TenGamesRepository>();
         builder.Services.AddSingleton<CampBattleRepository>();
+        builder.Services.AddSingleton<AdminRepository>();
+        builder.Services.AddSingleton<ServerContentRepository>();
     }
 
     private static void AddGameData(IHostApplicationBuilder builder)
@@ -287,6 +286,7 @@ public static class Server
         var gameData = GameData.Load(Path.Combine(AppContext.BaseDirectory, GameData.DirectoryName));
         CoinID.UseResIDTypeMatch(gameData.ResIDTypeMatchBase.Rows);
         builder.Services.AddSingleton(gameData);
+        builder.Services.AddSingleton(GameNames.Load(Path.Combine(AppContext.BaseDirectory, GameNames.FilePath)));
     }
 
     private static void AddGame(IHostApplicationBuilder builder)
@@ -297,7 +297,11 @@ public static class Server
         builder.Services.AddSingleton<LwipTickets>();
         builder.Services.AddSingleton<OffingRestartSessions>();
         builder.Services.AddSingleton<PendingLoginFinishes>();
+        builder.Services.AddSingleton<ServerLists>();
+        builder.Services.AddHostedService(services => services.GetRequiredService<ServerLists>());
+        builder.Services.AddSingleton<NoticeManager>();
         builder.Services.AddSingleton<LobbyNotices>();
+        builder.Services.AddSingleton<LobbyBroadcast>();
         builder.Services.AddSingleton<LoginManager>();
         builder.Services.AddSingleton<FriendPresence>();
         builder.Services.AddSingleton<RoleBriefBuilder>();
@@ -319,6 +323,7 @@ public static class Server
         builder.Services.AddSingleton<GuildActivityTasks>();
         builder.Services.AddSingleton<GuildManager>();
         builder.Services.AddSingleton<MailManager>();
+        builder.Services.AddSingleton<GrantUpdates>();
         builder.Services.AddSingleton<CreditManager>();
         builder.Services.AddSingleton<AccusationManager>();
         builder.Services.AddSingleton<BattleVoiceManager>();
@@ -348,6 +353,7 @@ public static class Server
         builder.Services.AddSingleton<TmpNameManager>();
         builder.Services.AddSingleton<PokemonAvatarManager>();
         builder.Services.AddSingleton<ActivationCodeManager>();
+        builder.Services.AddSingleton<GiftCodeManager>();
         builder.Services.AddSingleton<ActivitySchedule>();
         builder.Services.AddSingleton<ActivityManager>();
         builder.Services.AddSingleton<EeveeChallengePool>();
@@ -371,6 +377,18 @@ public static class Server
         builder.Services.AddSingleton<AccountManager>();
         builder.Services.AddSingleton<AuthorizationCodeStore>();
         builder.Services.AddSingleton<AccountSessionManager>();
+        builder.Services.AddSingleton<WebIdentity>();
+        builder.Services.AddSingleton<AdminTokenManager>();
+        builder.Services.AddSingleton<AdminAuditLog>();
+        builder.Services.AddSingleton<AdminCatalog>();
+        builder.Services.AddSingleton<AdminMail>();
+        builder.Services.AddSingleton<AdminGiftCodes>();
+        builder.Services.AddSingleton<AdminPlayers>();
+        builder.Services.AddSingleton<AdminSettings>();
+        builder.Services.AddSingleton<AdminServerState>();
+        builder.Services.AddSingleton<AdminReports>();
+        builder.Services.AddSingleton<AdminSquads>();
+        builder.Services.AddSingleton<AdminGiveAll>();
         builder.Services.AddSingleton<RoomManager>();
         builder.Services.AddSingleton<RoomInvites>();
         builder.Services.AddSingleton<MatchScheduler>();

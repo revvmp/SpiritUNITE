@@ -5,7 +5,6 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using SpiritUNITE.Auth;
 using SpiritUNITE.Game.MSDKNotice;
 
@@ -160,12 +159,12 @@ public static class MsdkEndpoints
         Seq = MsdkQuery.Read(request).Seq,
     });
 
-    private static IResult GetNotice(HttpRequest request, IOptions<NoticeOptions> options) => Results.Json(new MsdkNoticeReply
+    private static async Task<IResult> GetNotice(HttpRequest request, NoticeManager notices) => Results.Json(new MsdkNoticeReply
     {
         Ret = Succeeded,
         Msg = "success",
         Seq = MsdkQuery.Read(request).Seq,
-        NoticeList = [.. options.Value.NoticeInfoList.Select(MsdkNotice.From)],
+        NoticeList = [.. (await notices.ListAsync()).NoticeInfoList.Select(MsdkNotice.From)],
     });
 
     private static IResult Unsupported(HttpRequest request, ILoggerFactory loggers)

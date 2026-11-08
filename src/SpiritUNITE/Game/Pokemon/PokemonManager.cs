@@ -1,9 +1,9 @@
-using Microsoft.Extensions.Options;
 using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.PokemonAvatar;
 using SpiritUNITE.Game.Role;
+using SpiritUNITE.Game.ServerContent;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Pokemon;
@@ -14,7 +14,7 @@ public sealed class PokemonManager(
     PokemonUsedRepository usedPokemon,
     CarryEquipmentRepository carryEquipment,
     PokemonAvatarManager pokemonAvatars,
-    IOptions<PokemonOptions> options)
+    ServerLists lists)
 {
     public const int NoPaster = 0;
     public const int NoTrainerItem = 0;
@@ -39,7 +39,7 @@ public sealed class PokemonManager(
                     carryEquipmentPlans.GetValueOrDefault(info.PokemonId) ?? BuildRecommendCarryEquipmentPlan(info.PokemonId))),
             },
             PasterInfo = await pokemonAvatars.BuildPasterInfoAsync(role),
-            FreePokemonList = { options.Value.FreePokemonList },
+            FreePokemonList = { lists.Current.FreePokemonList },
         };
     }
 
@@ -102,7 +102,7 @@ public sealed class PokemonManager(
         UsedPokemonInfo = used.ToUsedPokemonInfo(await FindCarryEquipmentPlanAsync(gameUlongUID, used.PokemonId)),
     };
 
-    public IReadOnlyList<int> FreePokemonList => options.Value.FreePokemonList;
+    public IReadOnlyList<int> FreePokemonList => lists.Current.FreePokemonList;
 
     public bool CanBattleWith(LMNRoleInfo role, int pokemonId) =>
         role.CanUsePokemon(pokemonId) || FreePokemonList.Contains(pokemonId);

@@ -30,6 +30,14 @@ CREATE TABLE IF NOT EXISTS `account_token` (
     CONSTRAINT fk_account_token_account FOREIGN KEY (account_id) REFERENCES `account` (account_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `account_ban` (
+    account_id BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    ban_end_time BIGINT NOT NULL,
+    reason VARCHAR(200) NOT NULL DEFAULT '',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_account_ban_account FOREIGN KEY (account_id) REFERENCES `account` (account_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `role` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     in_game_usr_name VARCHAR(32) NOT NULL,
@@ -1061,3 +1069,124 @@ CREATE TABLE IF NOT EXISTS `role_invite_friend` (
     CONSTRAINT fk_role_invite_friend_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE,
     CONSTRAINT fk_role_invite_friend_friend FOREIGN KEY (friend_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `admin_token` (
+    token_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    token_name VARCHAR(40) NOT NULL,
+    token_hash BINARY(32) NOT NULL,
+    created_time BIGINT NOT NULL,
+    last_used_time BIGINT NOT NULL DEFAULT 0,
+    UNIQUE KEY uq_admin_token_hash (token_hash)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `admin_audit` (
+    audit_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    audit_time BIGINT NOT NULL,
+    token_id INT UNSIGNED NOT NULL,
+    token_name VARCHAR(40) NOT NULL,
+    action VARCHAR(40) NOT NULL,
+    target VARCHAR(80) NOT NULL DEFAULT '',
+    detail TEXT NOT NULL,
+    KEY ix_admin_audit_time (audit_time)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `msdk_notice` (
+    notice_id INT NOT NULL PRIMARY KEY,
+    notice_type INT NOT NULL DEFAULT 0,
+    notice_group VARCHAR(40) NOT NULL,
+    begin_time BIGINT NOT NULL DEFAULT 0,
+    end_time BIGINT NOT NULL DEFAULT 0,
+    notice_order INT NOT NULL DEFAULT 0,
+    notice_title VARCHAR(200) NOT NULL,
+    notice_content TEXT NOT NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `host_activation_code` (
+    activation_code VARCHAR(32) NOT NULL PRIMARY KEY,
+    valid_end_time BIGINT NOT NULL DEFAULT 0,
+    max_use_cnt INT NOT NULL DEFAULT 0
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `gift_code` (
+    gift_code VARCHAR(32) NOT NULL PRIMARY KEY,
+    valid_start_time BIGINT NOT NULL DEFAULT 0,
+    valid_end_time BIGINT NOT NULL,
+    max_use_cnt INT NOT NULL DEFAULT 0 CHECK (max_use_cnt >= 0),
+    use_cnt INT NOT NULL DEFAULT 0 CHECK (use_cnt >= 0),
+    is_enabled TINYINT(1) NOT NULL DEFAULT 1,
+    create_time BIGINT NOT NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `gift_code_award` (
+    gift_code VARCHAR(32) NOT NULL,
+    award_index TINYINT UNSIGNED NOT NULL,
+    res_type INT NOT NULL,
+    res_id INT NOT NULL,
+    res_cnt INT NOT NULL CHECK (res_cnt > 0),
+    PRIMARY KEY (gift_code, award_index),
+    CONSTRAINT fk_gift_code_award_code FOREIGN KEY (gift_code) REFERENCES `gift_code` (gift_code) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `gift_code_use` (
+    gift_code VARCHAR(32) NOT NULL,
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    use_time BIGINT NOT NULL,
+    mail_index INT NOT NULL,
+    PRIMARY KEY (gift_code, game_ulong_uid),
+    KEY ix_gift_code_use_time (gift_code, use_time),
+    CONSTRAINT fk_gift_code_use_code FOREIGN KEY (gift_code) REFERENCES `gift_code` (gift_code) ON DELETE CASCADE,
+    CONSTRAINT fk_gift_code_use_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `server_list` (
+    list_name VARCHAR(40) NOT NULL,
+    list_index SMALLINT UNSIGNED NOT NULL,
+    item_id INT NOT NULL,
+    PRIMARY KEY (list_name, list_index)
+) ENGINE=InnoDB;
+
+INSERT INTO `msdk_notice` (notice_id, notice_type, notice_group, notice_order, notice_title, notice_content)
+SELECT 1, 0, 'emergency1', 0, 'Welcome', 'Welcome to SpiritUNITE.' FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM `msdk_notice`);
+
+INSERT INTO `server_list` (list_name, list_index, item_id)
+SELECT list_name, list_index, item_id FROM (
+    SELECT 'FreePokemonList' AS list_name, 0 AS list_index, 77 AS item_id
+    UNION ALL SELECT 'FreePokemonList', 1, 557
+    UNION ALL SELECT 'FreePokemonList', 2, 845
+    UNION ALL SELECT 'FreePokemonList', 3, 957
+) AS seed
+WHERE NOT EXISTS (SELECT 1 FROM `server_list` WHERE list_name = 'FreePokemonList');
+
+INSERT INTO `server_list` (list_name, list_index, item_id)
+SELECT list_name, list_index, item_id FROM (
+    SELECT 'SubscriptionFreePokemonList' AS list_name, 0 AS list_index, 54 AS item_id
+    UNION ALL SELECT 'SubscriptionFreePokemonList', 1, 816
+) AS seed
+WHERE NOT EXISTS (SELECT 1 FROM `server_list` WHERE list_name = 'SubscriptionFreePokemonList');
+
+INSERT INTO `server_list` (list_name, list_index, item_id)
+SELECT list_name, list_index, item_id FROM (
+    SELECT 'SubscriptionFreePasterList' AS list_name, 0 AS list_index, 1006005403 AS item_id
+    UNION ALL SELECT 'SubscriptionFreePasterList', 1, 1006081803
+) AS seed
+WHERE NOT EXISTS (SELECT 1 FROM `server_list` WHERE list_name = 'SubscriptionFreePasterList');
+
+INSERT INTO `server_list` (list_name, list_index, item_id)
+SELECT list_name, list_index, item_id FROM (
+    SELECT 'NewSaleShopIDs' AS list_name, 0 AS list_index, 130339 AS item_id
+    UNION ALL SELECT 'NewSaleShopIDs', 1, 130340
+    UNION ALL SELECT 'NewSaleShopIDs', 2, 130341
+    UNION ALL SELECT 'NewSaleShopIDs', 3, 130342
+    UNION ALL SELECT 'NewSaleShopIDs', 4, 130343
+    UNION ALL SELECT 'NewSaleShopIDs', 5, 130344
+    UNION ALL SELECT 'NewSaleShopIDs', 6, 130345
+    UNION ALL SELECT 'NewSaleShopIDs', 7, 130346
+    UNION ALL SELECT 'NewSaleShopIDs', 8, 130347
+    UNION ALL SELECT 'NewSaleShopIDs', 9, 130348
+    UNION ALL SELECT 'NewSaleShopIDs', 10, 130349
+    UNION ALL SELECT 'NewSaleShopIDs', 11, 130350
+    UNION ALL SELECT 'NewSaleShopIDs', 12, 130351
+    UNION ALL SELECT 'NewSaleShopIDs', 13, 130352
+) AS seed
+WHERE NOT EXISTS (SELECT 1 FROM `server_list` WHERE list_name = 'NewSaleShopIDs');

@@ -24,6 +24,15 @@ public sealed record RoomCreateRequest(
     pbCOMDT_TEN_GAMES_TEAM_BRIEF_INFO? TenGamesTeamInfo = null,
     int TenGamesMapID = 0);
 
+public sealed record RoomSnapshot(
+    int RoomShowId,
+    PB_ENUM_COM_ROOM_TYPE RoomType,
+    int MapId,
+    PB_ENUM_COM_ROOMSVR_ROOM_STATE State,
+    IReadOnlyList<ulong> MemberUids,
+    int BotCount,
+    long MatchStartedAt);
+
 public readonly record struct SearchWaitSamples(long TotalSeconds, int Count)
 {
     public int MeanSeconds => Count == 0 ? 0 : (int)Math.Round((double)TotalSeconds / Count, MidpointRounding.AwayFromZero);
@@ -42,8 +51,8 @@ public sealed class RoomManager(
     RoomMicTips micTips,
     ActivitySchedule activities,
     BattleVoiceManager battleVoice,
-    IOptions<RoomOptions> roomOptions,
-    IOptions<MatchOptions> matchOptions,
+    IOptionsMonitor<RoomOptions> roomOptions,
+    IOptionsMonitor<MatchOptions> matchOptions,
     IOptions<GVoiceOptions> gVoiceOptions,
     TimeProvider clock)
 {
@@ -85,11 +94,29 @@ public sealed class RoomManager(
     private readonly Dictionary<(int MapId, int PartySize), SearchWaitSamples> searchWaits = [];
     private readonly Dictionary<int, PendingMatch> matchesById = [];
     private readonly Matchmaker matchmaker = new();
-    private readonly RoomOptions options = roomOptions.Value;
-    private readonly MatchOptions matching = matchOptions.Value;
+    private RoomOptions Options => roomOptions.CurrentValue;
+    private MatchOptions Matching => matchOptions.CurrentValue;
     private readonly GVoiceOptions gVoice = gVoiceOptions.Value;
     private int nextRoomID = 1;
     private int nextMatchID = 1;
+
+    public RoomSnapshot[] SnapshotRooms()
+    {
+        lock (gate)
+        {
+            return
+            [
+                .. roomsById.Values.Select(room => new RoomSnapshot(
+                    room.RoomShowId,
+                    room.RoomType,
+                    room.MapId,
+                    room.State,
+                    [.. room.Members.Select(member => member.Uid)],
+                    room.Bots.Count,
+                    room.MatchStartedAt)),
+            ];
+        }
+    }
 
     public MatchRoom? FindRoomOf(ulong uid)
     {
@@ -108,7 +135,7 @@ public sealed class RoomManager(
                 return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrStillInOtherRoom);
             }
 
-            var acntMapInfo = RoomMemberDetail.BuildAcntMapInfo(gameData, options, request.UsableMaps, clock.GetUtcNow());
+            var acntMapInfo = RoomMemberDetail.BuildAcntMapInfo(gameData, Options, request.UsableMaps, clock.GetUtcNow());
             var usableMaps = UsableMapsOf(acntMapInfo);
             pbScene_Map? scene;
             if (request.TenGamesTeamInfo is not null)
@@ -372,7 +399,7 @@ public sealed class RoomManager(
         lock (gate)
         {
             var outcome = new RoomOutcome();
-            foreach (var group in matchmaker.FormMatches(clock.GetUtcNow(), matching.BotFill))
+            foreach (var group in matchmaker.FormMatches(clock.GetUtcNow(), Matching.BotFill))
             {
                 OpenMatch(group, outcome);
             }
@@ -1006,7 +1033,7 @@ public sealed class RoomManager(
             }
 
             var before = BuildCanUseMap(room);
-            room.FindMember(uid)!.AcntMapInfo = RoomMemberDetail.BuildAcntMapInfo(gameData, options, usableMaps, clock.GetUtcNow());
+            room.FindMember(uid)!.AcntMapInfo = RoomMemberDetail.BuildAcntMapInfo(gameData, Options, usableMaps, clock.GetUtcNow());
             return PushCanUseMapChange(room, before, new RoomOutcome(), MemberUids(room));
         }
     }
@@ -1042,7 +1069,7 @@ public sealed class RoomManager(
     }
 
     private RoomOutcome Join(ulong uid, MatchRoom room, IReadOnlyCollection<int> usableMaps, RoomMemberProfile profile) =>
-        Join(uid, room, RoomMemberDetail.BuildAcntMapInfo(gameData, options, usableMaps, clock.GetUtcNow()), profile, JoinRoomTypeNormal);
+        Join(uid, room, RoomMemberDetail.BuildAcntMapInfo(gameData, Options, usableMaps, clock.GetUtcNow()), profile, JoinRoomTypeNormal);
 
     private RoomOutcome Join(
         ulong uid,
@@ -1317,14 +1344,14 @@ public sealed class RoomManager(
         var now = clock.GetUtcNow();
         var entry = new MatchQueueEntry(room, now, now + SearchDelayOf(room, isWarmBattle), warmBattleType, RankedBandOf(room));
         matchmaker.Enqueue(entry);
-        var waitTime = isWarmBattle ? matching.DrawWarmBattleWaitTime(room.MapSubMode) ?? warmBattles.WaitTime : EstimateSearchWait(room);
+        var waitTime = isWarmBattle ? Matching.DrawWarmBattleWaitTime(room.MapSubMode) ?? warmBattles.WaitTime : EstimateSearchWait(room);
         outcome.PushAll(MemberUids(room), PB_ENUM_CS_MSGID_DEF.PbScidMatchRsp, RoomNotices.MatchProcess(room, waitTime, ConfirmTimeoutOf(room)));
         return outcome.SearchFor(new MatchSearch(entry.FillAt));
     }
 
     private TimeSpan SearchDelayOf(MatchRoom room, bool isWarmBattle) =>
         isWarmBattle ? warmBattles.PickSuccDelay(room.Members.Count)
-        : TimeSpan.FromSeconds(CpuMatch.IsCpuMatch(room) ? options.ManMachineSearchSec : matching.BotFillSearchSec);
+        : TimeSpan.FromSeconds(CpuMatch.IsCpuMatch(room) ? Options.ManMachineSearchSec : Matching.BotFillSearchSec);
 
     private int ConfirmTimeoutOf(MatchRoom room) => MatchConfirmTimeout.Of(gameData, room.MapSubMode);
 
@@ -1338,7 +1365,7 @@ public sealed class RoomManager(
     }
 
     private int WarmBattleTypeOf(MatchRoom room) =>
-        matching.BotFill
+        Matching.BotFill
         && room.RoomType == PB_ENUM_COM_ROOM_TYPE.PbComRoomTypeMatch
         && room.ManMachine != CpuMatch.ManMachine
         && gameData.SceneMap.Find(room.MapId)?.GameType == (int)PB_ENUM_RES_MATCHGAMETYPE.PbMatchGameTypeCatch
@@ -1489,7 +1516,7 @@ public sealed class RoomManager(
             lead.CampPlayerNum,
             ConfirmTimeoutOf(lead),
             succTimeStamp,
-            IsRanked(lead) ? ranked.TeamMMRScore : options.TeamMMRScore,
+            IsRanked(lead) ? ranked.TeamMMRScore : Options.TeamMMRScore,
             new CpuMatchFillerRules(
                 RankedMatch.GetRankedMatchUnlockLevel(gameData, notices),
                 RankedMatch.FindCurrentSeason(gameData, clock.GetUtcNow()).Season.SeasonId,
@@ -1501,7 +1528,7 @@ public sealed class RoomManager(
                 Humans(group.LeftCamp),
                 Humans(group.RightCamp),
                 AgainstBots: CpuMatch.IsCpuMatch(lead),
-                FillWithFakePlayers: matching.BotFill));
+                FillWithFakePlayers: Matching.BotFill));
         if (!group.IsWarmBattle)
         {
             foreach (var entry in entries)

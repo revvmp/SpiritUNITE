@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using SpiritUNITE.Auth;
+using SpiritUNITE.Servers.Http.Admin;
 
 namespace SpiritUNITE.Servers.Http;
 
@@ -68,6 +69,8 @@ public static class HttpServer
         CentauriEndpoints.Map(app);
         ResourceEndpoints.Map(app);
         ImageCdnEndpoints.Map(app);
+        GiftCodeEndpoints.Map(app);
+        AdminEndpoints.Map(app);
     }
 
     private static IResult ShowLogin(HttpRequest request, IOptions<HttpServerOptions> options) =>
@@ -178,7 +181,7 @@ public static class HttpServer
         return AuthorizationRequest.TryCreate(parameters, options.RedirectUris, options.CodeChallengeOptionalRedirectUri);
     }
 
-    private static async Task<IFormCollection?> ReadSameSiteFormAsync(HttpRequest request, CancellationToken cancellationToken)
+    internal static async Task<IFormCollection?> ReadSameSiteFormAsync(HttpRequest request, CancellationToken cancellationToken)
     {
         if (!request.HasFormContentType || request.Headers["Sec-Fetch-Site"] == CrossSiteFetch)
         {
@@ -201,14 +204,16 @@ public static class HttpServer
         headers.CacheControl = NoStore;
         headers.XContentTypeOptions = NoSniff;
         headers.XFrameOptions = DenyFraming;
-        headers.ContentSecurityPolicy = AccountPages.ContentSecurityPolicy;
+        headers.ContentSecurityPolicy = AdminEndpoints.IsAdminPath(context.Request.Path)
+            ? AdminEndpoints.ContentSecurityPolicy
+            : AccountPages.ContentSecurityPolicy;
         headers[ReferrerPolicyHeader] = NoReferrer;
         return next(context);
     }
 
-    private static string? SingleValue(StringValues values) => values.Count == 1 ? values[0] : null;
+    internal static string? SingleValue(StringValues values) => values.Count == 1 ? values[0] : null;
 
-    private static IResult Html(string page, int statusCode = StatusCodes.Status200OK) =>
+    internal static IResult Html(string page, int statusCode = StatusCodes.Status200OK) =>
         Results.Content(page, HtmlContentType, statusCode: statusCode);
 
     private static IResult InvalidRequest() =>

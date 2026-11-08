@@ -3,6 +3,7 @@ using LinqToDB.Async;
 using LinqToDB.Data;
 using MySqlConnector;
 using SpiritUNITE.Auth;
+using SpiritUNITE.Database.Models;
 using AccountEntity = SpiritUNITE.Database.Models.Account;
 
 namespace SpiritUNITE.Database.Repositories;
@@ -99,6 +100,64 @@ public sealed class AccountRepository(DataOptions options)
             .Where(account => account.AccountId == accountId)
             .DeleteAsync();
         return deleted == 1;
+    }
+
+    public async Task<AccountProfile?> FindProfileAsync(ulong accountId)
+    {
+        await using var database = new DataConnection(options);
+        return await database.GetTable<AccountEntity>()
+            .Where(account => account.AccountId == accountId)
+            .Select(account => new AccountProfile(account.AccountId, account.UserName, account.Email, account.LastLoginAt))
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<AccountProfile[]> SearchProfilesAsync(string text, int limit)
+    {
+        await using var database = new DataConnection(options);
+        return await database.GetTable<AccountEntity>()
+            .Where(account => account.UserName!.Contains(text) || account.Email!.Contains(text))
+            .OrderBy(account => account.AccountId)
+            .Take(limit)
+            .Select(account => new AccountProfile(account.AccountId, account.UserName, account.Email, account.LastLoginAt))
+            .ToArrayAsync();
+    }
+
+    public async Task<AccountProfile[]> ListProfilesAsync(int skip, int take)
+    {
+        await using var database = new DataConnection(options);
+        return await database.GetTable<AccountEntity>()
+            .OrderByDescending(account => account.AccountId)
+            .Skip(skip)
+            .Take(take)
+            .Select(account => new AccountProfile(account.AccountId, account.UserName, account.Email, account.LastLoginAt))
+            .ToArrayAsync();
+    }
+
+    public async Task<int> CountAsync()
+    {
+        await using var database = new DataConnection(options);
+        return await database.GetTable<AccountEntity>().CountAsync();
+    }
+
+    public async Task<AccountBanState?> FindBanAsync(ulong accountId)
+    {
+        await using var database = new DataConnection(options);
+        return await database.GetTable<AccountBan>()
+            .Where(ban => ban.AccountId == accountId)
+            .Select(ban => new AccountBanState(ban.BanEndTime, ban.Reason))
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task SaveBanAsync(ulong accountId, AccountBanState ban)
+    {
+        await using var database = new DataConnection(options);
+        await database.InsertOrReplaceAsync(new AccountBan { AccountId = accountId, BanEndTime = ban.BanEndTime, Reason = ban.Reason });
+    }
+
+    public async Task<bool> DeleteBanAsync(ulong accountId)
+    {
+        await using var database = new DataConnection(options);
+        return await database.GetTable<AccountBan>().Where(ban => ban.AccountId == accountId).DeleteAsync() == 1;
     }
 
     private static async Task<AccountRegistrationResult?> FindTakenAsync(DataConnection database, string userName, string email)

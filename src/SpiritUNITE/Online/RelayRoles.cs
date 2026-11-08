@@ -25,6 +25,8 @@ public sealed class RelayRoles(ILogger<RelayRoles> logger)
 
     public bool IsOnline(ulong uid) => sessions.ContainsKey(uid);
 
+    public int OnlineCount => sessions.Count;
+
     public async Task<bool> PushAsync(ulong uid, RelayChannel channel, params GamePacket[] packets)
     {
         if (packets.Length == 0 || !sessions.TryGetValue(uid, out var session))

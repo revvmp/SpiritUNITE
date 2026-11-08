@@ -16,25 +16,14 @@ public sealed class LobbyOptions
     ];
 
     public int SubscriptionIsOpen { get; init; } = 1;
-    public int[] NewSaleShopIDs { get; init; } = [];
     public UserSchemeOptions[]? UserSchemes { get; init; }
-    public SubscriptionFreeOptions SubscriptionFree { get; init; } = new();
 
     public IReadOnlyList<UserSchemeOptions> UserSchemesOrOfficial => UserSchemes ?? OfficialUserSchemes;
 
     public bool IsValid() =>
         SubscriptionIsOpen is 0 or 1
-        && NewSaleShopIDs.All(shopID => shopID > 0)
         && UserSchemesOrOfficial.All(scheme => scheme.BusinessType > 0 && scheme.SchemeId > 0)
-        && UserSchemesOrOfficial.DistinctBy(scheme => scheme.BusinessType).Count() == UserSchemesOrOfficial.Count
-        && SubscriptionFree.FreePokemonList.All(pokemonID => pokemonID > 0)
-        && SubscriptionFree.FreePasterList.All(pasterID => pasterID > 0);
-}
-
-public sealed class SubscriptionFreeOptions
-{
-    public int[] FreePokemonList { get; init; } = [];
-    public int[] FreePasterList { get; init; } = [];
+        && UserSchemesOrOfficial.DistinctBy(scheme => scheme.BusinessType).Count() == UserSchemesOrOfficial.Count;
 }
 
 public sealed class UserSchemeOptions

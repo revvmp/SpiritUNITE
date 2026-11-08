@@ -11,7 +11,7 @@ public sealed record SettleTeamMember(ulong Uid, int PokemonHeroId, bool IsNpc);
 public sealed class SettleTeamPresence(
     RoomManager rooms,
     LobbyRoles lobbyRoles,
-    IOptions<RoomOptions> roomOptions,
+    IOptionsMonitor<RoomOptions> roomOptions,
     TimeProvider clock,
     ILogger<SettleTeamPresence> logger)
 {
@@ -19,7 +19,7 @@ public sealed class SettleTeamPresence(
     public const int Offline = 1;
     public const int Ready = 2;
 
-    private readonly RoomOptions options = roomOptions.Value;
+    private RoomOptions Options => roomOptions.CurrentValue;
     private readonly Lock gate = new();
     private readonly Dictionary<ulong, SettleTeamView> viewsByUid = [];
 
@@ -89,8 +89,8 @@ public sealed class SettleTeamPresence(
 
     private TimeSpan PickOfflineDelay() =>
         TimeSpan.FromMilliseconds(Random.Shared.NextInt64(
-            options.SettleTeamOfflineMinSec * TimeSpan.MillisecondsPerSecond,
-            (options.SettleTeamOfflineMaxSec * TimeSpan.MillisecondsPerSecond) + 1));
+            Options.SettleTeamOfflineMinSec * TimeSpan.MillisecondsPerSecond,
+            (Options.SettleTeamOfflineMaxSec * TimeSpan.MillisecondsPerSecond) + 1));
 
     private async Task PushOfflineAsync(ulong uid, SettleTeamView view, IReadOnlyList<(ulong Uid, TimeSpan Delay)> offlineAt)
     {

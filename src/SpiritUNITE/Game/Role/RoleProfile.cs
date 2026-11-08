@@ -27,6 +27,8 @@ public static class RoleProfile
 
     public static string BuildShortId(LMNRoleInfo role) => BuildShortId(role.GameUlongUID);
 
+    public static bool HasShortId(ulong uid) => uid < ShortIdSpace;
+
     public static string BuildShortId(ulong uid)
     {
         if (uid >= ShortIdSpace)

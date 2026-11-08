@@ -8,6 +8,8 @@ public sealed class RoleWallet(IReadOnlyList<KeyValuePair<int, long>> balancesIn
 {
     private readonly FrozenDictionary<int, long> balances = balancesInGrantOrder.ToFrozenDictionary();
 
+    public IReadOnlyList<KeyValuePair<int, long>> Balances => balancesInGrantOrder;
+
     public long GetCoinVal(int coinID) => balances.GetValueOrDefault(coinID);
 
     public pbCOMDT_COIN_INFO BuildCoinInfo() => new()

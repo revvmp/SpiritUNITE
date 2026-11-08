@@ -24,6 +24,7 @@ public sealed class AccountManager(AccountRepository repository)
     public const int MaximumEmailLength = 254;
     public const int MinimumPasswordLength = 8;
     public const int MaximumPasswordLength = 128;
+    public const int MaximumBanReasonLength = 200;
 
     public async Task<AccountCreation> RegisterAsync(
         string userName,
@@ -56,6 +57,31 @@ public sealed class AccountManager(AccountRepository repository)
     }
 
     public Task<bool> DeleteAsync(ulong accountId) => repository.DeleteAsync(accountId);
+
+    public Task<AccountProfile?> FindProfileAsync(ulong accountId) => repository.FindProfileAsync(accountId);
+
+    public Task<AccountProfile[]> SearchProfilesAsync(string text, int limit) => repository.SearchProfilesAsync(text, limit);
+
+    public Task<int> CountAsync() => repository.CountAsync();
+
+    public Task<AccountProfile[]> ListProfilesAsync(int skip, int take) => repository.ListProfilesAsync(skip, take);
+
+    public async Task<AccountBanState?> FindActiveBanAsync(ulong accountId, long now) =>
+        await repository.FindBanAsync(accountId) is { } ban && ban.IsActive(now) ? ban : null;
+
+    public async Task<bool> BanAsync(ulong accountId, AccountBanState ban)
+    {
+        if (ban.BanEndTime < AccountBanState.Permanent || ban.Reason.Length > MaximumBanReasonLength ||
+            await repository.FindByIdAsync(accountId) is null)
+        {
+            return false;
+        }
+
+        await repository.SaveBanAsync(accountId, ban);
+        return true;
+    }
+
+    public Task<bool> UnbanAsync(ulong accountId) => repository.DeleteBanAsync(accountId);
 
     public async Task<LoginPlatform[]> FindBoundChannelsAsync(ulong accountId) =>
         await repository.FindByIdAsync(accountId) is { } account

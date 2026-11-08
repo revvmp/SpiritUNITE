@@ -25,7 +25,7 @@ public sealed class MegaEvolutionManager(
     ActivityManager activityManager,
     ActivityRewardNotices rewardNotices,
     MegaEvolutionRepository repository,
-    IOptions<MegaEvolutionOptions> options,
+    IOptionsMonitor<MegaEvolutionOptions> options,
     TimeProvider clock,
     ILogger<MegaEvolutionManager> logger)
 {
@@ -104,7 +104,7 @@ public sealed class MegaEvolutionManager(
         var consumId = Other(activityID, Consum);
         var cost = (long)Other(activityID, ConsumNum) * trainNum;
         var bagCost = BuildCost(consumId, cost);
-        var settings = options.Value;
+        var settings = options.CurrentValue;
         int[] trainResults = [.. Enumerable.Range(0, trainNum).Select(_ => Random.Shared.Next(settings.TrainMinComplete, settings.TrainMaxComplete + 1))];
         var completeAfter = Math.Min(MaxComplete, state.Complete + trainResults.Sum());
         var now = clock.GetUtcNow().ToUnixTimeSeconds();

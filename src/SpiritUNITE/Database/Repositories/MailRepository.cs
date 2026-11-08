@@ -132,6 +132,45 @@ public sealed class MailRepository(DataOptions options)
             return (PB_ENUM_RES_ERROR_CODE.PbErrMailGetAccessFail, null, NoCoinNums, NoBagItems);
         }
 
+        var applied = await ApplyGrantAsync(database, gameUlongUID, grant, now);
+        if (applied.Result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+        {
+            await transaction.CommitAsync();
+        }
+        else
+        {
+            await transaction.RollbackAsync();
+        }
+
+        return applied;
+    }
+
+    public async Task<(PB_ENUM_RES_ERROR_CODE Result, RoleWallet? Wallet, IReadOnlyDictionary<int, long> BeforeCoinNums, IReadOnlyList<BagItem> ChangedBagItems)> GrantAsync(
+        ulong gameUlongUID,
+        MailGrant grant,
+        long now)
+    {
+        await using var database = new DataConnection(options);
+        await using var transaction = await database.BeginTransactionAsync();
+        var applied = await ApplyGrantAsync(database, gameUlongUID, grant, now);
+        if (applied.Result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+        {
+            await transaction.CommitAsync();
+        }
+        else
+        {
+            await transaction.RollbackAsync();
+        }
+
+        return applied;
+    }
+
+    private static async Task<(PB_ENUM_RES_ERROR_CODE Result, RoleWallet? Wallet, IReadOnlyDictionary<int, long> BeforeCoinNums, IReadOnlyList<BagItem> ChangedBagItems)> ApplyGrantAsync(
+        DataConnection database,
+        ulong gameUlongUID,
+        MailGrant grant,
+        long now)
+    {
         var beforeCoinNums = new Dictionary<int, long>();
         foreach (var (coinID, coinCnt) in grant.Coins)
         {
@@ -157,14 +196,12 @@ public sealed class MailRepository(DataOptions options)
         }
         catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
         {
-            await transaction.RollbackAsync();
             return (PB_ENUM_RES_ERROR_CODE.PbErrMailGetAccessFail, null, NoCoinNums, NoBagItems);
         }
 
         var granted = await BagRepository.ApplyGrantsAsync(database, gameUlongUID, grant.BagGrants, now);
         if (granted != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
         {
-            await transaction.RollbackAsync();
             return (granted, null, NoCoinNums, NoBagItems);
         }
 
@@ -175,7 +212,6 @@ public sealed class MailRepository(DataOptions options)
 
         var changedBagItems = await BagRepository.ReadItemsAsync(database, gameUlongUID, grant.BagGrants.Select(bagGrant => (bagGrant.ItemType, bagGrant.ItemId)).Distinct());
         var wallet = await WalletRepository.ReadAsync(database, gameUlongUID);
-        await transaction.CommitAsync();
         return (PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, wallet, beforeCoinNums, changedBagItems);
     }
 }

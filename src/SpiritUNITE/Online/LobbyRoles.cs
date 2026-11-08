@@ -7,6 +7,8 @@ namespace SpiritUNITE.Online;
 
 public sealed class LobbyRoles(ILogger<LobbyRoles> logger)
 {
+    private const int KickExCode = 0;
+
     private readonly ConcurrentDictionary<ulong, GcpSession> sessions = new();
     private readonly ConcurrentDictionary<ulong, int> closedNextSvrPkgSeqs = new();
 
@@ -40,6 +42,27 @@ public sealed class LobbyRoles(ILogger<LobbyRoles> logger)
             logger.LogInformation("Push to uid {Uid} failed: {Reason}", uid, exception.Message);
             return false;
         }
+    }
+
+    public async Task<bool> KickAsync(ulong uid)
+    {
+        if (!sessions.TryGetValue(uid, out var session))
+        {
+            return false;
+        }
+
+        logger.LogInformation("Uid {Uid} kicked from the lobby", uid);
+        try
+        {
+            await session.StopAsync(GcpStopReason.GameServerClose, KickExCode);
+        }
+        catch (Exception exception) when (exception is IOException or ObjectDisposedException or InvalidOperationException)
+        {
+            logger.LogInformation("Kick of uid {Uid} could not send the stop: {Reason}", uid, exception.Message);
+        }
+
+        session.Close();
+        return true;
     }
 
     internal async Task AttachAsync(ulong uid, GcpSession session)

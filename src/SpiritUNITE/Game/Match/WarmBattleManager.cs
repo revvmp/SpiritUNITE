@@ -8,7 +8,7 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Match;
 
-public sealed class WarmBattleManager(GameData gameData, WarmBattleRepository repository, RoleInfoStore roles, RankedManager ranked, IOptions<MatchOptions> matchOptions)
+public sealed class WarmBattleManager(GameData gameData, WarmBattleRepository repository, RoleInfoStore roles, RankedManager ranked, IOptionsMonitor<MatchOptions> matchOptions)
 {
     private const int RaceNormal = (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceNormal;
     private const int RaceRank = (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceRank;
@@ -31,7 +31,7 @@ public sealed class WarmBattleManager(GameData gameData, WarmBattleRepository re
     private bool AdmitsContLose(int mapSubMode, IReadOnlyCollection<ulong> memberUids) =>
         mapSubMode == RaceRank
         && memberUids.Any(uid => !ranked.Ladder.IsMaster(ranked.PositionOf(uid).RankedDivision)
-            && CountOf(uid, mapSubMode).ContLoseCnt >= matchOptions.Value.ContLoseWarmBattleLosses);
+            && CountOf(uid, mapSubMode).ContLoseCnt >= matchOptions.CurrentValue.ContLoseWarmBattleLosses);
 
     private bool AdmitsRookie(int mapSubMode, IReadOnlyCollection<ulong> memberUids)
     {

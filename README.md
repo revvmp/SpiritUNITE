@@ -13,8 +13,11 @@ SpiritUNITE is a C# server emulator for the [Pokemon UNITE](https://en.wikipedia
 ### Battle
 ![Mewtwo X in battle](gallery/mewtwo-battle.png)
 
-## Environment Setup
+## Prerequisites
 
+- You will need your own APK and decrypted IPA.
+
+## Environment Setup
 
 1. Clone the repository
 2. Install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
@@ -83,7 +86,7 @@ Files go in the folder set by `ResourceArchive.Directory` in `appsettings.json` 
 | 10001 | Directory server |
 | 10002 | Lobby server |
 | 10003 | Relay server (UDP) |
-| 10081 | Account login and registration pages, and the resource archive download |
+| 10081 | Login, Registration, and Admin pages, and the resource archive download |
 
 All of these can be changed in `appsettings.json`, except the update server. The client only looks for it on port 8085 or 8080.
 

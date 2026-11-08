@@ -33,6 +33,7 @@ public sealed class CreditManager(
     private const int MinCreditPoint = 0;
     private const int MaxCreditPoint = StartingCreditPoint;
     private const int NoBanSec = 0;
+    private const long NoBanEndTime = 0;
     private const int UnconfirmedMatchMailID = (int)PB_ENUM_RES_MAILID_TYPE.PbResMailidTypeHangupPunish;
     private const int AccusationMailType = (int)PB_ENUM_RES_MAIL_TYPE.PbResMailTypeAccusation;
     private const int GameStartUnconfirmKey = (int)PB_ENUM_RES_RESGLOBAL.PbResglobalGameStartUnconfirm;
@@ -62,6 +63,29 @@ public sealed class CreditManager(
     private readonly ConcurrentDictionary<ulong, SemaphoreSlim> gates = new();
 
     public async Task<int> GetCreditPointAsync(ulong uid) => (await LoadAsync(uid)).CreditPoint;
+
+    public static bool IsCreditPoint(int creditPoint) => creditPoint is >= MinCreditPoint and <= MaxCreditPoint;
+
+    public async Task<bool> SetCreditPointAsync(ulong uid, int creditPoint)
+    {
+        if (!IsCreditPoint(creditPoint))
+        {
+            return false;
+        }
+
+        var creditPointNtf = await UpdateAsync(uid, record =>
+        {
+            logger.LogInformation("Uid {Uid} credit set by an admin: {Before} -> {After}", uid, record.CreditPoint, creditPoint);
+            return (record with { CreditPoint = creditPoint }, (CreditReduceRecord?)null, new pbSCCreditPointNtf { CurrentCreditPoint = creditPoint });
+        });
+        await lobbyRoles.PushAsync(uid, GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidCreditPointNtf, creditPointNtf));
+        return true;
+    }
+
+    public async Task<bool> ClearBattleBanAsync(ulong uid) =>
+        await UpdateAsync(uid, record => record.BanEndTime == NoBanEndTime
+            ? (record, (CreditReduceRecord?)null, false)
+            : (record with { BanEndTime = NoBanEndTime }, null, true));
 
     public async Task<pbSCCreditPointNtf> BuildCreditPointNtfAsync(ulong uid) => new()
     {

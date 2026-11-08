@@ -21,7 +21,7 @@ Put each archive in a folder named after its platform's product id.
 - Put exactly one `.ifs` in each product folder.
 - On first start the server computes the archive's MD5 and saves it next to it as `<file>.ifs.md5`. Later starts reuse it until the archive changes.
 
-The archive is served at `/resources/<productId>/<file>` on the HTTP server. If players reach the server through a reverse proxy or a CDN, set `ResourceArchive.BaseUrl` to that public address.
+The archive is served at `/resources/<productId>/<file>` on the HTTP server. If players reach the server through a reverse proxy or a CDN (recommended for large scale), set `ResourceArchive.BaseUrl` to that public address.
 
 ## Images
 

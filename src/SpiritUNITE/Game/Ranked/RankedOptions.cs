@@ -52,6 +52,10 @@ public sealed class RankedOptions
 
     public int LoseBasePointOf(int bigRankedDivision) => PointOf(LoseBasePointOrOfficial, bigRankedDivision);
 
+    public bool FitsLadder(RankedLadder ladder) =>
+        WinPointOrOfficial.Count == ladder.MaxBig
+        && SeasonInheritRankedDivisionOrOfficial.All(pair => ladder.IsKnown(pair.Key) && ladder.IsKnown(pair.Value));
+
     public bool IsValid() =>
         WinPointOrOfficial.Count > 0
         && LoseBasePointOrOfficial.Count == WinPointOrOfficial.Count

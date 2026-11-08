@@ -1,14 +1,4 @@
 {
-  "LobbyRules": {
-    "NewSaleShopIDs": [130339, 130340, 130341, 130342, 130343, 130344, 130345, 130346, 130347, 130348, 130349, 130350, 130351, 130352],
-    "SubscriptionFree": {
-      "FreePokemonList": [54, 816],
-      "FreePasterList": [1006005403, 1006081803]
-    }
-  },
-  "Pokemon": {
-    "FreePokemonList": [77, 557, 845, 957]
-  },
   "Match": {
     "BotFill": true
   },
@@ -16,20 +6,5 @@
     "StartingCookies": 0,
     "StartingPokeCoins": 0,
     "StartingCoupons": 0
-  },
-  "MSDKNotice": {
-    "NoticeInfoList": [
-      {
-        "NoticeId": 1,
-        "NoticeType": 0,
-        "NoticeGroup": "emergency1",
-        "Order": 0,
-        "NoticeTitle": "Welcome",
-        "NoticeContent": "Welcome to SpiritUNITE."
-      }
-    ]
-  },
-  "ActivationCode": {
-    "Codes": []
   }
 }

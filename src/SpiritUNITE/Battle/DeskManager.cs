@@ -26,6 +26,8 @@ using SpiritUNITE.Tools;
 
 namespace SpiritUNITE.Battle;
 
+public sealed record DeskSnapshot(int DeskID, int MapId, DeskPhase Phase, IReadOnlyList<ulong> HumanUids, int NpcCount);
+
 public sealed class DeskManager
 {
     private const int AcntObjType = 1;
@@ -151,7 +153,7 @@ public sealed class DeskManager
     private readonly RelayRoles relayRoles;
     private readonly GVoiceOptions gVoice;
     private readonly BattleVoiceManager battleVoice;
-    private readonly HeroPickOptions heroPick;
+    private readonly IOptionsMonitor<HeroPickOptions> heroPick;
     private readonly LoginManager login;
     private readonly RankedManager ranked;
     private readonly FriendRepository friends;
@@ -183,7 +185,7 @@ public sealed class DeskManager
         RelayRoles relayRoles,
         IOptions<GVoiceOptions> gVoice,
         BattleVoiceManager battleVoice,
-        IOptions<HeroPickOptions> heroPick,
+        IOptionsMonitor<HeroPickOptions> heroPick,
         LoginManager login,
         RankedManager ranked,
         FriendRepository friends,
@@ -203,7 +205,7 @@ public sealed class DeskManager
         this.relayRoles = relayRoles;
         this.gVoice = gVoice.Value;
         this.battleVoice = battleVoice;
-        this.heroPick = heroPick.Value;
+        this.heroPick = heroPick;
         this.login = login;
         this.ranked = ranked;
         this.friends = friends;
@@ -219,6 +221,22 @@ public sealed class DeskManager
             .ToFrozenDictionary(group => group.Key, group => group.First().Id);
         npcHeldItems = BuildNpcHeldItems(gameData);
         lobbyRoles.RoleOffline += OnRoleOfflineAsync;
+    }
+
+    public DeskSnapshot[] SnapshotDesks()
+    {
+        lock (gate)
+        {
+            return
+            [
+                .. desksById.Values.Select(desk => new DeskSnapshot(
+                    desk.DeskID,
+                    desk.DeskInfo.MapId,
+                    desk.Phase,
+                    [.. desk.Humans.Select(player => player.Uid)],
+                    desk.Players.Count(player => player.IsNpc))),
+            ];
+        }
     }
 
     public async Task<RoomOutcome> BeginDeskAsync(PendingMatch match)
@@ -1524,7 +1542,7 @@ public sealed class DeskManager
 
     private int[] NpcHeroPool(BattleDesk desk) =>
         gameData.SceneMap.Find(desk.DeskInfo.MapId) is { } scene
-            ? ReleasedHeroIDs(scene, clock.GetUtcNow().ToUnixTimeSeconds(), heroPick.AllowsNpcHero)
+            ? ReleasedHeroIDs(scene, clock.GetUtcNow().ToUnixTimeSeconds(), heroPick.CurrentValue.AllowsNpcHero)
             : [];
 
     private int[] ReleasedHeroIDs(pbScene_Map scene, long now, Func<int, bool>? allowsOrder = null) =>

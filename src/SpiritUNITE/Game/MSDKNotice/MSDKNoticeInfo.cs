@@ -4,6 +4,7 @@ public sealed class MSDKNoticeInfo
 {
     public const int MaximumTitleLength = 200;
     public const int MaximumContentLength = 8000;
+    public const int MaximumGroupLength = 40;
 
     public int NoticeId { get; init; }
     public int NoticeType { get; init; }
@@ -21,6 +22,7 @@ public sealed class MSDKNoticeInfo
         NoticeId > 0 &&
         NoticeType >= 0 &&
         !string.IsNullOrWhiteSpace(NoticeGroup) &&
+        NoticeGroup.Length <= MaximumGroupLength &&
         NoticeTitle.Length <= MaximumTitleLength &&
         NoticeContent.Length <= MaximumContentLength &&
         FitsTimestamp(BeginTime) &&
