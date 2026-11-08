@@ -319,7 +319,7 @@ public sealed class BattleSettlement
         }
 
         var creditPointNtf = result.QuitByExitButton ? null
-            : hangupType != PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeNone ? await credit.PenalizeHangupAsync(uid, result.Desk.DeskInfo.MapId, hangupType)
+            : hangupType != PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeNone ? await credit.PenalizeHangupAsync(uid, BuildCreditReduceBattle(result), hangupType)
             : await credit.RecoverAfterBattleAsync(uid, result.Desk.DeskInfo.MapId, result.Desk.DeskInfo.ManMachine == CpuMatch.ManMachine);
         if (!lobbyRoles.IsOnline(uid))
         {
@@ -413,6 +413,12 @@ public sealed class BattleSettlement
             battleTaskEvent,
             [.. plan.StarTasks.Select(task => BuildStarTaskInfo(task, now)), .. newbieChallengeProgress]);
     }
+
+    private static CreditReduceBattle BuildCreditReduceBattle(BattleResult result) => new(
+        result.Desk.DeskInfo.MapId,
+        result.GameStartTime,
+        result.Human.ChosenHeroID,
+        CreditReduceBattle.BattleIDOf(result.Desk.DeskID, result.Desk.DeskCrtSeq, result.Desk.RelayEntity));
 
     private static bool IsCustomBattle(BattleResult result) =>
         result.Desk.DeskInfo.RoomType == (int)PB_ENUM_COM_ROOM_TYPE.PbComRoomTypeNormal;

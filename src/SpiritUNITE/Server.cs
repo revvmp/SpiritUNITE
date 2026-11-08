@@ -20,6 +20,8 @@ using SpiritUNITE.Game.Tasks;
 using SpiritUNITE.Game.TrainerExpGift;
 using SpiritUNITE.Game.StarRoad;
 using SpiritUNITE.Game.Activity;
+using SpiritUNITE.Game.BattleVoice;
+using SpiritUNITE.Game.Accusation;
 using SpiritUNITE.Auth;
 using SpiritUNITE.Game.Chat;
 using SpiritUNITE.Game.Energy;
@@ -233,6 +235,8 @@ public static class Server
         builder.Services.AddSingleton<AccountTokenRepository>();
         builder.Services.AddSingleton<ActivityRepository>();
         builder.Services.AddSingleton<CouponsFlowRepository>();
+        builder.Services.AddSingleton<AccusationRepository>();
+        builder.Services.AddSingleton<FabulousRepository>();
         builder.Services.AddSingleton<AchievementRepository>();
         builder.Services.AddSingleton<StarRoadRepository>();
         builder.Services.AddSingleton<TrainerExpGiftRepository>();
@@ -307,6 +311,8 @@ public static class Server
         builder.Services.AddSingleton<ActivationCodeManager>();
         builder.Services.AddSingleton<ActivitySchedule>();
         builder.Services.AddSingleton<ActivityManager>();
+        builder.Services.AddSingleton<AccusationManager>();
+        builder.Services.AddSingleton<BattleVoiceManager>();
         builder.Services.AddSingleton<EeveeChallengePool>();
         builder.Services.AddSingleton<EeveeChallengeManager>();
         builder.Services.AddSingleton<AchievementManager>();

@@ -63,4 +63,12 @@ public sealed class ClientReportHandlers(ILogger<ClientReportHandlers> logger)
         pbCSResDownProcessReportReq.Parser.ParseFrom(request.PkgData);
         return [];
     }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidReportUseVoiceTlogReq)]
+    public GamePacket[] OnReportUseVoiceTlogReq(GamePacket request)
+    {
+        var report = pbCSReportUseVoiceTlogReq.Parser.ParseFrom(request.PkgData);
+        logger.LogDebug("Voice use report from uid {Uid}: scene {Sence}", request.Uid, report.Sence);
+        return [];
+    }
 }

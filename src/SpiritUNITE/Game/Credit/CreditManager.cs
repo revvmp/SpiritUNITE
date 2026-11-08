@@ -4,11 +4,17 @@ using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Mail;
 using SpiritUNITE.Online;
+using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Credit;
 
 public sealed record CreditPenalty(bool IsPenalized, int CreditPoint, long BanEndTime);
+
+public sealed record CreditReduceBattle(int MapId, long GameStartTime, int HeroID, string DeskUniqId)
+{
+    public static string BattleIDOf(int deskID, long deskCrtSeq, int relayEntity) => $"{deskID}_{deskCrtSeq}_{relayEntity}";
+}
 
 public sealed class CreditManager(
     CreditRepository repository,
@@ -42,6 +48,9 @@ public sealed class CreditManager(
     private const int SevereHandupDeduceCreditpointKey = (int)PB_ENUM_RES_RESGLOBAL.PbResglobalSevereHandupDeduceCreditpoint;
     private const int MaliciousHandupDeduceCreditpointKey = (int)PB_ENUM_RES_RESGLOBAL.PbResglobalMaliciousHandupDeduceCreditpoint;
     private const int HangupIncomeRatioBase = 100;
+    private const int MaxDeduceCreditPointRecordNum = (int)PB_MACRO_COM_MAX_DEDUCE_CREDIT_POINT_RECORD_NUM.PbComMaxDeduceCreditPointRecordNum;
+    private const int NoHeroID = 0;
+    private const string NoDeskUniqId = "";
 
     private static readonly SystemMail UnconfirmedMatchMail = new(
         Subject: "Mail_TextTitle_12_001",
@@ -89,7 +98,10 @@ public sealed class CreditManager(
                 hangupSchemeID,
                 creditPoint,
                 banEndTime);
-            return (record with { CreditPoint = creditPoint, UnconfirmedDay = today, UnconfirmedCount = unconfirmedCount, BanEndTime = banEndTime }, new CreditPenalty(isPenalized, creditPoint, banEndTime));
+            var reduceRecord = creditPoint == record.CreditPoint
+                ? null
+                : BuildReduceRecord(mapId, now.ToUnixTimeSeconds(), PB_ENUM_ENM_CREDIT_DEDUCE_REASON.PbEnmCreditDeduceReasonNotConfirmMatch, record.CreditPoint - creditPoint, NoHeroID, NoDeskUniqId);
+            return (record with { CreditPoint = creditPoint, UnconfirmedDay = today, UnconfirmedCount = unconfirmedCount, BanEndTime = banEndTime }, reduceRecord, new CreditPenalty(isPenalized, creditPoint, banEndTime));
         });
     }
 
@@ -123,9 +135,9 @@ public sealed class CreditManager(
         return income - (income * Math.Clamp(reduceRatio, 0, HangupIncomeRatioBase) / HangupIncomeRatioBase);
     }
 
-    public async Task<pbSCCreditPointNtf?> PenalizeHangupAsync(ulong uid, int mapId, PB_ENUM_ENM_HANGUP_TYPE hangupType)
+    public async Task<pbSCCreditPointNtf?> PenalizeHangupAsync(ulong uid, CreditReduceBattle battle, PB_ENUM_ENM_HANGUP_TYPE hangupType)
     {
-        var hangupSchemeID = HangupSchemeIDOf(mapId);
+        var hangupSchemeID = HangupSchemeIDOf(battle.MapId);
         var deduction = hangupType switch
         {
             PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeMild => SchemeValueOf(hangupSchemeID, MildHandupDeduceCreditpointKey),
@@ -144,8 +156,10 @@ public sealed class CreditManager(
                 record.CreditPoint,
                 creditPoint);
             return creditPoint == record.CreditPoint
-                ? (record, (pbSCCreditPointNtf?)null)
-                : (record with { CreditPoint = creditPoint }, new pbSCCreditPointNtf { CurrentCreditPoint = creditPoint });
+                ? (record, (CreditReduceRecord?)null, (pbSCCreditPointNtf?)null)
+                : (record with { CreditPoint = creditPoint },
+                    BuildReduceRecord(battle, PB_ENUM_ENM_CREDIT_DEDUCE_REASON.PbEnmCreditDeduceReasonHangup, record.CreditPoint - creditPoint),
+                    new pbSCCreditPointNtf { CurrentCreditPoint = creditPoint });
         });
     }
 
@@ -170,31 +184,102 @@ public sealed class CreditManager(
                 resumedToday + resumed,
                 dailyLimit);
             return resumed == 0
-                ? (record, (pbSCCreditPointNtf?)null)
+                ? (record, (CreditReduceRecord?)null, (pbSCCreditPointNtf?)null)
                 : (record with { CreditPoint = record.CreditPoint + resumed, ResumeDay = today, ResumeCredit = resumedToday + resumed },
+                    null,
                     new pbSCCreditPointNtf { CurrentCreditPoint = record.CreditPoint + resumed });
         });
     }
 
-    private async Task<T> UpdateAsync<T>(ulong uid, Func<CreditRecord, (CreditRecord Saved, T Result)> change)
+    public async Task<pbCOMDT_CREDIT_REDUCE_RECORD_LIST> BuildReduceRecordListAsync(ulong uid) => new()
+    {
+        RecordList =
+        {
+            (await repository.ListReduceRecordsAsync(uid)).Select(saved => new pbCOMDT_CREDIT_REDUCE_RECORD
+            {
+                GameStartTime = saved.GameStartTime,
+                MapMode = saved.MapMode,
+                MapSubMode = saved.MapSubMode,
+                Reason = saved.Reason,
+                ReducePoint = saved.ReducePoint,
+                HeroID = saved.HeroID,
+                DeskUniqId = saved.DeskUniqId,
+            }),
+        },
+    };
+
+    public async Task<int> PunishAccusedHangupAsync(ulong accusedUid, string battleID)
+    {
+        var punishCredit = Math.Max(0, gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalAccusationPunishCreditOnHangup));
+        var creditPointNtf = await WithGateAsync(accusedUid, async () =>
+        {
+            var recordsOfDesk = await repository.FindReduceRecordsOfDeskAsync(accusedUid, battleID);
+            var hangupRecord = recordsOfDesk.FirstOrDefault(saved => saved.Reason == (int)PB_ENUM_ENM_CREDIT_DEDUCE_REASON.PbEnmCreditDeduceReasonHangup);
+            var alreadyPunished = recordsOfDesk.Any(saved => saved.Reason == (int)PB_ENUM_ENM_CREDIT_DEDUCE_REASON.PbEnmCreditDeduceReasonAccusationHangup);
+            if (hangupRecord is null || alreadyPunished || punishCredit == 0)
+            {
+                return null;
+            }
+
+            var record = await LoadAsync(accusedUid);
+            var creditPoint = Math.Max(MinCreditPoint, record.CreditPoint - punishCredit);
+            logger.LogInformation(
+                "Uid {Uid} reported for idling in battle {BattleID}: credit {Before} -> {After}",
+                accusedUid,
+                battleID,
+                record.CreditPoint,
+                creditPoint);
+            var reduceRecord = hangupRecord with
+            {
+                Reason = (int)PB_ENUM_ENM_CREDIT_DEDUCE_REASON.PbEnmCreditDeduceReasonAccusationHangup,
+                ReducePoint = record.CreditPoint - creditPoint,
+            };
+            await repository.SaveAsync(accusedUid, record with { CreditPoint = creditPoint }, reduceRecord, MaxDeduceCreditPointRecordNum);
+            return new pbSCCreditPointNtf { CurrentCreditPoint = creditPoint };
+        });
+        if (creditPointNtf is null)
+        {
+            return 0;
+        }
+
+        await lobbyRoles.PushAsync(accusedUid, GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidCreditPointNtf, creditPointNtf));
+        return punishCredit;
+    }
+
+    private Task<T> UpdateAsync<T>(ulong uid, Func<CreditRecord, (CreditRecord Saved, CreditReduceRecord? Reduce, T Result)> change) =>
+        WithGateAsync(uid, async () =>
+        {
+            var record = await LoadAsync(uid);
+            var (saved, reduce, result) = change(record);
+            if (saved != record || reduce is not null)
+            {
+                await repository.SaveAsync(uid, saved, reduce, MaxDeduceCreditPointRecordNum);
+            }
+
+            return result;
+        });
+
+    private async Task<T> WithGateAsync<T>(ulong uid, Func<Task<T>> action)
     {
         var gate = gates.GetOrAdd(uid, _ => new SemaphoreSlim(1, 1));
         await gate.WaitAsync();
         try
         {
-            var record = await LoadAsync(uid);
-            var (saved, result) = change(record);
-            if (saved != record)
-            {
-                await repository.SaveAsync(uid, saved);
-            }
-
-            return result;
+            return await action();
         }
         finally
         {
             gate.Release();
         }
+    }
+
+    private CreditReduceRecord BuildReduceRecord(CreditReduceBattle battle, PB_ENUM_ENM_CREDIT_DEDUCE_REASON reason, int reducePoint) =>
+        BuildReduceRecord(battle.MapId, battle.GameStartTime, reason, reducePoint, battle.HeroID, battle.DeskUniqId);
+
+    private CreditReduceRecord BuildReduceRecord(int mapId, long gameStartTime, PB_ENUM_ENM_CREDIT_DEDUCE_REASON reason, int reducePoint, int heroID, string deskUniqId)
+    {
+        var sceneMap = gameData.SceneMap.Find(mapId);
+        return new CreditReduceRecord(gameStartTime, sceneMap?.MapMode ?? 0, sceneMap?.MapSubMode ?? 0, (int)reason, reducePoint, heroID, deskUniqId);
     }
 
     private int HangupSchemeIDOf(int mapId) => gameData.SceneMap.Find(mapId)?.HangupSchemeID ?? 0;

@@ -25,6 +25,8 @@ public sealed class FriendManager
     private const int Online = 1;
     private const int Offline = 0;
     private const long LoggingInLastLogoutTime = 0;
+    private const int MaxPlatformFriendNum = (int)PB_MACRO_MAX_PLATFORM_FRIEND_NUM.PbMaxPlatformFriendNum;
+    private const int MaxNasIdLength = (int)PB_MACRO_COM_MAX_SWITCH_ANTIADDITION_NAS_ID_LEN.PbComMaxSwitchAntiadditionNasIdLen;
 
     private readonly FriendRepository repository;
     private readonly RoleInfoStore roles;
@@ -330,6 +332,24 @@ public sealed class FriendManager
         await repository.SetBanChatFlagAsync(uid, friendUid, banChatFlag)
             ? PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc
             : PB_ENUM_RES_ERROR_CODE.PbErrFriendNotFriend;
+
+    public PB_ENUM_RES_ERROR_CODE AddPlatformAllFriend(ulong uid)
+    {
+        logger.LogInformation("Uid {Uid} added all platform friends: no account has a linked platform friend, no request sent", uid);
+        return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
+    }
+
+    public PB_ENUM_RES_ERROR_CODE AddSwitchAllFriend(ulong uid, IReadOnlyCollection<string> nasIdList)
+    {
+        if (nasIdList.Count > MaxPlatformFriendNum || nasIdList.Any(nasId => nasId.Length is 0 or > MaxNasIdLength))
+        {
+            logger.LogInformation("Uid {Uid} sent {Count} Nintendo Switch friend ids, refused", uid, nasIdList.Count);
+            return PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
+        }
+
+        logger.LogInformation("Uid {Uid} added {Count} Nintendo Switch friends: no account has a linked NasId, no request sent", uid, nasIdList.Count);
+        return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
+    }
 
     public Task<RoleFriend?> FindFriendAsync(ulong uid, ulong friendUid) => repository.FindFriendAsync(uid, friendUid);
 

@@ -224,6 +224,26 @@ public sealed class FriendHandlers(RoleInfoStore roles, FriendManager friends, G
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidQueryPlatformFriendListRsp, response)];
     }
 
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidAddPlatformAllFriendReq)]
+    public GamePacket[] OnAddPlatformAllFriendReq(GamePacket request)
+    {
+        roles.Require(request.Uid);
+        pbCSAddPlatformAllFriendReq.Parser.ParseFrom(request.PkgData);
+        var result = friends.AddPlatformAllFriend(request.Uid);
+        var response = new pbSCAddPlatformAllFriendRsp { ResultInfo = new pbResultInfo { ResultId = (int)result } };
+        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAddPlatformAllFriendRsp, response)];
+    }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidAddSwitchAllFriendReq)]
+    public GamePacket[] OnAddSwitchAllFriendReq(GamePacket request)
+    {
+        roles.Require(request.Uid);
+        var nasIdList = pbCSAddSwitchAllFriendReq.Parser.ParseFrom(request.PkgData).NasIdList;
+        var result = friends.AddSwitchAllFriend(request.Uid, nasIdList);
+        var response = new pbSCAddSwitchAllFriendRsp { ResultInfo = new pbResultInfo { ResultId = (int)result } };
+        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAddSwitchAllFriendRsp, response)];
+    }
+
     [PacketHandler(eNetEventServerType.DirServer, PB_ENUM_CS_MSGID_DEF.PbCsidQueryRoleBriefInfoReq)]
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidQueryRoleBriefInfoReq)]
     public async Task<GamePacket[]> OnQueryRoleBriefInfoReq(GamePacket request)

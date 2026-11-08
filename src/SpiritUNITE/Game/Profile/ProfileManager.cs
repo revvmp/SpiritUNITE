@@ -14,6 +14,7 @@ namespace SpiritUNITE.Game.Profile;
 
 public sealed class ProfileManager(
     ProfileRepository repository,
+    FabulousRepository fabulous,
     GameData gameData,
     PokemonManager pokemon,
     CreditManager credit,
@@ -241,6 +242,7 @@ public sealed class ProfileManager(
             CreditPoint = await credit.GetCreditPointAsync(role.GameUlongUID),
             PlayerContestantInfo = BuildPlayerContestantInfo(role, style),
             UserShortId = RoleProfile.BuildShortId(role),
+            BeFabulousCnt = await fabulous.FindBeFabulousCntAsync(role.GameUlongUID),
             RankedMatchSeasonID = RankedMatch.FindCurrentSeason(gameData, clock.GetUtcNow()).Season.SeasonId,
             HeadIconInfo = BuildHeadIconInfo(role, style),
             IsHideInfo = style.IsHideInfo,
