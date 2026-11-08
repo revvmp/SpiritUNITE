@@ -6,11 +6,12 @@ using static SpiritUNITE.Game.StarRoad.StarRoadConstants;
 
 namespace SpiritUNITE.Game.StarRoad;
 
-public sealed record StarRoadState(IReadOnlyDictionary<int, int> EndSites, int TipsSiteID)
+public sealed record StarRoadState(IReadOnlyDictionary<int, int> EndSites, int TipsSiteID, long PokemonTipsCloseTime)
 {
-    public static StarRoadState Empty { get; } = new(new Dictionary<int, int>(), NoSite);
+    public static StarRoadState Empty { get; } = new(new Dictionary<int, int>(), NoSite, NeverClosed);
 
     public const int NoSite = 0;
+    public const long NeverClosed = 0;
 
     public StarRoadState WithEndSite(int siteId, int curPokemonId) =>
         this with { EndSites = new Dictionary<int, int>(EndSites) { [siteId] = curPokemonId } };
@@ -158,7 +159,7 @@ public sealed class StarRoadRoute
         return null;
     }
 
-    public pbCSDT_STAR_ROAD_INFO BuildStarRoadInfo(bool isLoginNtf, bool triggerTips)
+    public pbCSDT_STAR_ROAD_INFO BuildStarRoadInfo(bool isLoginNtf, bool triggerTips, bool pokemonTipsTodayClose)
     {
         var info = new pbCSDT_STAR_ROAD_INFO
         {
@@ -168,6 +169,7 @@ public sealed class StarRoadRoute
             },
             CurSiteID = CurSiteID,
             CurSitePokemonScoreList = new pbCSDT_STAR_ROAD_POKEMON_SCORE_LIST(),
+            PokemonTipsTodayClose = pokemonTipsTodayClose ? Triggered : 0,
             IsLoginNtf = isLoginNtf ? Triggered : 0,
             TriggerTips = triggerTips ? Triggered : 0,
         };

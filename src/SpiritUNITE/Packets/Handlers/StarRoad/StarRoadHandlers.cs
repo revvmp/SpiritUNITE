@@ -25,6 +25,17 @@ public sealed class StarRoadHandlers(RoleInfoStore roles, StarRoadManager starRo
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidStarRoadGetInfoRsp, response)];
     }
 
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidStarRoadPokemonTipsCloseReq)]
+    public async Task<GamePacket[]> OnStarRoadPokemonTipsCloseReq(GamePacket request)
+    {
+        pbCSStarRoadPokemonTipsCloseReq.Parser.ParseFrom(request.PkgData);
+        var role = roles.Require(request.Uid);
+        await starRoad.ClosePokemonTipsTodayAsync(role);
+        logger.LogInformation("Uid {Uid} closed the License Journey Pokemon tips for today", request.Uid);
+        var response = new pbSCStarRoadPokemonTipsCloseRsp { ResultInfo = new pbResultInfo() };
+        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidStarRoadPokemonTipsCloseRsp, response)];
+    }
+
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidStarRoadGetCustomPokemonListReq)]
     public GamePacket[] OnStarRoadGetCustomPokemonListReq(GamePacket request)
     {

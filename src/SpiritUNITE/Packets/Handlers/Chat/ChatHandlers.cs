@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using SpiritUNITE.Game.Chat;
 using SpiritUNITE.Game.Friend;
+using SpiritUNITE.Game.Lobby;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
 
@@ -9,7 +10,6 @@ namespace SpiritUNITE.Packets.Handlers.Chat;
 public sealed class ChatHandlers(RoleInfoStore roles, ChatManager chat, FriendManager friends, ILogger<ChatHandlers> logger)
 {
     private const int NoTextChatAlarm = 0;
-    private const int DefaultBubbleID = 1007012001;
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidChatReq)]
     public async Task<GamePacket[]> OnChatReq(GamePacket request)
@@ -98,7 +98,7 @@ public sealed class ChatHandlers(RoleInfoStore roles, ChatManager chat, FriendMa
         var response = new pbSCSubScrGetBubbleInfoRsp
         {
             ResultInfo = new pbResultInfo(),
-            BubbleInfo = new pbCOMDT_BUBBLE_INFO { BubbleDetail = { new pbCOMDT_BUBBLE_BASE_INFO { BubbleID = DefaultBubbleID } } },
+            BubbleInfo = new pbCOMDT_BUBBLE_INFO { BubbleDetail = { SubscriptionRules.OwnedBubbleIDs.Select(bubbleID => new pbCOMDT_BUBBLE_BASE_INFO { BubbleID = bubbleID }) } },
         };
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidSubScrGetBubbleInfoRsp, response)];
     }

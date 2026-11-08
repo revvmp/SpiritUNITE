@@ -13,10 +13,30 @@ namespace SpiritUNITE.Packets.Handlers.Shop;
 public sealed class ShopHandlers(
     RoleInfoStore roles,
     ShopManager shop,
+    MysteryShopManager mysteryShop,
     GameData gameData,
     LobbyNotices notices,
     ILogger<ShopHandlers> logger)
 {
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidMysteryShopGetDiscountReq)]
+    public async Task<GamePacket[]> OnMysteryShopGetDiscountReq(GamePacket request)
+    {
+        var role = roles.Require(request.Uid);
+        pbCSMysteryShopGetDiscountReq.Parser.ParseFrom(request.PkgData);
+        var outcome = await mysteryShop.GetDiscountAsync(role.GameUlongUID);
+        if (outcome.Result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+        {
+            logger.LogInformation("Mystery shop discount refused for uid {Uid}: {Result}", request.Uid, outcome.Result);
+        }
+
+        var response = new pbSCMysteryShopGetDiscountRsp
+        {
+            ResultInfo = new pbResultInfo { ResultId = (int)outcome.Result },
+            Discount = outcome.Discount,
+        };
+        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidMysteryShopGetDiscountRsp, response)];
+    }
+
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidShopBuyReq)]
     public async Task<GamePacket[]> OnShopBuyReq(GamePacket request)
     {

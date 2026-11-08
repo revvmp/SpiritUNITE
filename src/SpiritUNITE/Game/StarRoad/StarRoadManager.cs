@@ -98,13 +98,23 @@ public sealed class StarRoadManager(
 
     public async Task<pbCSDT_STAR_ROAD_INFO> BuildStarRoadInfoAsync(LMNRoleInfo role, StarRoadRoute route, bool isLoginNtf)
     {
-        var triggerTips = route.ShowsProgress && route.State.TipsSiteID != route.CurSiteID;
+        var pokemonTipsTodayClose = IsToday(route.State.PokemonTipsCloseTime);
+        var triggerTips = route.ShowsProgress && route.State.TipsSiteID != route.CurSiteID && !pokemonTipsTodayClose;
         if (triggerTips)
         {
             await repository.SetTipsSiteAsync(role.GameUlongUID, route.CurSiteID);
         }
 
-        return route.BuildStarRoadInfo(isLoginNtf, triggerTips);
+        return route.BuildStarRoadInfo(isLoginNtf, triggerTips, pokemonTipsTodayClose);
+    }
+
+    public Task ClosePokemonTipsTodayAsync(LMNRoleInfo role) =>
+        repository.SetPokemonTipsCloseTimeAsync(role.GameUlongUID, clock.GetUtcNow().ToUnixTimeSeconds());
+
+    private bool IsToday(long unixTime)
+    {
+        var today = clock.GetUtcNow().UtcDateTime.Date;
+        return unixTime > 0 && DateTimeOffset.FromUnixTimeSeconds(unixTime).UtcDateTime.Date == today;
     }
 
     public async Task<GamePacket> BuildStarRoadInfoNtfAsync(LMNRoleInfo role, StarRoadRoute route, bool isLoginNtf) =>

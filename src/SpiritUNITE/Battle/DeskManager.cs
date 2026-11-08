@@ -140,6 +140,7 @@ public sealed class DeskManager
     private readonly BagManager bag;
     private readonly ProfileManager profiles;
     private readonly PveChallengeProgress pveChallenge;
+    private readonly PveChallengeManager pveChallengeManager;
     private readonly LobbyRoles lobbyRoles;
     private readonly LwipTickets relayTickets;
     private readonly RelayRoles relayRoles;
@@ -168,6 +169,7 @@ public sealed class DeskManager
         BagManager bag,
         ProfileManager profiles,
         PveChallengeProgress pveChallenge,
+        PveChallengeManager pveChallengeManager,
         LobbyRoles lobbyRoles,
         LwipTickets relayTickets,
         RelayRoles relayRoles,
@@ -184,6 +186,7 @@ public sealed class DeskManager
         this.bag = bag;
         this.profiles = profiles;
         this.pveChallenge = pveChallenge;
+        this.pveChallengeManager = pveChallengeManager;
         this.lobbyRoles = lobbyRoles;
         this.relayTickets = relayTickets;
         this.relayRoles = relayRoles;
@@ -221,7 +224,10 @@ public sealed class DeskManager
                 return AbortAll(memberUids, PB_ENUM_RES_ERROR_CODE.PbErrPrepareDeskFail);
             }
 
-            humanProfiles[uid] = await LoadHumanProfileAsync(role, scene, roomRules);
+            var profile = await LoadHumanProfileAsync(role, scene, roomRules);
+            humanProfiles[uid] = match.LeadRoom.PveChallengeSelectNode is null
+                ? profile
+                : profile with { PveChallengeBuffInfo = await pveChallengeManager.BuildBattleBuffInfoAsync(role.GameUlongUID) };
         }
 
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
@@ -1138,7 +1144,7 @@ public sealed class DeskManager
                 CurHeadIconInfo = profile.CurHeadIconInfo.Clone(),
                 TowerDefenseBuffInfo = new pbCOMDT_TOWER_DEFENSE_BUFF_INFO(),
                 TmpNameList = acnt.TmpNameList.Clone(),
-                PveChallengeBuffInfo = new pbCOMDT_PVE_CHALLENGE_BUFF_INFO(),
+                PveChallengeBuffInfo = profile.PveChallengeBuffInfo.Clone(),
                 DefaultRoleAvatarInfo = acnt.DefaultRoleAvatarInfo.Clone(),
                 BattleMemberConfigList = acnt.BattleMemberConfigList.Clone(),
                 TeamFlag = acnt.TeamFlag,
@@ -2116,5 +2122,7 @@ public sealed class DeskManager
         int RandomPickItemNum)
     {
         public pbCOMDT_POKEMON_PASTER_LIST UsablePasterList { get; init; } = new();
+
+        public pbCOMDT_PVE_CHALLENGE_BUFF_INFO PveChallengeBuffInfo { get; init; } = new();
     }
 }

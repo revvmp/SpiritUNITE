@@ -21,17 +21,24 @@ public sealed class StarRoadRepository(DataOptions options)
         var endSites = await database.GetTable<RoleStarRoadSite>()
             .Where(site => site.GameUlongUID == gameUlongUID)
             .ToDictionaryAsync(site => site.SiteID, site => site.CurPokemonID);
-        var tipsSiteId = await database.GetTable<RoleStarRoad>()
-            .Where(road => road.GameUlongUID == gameUlongUID)
-            .Select(road => road.TipsSiteID)
+        var road = await database.GetTable<RoleStarRoad>()
+            .Where(row => row.GameUlongUID == gameUlongUID)
             .FirstOrDefaultAsync();
-        return new StarRoadState(endSites, tipsSiteId);
+        return new StarRoadState(endSites, road?.TipsSiteID ?? 0, road?.PokemonTipsCloseTime ?? 0);
     }
 
     public async Task<bool> TryEndSiteAsync(ulong gameUlongUID, int siteId, int curPokemonId, long now)
     {
         await using var database = new DataConnection(options);
         return await TryInsertEndSiteAsync(database, gameUlongUID, siteId, curPokemonId, now);
+    }
+
+    public async Task SetPokemonTipsCloseTimeAsync(ulong gameUlongUID, long pokemonTipsCloseTime)
+    {
+        await using var database = new DataConnection(options);
+        await database.GetTable<RoleStarRoad>().InsertOrUpdateAsync(
+            () => new RoleStarRoad { GameUlongUID = gameUlongUID, PokemonTipsCloseTime = pokemonTipsCloseTime },
+            _ => new RoleStarRoad { PokemonTipsCloseTime = pokemonTipsCloseTime });
     }
 
     public async Task SetTipsSiteAsync(ulong gameUlongUID, int tipsSiteId)

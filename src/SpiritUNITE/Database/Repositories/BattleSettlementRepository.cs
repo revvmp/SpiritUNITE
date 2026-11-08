@@ -28,7 +28,10 @@ public sealed record BattleSettlementChange(
     int MaxFightHistoryNumPerMapSubMode,
     BattleEnergyGrant? Energy,
     UsedPokemonBattle? CountedBattle = null,
-    WarmBattleGame? CountedGame = null);
+    WarmBattleGame? CountedGame = null)
+{
+    public PveChallengeWeek? PveChallengeWeek { get; init; }
+}
 
 public sealed record BattleEnergyGrant(int EnergyGain, int WeeklyEnergyFreeCapacity);
 
@@ -100,6 +103,11 @@ public sealed class BattleSettlementRepository(DataOptions options)
         if (change.CountedGame is { } countedGame)
         {
             await WarmBattleRepository.AddGameAsync(database, gameUlongUID, countedGame);
+        }
+
+        if (change.PveChallengeWeek is { } week)
+        {
+            await PveChallengeRepository.SaveWeekAsync(database, gameUlongUID, week);
         }
 
         if (change.PveChallengeStar is { } star && star.StarNum > storedStarNum)

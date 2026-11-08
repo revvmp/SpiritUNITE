@@ -63,6 +63,9 @@ public sealed class BattleSettlement
     private const int NoHeldItem = 0;
     private const int PveChallengeStarReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonPveChallengeStar;
     private const int PveChallengeFirstpassReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonPveChallengeFirstpass;
+    private const int PveChallengeRepassReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonPveChallengeRepass;
+    private const int PvePrivilegeRewardReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonPvePrivilegeReward;
+    private const int GotPrivilegeReward = 1;
     private const int StarTaskSystem = (int)PB_ENUM_ENM_TASKSYSTEM.PbEnmTasksystemActivity;
     private const int AcntObjType = 1;
     private const int NoPokemon = 0;
@@ -92,6 +95,7 @@ public sealed class BattleSettlement
     private readonly GameData gameData;
     private readonly RoleInfoStore roles;
     private readonly PveChallengeProgress pveChallenge;
+    private readonly PveChallengeManager pveChallengeManager;
     private readonly BagManager bag;
     private readonly HeldItemManager heldItems;
     private readonly PokemonManager pokemon;
@@ -131,6 +135,7 @@ public sealed class BattleSettlement
         GameData gameData,
         RoleInfoStore roles,
         PveChallengeProgress pveChallenge,
+        PveChallengeManager pveChallengeManager,
         BagManager bag,
         HeldItemManager heldItems,
         PokemonManager pokemon,
@@ -165,6 +170,7 @@ public sealed class BattleSettlement
         this.gameData = gameData;
         this.roles = roles;
         this.pveChallenge = pveChallenge;
+        this.pveChallengeManager = pveChallengeManager;
         this.bag = bag;
         this.heldItems = heldItems;
         this.pokemon = pokemon;
@@ -243,11 +249,12 @@ public sealed class BattleSettlement
             fightRecordNtf.FightRecord,
             result.Gameover.GameoverSummary?.BattleReviewInfo,
             now);
+        var weekReward = route is null ? null : await pveChallengeManager.LoadWeekRewardAsync(uid, utcNow);
         SettlementPlan? plan = null;
         IReadOnlyList<BagGrant> heldItemGrants = [];
         var commit = await repository.CommitAsync(uid, node, async storedStarNum =>
         {
-            plan = Plan(role, result, route, Math.Max(storedStarNum, knownStarNum), newbieBenefitActive, hangupType);
+            plan = Plan(role, result, route, Math.Max(storedStarNum, knownStarNum), newbieBenefitActive, hangupType, weekReward);
             heldItemGrants = await heldItems.CreateHeldItemUnlockGrantsAsync(role, role.RoleTotalExp + plan.ChgExp);
             return new BattleSettlementChange(
                 plan.ChgExp,
@@ -266,7 +273,10 @@ public sealed class BattleSettlement
                 plan.IsMatch && !IsCustomBattle(result) && result.Desk.DeskInfo.ManMachine != CpuMatch.ManMachine
                     ? BuildCountedBattle(result, plan, mvp, utcNow)
                     : null,
-                BuildCountedGame(uid, result, plan));
+                BuildCountedGame(uid, result, plan))
+            {
+                PveChallengeWeek = plan.NewWeek,
+            };
         }, now);
         if (commit is null || plan is null)
         {
@@ -545,7 +555,8 @@ public sealed class BattleSettlement
         pbPveChallengeStageRoute? route,
         int previousStarNum,
         bool newbieBenefitActive,
-        PB_ENUM_ENM_HANGUP_TYPE hangupType)
+        PB_ENUM_ENM_HANGUP_TYPE hangupType,
+        PveChallengeWeekReward? weekReward)
     {
         var won = result.Won;
         var isMatch = IsMatch(result);
@@ -568,13 +579,27 @@ public sealed class BattleSettlement
         {
             if (previousStarNum == NoStar && starNum > NoStar)
             {
-                rewards.AddRange(route.CompleteDrops.Where(dropId => dropId != NoDrop).Select(dropId => new StarReward(dropId, NoStar)));
+                rewards.AddRange(route.CompleteDrops.Where(dropId => dropId != NoDrop).Select(dropId => new StarReward(dropId, NoStar, PveChallengeFirstpassReason)));
             }
 
             for (var star = Math.Max(previousStarNum + 1, FirstStar); star <= starNum; star++)
             {
-                rewards.AddRange(StarDrops(route, star).Where(dropId => dropId != NoDrop).Select(dropId => new StarReward(dropId, star)));
+                rewards.AddRange(StarDrops(route, star).Where(dropId => dropId != NoDrop).Select(dropId => new StarReward(dropId, star, PveChallengeStarReason)));
             }
+        }
+
+        var refreshDrops = route?.RefreshDrops.Where(dropId => dropId != NoDrop).ToArray() ?? [];
+        var getsRefreshReward = route is not null && won && previousStarNum > NoStar && refreshDrops.Length > 0
+            && weekReward is { CanGetRefreshReward: true };
+        var isGetPrivilegeReward = getsRefreshReward && weekReward!.CanGetPrivilegeReward;
+        if (getsRefreshReward)
+        {
+            rewards.AddRange(refreshDrops.Select(dropId => new StarReward(dropId, NoStar, PveChallengeRepassReason)));
+        }
+
+        if (isGetPrivilegeReward)
+        {
+            rewards.AddRange(refreshDrops.Select(dropId => new StarReward(dropId, NoStar, PvePrivilegeRewardReason)));
         }
 
         var drops = rewards.SelectMany(reward => dropsById[reward.DropID]).ToArray();
@@ -621,7 +646,19 @@ public sealed class BattleSettlement
             itemGrants,
             coins,
             isMatch,
-            isMatch && !isCustomBattle ? BuildEnergyGains(won, IsRankedMatch(result), matchMinutes, newbieBenefitActive, hangupType) : []);
+            isMatch && !isCustomBattle ? BuildEnergyGains(won, IsRankedMatch(result), matchMinutes, newbieBenefitActive, hangupType) : [])
+        {
+            WeekReward = weekReward,
+            NewWeek = getsRefreshReward
+                ? weekReward!.Week with
+                {
+                    WeekRewardGetNum = weekReward.Week.WeekRewardGetNum + 1,
+                    PrivilegeRewardGetNum = weekReward.Week.PrivilegeRewardGetNum + (isGetPrivilegeReward ? 1 : 0),
+                }
+                : null,
+            IsGetPrivilegeReward = isGetPrivilegeReward,
+            RefreshDrops = getsRefreshReward ? refreshDrops : [],
+        };
     }
 
     private UsedPokemonBattle BuildCountedBattle(BattleResult result, SettlementPlan plan, MvpResult mvp, DateTimeOffset now)
@@ -879,7 +916,15 @@ public sealed class BattleSettlement
 
         packets.AddRange(await BuildBattleTaskPacketsAsync(role, battleTasks));
         packets.AddRange(await BuildStarDropPacketsAsync(role, plan, commit, itemsById));
-        if (plan.Route is { } route && plan.NewStar is not null)
+        if (plan.Route is { } settledRoute)
+        {
+            pveChallengeManager.RecordSettledNode(role.GameUlongUID, new PveChallengeSettledNode(
+                new PveChallengeNodeKey(settledRoute.StageID, settledRoute.NodeID, settledRoute.DifficultyLevel),
+                plan.WeekReward is { IsPrivilegeActive: true } && plan.RefreshDrops.Count > 0 && !plan.IsGetPrivilegeReward,
+                plan.RefreshDrops));
+        }
+
+        if (plan.Route is { } route && (plan.NewStar is not null || plan.NewWeek is not null))
         {
             if (plan.IsFirstPass)
             {
@@ -888,7 +933,9 @@ public sealed class BattleSettlement
                     route.NextUnLock.Count(nodeID => nodeID != NoNextUnLock)));
             }
 
-            packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidPveChallengeStageInfoNtf, pveChallenge.BuildCompletionNtf(role, route)));
+            var completionNtf = pveChallenge.BuildCompletionNtf(role, route);
+            completionNtf.WeekRewardGetNum = plan.SettledWeekRewardGetNum;
+            packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidPveChallengeStageInfoNtf, completionNtf));
         }
 
         if (creditPointNtf is not null)
@@ -976,7 +1023,7 @@ public sealed class BattleSettlement
         {
             var itemPackets = new List<GamePacket>();
             var specialCoinPackets = new List<GamePacket>();
-            var walletChanged = false;
+            var changedWalletCoins = new HashSet<int>();
             var resources = new List<pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO>();
             foreach (var drop in dropsById[reward.DropID].Where(drop => drop.ResID != AcntExpResID))
             {
@@ -997,7 +1044,7 @@ public sealed class BattleSettlement
                 }
                 else if (CoinID.WalletCoins.Contains(drop.ResID))
                 {
-                    walletChanged = true;
+                    changedWalletCoins.Add(drop.ResID);
                     resType = PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesCoin;
                 }
                 else if (itemsById.TryGetValue(drop.ResID, out var item))
@@ -1023,16 +1070,13 @@ public sealed class BattleSettlement
             }
 
             packets.AddRange(itemPackets);
-            if (walletChanged)
-            {
-                packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidGetCoinValNtf, new pbSCGetCoinValNtf { CoinInfo = commit.Wallet.BuildCoinInfo() }));
-            }
+            packets.AddRange(commit.Wallet.BuildCoinValPushes(changedWalletCoins));
 
             packets.AddRange(specialCoinPackets);
             packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidResourcesAwardNotify, new pbSCResourcesAwardNotify
             {
                 ResultInfo = new pbResultInfo(),
-                AwardReason = reward.Star == NoStar ? PveChallengeFirstpassReason : PveChallengeStarReason,
+                AwardReason = reward.AwardReason,
                 ResourcesList = { resources },
             }));
             packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf, await taskUpdates.BuildOwnershipUpdateTaskInfoNtfAsync(role)));
@@ -1110,7 +1154,10 @@ public sealed class BattleSettlement
                     {
                         RewardList = { plan.Rewards.Select(reward => new pbCOMDT_PVE_CHALLENGE_REWARD_INFO { RewardID = reward.DropID, RewardStar = reward.Star }) },
                     },
+                    WeekRewardGetNum = plan.SettledWeekRewardGetNum,
                     CurBattleStarNum = plan.StarNum,
+                    PrivilegeRewardGetNum = (plan.NewWeek ?? plan.WeekReward?.Week)?.PrivilegeRewardGetNum ?? 0,
+                    IsGetPrivilegeReward = plan.IsGetPrivilegeReward ? GotPrivilegeReward : 0,
                     IsFirstPass = plan.IsFirstPass ? FirstPass : 0,
                 },
             };
@@ -1351,7 +1398,7 @@ public sealed class BattleSettlement
 
     private sealed record StarTask(int TaskId, bool Done);
 
-    private sealed record StarReward(int DropID, int Star);
+    private sealed record StarReward(int DropID, int Star, int AwardReason);
 
     private sealed record DropGrant(pbDrop_Static Drop, BagGrant Grant);
 
@@ -1377,5 +1424,15 @@ public sealed class BattleSettlement
         public IEnumerable<BagGrant> Grants => ItemGrants.Select(grant => grant.Grant);
 
         public bool IsFirstPass => PreviousStarNum == NoStar && StarNum > NoStar;
+
+        public PveChallengeWeekReward? WeekReward { get; init; }
+
+        public PveChallengeWeek? NewWeek { get; init; }
+
+        public bool IsGetPrivilegeReward { get; init; }
+
+        public IReadOnlyList<int> RefreshDrops { get; init; } = [];
+
+        public int SettledWeekRewardGetNum => (NewWeek ?? WeekReward?.Week)?.WeekRewardGetNum ?? 0;
     }
 }
