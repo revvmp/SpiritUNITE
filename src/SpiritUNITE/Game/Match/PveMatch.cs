@@ -63,11 +63,12 @@ public static class PveMatch
         int confirmTimeoutMs)
     {
         var npcConfigs = new Dictionary<ulong, pbAiInfoConfig>();
+        var npcUids = NpcUids.Besides(members);
         var isCatchMap = gameData.SceneMap.Find(room.MapId)?.GameType == CatchGameType;
         var aiLevel = isCatchMap ? CatchAILevel : masterTrainerLevel;
         var memInfo = isCatchMap
-            ? BuildCatchMemInfo(gameData, room, members, aiLevel, npcConfigs)
-            : BuildHeavenTrainerMemInfo(gameData, room, members, aiLevel, npcConfigs);
+            ? BuildCatchMemInfo(gameData, room, members, aiLevel, npcConfigs, npcUids)
+            : BuildHeavenTrainerMemInfo(gameData, room, members, aiLevel, npcConfigs, npcUids);
 
         var matchRsp = BuildMatchSuccRsp(room.MapId, aiLevel, memInfo, succTimeStamp, isCatchMap ? ReadyConfirmUiType : TrainerConfirmUiType, confirmTimeoutMs);
         return new BotMatchSucc(matchRsp, npcConfigs);
@@ -111,7 +112,8 @@ public static class PveMatch
         MatchRoom room,
         IReadOnlyList<pbCOMDT_ROOMMEMBER_DT> members,
         int aiLevel,
-        Dictionary<ulong, pbAiInfoConfig> npcConfigs)
+        Dictionary<ulong, pbAiInfoConfig> npcConfigs,
+        NpcUids npcUids)
     {
         int[] playerCamps = [MatchRoom.LeftCamp, MatchRoom.RightCamp];
         var humanCamp = playerCamps[Random.Shared.Next(playerCamps.Length)];
@@ -139,7 +141,7 @@ public static class PveMatch
                 else if (seatedNpcCount < npcRows.Length)
                 {
                     var row = npcRows[seatedNpcCount++];
-                    camp.MemInfo.Add(BuildNpc(gameData, row, posOfCamp, RememberNpc(npcConfigs, (ulong)seatedNpcCount, row), anonymousUserNameID, titles, aiLevel));
+                    camp.MemInfo.Add(BuildNpc(gameData, row, posOfCamp, RememberNpc(npcConfigs, npcUids.NextInOrder(), row), anonymousUserNameID, titles, aiLevel));
                 }
             }
 
@@ -173,7 +175,8 @@ public static class PveMatch
         MatchRoom room,
         IReadOnlyList<pbCOMDT_ROOMMEMBER_DT> members,
         int aiLevel,
-        Dictionary<ulong, pbAiInfoConfig> npcConfigs)
+        Dictionary<ulong, pbAiInfoConfig> npcConfigs,
+        NpcUids npcUids)
     {
         var teammateCount = Math.Max(0, room.CampPlayerNum - members.Count);
         var teammates = gameData.AiInfoConfig.Rows
@@ -187,16 +190,15 @@ public static class PveMatch
             .OfType<pbAiInfoConfig>()
             .ToArray();
         var titles = BuildTitles(gameData);
-        var npcUid = 0UL;
         var anonymousUserNameID = members.Count;
 
         var allyCamp = new pbCOMDT_MULTROOMMEMBER_CAMP { CampClient = MatchRoom.LeftCamp };
         allyCamp.MemInfo.AddRange(members);
         allyCamp.MemInfo.AddRange(teammates.Select((row, index) =>
-            BuildNpc(gameData, row, members.Count + index, RememberNpc(npcConfigs, ++npcUid, row), ++anonymousUserNameID, titles, aiLevel)));
+            BuildNpc(gameData, row, members.Count + index, RememberNpc(npcConfigs, npcUids.NextInOrder(), row), ++anonymousUserNameID, titles, aiLevel)));
         var enemyCamp = new pbCOMDT_MULTROOMMEMBER_CAMP { CampClient = MatchRoom.RightCamp };
         enemyCamp.MemInfo.AddRange(enemies.Select((row, index) =>
-            BuildNpc(gameData, row, index, RememberNpc(npcConfigs, ++npcUid, row), ++anonymousUserNameID, titles, aiLevel)));
+            BuildNpc(gameData, row, index, RememberNpc(npcConfigs, npcUids.NextInOrder(), row), ++anonymousUserNameID, titles, aiLevel)));
 
         var memInfo = new pbCOMDT_MULTROOMMEMBER_INFO();
         memInfo.CampMem.Add(new pbCOMDT_MULTROOMMEMBER_CAMP { CampClient = MatchRoom.JudgeCamp });

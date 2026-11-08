@@ -80,7 +80,7 @@ public static class CpuMatch
         var npcConfigs = new Dictionary<ulong, pbAiInfoConfig>();
         var fakeRows = GenericRows(gameData).Take(Math.Max(0, (2 * request.CampPlayerNum) - members.Count)).ToArray();
         var titles = PveMatch.BuildTitles(gameData);
-        var takenUids = members.Select(member => member.MemberDetail.MemberOfAcnt.Uid).ToHashSet();
+        var npcUids = NpcUids.Besides(members);
         var anonymousUserNameID = 0;
         var nextRow = 0;
         var memInfo = new pbCOMDT_MULTROOMMEMBER_INFO();
@@ -104,7 +104,7 @@ public static class CpuMatch
                         gameData,
                         new FakePlayerSeat(fakeRows[nextRow++], posOfCamp, ++anonymousUserNameID),
                         npcConfigs,
-                        takenUids,
+                        npcUids,
                         titles,
                         request.FillerRules,
                         reservedUidCount: 0,
@@ -138,7 +138,7 @@ public static class CpuMatch
         var botRows = camps.AgainstBots ? genericRows.Take(request.CampPlayerNum).ToArray() : [];
         var fakeRows = new Queue<pbAiInfoConfig>(genericRows.Skip(botRows.Length));
         var titles = PveMatch.BuildTitles(gameData);
-        var takenUids = camps.Left.Concat(camps.Right).Select(member => member.MemberDetail.MemberOfAcnt.Uid).ToHashSet();
+        var npcUids = NpcUids.Besides(camps.Left.Concat(camps.Right));
         var fakePlayerLevel = camps.Left.Count + camps.Right.Count == SoloPartySize ? SoloPartyFakePlayerLevel : NoFakePlayerLevel;
         var anonymousUserNameID = 0;
 
@@ -156,7 +156,7 @@ public static class CpuMatch
                     gameData,
                     new FakePlayerSeat(row, camp.MemInfo.Count, ++anonymousUserNameID),
                     npcConfigs,
-                    takenUids,
+                    npcUids,
                     titles,
                     request.FillerRules,
                     botRows.Length,
@@ -172,14 +172,13 @@ public static class CpuMatch
         if (camps.AgainstBots)
         {
             var botCamp = new pbCOMDT_MULTROOMMEMBER_CAMP { CampClient = MatchRoom.RightCamp };
-            var botUid = 0UL;
             foreach (var row in botRows)
             {
                 botCamp.MemInfo.Add(PveMatch.BuildNpc(
                     gameData,
                     row,
                     botCamp.MemInfo.Count,
-                    PveMatch.RememberNpc(npcConfigs, ++botUid, row),
+                    PveMatch.RememberNpc(npcConfigs, npcUids.NextInOrder(), row),
                     ++anonymousUserNameID,
                     titles,
                     BotLevel));
@@ -228,7 +227,7 @@ public static class CpuMatch
         GameData gameData,
         FakePlayerSeat seat,
         Dictionary<ulong, pbAiInfoConfig> npcConfigs,
-        HashSet<ulong> takenUids,
+        NpcUids npcUids,
         IReadOnlyDictionary<int, string> titles,
         CpuMatchFillerRules fillerRules,
         int reservedUidCount,
@@ -238,7 +237,7 @@ public static class CpuMatch
             gameData,
             seat.Row,
             seat.PosOfCamp,
-            PveMatch.RememberNpc(npcConfigs, PickFakePlayerUid(takenUids, reservedUidCount), seat.Row),
+            PveMatch.RememberNpc(npcConfigs, npcUids.NextRandom(reservedUidCount), seat.Row),
             seat.AnonymousUserNameID,
             titles,
             fakePlayerLevel);
@@ -387,17 +386,5 @@ public static class CpuMatch
     {
         var open = gameData.PersonStyleHeadFrame.Rows.Where(row => row.IsOpen == OpenHeadFrame).ToArray();
         return open.Length == 0 ? null : open[Random.Shared.Next(open.Length)].HeadIconID;
-    }
-
-    private static ulong PickFakePlayerUid(HashSet<ulong> takenUids, int botCount)
-    {
-        ulong uid;
-        do
-        {
-            uid = (ulong)Random.Shared.NextInt64(long.MaxValue);
-        }
-        while (uid <= (ulong)botCount || !takenUids.Add(uid));
-
-        return uid;
     }
 }
