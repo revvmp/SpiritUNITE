@@ -175,7 +175,7 @@ public static class HttpServer
             parameters[name] = value;
         }
 
-        return AuthorizationRequest.TryCreate(parameters, options.RedirectUris, HttpServerOptions.CodeChallengeOptionalRedirectUri);
+        return AuthorizationRequest.TryCreate(parameters, options.RedirectUris, options.CodeChallengeOptionalRedirectUri);
     }
 
     private static async Task<IFormCollection?> ReadSameSiteFormAsync(HttpRequest request, CancellationToken cancellationToken)

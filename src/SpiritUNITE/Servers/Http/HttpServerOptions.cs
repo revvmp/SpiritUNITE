@@ -6,20 +6,22 @@ namespace SpiritUNITE.Servers.Http;
 public sealed class HttpServerOptions
 {
     public const string SectionName = "HttpServer";
-    public const string PokemonChannelRedirectUri = "https://cdn.itopsdk.com/v5/tpci/prod/loginSuccess.html";
-    public const string NintendoChannelRedirectUri = "https://cdn.itopsdk.com/v5/release/nintendo/loginSuccess.html";
-    public const string CodeChallengeOptionalRedirectUri = NintendoChannelRedirectUri;
+    public const string DefaultPokemonRedirectUri = "https://spiritunite.invalid/pokemon/loginSuccess";
+    public const string DefaultNintendoRedirectUri = "https://spiritunite.invalid/nintendo/loginSuccess";
 
     public string BindAddress { get; set; } = "127.0.0.1";
 
     public int Port { get; set; } = 10081;
 
-    public string[] AllowedRedirectUris { get; set; } = [];
+    public string PokemonRedirectUri { get; set; } = DefaultPokemonRedirectUri;
+
+    public string NintendoRedirectUri { get; set; } = DefaultNintendoRedirectUri;
 
     public string[] TrustedProxies { get; set; } = [];
 
-    public IReadOnlyCollection<string> RedirectUris =>
-        AllowedRedirectUris.Length > 0 ? AllowedRedirectUris : [PokemonChannelRedirectUri, NintendoChannelRedirectUri];
+    public IReadOnlyCollection<string> RedirectUris => [PokemonRedirectUri, NintendoRedirectUri];
+
+    public string CodeChallengeOptionalRedirectUri => NintendoRedirectUri;
 
     public static bool TryParseProxyNetwork(string proxy, out IPNetwork network)
     {
@@ -35,6 +37,9 @@ public sealed class HttpServerOptions
     public bool IsValid() =>
         IPAddress.TryParse(BindAddress, out _) &&
         Port is > IPEndPoint.MinPort and <= IPEndPoint.MaxPort &&
-        AllowedRedirectUris.All(uri => Uri.TryCreate(uri, UriKind.Absolute, out var parsed) && parsed.Scheme == Uri.UriSchemeHttps) &&
+        RedirectUris.All(IsHttpsUri) &&
         TrustedProxies.All(proxy => TryParseProxyNetwork(proxy, out _));
+
+    private static bool IsHttpsUri(string? uri) =>
+        Uri.TryCreate(uri, UriKind.Absolute, out var parsed) && parsed.Scheme == Uri.UriSchemeHttps;
 }

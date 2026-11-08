@@ -76,6 +76,16 @@ WEBVIEW_REFUSED_PORTS = (10080,)
 DEFAULT_LOBBY_PORT = 10002
 DIR_NODE_NAME = "trunk_global_dist"
 CLOUD_CONTROL_REPLACEMENT_HOST = "spiritunite.invalid"
+UNREACHABLE_ORIGIN = "https://spiritunite.invalid"
+POKEMON_REDIRECT_URI = f"{UNREACHABLE_ORIGIN}/pokemon/loginSuccess"
+NINTENDO_REDIRECT_URI = f"{UNREACHABLE_ORIGIN}/nintendo/loginSuccess"
+SILENCED_MSDK_HOST_KEYS = (
+    "MSDK_ACCOUNT_URL",
+    "XG_HOST",
+    "BUGLY_REPORT_URL_ANDROID",
+    "BUGLY_REPORT_URL_IOS",
+    "TWITTER_WEB_LOGIN_URL",
+)
 IMAGE_CDN_ROUTE = "/cdn"
 CENTAURI_RELEASE_MODE = "release"
 
@@ -182,8 +192,8 @@ CLIENT_BUILDS_BY_METADATA_MD5 = {
 CLIENT_ADDRESS_SERVICE_PORTS = (8085, 8080)
 
 PENDING_CLIENT_CHANGES = (
-    "Telemetry, push and crash report hosts in MSDKConfig.ini are unchanged.",
-    "The Nintendo login redirect still points at the official itopsdk CDN.",
+    "TDM, qqcollect and pokemon-webapi telemetry hosts are compiled into native code and still contacted.",
+    "The client still resolves gcloudctrl.iegcom.com at startup; a resources.arsc string names it.",
 )
 
 
@@ -476,6 +486,9 @@ def patch_msdk_config(content: bytes, target: HostTarget) -> bytes:
         "MSDK_URL": target.web_origin,
         "POKEMON_LOGIN_URL": f"{target.web_origin}/oauth2/auth",
         "NINTENDO_WEB_LOGIN_URL": f"{target.web_origin}/connect/1.0.0/authorize",
+        "POKEMON_REDIRECT_URI": POKEMON_REDIRECT_URI,
+        "NINTENDO_WEB_REDIRECT_URL": NINTENDO_REDIRECT_URI,
+        **dict.fromkeys(SILENCED_MSDK_HOST_KEYS, UNREACHABLE_ORIGIN),
     }
     for key, value in values.items():
         text = replace_ini_value(text, key, value)

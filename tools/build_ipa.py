@@ -76,6 +76,16 @@ DEFAULT_DEV_WEB_PORT = 10081
 CLIENT_ADDRESS_SERVICE_PORTS = (8085, 8080)
 DIR_NODE_NAME = "trunk_global_dist"
 CLOUD_CONTROL_REPLACEMENT_HOST = "spiritunite.invalid"
+UNREACHABLE_ORIGIN = "https://spiritunite.invalid"
+POKEMON_REDIRECT_URI = f"{UNREACHABLE_ORIGIN}/pokemon/loginSuccess"
+NINTENDO_REDIRECT_URI = f"{UNREACHABLE_ORIGIN}/nintendo/loginSuccess"
+SILENCED_MSDK_HOST_KEYS = (
+    "MSDK_ACCOUNT_URL",
+    "XG_HOST",
+    "BUGLY_REPORT_URL_ANDROID",
+    "BUGLY_REPORT_URL_IOS",
+    "TWITTER_WEB_LOGIN_URL",
+)
 IMAGE_CDN_ROUTE = "/cdn"
 CENTAURI_RELEASE_MODE = "release"
 HOSTNAME_LABEL = re.compile(r"^(?!-)[A-Za-z0-9-]{1,63}(?<!-)$")
@@ -100,8 +110,7 @@ OFFICIAL_UPDATE_HOSTS = (
 PENDING_CLIENT_CHANGES = (
     "Nothing in this tool has run on an iPhone yet; configuration patches were inspected on iOS build 1192039 but runtime behavior is unverified.",
     "The IPA is unsigned for distribution; sign it with your own provisioning before installing.",
-    "Telemetry, push and crash report hosts are unchanged.",
-    "The Nintendo login redirect still points at the official itopsdk CDN.",
+    "Telemetry hosts compiled into native code (TDM and others seen on Android) are unchanged.",
     "The iOS resource archive (Puffer product 1170) must be in ResourceArchive.Directory for the update step.",
 )
 
@@ -343,6 +352,9 @@ def patch_msdk_config(content: bytes, target: HostTarget) -> bytes:
         "MSDK_URL": target.web_origin,
         "POKEMON_LOGIN_URL": f"{target.web_origin}/oauth2/auth",
         "NINTENDO_WEB_LOGIN_URL": f"{target.web_origin}/connect/1.0.0/authorize",
+        "POKEMON_REDIRECT_URI": POKEMON_REDIRECT_URI,
+        "NINTENDO_WEB_REDIRECT_URL": NINTENDO_REDIRECT_URI,
+        **dict.fromkeys(SILENCED_MSDK_HOST_KEYS, UNREACHABLE_ORIGIN),
     }
     for key, value in values.items():
         text = replace_ini_value(text, key, value)
