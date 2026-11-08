@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using SpiritUNITE.Databin;
+using SpiritUNITE.Game.Activity;
 using SpiritUNITE.Game.Lobby;
 using SpiritUNITE.Game.Match;
 using SpiritUNITE.Game.PveChallenge;
@@ -18,7 +19,9 @@ public sealed record RoomCreateRequest(
     int FromSystemType,
     IReadOnlyCollection<int> UsableMaps,
     pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE? PveChallengeSelectNode = null,
-    bool IsSubModeCompetition = false);
+    bool IsSubModeCompetition = false,
+    pbCOMDT_TEN_GAMES_TEAM_BRIEF_INFO? TenGamesTeamInfo = null,
+    int TenGamesMapID = 0);
 
 public readonly record struct SearchWaitSamples(long TotalSeconds, int Count)
 {
@@ -35,6 +38,8 @@ public sealed class RoomManager(
     WarmBattleManager warmBattles,
     LobbyNotices notices,
     LobbyRoles lobbyRoles,
+    RoomMicTips micTips,
+    ActivitySchedule activities,
     IOptions<RoomOptions> roomOptions,
     IOptions<MatchOptions> matchOptions,
     IOptions<GVoiceOptions> gVoiceOptions,
@@ -53,11 +58,16 @@ public sealed class RoomManager(
     private const int NoEstimatedWaitTime = 0;
     private const int RoomChatEnter = (int)PB_ENUM_ENM_CHAT_ROOM_CHAT_TYPE.PbEnmChatRoomChatTypeEnter;
     private const long MillisecondsPerSecond = 1000;
+    private const int HeavenTrainerGameType = (int)PB_ENUM_RES_MATCHGAMETYPE.PbMatchGameTypeHeavenTrainer;
+    private const int MatchTrainerOff = 0;
+    private const int MatchTrainerRandom = 1;
     private const int PartyTeamFlag = 1;
     private const int SoloParty = 1;
     private const int RightCampTeamFlag = PartyTeamFlag + 1;
     private const int NoTeamFlag = 0;
     private const int CompetitionSubMode = (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeCompetition;
+    private const int OnlineCompetitionSubMode = (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeOnlineCompetition;
+    private const PB_ENUM_RES_ERROR_CODE TenGamesRoomChangeRefused = PB_ENUM_RES_ERROR_CODE.PbErrRoomCompetitionToOtherSubMode;
 
     private static readonly PB_ENUM_COM_ROOMSVR_ROOM_STATE[] MatchRequestStates =
     [
@@ -96,10 +106,18 @@ public sealed class RoomManager(
                 return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrStillInOtherRoom);
             }
 
-            var acntMapInfo = RoomMemberDetail.BuildAcntMapInfo(gameData, options, request.UsableMaps);
+            var acntMapInfo = RoomMemberDetail.BuildAcntMapInfo(gameData, options, request.UsableMaps, clock.GetUtcNow());
             var usableMaps = UsableMapsOf(acntMapInfo);
             pbScene_Map? scene;
-            if (request.MapID != 0)
+            if (request.TenGamesTeamInfo is not null)
+            {
+                scene = gameData.SceneMap.Find(request.TenGamesMapID);
+                if (scene is null || (request.MapID != 0 && request.MapID != scene.SceneId))
+                {
+                    return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomMapInvalid);
+                }
+            }
+            else if (request.MapID != 0)
             {
                 scene = gameData.SceneMap.Find(request.MapID);
                 if (scene is null || !usableMaps.Contains(scene.SceneId))
@@ -146,10 +164,16 @@ public sealed class RoomManager(
                 pveChallengeSelectNode = selectNode.Clone();
             }
 
+            if (scene.MapSubMode == OnlineCompetitionSubMode && request.TenGamesTeamInfo is null)
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrTenGamesNotTeam);
+            }
+
             var room = new MatchRoom(nextRoomID++, clock.GetUtcNow().ToUnixTimeSeconds(), AllocateShowId(), uid);
             ApplyMap(room, scene);
             room.RoomType = RoomTypeOf(scene.MapSubMode);
             room.PveChallengeSelectNode = pveChallengeSelectNode;
+            room.TenGamesTeamInfo = scene.MapSubMode == OnlineCompetitionSubMode ? request.TenGamesTeamInfo!.Clone() : null;
             room.RankedTeamMemberNumType = DefaultRankedTeamMemberNumType;
             room.Add(uid, MatchRoom.LeftCamp, 0, acntMapInfo, profile);
             roomsById[room.RoomID] = room;
@@ -229,6 +253,7 @@ public sealed class RoomManager(
                 LastRankedTeamMemberNumType = IsRanked(finished) ? finished.RankedTeamMemberNumType : 0,
                 FriendRoomRule = finished.FriendRoomRule,
                 GlobalBanPokemonList = finished.GlobalBanPokemonList,
+                TenGamesTeamInfo = finished.TenGamesTeamInfo,
             };
             foreach (var bot in finished.Bots)
             {
@@ -469,6 +494,11 @@ public sealed class RoomManager(
                 return refusal;
             }
 
+            if (room.TenGamesTeamInfo is not null)
+            {
+                return RoomOutcome.Refused(TenGamesRoomChangeRefused);
+            }
+
             var scene = gameData.SceneMap.Find(mapId);
             if (scene is null || scene.MapSubMode != room.MapSubMode)
             {
@@ -505,6 +535,11 @@ public sealed class RoomManager(
             if (FindIdleMasterRoom(uid, out var room) is { } refusal)
             {
                 return refusal;
+            }
+
+            if (room.TenGamesTeamInfo is not null)
+            {
+                return RoomOutcome.Refused(TenGamesRoomChangeRefused);
             }
 
             if (subMode == room.MapSubMode)
@@ -546,6 +581,106 @@ public sealed class RoomManager(
         }
     }
 
+    public RoomOutcome ChangeHeavenTrainerLevel(ulong uid, int mapId, int level)
+    {
+        lock (gate)
+        {
+            if (FindIdleMasterRoom(uid, out var room) is { } refusal)
+            {
+                return refusal;
+            }
+
+            if (mapId != room.MapId || gameData.SceneMap.Find(mapId)?.GameType != HeavenTrainerGameType)
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomMapInvalid);
+            }
+
+            if (!IsMatchTrainerLevel(level))
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid);
+            }
+
+            if (roles.Find(uid) is not { } role || !HasUnlockedTrainerLevel(role.GetHeavenTrainerRecords(), mapId, level))
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomMapLevelLimit);
+            }
+
+            room.HeavenDifficultyLevel = level;
+            return new RoomOutcome();
+        }
+    }
+
+    public RoomOutcome ChangeMatchTrainer(ulong uid, int matchTrainer, DateTimeOffset now)
+    {
+        lock (gate)
+        {
+            if (FindIdleMasterRoom(uid, out var room) is { } refusal)
+            {
+                return refusal;
+            }
+
+            if (activities.FindOpen(PB_ENUM_RES_ACTIVITY_TYPE.PbResActivityTypeMatchTrainer, now) is null)
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrMatchTrainerActivityNotExit);
+            }
+
+            if (matchTrainer is not (MatchTrainerOff or MatchTrainerRandom))
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid);
+            }
+
+            room.MatchTrainer = matchTrainer;
+            return new RoomOutcome();
+        }
+    }
+
+    public RoomOutcome ChangeTrainerLevel(ulong uid, int level, DateTimeOffset now)
+    {
+        lock (gate)
+        {
+            if (FindIdleMasterRoom(uid, out var room) is { } refusal)
+            {
+                return refusal;
+            }
+
+            if (activities.FindOpen(PB_ENUM_RES_ACTIVITY_TYPE.PbResActivityTypeMatchTrainer, now) is null)
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrMatchTrainerActivityNotExit);
+            }
+
+            if (!IsMatchTrainerLevel(level) || gameData.SceneMap.Find(room.MapId) is not { ChallengeTrainerMode: not (int)PB_ENUM_RES_MATCH_TRAINER_MODE.PbResMatchTrainerNone })
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid);
+            }
+
+            if (!HasUnlockedTrainerLevel([], room.MapId, level))
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomMapLevelLimit);
+            }
+
+            room.TrainerDifficultyLevel = level;
+            return new RoomOutcome()
+                .PushAll(MemberUids(room).Where(member => member != uid), PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf, RoomNotices.TrainerLevelChg(room));
+        }
+    }
+
+    public int HeavenDifficultyLevelOf(ulong uid) => FindRoomOf(uid)?.HeavenDifficultyLevel ?? 0;
+
+    public int TrainerDifficultyLevelOf(ulong uid) => FindRoomOf(uid)?.TrainerDifficultyLevel ?? 0;
+
+    public int MatchTrainerOf(ulong uid) => FindRoomOf(uid)?.MatchTrainer ?? 0;
+
+    private static bool IsMatchTrainerLevel(int level) =>
+        level is >= (int)PB_ENUM_RES_MATCH_TRAINER_LEVEL.PbMatchTrainerLevelLow and < (int)PB_ENUM_RES_MATCH_TRAINER_LEVEL.PbMatchTrainerLevelMax;
+
+    private bool HasUnlockedTrainerLevel(IEnumerable<ChallengeTrainerRecord> records, int mapId, int level)
+    {
+        var needCnt = gameData.MatchTrainer.Find(pbMatchTrainer.Key(mapId, level))?.NeedCnt ?? 0;
+        var unlockingLevel = Math.Max((int)PB_ENUM_RES_MATCH_TRAINER_LEVEL.PbMatchTrainerLevelLow, level - 1);
+        var challengeCnt = records.FirstOrDefault(record => record.MapId == mapId && record.LevelType == unlockingLevel)?.ChallengeCnt ?? 0;
+        return needCnt <= challengeCnt;
+    }
+
     public RoomOutcome ChangeRankedTeamMemberNumType(ulong uid, int rankedTeamMemberNumType)
     {
         lock (gate)
@@ -580,6 +715,11 @@ public sealed class RoomManager(
             if (FindIdleMasterRoom(uid, out var room) is { } refusal)
             {
                 return refusal;
+            }
+
+            if (room.TenGamesTeamInfo is not null)
+            {
+                return RoomOutcome.Refused(TenGamesRoomChangeRefused);
             }
 
             if (roomType is not ((int)PB_ENUM_COM_ROOM_TYPE.PbComRoomTypeMatch or (int)PB_ENUM_COM_ROOM_TYPE.PbComRoomTypeNormal)
@@ -864,7 +1004,7 @@ public sealed class RoomManager(
             }
 
             var before = BuildCanUseMap(room);
-            room.FindMember(uid)!.AcntMapInfo = RoomMemberDetail.BuildAcntMapInfo(gameData, options, usableMaps);
+            room.FindMember(uid)!.AcntMapInfo = RoomMemberDetail.BuildAcntMapInfo(gameData, options, usableMaps, clock.GetUtcNow());
             return PushCanUseMapChange(room, before, new RoomOutcome(), MemberUids(room));
         }
     }
@@ -900,7 +1040,7 @@ public sealed class RoomManager(
     }
 
     private RoomOutcome Join(ulong uid, MatchRoom room, IReadOnlyCollection<int> usableMaps, RoomMemberProfile profile) =>
-        Join(uid, room, RoomMemberDetail.BuildAcntMapInfo(gameData, options, usableMaps), profile, JoinRoomTypeNormal);
+        Join(uid, room, RoomMemberDetail.BuildAcntMapInfo(gameData, options, usableMaps, clock.GetUtcNow()), profile, JoinRoomTypeNormal);
 
     private RoomOutcome Join(
         ulong uid,
@@ -920,6 +1060,11 @@ public sealed class RoomManager(
         if (room.IsMatching)
         {
             return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomMatching);
+        }
+
+        if (room.TenGamesTeamInfo is { } tenGamesTeamInfo && tenGamesTeamInfo.TeamID != profile.TenGamesTeamID)
+        {
+            return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrTenGamesJoinRoomNotTeamMember);
         }
 
         if (IsRanked(room) && room.Members.Count >= room.RankedTeamMemberNumType)
@@ -970,10 +1115,14 @@ public sealed class RoomManager(
 
         if (joinRoomType != JoinRoomTypeSettle)
         {
+            foreach (var other in others)
+            {
+                outcome.Push(other, PB_ENUM_CS_MSGID_DEF.PbScidRoomMicTipsInfoNtf, micTips.BuildInfoNtf(other));
+            }
+
             outcome
-                .PushAll(others, PB_ENUM_CS_MSGID_DEF.PbScidRoomMicTipsInfoNtf, new pbSCRoomMicTipsInfoNtf())
                 .Push(uid, PB_ENUM_CS_MSGID_DEF.PbScidRoomRttNtf, RoomNotices.RoomRtt(gVoice, lobbyRoles.Rtt(uid)))
-                .Push(uid, PB_ENUM_CS_MSGID_DEF.PbScidRoomMicTipsInfoNtf, new pbSCRoomMicTipsInfoNtf());
+                .Push(uid, PB_ENUM_CS_MSGID_DEF.PbScidRoomMicTipsInfoNtf, micTips.BuildInfoNtf(uid));
         }
 
         return PushCanUseMapChange(room, before, outcome, others);
@@ -995,7 +1144,7 @@ public sealed class RoomManager(
 
             member.IsSettle = false;
             return new RoomOutcome()
-                .Push(uid, PB_ENUM_CS_MSGID_DEF.PbScidRoomMicTipsInfoNtf, new pbSCRoomMicTipsInfoNtf())
+                .Push(uid, PB_ENUM_CS_MSGID_DEF.PbScidRoomMicTipsInfoNtf, micTips.BuildInfoNtf(uid))
                 .PushAll(MemberUids(room), PB_ENUM_CS_MSGID_DEF.PbScidSettleAcntReturnRoomNtf, new pbSCSettleAcntReturnRoomNtf
                 {
                     ResultInfo = new pbResultInfo(),
@@ -1525,9 +1674,13 @@ public sealed class RoomManager(
                     ManMachine = room.ManMachine,
                     RankedTeamMemberNumType = room.RankedTeamMemberNumType,
                     LastRankedTeamMemberNumType = room.LastRankedTeamMemberNumType,
+                    MatchTrainer = room.MatchTrainer,
+                    TrainerDifficultyLevel = room.TrainerDifficultyLevel,
+                    HeavenDifficultyLevel = room.HeavenDifficultyLevel,
                     FriendRoomRule = room.FriendRoomRule.Build(),
                     LegendPokemonInfo = new pbCOMDT_LEGEND_POKEMON_INFO(),
                     PveChallengeSelectNode = room.PveChallengeSelectNode?.Clone() ?? new pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE(),
+                    TenGamesTeamInfo = room.TenGamesTeamInfo?.Clone(),
                 },
                 AllMemInfo = allMemInfo,
                 CanUseMap = BuildCanUseMap(room),
@@ -1569,7 +1722,9 @@ public sealed class RoomManager(
             : new pbCOMDT_RANKED_DIVISION();
 
     private pbCOMDT_ROOMMAP_INFO BuildCanUseMap(MatchRoom room) =>
-        RoomMaps.BuildCanUseMap(gameData, room.MapSubMode, room.CanUseMap());
+        room.TenGamesTeamInfo is null
+            ? RoomMaps.BuildCanUseMap(gameData, room.MapSubMode, room.CanUseMap())
+            : new pbCOMDT_ROOMMAP_INFO { MapList = { room.MapId } };
 
     private RoomOutcome PushCanUseMapChange(
         MatchRoom room,

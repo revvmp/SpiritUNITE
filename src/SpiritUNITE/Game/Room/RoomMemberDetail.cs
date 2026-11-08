@@ -10,7 +10,8 @@ public sealed record RoomMemberProfile(
     pbCOMDT_ROLE_HEAD_URL_INFO UserPlantInfo,
     int ABModeType,
     bool IsGuestAccount,
-    pbCOMDT_TMP_NAME_LIST TmpNameList);
+    pbCOMDT_TMP_NAME_LIST TmpNameList,
+    long TenGamesTeamID);
 
 public static class RoomMemberDetail
 {
@@ -40,16 +41,16 @@ public static class RoomMemberDetail
         PB_ENUM_ENUM_SYNC_SETTINGS.PbEnmBattleDefaultRoleName,
     ];
 
-    public static pbCOMDT_ACNTMAP_INFO BuildAcntMapInfo(GameData gameData, RoomOptions options, IEnumerable<int> downloadedMapIds)
+    public static pbCOMDT_ACNTMAP_INFO BuildAcntMapInfo(GameData gameData, RoomOptions options, IEnumerable<int> downloadedMapIds, DateTimeOffset now)
     {
         var acntMapInfo = new pbCOMDT_ACNTMAP_INFO();
         acntMapInfo.MapList.AddRange(downloadedMapIds
             .Distinct()
-            .Where(mapId => RoomMaps.IsListed(gameData, mapId) && !options.IsHidden(mapId))
+            .Where(mapId => RoomMaps.IsListed(gameData, mapId) && !options.IsHidden(mapId) && !SceneMapOpening.IsHiddenEventMap(gameData, mapId, now))
             .Select(mapId => new pbCOMDT_ACNTMAP_DETAIL
             {
                 MapId = mapId,
-                CanUseType = options.CanUseTypeOf(mapId),
+                CanUseType = options.HostCanUseTypeOf(mapId) ?? SceneMapOpening.CanUseTypeOf(gameData, mapId, now),
                 HasResource = HasMapResource,
             }));
         return acntMapInfo;
@@ -153,7 +154,7 @@ public static class RoomMemberDetail
         return avatar;
     }
 
-    private static pbCOMDT_CHALLENGE_TRAINER_INFO BuildHeavenTrainer(LMNRoleInfo role)
+    public static pbCOMDT_CHALLENGE_TRAINER_INFO BuildHeavenTrainer(LMNRoleInfo role)
     {
         var heavenTrainer = new pbCOMDT_CHALLENGE_TRAINER_INFO();
         heavenTrainer.ChallengeInfo.AddRange(role.GetHeavenTrainerRecords()

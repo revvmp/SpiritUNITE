@@ -60,12 +60,17 @@ public sealed class MatchRoom(int roomID, long roomSeq, int roomShowId, ulong ma
     public int CampPlayerNum { get; set; }
     public int ManMachine { get; set; }
     public int RankedTeamMemberNumType { get; set; }
+    public int MatchTrainer { get; set; }
+    public int TrainerDifficultyLevel { get; set; }
+    public int HeavenDifficultyLevel { get; set; }
     public int LastRankedTeamMemberNumType { get; init; }
     public PB_ENUM_COM_ROOMSVR_ROOM_STATE State { get; set; } = PB_ENUM_COM_ROOMSVR_ROOM_STATE.PbComRoomsvrRoomStateWait;
     public long MatchStartedAt { get; set; }
     public RoomPosChange? PendingPosChange { get; set; }
     public int NextChgSeq { get; set; } = 1;
     public pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE? PveChallengeSelectNode { get; set; }
+
+    public pbCOMDT_TEN_GAMES_TEAM_BRIEF_INFO? TenGamesTeamInfo { get; set; }
     public PendingMatch? Match { get; set; }
     public FriendlyRoomRules FriendRoomRule { get; set; } = FriendlyRoomRules.None;
     public IReadOnlyList<int> GlobalBanPokemonList { get; set; } = [];

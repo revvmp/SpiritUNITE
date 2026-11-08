@@ -1079,6 +1079,7 @@ public sealed class DeskManager
             IsForbidQuitGame = room.PveChallengeSelectNode is null ? ForbidQuitGame : 0,
             LegendPokemonInfo = new pbCOMDT_LEGEND_POKEMON_INFO(),
             PickHeroMode = scene.PickHeroMode == BanPickDraft.PickHeroMode ? DefaultPickHeroMode : scene.PickHeroMode,
+            TrainerDifficultyLevel = scene.GameType == (int)PB_ENUM_RES_MATCHGAMETYPE.PbMatchGameTypeHeavenTrainer ? room.HeavenDifficultyLevel : room.TrainerDifficultyLevel,
             IsWarmBattle = matchSucc.RoomInfo.IsWarmBattle,
             WarmBattleType = matchSucc.RoomInfo.IsWarmBattle != NoWarmBattle ? match.WarmBattleType : NoWarmBattle,
         };

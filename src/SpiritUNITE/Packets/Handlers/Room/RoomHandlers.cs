@@ -9,6 +9,7 @@ using SpiritUNITE.Game.Profile;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Room;
 using SpiritUNITE.Game.Settings;
+using SpiritUNITE.Game.TenGames;
 using SpiritUNITE.Packets.Messages;
 using SpiritUNITE.Online;
 
@@ -29,10 +30,12 @@ public sealed class RoomHandlers
     private readonly AccountManager accounts;
     private readonly RoleInfoStore roles;
     private readonly TmpNameManager tmpNames;
+    private readonly TenGamesManager tenGames;
     private readonly ActivitySchedule activitySchedule;
     private readonly ActivityManager activityManager;
     private readonly CreditManager credit;
     private readonly SettleTeamPresence teamPresence;
+    private readonly RoomMicTips micTips;
     private readonly GVoiceOptions gVoice;
     private readonly TimeProvider clock;
     private readonly ILogger<RoomHandlers> logger;
@@ -49,10 +52,12 @@ public sealed class RoomHandlers
         AccountManager accounts,
         RoleInfoStore roles,
         TmpNameManager tmpNames,
+        TenGamesManager tenGames,
         ActivitySchedule activitySchedule,
         ActivityManager activityManager,
         CreditManager credit,
         SettleTeamPresence teamPresence,
+        RoomMicTips micTips,
         IOptions<GVoiceOptions> gVoice,
         TimeProvider clock,
         ILogger<RoomHandlers> logger)
@@ -66,10 +71,12 @@ public sealed class RoomHandlers
         this.accounts = accounts;
         this.roles = roles;
         this.tmpNames = tmpNames;
+        this.tenGames = tenGames;
         this.activitySchedule = activitySchedule;
         this.activityManager = activityManager;
         this.credit = credit;
         this.teamPresence = teamPresence;
+        this.micTips = micTips;
         this.gVoice = gVoice.Value;
         this.clock = clock;
         this.logger = logger;
@@ -92,6 +99,17 @@ public sealed class RoomHandlers
             ];
         }
 
+        TenGamesRoomTeam? tenGamesRoomTeam = null;
+        if (tenGames.IsTenGamesRoom(create.SubMapMode, create.MapID))
+        {
+            tenGamesRoomTeam = await tenGames.FindRoomTeamAsync(request.Uid);
+            if (tenGamesRoomTeam.TeamInfo is null)
+            {
+                logger.LogInformation("Create ten games room for uid {Uid} refused: {Result}", request.Uid, tenGamesRoomTeam.Result);
+                return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidJoinRoomNtf, RoomNotices.JoinRefused(tenGamesRoomTeam.Result))];
+            }
+        }
+
         var outcome = rooms.Create(
             request.Uid,
             new RoomCreateRequest(
@@ -101,10 +119,12 @@ public sealed class RoomHandlers
                 create.FromSystemType,
                 MapList(create.UsableMapInfo),
                 create.PveChallengeSelectNode,
-                create.IsSubModeCompetition == IsSubModeCompetition),
+                create.IsSubModeCompetition == IsSubModeCompetition,
+                tenGamesRoomTeam?.TeamInfo,
+                tenGamesRoomTeam?.MapID ?? 0),
             await LoadMemberProfileAsync(request.Uid));
         logger.LogInformation(
-            "Create room for uid {Uid}: MapMode {MapMode}, MapID {MapID}, SubMapMode {SubMapMode}, IsSubModeCompetition {IsSubModeCompetition}, ClientCreateType {ClientCreateType}, {MapCount} usable maps: {Result}",
+            "Create room for uid {Uid}: MapMode {MapMode}, MapID {MapID}, SubMapMode {SubMapMode}, IsSubModeCompetition {IsSubModeCompetition}, ClientCreateType {ClientCreateType}, {MapCount} usable maps: {Result}, RoomShowId {RoomShowId}",
             request.Uid,
             create.MapMode,
             create.MapID,
@@ -112,7 +132,8 @@ public sealed class RoomHandlers
             create.IsSubModeCompetition,
             create.ClientCreateType,
             create.UsableMapInfo?.MapList.Count ?? 0,
-            outcome.Result);
+            outcome.Result,
+            rooms.FindRoomOf(request.Uid)?.RoomShowId ?? 0);
         if (!outcome.Succeeded)
         {
             return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidJoinRoomNtf, RoomNotices.JoinRefused(outcome.Result))];
@@ -336,6 +357,75 @@ public sealed class RoomHandlers
         logger.LogInformation("Uid {Uid} changes the room map to {MapId}: {Result}", request.Uid, mapId, outcome.Result);
         var response = request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomChgMapRsp, new pbSCRoomChgMapRsp { ResultInfo = Result(outcome) });
         return await DeliverAsync(request, outcome, response);
+    }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidRoomChgHeavenTrainerLevelReq)]
+    public GamePacket[] OnRoomChgHeavenTrainerLevelReq(GamePacket request)
+    {
+        var chg = pbCSRoomChgHeavenTrainerLevelReq.Parser.ParseFrom(request.PkgData);
+        var outcome = rooms.ChangeHeavenTrainerLevel(request.Uid, chg.MapId, chg.Level);
+        logger.LogInformation("Uid {Uid} changes the HeavenTrainer level of map {MapId} to {Level}: {Result}", request.Uid, chg.MapId, chg.Level, outcome.Result);
+        return
+        [
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomChgHeavenTrainerLevelRsp, new pbSCRoomChgHeavenTrainerLevelRsp
+            {
+                Result = Result(outcome),
+                Level = rooms.HeavenDifficultyLevelOf(request.Uid),
+                HeavenTrainerInfo = roles.Find(request.Uid) is { } role ? RoomMemberDetail.BuildHeavenTrainer(role) : new pbCOMDT_CHALLENGE_TRAINER_INFO(),
+            }),
+        ];
+    }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidRoomChgTrainerLevelReq)]
+    public async Task<GamePacket[]> OnRoomChgTrainerLevelReq(GamePacket request)
+    {
+        var level = pbCSRoomChgTrainerLevelReq.Parser.ParseFrom(request.PkgData).Level;
+        var outcome = rooms.ChangeTrainerLevel(request.Uid, level, clock.GetUtcNow());
+        logger.LogInformation("Uid {Uid} changes the past trainer level to {Level}: {Result}", request.Uid, level, outcome.Result);
+        var response = request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomChgTrainerLevelRsp, new pbSCRoomChgTrainerLevelRsp
+        {
+            Result = Result(outcome),
+            Level = rooms.TrainerDifficultyLevelOf(request.Uid),
+        });
+        return await DeliverAsync(request, outcome, response);
+    }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidRoomMatchTrainerReq)]
+    public GamePacket[] OnRoomMatchTrainerReq(GamePacket request)
+    {
+        var matchTrainer = pbCSRoomMatchTrainerReq.Parser.ParseFrom(request.PkgData).MatchTrainer;
+        var outcome = rooms.ChangeMatchTrainer(request.Uid, matchTrainer, clock.GetUtcNow());
+        logger.LogInformation("Uid {Uid} sets the random past trainer switch to {MatchTrainer}: {Result}", request.Uid, matchTrainer, outcome.Result);
+        return
+        [
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomMatchTrainerRsp, new pbSCRoomMatchTrainerRsp
+            {
+                Result = Result(outcome),
+                MatchTrainer = rooms.MatchTrainerOf(request.Uid),
+            }),
+        ];
+    }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidRoomShowMicTipsReq)]
+    public async Task<GamePacket[]> OnRoomShowMicTipsReq(GamePacket request)
+    {
+        pbCSRoomShowMicTipsReq.Parser.ParseFrom(request.PkgData);
+        if (rooms.FindRoomOf(request.Uid) is null)
+        {
+            return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomShowMicTipsRsp, new pbSCRoomShowMicTipsRsp { Result = new pbResultInfo { ResultId = (int)PB_ENUM_RES_ERROR_CODE.PbErrRoomAcntNotInRoom } })];
+        }
+
+        await micTips.RecordShownAsync(request.Uid);
+        logger.LogInformation("Uid {Uid} was shown the room microphone tip {ShowMicTipsCnt} times", request.Uid, micTips.ShowMicTipsCnt(request.Uid));
+        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRoomShowMicTipsRsp, new pbSCRoomShowMicTipsRsp { Result = new pbResultInfo() })];
+    }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidSingleGamePokemonInfoReq)]
+    public GamePacket[] OnSingleGamePokemonInfoReq(GamePacket request)
+    {
+        var info = pbCSSingleGamePokemonInfoReq.Parser.ParseFrom(request.PkgData);
+        logger.LogInformation("Uid {Uid} starts a local practice game with Pokemon {PokemonId} against {EnemyPokemonId}", request.Uid, info.PokemonId, info.EnemyPokemonId);
+        return [];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidRoomChgSubModeReq)]
@@ -578,7 +668,8 @@ public sealed class RoomHandlers
             style.BuildUserPlantInfo(),
             roleSettings.ABMode,
             channels.Contains(LoginPlatform.GUEST),
-            await tmpNames.BuildTmpNameListAsync(uid));
+            await tmpNames.BuildTmpNameListAsync(uid),
+            await tenGames.FindTeamIDAsync(uid));
     }
 
     private async Task PushAllAsync(RoomOutcome outcome, ulong except = 0)

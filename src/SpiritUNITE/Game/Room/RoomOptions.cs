@@ -38,8 +38,8 @@ public sealed class RoomOptions
 
     public bool IsHidden(int mapId) => HiddenMapIds.Contains(mapId);
 
-    public int CanUseTypeOf(int mapId) =>
-        MapCanUseTypes.FirstOrDefault(entry => entry.MapIds.Contains(mapId))?.CanUseType ?? CanUseMap;
+    public int? HostCanUseTypeOf(int mapId) =>
+        MapCanUseTypes.FirstOrDefault(entry => entry.MapIds.Contains(mapId))?.CanUseType;
 }
 
 public sealed class GVoiceOptions

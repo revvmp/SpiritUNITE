@@ -263,6 +263,7 @@ public static class Server
         builder.Services.AddSingleton<AccusationRepository>();
         builder.Services.AddSingleton<WarmBattleRepository>();
         builder.Services.AddSingleton<FabulousRepository>();
+        builder.Services.AddSingleton<RoomMicTipsRepository>();
         builder.Services.AddSingleton<RankedRepository>();
         builder.Services.AddSingleton<BattlePassRepository>();
         builder.Services.AddSingleton<RoleTmpNameRepository>();
@@ -366,6 +367,7 @@ public static class Server
         builder.Services.AddSingleton<MatchScheduler>();
         builder.Services.AddHostedService(services => services.GetRequiredService<MatchScheduler>());
         builder.Services.AddSingleton<SettleTeamPresence>();
+        builder.Services.AddSingleton<RoomMicTips>();
         builder.Services.AddSingleton<ActivityRewardNotices>();
         builder.Services.AddSingleton<ActivityProgressPushes>();
         builder.Services.AddSingleton<DeskManager>();

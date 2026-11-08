@@ -180,6 +180,12 @@ public static class RoomNotices
             },
         });
 
+    public static pbSCRoomChgNtf TrainerLevelChg(MatchRoom room) =>
+        ChgNtf(room, PB_ENUM_COM_ROOMCHGTYPE.PbComRoomchgTrainerlevelChg, new pbCOMDT_ROOMCHG_DT
+        {
+            TrainerLevelChg = new pbCOMDT_ROOMCHG_TRAINER_LEVEL { TrainerLevel = room.TrainerDifficultyLevel },
+        });
+
     public static pbSCRoomChgNtf RoomTypeChg(MatchRoom room) =>
         ChgNtf(room, PB_ENUM_COM_ROOMCHGTYPE.PbComRoomchgRoomtypechg, new pbCOMDT_ROOMCHG_DT
         {

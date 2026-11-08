@@ -120,6 +120,7 @@ public sealed class BattleSettlement
     private readonly WarmBattleManager warmBattles;
     private readonly SettleTeamPresence teamPresence;
     private readonly SettleFabulous fabulous;
+    private readonly RoomMicTips micTips;
     private readonly FriendPresence presence;
     private readonly ActivityRewardNotices rewardNotices;
     private readonly GuildActivityTasks guildActivityTasks;
@@ -164,6 +165,7 @@ public sealed class BattleSettlement
         WarmBattleManager warmBattles,
         SettleTeamPresence teamPresence,
         SettleFabulous fabulous,
+        RoomMicTips micTips,
         FriendPresence presence,
         ActivityRewardNotices rewardNotices,
         GuildActivityTasks guildActivityTasks,
@@ -202,6 +204,7 @@ public sealed class BattleSettlement
         this.warmBattles = warmBattles;
         this.teamPresence = teamPresence;
         this.fabulous = fabulous;
+        this.micTips = micTips;
         this.presence = presence;
         this.rewardNotices = rewardNotices;
         this.guildActivityTasks = guildActivityTasks;
@@ -487,7 +490,7 @@ public sealed class BattleSettlement
         [
             .. outcome.Replies.Select(reply => GamePacket.Create(reply.MsgID, reply.Message)),
             GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidRoomRttNtf, RoomNotices.RoomRtt(gVoice, lobbyRoles.Rtt(uid))),
-            GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidRoomMicTipsInfoNtf, IsRankedMatch(result) ? ranked.BuildMicTipsInfoNtf(uid) : new pbSCRoomMicTipsInfoNtf()),
+            GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidRoomMicTipsInfoNtf, micTips.WithShowMicTipsCnt(uid, IsRankedMatch(result) ? ranked.BuildMicTipsInfoNtf(uid) : new pbSCRoomMicTipsInfoNtf())),
             .. outcome.Pushes.Where(push => push.Uid == uid).Select(push => GamePacket.Create(push.Message.MsgID, push.Message.Message)),
         ];
         await lobbyRoles.PushAsync(uid, own);
