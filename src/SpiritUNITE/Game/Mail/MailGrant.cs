@@ -1,3 +1,4 @@
+using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
@@ -11,4 +12,6 @@ public sealed record MailGrant(
     IReadOnlyList<pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO> Awards)
 {
     public IReadOnlyList<BagGrant> BagGrants { get; init; } = [];
+
+    public CouponsFlowEntry? CouponsFlow { get; init; }
 }

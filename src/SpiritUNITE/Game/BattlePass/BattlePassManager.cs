@@ -5,6 +5,7 @@ using SpiritUNITE.Game.Activity;
 using SpiritUNITE.Game.Mail;
 using SpiritUNITE.Game.PokemonAvatar;
 using SpiritUNITE.Game.Ranked;
+using SpiritUNITE.Game.Recharge;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Packets;
@@ -172,7 +173,12 @@ public sealed class BattlePassManager(
             };
             return new BattlePassDecision(
                 PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc,
-                new BattlePassMutation(leveling.SetLevel(progress, targetLevel, now.ToUnixTimeSeconds()), [], grant, []));
+                new BattlePassMutation(
+                    leveling.SetLevel(progress, targetLevel, now.ToUnixTimeSeconds()),
+                    [],
+                    grant,
+                    [],
+                    CouponsFlow.SpendOnBattlePassLevels(coinID, cost, now, progress.PassType, targetLevel - progress.Level)));
         }, now.ToUnixTimeSeconds());
         return Finish(role, "level purchase", commit, purchase);
     }
@@ -237,7 +243,8 @@ public sealed class BattlePassManager(
             {
                 Change = grant.Change with { CoinCosts = new Dictionary<int, long> { [coinID] = passPrice + bundlePrice } },
             };
-            return new BattlePassDecision(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, new BattlePassMutation(bought, [], paid, []));
+            var couponsFlow = CouponsFlow.SpendOnBattlePassPass(coinID, passPrice + bundlePrice, now, passType);
+            return new BattlePassDecision(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, new BattlePassMutation(bought, [], paid, [], couponsFlow));
         }, now.ToUnixTimeSeconds());
         return Finish(role, "pass purchase", commit, $"pass type {passType}");
     }

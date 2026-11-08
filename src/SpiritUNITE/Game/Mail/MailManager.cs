@@ -8,6 +8,7 @@ using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Game.Pokemon;
 using SpiritUNITE.Game.PokemonAvatar;
+using SpiritUNITE.Game.Recharge;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Packets;
@@ -376,7 +377,11 @@ public sealed class MailManager(
             }
         }
 
-        return new MailGrant(coins, items, pokemonIds, awards) { BagGrants = bagGrants };
+        return new MailGrant(coins, items, pokemonIds, awards)
+        {
+            BagGrants = bagGrants,
+            CouponsFlow = CouponsFlow.GainFromMail(coins, DateTimeOffset.FromUnixTimeSeconds(now)),
+        };
     }
 
     private static void AddItemGrant(LMNRoleInfo role, RoleItemType itemType, int itemId, long now, List<RoleItemInfo> items)

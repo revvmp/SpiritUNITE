@@ -63,7 +63,8 @@ public sealed class BadgeRepository(DataOptions options)
         ulong gameUlongUID,
         BadgeSchedue unlocked,
         int coinID,
-        long cost)
+        long cost,
+        CouponsFlowEntry? couponsFlow)
     {
         await using var database = new DataConnection(options);
         await using var transaction = await database.BeginTransactionAsync();
@@ -88,6 +89,11 @@ public sealed class BadgeRepository(DataOptions options)
         }
 
         await database.InsertOrReplaceAsync(ToEntity(gameUlongUID, unlocked));
+        if (couponsFlow is not null)
+        {
+            await CouponsFlowRepository.AddAsync(database, gameUlongUID, couponsFlow);
+        }
+
         var wallet = await WalletRepository.ReadAsync(database, gameUlongUID);
         await transaction.CommitAsync();
         return (PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, wallet);

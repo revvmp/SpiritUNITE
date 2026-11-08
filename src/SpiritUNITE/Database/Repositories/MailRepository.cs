@@ -168,6 +168,11 @@ public sealed class MailRepository(DataOptions options)
             return (granted, null, NoCoinNums, NoBagItems);
         }
 
+        if (grant.CouponsFlow is { } couponsFlow)
+        {
+            await CouponsFlowRepository.AddAsync(database, gameUlongUID, couponsFlow);
+        }
+
         var changedBagItems = await BagRepository.ReadItemsAsync(database, gameUlongUID, grant.BagGrants.Select(bagGrant => (bagGrant.ItemType, bagGrant.ItemId)).Distinct());
         var wallet = await WalletRepository.ReadAsync(database, gameUlongUID);
         await transaction.CommitAsync();

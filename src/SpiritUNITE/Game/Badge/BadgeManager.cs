@@ -2,6 +2,7 @@ using System.Text;
 using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Databin;
+using SpiritUNITE.Game.Recharge;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Packets.Messages;
@@ -256,8 +257,10 @@ public sealed class BadgeManager(
             return (PB_ENUM_RES_ERROR_CODE.PbErrUnlockMoneyNotEnough, cost, null);
         }
 
-        var unlocked = schedue with { UnlockTimeStamp = clock.GetUtcNow().ToUnixTimeSeconds() };
-        var (result, walletAfter) = await repository.UnlockSchedueAsync(gameUlongUID, unlocked, coinID, cost);
+        var now = clock.GetUtcNow();
+        var unlocked = schedue with { UnlockTimeStamp = now.ToUnixTimeSeconds() };
+        var couponsFlow = CouponsFlow.SpendOnBadgeSchedue(coinID, cost, now);
+        var (result, walletAfter) = await repository.UnlockSchedueAsync(gameUlongUID, unlocked, coinID, cost, couponsFlow);
         return (result, cost, walletAfter);
     }
 

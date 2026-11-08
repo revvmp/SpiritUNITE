@@ -20,7 +20,8 @@ public sealed record BattlePassMutation(
     BattlePassProgress Progress,
     IReadOnlyList<BattlePassLevelRewardKey> ClaimedRewards,
     BattlePassGrant Grant,
-    IReadOnlyList<BattlePassTaskRewardRecord> TaskRewards);
+    IReadOnlyList<BattlePassTaskRewardRecord> TaskRewards,
+    CouponsFlowEntry? CouponsFlow = null);
 
 public sealed record BattlePassDecision(PB_ENUM_RES_ERROR_CODE Result, BattlePassMutation? Mutation)
 {
@@ -176,6 +177,11 @@ public sealed class BattlePassRepository(DataOptions options)
         {
             await transaction.RollbackAsync();
             return BattlePassCommit.Refused(applied);
+        }
+
+        if (mutation.CouponsFlow is { } couponsFlow)
+        {
+            await CouponsFlowRepository.AddAsync(database, gameUlongUID, couponsFlow);
         }
 
         await database.UpdateAsync(ToRow(gameUlongUID, mutation.Progress));
