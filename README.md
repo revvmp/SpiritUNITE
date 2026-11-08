@@ -34,9 +34,6 @@ SpiritUNITE is a C# server emulator for the [Pokemon UNITE](https://en.wikipedia
    mariadb -u root -p < sql/spiritunite.sql
    ```
 
-
-   Existing installations must apply `sql/migrations/20261108_state_lifecycles.sql` before starting this version. It adds the settlement journal and persistent PvE bonus claims without changing existing tables.
-
 2. Copy the example settings and put your database user and password in the connection string.
    ```powershell
    copy src/SpiritUnite.Core/appsettings.example.json src/SpiritUnite.Core/appsettings.json
@@ -49,9 +46,7 @@ SpiritUNITE is a C# server emulator for the [Pokemon UNITE](https://en.wikipedia
    ```powershell
    dotnet run --project src/SpiritUnite.Core
    ```
-
-Battle settlements are recorded in `battle_settlement`: `0` is pending, `1` is processing, `2` is completed, and `3` needs review. Pending entries are recovered automatically. Processing entries left by a crash and entries needing review must be reconciled before any manual replay because some rewards may already have committed. Do not reset their state to pending blindly. The journal retains the original battle snapshot; completed entries can be archived according to your retention policy.
-
+   
 ## Download the Game Resources
 
 Your server hands players the files the game downloads on first launch: one resource archive per platform and the shop, outfit and event images. Get them from the official servers while they are still up (until March 23, 2027). No APK is needed.
