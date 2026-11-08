@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Options;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Activity;
+using SpiritUNITE.Game.BattleVoice;
 using SpiritUNITE.Game.Lobby;
 using SpiritUNITE.Game.Match;
 using SpiritUNITE.Game.PveChallenge;
@@ -40,6 +41,7 @@ public sealed class RoomManager(
     LobbyRoles lobbyRoles,
     RoomMicTips micTips,
     ActivitySchedule activities,
+    BattleVoiceManager battleVoice,
     IOptions<RoomOptions> roomOptions,
     IOptions<MatchOptions> matchOptions,
     IOptions<GVoiceOptions> gVoiceOptions,
@@ -1125,7 +1127,36 @@ public sealed class RoomManager(
                 .Push(uid, PB_ENUM_CS_MSGID_DEF.PbScidRoomMicTipsInfoNtf, micTips.BuildInfoNtf(uid));
         }
 
-        return PushCanUseMapChange(room, before, outcome, others);
+        PushCanUseMapChange(room, before, outcome, others);
+        return JoinGvoiceRoom(room, outcome);
+    }
+
+    private RoomOutcome JoinGvoiceRoom(MatchRoom room, RoomOutcome outcome)
+    {
+        RoomMember[] voiceMembers = [.. room.Members.Where(member => roles.Find(member.Uid) is { } role && battleVoice.IsVoiceSysAvailable(role, member.Profile.IsGuestAccount))];
+        if (voiceMembers.Length < BattleVoiceManager.MinGvoiceRoomMembers)
+        {
+            return outcome;
+        }
+
+        foreach (var member in voiceMembers.Where(member => !member.IsInGvoiceRoom))
+        {
+            member.IsInGvoiceRoom = true;
+            outcome.Push(member.Uid, PB_ENUM_CS_MSGID_DEF.PbScidJoinGvoiceRoomNtf, RoomNotices.JoinGvoiceRoom());
+        }
+
+        return outcome;
+    }
+
+    private static void QuitGvoiceRoom(RoomMember member, RoomOutcome outcome)
+    {
+        if (!member.IsInGvoiceRoom)
+        {
+            return;
+        }
+
+        member.IsInGvoiceRoom = false;
+        outcome.Push(member.Uid, PB_ENUM_CS_MSGID_DEF.PbScidQuitGvoiceRoomNtf, RoomNotices.QuitGvoiceRoom());
     }
 
     public RoomOutcome ReturnFromSettle(ulong uid)
@@ -1174,6 +1205,7 @@ public sealed class RoomManager(
         room.Remove(member);
         roomsByUid.Remove(member.Uid);
         var outcome = new RoomOutcome();
+        QuitGvoiceRoom(member, outcome);
         if (wasSearching)
         {
             matchmaker.Remove(room);
@@ -1779,5 +1811,17 @@ public sealed class RoomManager(
         while (roomsByShowId.ContainsKey(showId));
 
         return showId;
+    }
+
+    public bool IsGVoiceRoomMember(ulong uid, int roomID, int roomSeq, int roomEntity, int campClient)
+    {
+        lock (gate)
+        {
+            return roomsById.TryGetValue(roomID, out var room)
+                && unchecked((int)room.RoomSeq) == roomSeq
+                && roomEntity is MatchRoom.RoomEntity or MatchRoom.MatchRoomEntity
+                && room.Members.FirstOrDefault(member => member.Uid == uid) is { } member
+                && (campClient == 0 || campClient == member.CampClient);
+        }
     }
 }

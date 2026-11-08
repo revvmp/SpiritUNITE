@@ -44,13 +44,18 @@ public sealed class RoomOptions
 
 public sealed class GVoiceOptions
 {
-    public const string SectionName = "GVoice";
+    public const int OfficialIdcTag = 2;
+    public const string GVoiceHostScheme = "udp://";
 
-    public int IdcTag { get; init; } = 2;
-    public string GVoiceHost { get; init; } = "udp://us.voice.gcloudcs.com";
-    public int GVoicePort { get; init; } = 8700;
+    public int IdcTag => OfficialIdcTag;
+    public string GVoiceHost { get; private set; } = string.Empty;
+    public int GVoicePort { get; private set; }
 
-    public bool IsValid() => IdcTag >= 0 && GVoicePort is >= 0 and <= ushort.MaxValue && GVoiceHost is not null;
+    public void UseVoiceServer(string advertisedHost, int voicePort)
+    {
+        GVoiceHost = GVoiceHostScheme + advertisedHost;
+        GVoicePort = voicePort;
+    }
 
     public pbCOMDT_GVOICE_INFO BuildGVoiceInfo() => new()
     {

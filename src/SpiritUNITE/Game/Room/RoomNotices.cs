@@ -10,6 +10,7 @@ public static class RoomNotices
     private const int ClientDefaultRoomDelayMs = 80;
     private const int MinRoomDelayMs = 1;
     private const int JoinRoomTypeNormal = (int)PB_ENUM_ENM_JOIN_ROOM_TYPE.PbEnmJoinRoomTypeNormal;
+    private const int UnobservedGvoiceReason = 0;
 
     public static pbSCJoinRoomNtf JoinRefused(PB_ENUM_RES_ERROR_CODE result) => new()
     {
@@ -27,6 +28,10 @@ public static class RoomNotices
         },
         AcntLocalSvrInfo = new pbCOMDT_LOCAL_SVR_ACNT_INFO(),
     };
+
+    public static pbSCJoinGvoiceRoomNtf JoinGvoiceRoom() => new() { JoinReason = UnobservedGvoiceReason };
+
+    public static pbSCQuitGvoiceRoomNtf QuitGvoiceRoom() => new() { QuitReason = UnobservedGvoiceReason };
 
     public static pbSCRoomRttNtf RoomRtt(GVoiceOptions gVoice, TimeSpan? lobbyRtt) => new()
     {

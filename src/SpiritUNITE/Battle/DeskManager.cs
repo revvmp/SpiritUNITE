@@ -7,6 +7,7 @@ using SpiritUNITE.Database.Models;
 using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Bag;
+using SpiritUNITE.Game.BattleVoice;
 using SpiritUNITE.Game.Friend;
 using SpiritUNITE.Game.Login;
 using SpiritUNITE.Game.Pokemon;
@@ -149,6 +150,7 @@ public sealed class DeskManager
     private readonly LwipTickets relayTickets;
     private readonly RelayRoles relayRoles;
     private readonly GVoiceOptions gVoice;
+    private readonly BattleVoiceManager battleVoice;
     private readonly HeroPickOptions heroPick;
     private readonly LoginManager login;
     private readonly RankedManager ranked;
@@ -180,6 +182,7 @@ public sealed class DeskManager
         LwipTickets relayTickets,
         RelayRoles relayRoles,
         IOptions<GVoiceOptions> gVoice,
+        BattleVoiceManager battleVoice,
         IOptions<HeroPickOptions> heroPick,
         LoginManager login,
         RankedManager ranked,
@@ -199,6 +202,7 @@ public sealed class DeskManager
         this.relayTickets = relayTickets;
         this.relayRoles = relayRoles;
         this.gVoice = gVoice.Value;
+        this.battleVoice = battleVoice;
         this.heroPick = heroPick.Value;
         this.login = login;
         this.ranked = ranked;
@@ -289,6 +293,11 @@ public sealed class DeskManager
             {
                 outcome.Push(attendee.Uid, PB_ENUM_CS_MSGID_DEF.PbScidMultGameBeginPickNtf, BuildBeginPickNtf(desk, attendee));
             }
+
+            foreach (var human in GvoiceRoomHumans(desk))
+            {
+                outcome.Push(human.Uid, PB_ENUM_CS_MSGID_DEF.PbScidJoinGvoiceRoomNtf, RoomNotices.JoinGvoiceRoom());
+            }
         }
 
         logger.LogInformation(
@@ -325,6 +334,12 @@ public sealed class DeskManager
         await RaiseDeskClosedAsync(releasedUids);
         return outcome;
     }
+
+    private IEnumerable<DeskPlayer> GvoiceRoomHumans(BattleDesk desk) => desk.Humans
+        .GroupBy(human => human.CampClient)
+        .Where(camp => desk.DeskInfo.IsWarmBattle != NoWarmBattle || camp.Count() >= BattleVoiceManager.MinGvoiceRoomMembers)
+        .SelectMany(camp => camp)
+        .Where(human => roles.Find(human.Uid) is { } role && battleVoice.IsVoiceSysAvailable(role, human.IsGuestAccount));
 
     public RoomOutcome ChooseHero(ulong uid, int heroID)
     {
@@ -1207,7 +1222,10 @@ public sealed class DeskManager
             campPlayerInfo,
             profile.UsableHeroes.ToDictionary(entry => entry.Key, entry => entry.Value.Clone()),
             profile.Loadout.HeldItemLevels,
-            npcConfig: null);
+            npcConfig: null)
+        {
+            IsGuestAccount = room.FindMember(acnt.Uid)?.Profile.IsGuestAccount == true,
+        };
     }
 
     private static DeskPlayer BuildNpcPlayer(
@@ -2164,5 +2182,17 @@ public sealed class DeskManager
         public pbCOMDT_POKEMON_PASTER_LIST UsablePasterList { get; init; } = new();
 
         public pbCOMDT_PVE_CHALLENGE_BUFF_INFO PveChallengeBuffInfo { get; init; } = new();
+    }
+
+    public bool IsGVoiceCampMember(ulong uid, int deskID, int deskCrtSeq, int relayEntity, int campClient)
+    {
+        lock (gate)
+        {
+            return desksById.TryGetValue(deskID, out var desk)
+                && unchecked((int)desk.DeskCrtSeq) == deskCrtSeq
+                && desk.RelayEntity == relayEntity
+                && desk.FindAttendee(uid) is { } attendee
+                && attendee.CampClient == campClient;
+        }
     }
 }

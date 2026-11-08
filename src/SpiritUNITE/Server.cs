@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Events;
 using SpiritUNITE.Battle;
@@ -63,6 +64,7 @@ using SpiritUNITE.Servers.Dir;
 using SpiritUNITE.Servers.Lobby;
 using SpiritUNITE.Servers.Relay;
 using SpiritUNITE.Servers.Update;
+using SpiritUNITE.Servers.Voice;
 
 namespace SpiritUNITE;
 
@@ -206,10 +208,14 @@ public static class Server
             .Validate(options => options.IsValid(), "HeldItem settings are invalid")
             .ValidateOnStart();
 
-        builder.Services.AddOptions<GVoiceOptions>()
-            .BindConfiguration(GVoiceOptions.SectionName)
-            .Validate(options => options.IsValid(), "GVoice settings are invalid")
+        builder.Services.AddOptions<VoiceServerOptions>()
+            .BindConfiguration(VoiceServerOptions.SectionName, options => options.ErrorOnUnknownConfiguration = true)
+            .Validate(options => options.IsValid(), "VoiceServer settings are invalid: Host must be empty or an address without spaces, Port 1-65535")
             .ValidateOnStart();
+
+        builder.Services.AddOptions<GVoiceOptions>()
+            .Configure<IOptions<VoiceServerOptions>, IOptions<LobbyAddressOptions>>((gVoice, voiceServer, lobbyAddress) =>
+                gVoice.UseVoiceServer(voiceServer.Value.AdvertisedHost(lobbyAddress.Value), voiceServer.Value.Port));
 
         builder.Services.AddOptions<ResourceArchiveOptions>()
             .BindConfiguration(ResourceArchiveOptions.SectionName, options => options.ErrorOnUnknownConfiguration = true)
@@ -316,6 +322,7 @@ public static class Server
         builder.Services.AddSingleton<CreditManager>();
         builder.Services.AddSingleton<AccusationManager>();
         builder.Services.AddSingleton<BattleVoiceManager>();
+        builder.Services.AddSingleton<GVoiceRoomManager>();
         builder.Services.AddSingleton<RankedLadder>();
         builder.Services.AddSingleton<RankedRewards>();
         builder.Services.AddSingleton<RankedManager>();
@@ -406,6 +413,7 @@ public static class Server
         builder.Services.AddHostedService<RelayServer>();
         builder.Services.AddSingleton<UpdateServiceReplies>();
         builder.Services.AddHostedService<UpdateServer>();
+        builder.Services.AddHostedService<VoiceServer>();
         builder.Services.AddHostedService<LobbyRefreshTick>();
         builder.Services.AddHostedService<RedDotRecorder>();
         HttpServer.AddServices(builder.Services);

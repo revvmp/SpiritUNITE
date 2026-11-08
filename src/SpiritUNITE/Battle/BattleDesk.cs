@@ -29,6 +29,7 @@ public sealed class DeskPlayer(
     public Dictionary<int, pbCOMDT_CHOICEHERO> UsableHeroes { get; } = usableHeroes;
     public IReadOnlyDictionary<int, int> HeldItemLevels { get; } = heldItemLevels;
     public pbAiInfoConfig? NpcConfig { get; } = npcConfig;
+    public bool IsGuestAccount { get; init; }
 
     public pbCOMDT_PLAYERINFO PlayerInfo => CampPlayerInfo.PlayerInfo;
     public int CampClient => PlayerInfo.ObjCampClient;

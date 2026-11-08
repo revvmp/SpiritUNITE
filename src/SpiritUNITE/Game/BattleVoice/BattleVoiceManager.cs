@@ -1,12 +1,22 @@
 using Microsoft.Extensions.Logging;
+using SpiritUNITE.Databin;
+using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.BattleVoice;
 
-public sealed class BattleVoiceManager(ILogger<BattleVoiceManager> logger)
+public sealed class BattleVoiceManager(GameData gameData, ILogger<BattleVoiceManager> logger)
 {
+    public const int MinGvoiceRoomMembers = 2;
+
     private const int Closed = 0;
     private const int Opened = 1;
+    private const int VoiceDisabled = 0;
+
+    public bool IsVoiceSysAvailable(LMNRoleInfo role, bool isGuestAccount) =>
+        !isGuestAccount
+        && gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalVoiceEnable) != VoiceDisabled
+        && RoleProfile.GetLevel(gameData, role) >= gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResSystemUnlockTypeChatSystem);
 
     public PB_ENUM_RES_ERROR_CODE OpenVoice(ulong uid, int voiceType)
     {

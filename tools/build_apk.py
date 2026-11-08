@@ -74,6 +74,8 @@ DEFAULT_HTTP_PORT = 80
 DEFAULT_DEV_WEB_PORT = 10081
 WEBVIEW_REFUSED_PORTS = (10080,)
 DEFAULT_LOBBY_PORT = 10002
+DEFAULT_VOICE_PORT = 8700
+GVOICE_SERVER_SCHEME = "udp://"
 DIR_NODE_NAME = "trunk_global_dist"
 CLOUD_CONTROL_REPLACEMENT_HOST = "spiritunite.invalid"
 UNREACHABLE_ORIGIN = "https://spiritunite.invalid"
@@ -160,6 +162,7 @@ class ClientBuild:
     dir_address: MetadataLiteral
     cloud_control_host: MetadataLiteral
     image_cdn_address: MetadataLiteral
+    gvoice_server_url: MetadataLiteral
     update_hosts: tuple[MetadataLiteral, ...]
 
 
@@ -174,6 +177,7 @@ CLIENT_BUILDS_BY_METADATA_MD5 = {
         image_cdn_address=MetadataLiteral(
             0x3F730, "https://image.pokemon-unitepgame.com/Encrypt"
         ),
+        gvoice_server_url=MetadataLiteral(0x11380, "udp://sg.voice.gcloudcs.com:8700"),
         update_hosts=(
             MetadataLiteral(0x3E8F8, "puffer.6.669535640.nishikigcloud.iegcom.com"),
             MetadataLiteral(
@@ -204,6 +208,8 @@ class HostTarget:
     lobby_port: int
     web_port: int
     update_port: int
+    voice_host: str
+    voice_port: int
     development: bool
     package_name: str
     app_label: str
@@ -230,6 +236,10 @@ class HostTarget:
     @property
     def dir_address(self) -> str:
         return f"{DIR_NODE_NAME}|{self.host}:{self.dir_port}"
+
+    @property
+    def gvoice_server_url(self) -> str:
+        return f"{GVOICE_SERVER_SCHEME}{self.voice_host}:{self.voice_port}"
 
 
 @dataclass(frozen=True)
@@ -407,6 +417,19 @@ def resolve_target(arguments: argparse.Namespace) -> HostTarget:
         raise BuildError(
             f"UpdateServer.Port is {update_port}; the client only looks for the update server on port {allowed}."
         )
+    voice_host = arguments.voice_host or appsetting(settings, "VoiceServer", "Host")
+    voice_host = (
+        validate_host(voice_host)
+        if isinstance(voice_host, str) and voice_host
+        else host
+    )
+    voice_port = port_setting(
+        arguments.voice_port,
+        settings,
+        "VoiceServer",
+        DEFAULT_VOICE_PORT,
+        "--voice-port",
+    )
     package_name = validate_package_name(
         arguments.package or default_package_name(host, arguments.dev)
     )
@@ -417,6 +440,8 @@ def resolve_target(arguments: argparse.Namespace) -> HostTarget:
         lobby_port,
         web_port,
         update_port,
+        voice_host,
+        voice_port,
         arguments.dev,
         package_name,
         app_label,
@@ -446,6 +471,15 @@ def resolve_target(arguments: argparse.Namespace) -> HostTarget:
     if len(target.image_cdn_address.encode("utf-8")) > shortest_image_cdn_address:
         raise BuildError(
             f"{target.image_cdn_address} is too long; the client's image CDN address holds at most {shortest_image_cdn_address} characters."
+        )
+    shortest_gvoice_server_url = min(
+        len(known.gvoice_server_url.original)
+        for known in CLIENT_BUILDS_BY_METADATA_MD5.values()
+    )
+    if len(target.gvoice_server_url.encode("utf-8")) > shortest_gvoice_server_url:
+        room = shortest_gvoice_server_url - len(GVOICE_SERVER_SCHEME) - 1
+        raise BuildError(
+            f"{target.gvoice_server_url} is too long; the client's voice server address holds at most {room} characters of host and port. Pass --voice-host with a shorter name or the IPv4 address of the voice server."
         )
     if is_ipv4_literal(host):
         log(
@@ -897,6 +931,9 @@ def patch_metadata(metadata: bytes, target: HostTarget) -> bytes:
     )
     write_metadata_literal(
         patched, build, build.image_cdn_address, target.image_cdn_address
+    )
+    write_metadata_literal(
+        patched, build, build.gvoice_server_url, target.gvoice_server_url
     )
     for update_host in build.update_hosts:
         write_metadata_literal(patched, build, update_host, target.host)
@@ -1841,7 +1878,7 @@ def build(arguments: argparse.Namespace) -> None:
         f"Building a {kind} for {target.web_origin} (directory {target.host}:{target.dir_port})"
     )
     log(
-        f"Patching the directory, update and image CDN ({target.image_cdn_address}) addresses in global-metadata.dat"
+        f"Patching the directory, update, image CDN ({target.image_cdn_address}) and voice server ({target.gvoice_server_url}) addresses in global-metadata.dat"
     )
     native_replacements, old_md5, new_md5, client_build = build_native_replacements(
         splits, target
@@ -1890,6 +1927,9 @@ def build(arguments: argparse.Namespace) -> None:
         log(
             f"Put the image mirror in resources/images/ next to the server; {target.image_cdn_address} must reach the HttpServer."
         )
+        log(
+            f"Open UDP port {target.voice_port} for the voice server; the client sends its voice setup to {target.gvoice_server_url}."
+        )
     log("")
     log("Not handled yet:")
     for change in PENDING_CLIENT_CHANGES:
@@ -1912,6 +1952,10 @@ def report_development_build(
             (target.dir_port, target.lobby_port, target.web_port, target.update_port)
         ):
             log(f"  adb reverse tcp:{port} tcp:{port}")
+        if is_loopback(target.voice_host):
+            log(
+                f"adb reverse cannot forward the UDP voice setup to {target.gvoice_server_url}; rebuild with --voice-host set to the emulator's host gateway to reach the voice server."
+            )
     else:
         log(
             f"Set TcpServer.BindAddress and HttpServer.BindAddress to 0.0.0.0 and LobbyServer.Host to {target.host} so the device can reach the server."
@@ -1944,6 +1988,15 @@ def parse_arguments() -> argparse.Namespace:
         "--web-port",
         type=int,
         help=f"port of the login pages (default: {DEFAULT_HTTPS_PORT}; with --dev, HttpServer.Port in appsettings.json, else {DEFAULT_DEV_WEB_PORT})",
+    )
+    parser.add_argument(
+        "--voice-host",
+        help="domain or IPv4 address the client sends its voice setup to (default: VoiceServer.Host in appsettings.json, else the --host value)",
+    )
+    parser.add_argument(
+        "--voice-port",
+        type=int,
+        help=f"UDP port of the voice server (default: VoiceServer.Port in appsettings.json, else {DEFAULT_VOICE_PORT})",
     )
     parser.add_argument(
         "--dev",

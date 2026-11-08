@@ -15,6 +15,7 @@ public sealed class RoomMember(
     public int TeamFlag { get; } = teamFlag;
     public bool IsSettle { get; set; }
     public bool SettlesAlone { get; set; }
+    public bool IsInGvoiceRoom { get; set; }
     public int CampClient { get; set; } = campClient;
     public int PosOfCamp { get; set; } = posOfCamp;
     public pbCOMDT_ACNTMAP_INFO AcntMapInfo { get; set; } = acntMapInfo;
