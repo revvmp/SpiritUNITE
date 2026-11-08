@@ -1,0 +1,110 @@
+using System.Buffers.Binary;
+
+namespace SpiritUnite.Network.Gcp;
+
+public enum GcpCommand : ushort
+{
+    Syn = 0x1001,
+    Ack = 0x1002,
+    AuthReq = 0x2001,
+    AuthRsp = 0x2002,
+    Data = 0x4013,
+    ClientStop = 0x5001,
+    ServerStop = 0x5002,
+    Bingo = 0x6002,
+}
+
+public enum GcpStopReason
+{
+    IdleClose = 1,
+    GameServerClose = 7,
+}
+
+public enum KeyMaking : byte
+{
+    None = 0,
+    Auth = 1,
+    Server = 2,
+    RawDH = 3,
+    EncDH = 4,
+}
+
+public sealed class GcpProtocolException(string message) : Exception(message);
+
+public readonly record struct GcpHead(
+    ushort PackingVersion,
+    ushort HeaderVersion,
+    ushort Command,
+    bool IsEncrypted,
+    uint Sequence,
+    uint HeadLength,
+    uint BodyLength)
+{
+    public const int Size = 21;
+    public const int MaxClientMessageSize = 100 * 1024;
+    public const int MaxPacketSize = 128 * 1024;
+
+    private const ushort Magic = 0x3366;
+    private const ushort MaxPackingVersion = 11;
+    private const int PackingVersionOffset = 2;
+    private const int HeaderVersionOffset = 4;
+    private const int CommandOffset = 6;
+    private const int EncryptedFlagOffset = 8;
+    private const int SequenceOffset = 9;
+    private const int HeadLengthOffset = 13;
+    private const int BodyLengthOffset = 17;
+    private const byte Encrypted = 1;
+    private const byte Plaintext = 0;
+
+    public int PacketLength => (int)(HeadLength + BodyLength);
+
+    public static bool TryParse(ReadOnlySpan<byte> data, out GcpHead head)
+    {
+        head = default;
+        if (data.Length < Size)
+        {
+            return false;
+        }
+
+        if (BinaryPrimitives.ReadUInt16BigEndian(data) != Magic)
+        {
+            throw new GcpProtocolException("Packet does not start with the GCP magic");
+        }
+
+        head = new GcpHead(
+            BinaryPrimitives.ReadUInt16BigEndian(data[PackingVersionOffset..]),
+            BinaryPrimitives.ReadUInt16BigEndian(data[HeaderVersionOffset..]),
+            BinaryPrimitives.ReadUInt16BigEndian(data[CommandOffset..]),
+            data[EncryptedFlagOffset] != Plaintext,
+            BinaryPrimitives.ReadUInt32BigEndian(data[SequenceOffset..]),
+            BinaryPrimitives.ReadUInt32BigEndian(data[HeadLengthOffset..]),
+            BinaryPrimitives.ReadUInt32BigEndian(data[BodyLengthOffset..]));
+        head.Validate();
+        return true;
+    }
+
+    public void WriteTo(Span<byte> destination)
+    {
+        BinaryPrimitives.WriteUInt16BigEndian(destination, Magic);
+        BinaryPrimitives.WriteUInt16BigEndian(destination[PackingVersionOffset..], PackingVersion);
+        BinaryPrimitives.WriteUInt16BigEndian(destination[HeaderVersionOffset..], HeaderVersion);
+        BinaryPrimitives.WriteUInt16BigEndian(destination[CommandOffset..], Command);
+        destination[EncryptedFlagOffset] = IsEncrypted ? Encrypted : Plaintext;
+        BinaryPrimitives.WriteUInt32BigEndian(destination[SequenceOffset..], Sequence);
+        BinaryPrimitives.WriteUInt32BigEndian(destination[HeadLengthOffset..], HeadLength);
+        BinaryPrimitives.WriteUInt32BigEndian(destination[BodyLengthOffset..], BodyLength);
+    }
+
+    private void Validate()
+    {
+        if (PackingVersion is 0 or > MaxPackingVersion)
+        {
+            throw new GcpProtocolException($"Unsupported packing version {PackingVersion}");
+        }
+
+        if (HeadLength < Size || (ulong)HeadLength + BodyLength > MaxPacketSize)
+        {
+            throw new GcpProtocolException($"Invalid packet lengths: head {HeadLength}, body {BodyLength}");
+        }
+    }
+}

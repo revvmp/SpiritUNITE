@@ -1,0 +1,17 @@
+using LinqToDB.Mapping;
+
+namespace SpiritUnite.Database.Models;
+
+[Table("role_star_road")]
+public sealed class RoleStarRoad
+{
+    [PrimaryKey]
+    [Column("game_ulong_uid")]
+    public ulong GameUlongUID { get; set; }
+
+    [Column("tips_site_id")]
+    public int TipsSiteID { get; set; }
+
+    [Column("pokemon_tips_close_time")]
+    public long PokemonTipsCloseTime { get; set; }
+}

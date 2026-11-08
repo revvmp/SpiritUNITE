@@ -17,7 +17,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
-APPSETTINGS_PATH = REPOSITORY_ROOT / "src/SpiritUNITE/appsettings.json"
+APPSETTINGS_PATH = REPOSITORY_ROOT / "src/SpiritUnite.Core/appsettings.json"
 IMAGE_FILE_LIST_PATH = Path(__file__).resolve().parent / "image_cdn_files.json"
 DEFAULT_RESOURCE_DIRECTORY = "resources"
 IMAGE_FOLDER_NAME = "images"

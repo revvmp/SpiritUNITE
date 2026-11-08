@@ -21,7 +21,7 @@ from pathlib import Path
 from xml.etree import ElementTree
 
 REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
-APPSETTINGS_PATH = REPOSITORY_ROOT / "src/SpiritUNITE/appsettings.json"
+APPSETTINGS_PATH = REPOSITORY_ROOT / "src/SpiritUnite.Core/appsettings.json"
 DEFAULT_WORK_DIR = REPOSITORY_ROOT / "apk-build"
 
 BASE_APK = "base.apk"

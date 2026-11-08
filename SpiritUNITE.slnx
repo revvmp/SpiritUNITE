@@ -1,5 +1,5 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/SpiritUNITE/SpiritUNITE.csproj" />
+    <Project Path="src/SpiritUnite.Core/SpiritUnite.Core.csproj" />
   </Folder>
 </Solution>

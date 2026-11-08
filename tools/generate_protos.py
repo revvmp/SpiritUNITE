@@ -4,9 +4,9 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-DEFAULT_OUTPUT = Path("src/SpiritUNITE/Protobuf/pb_protocol.proto")
+DEFAULT_OUTPUT = Path("src/SpiritUnite.Core/Protobuf/pb_protocol.proto")
 SOURCE_NAMESPACE = "PbProtocol"
-TARGET_NAMESPACE = "SpiritUNITE.Packets.Messages"
+TARGET_NAMESPACE = "SpiritUnite.Packets.Messages"
 MAX_ENUM_VALUE = 2**31 - 1
 ZIGZAG_FIELD_PREFIXES = {"FrameCmdPkg": "SIntParam"}
 OBJECT_MEMBER_NAMES = {"Clone", "Equals", "GetHashCode", "GetType", "MemberwiseClone", "ToString", "WriteTo"}

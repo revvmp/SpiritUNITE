@@ -1,0 +1,58 @@
+syntax = "proto2";
+
+package da.voip.client_2_access;
+
+option csharp_namespace = "SpiritUnite.Network.GVoice.Messages";
+
+message VoipClient2AccessHead {
+  optional uint32 cmd = 1;
+  optional uint32 proto_type = 2;
+  optional uint64 room_id = 3;
+  optional uint32 member_id = 4;
+  optional string open_id = 5;
+  optional uint32 client_net_type = 6;
+  optional int32 svr_stat = 7;
+}
+
+message VoipCheckInReq {
+  optional uint32 client_ip = 1;
+  optional uint32 client_port = 2;
+}
+
+message VoipCheckInRsp {
+  optional uint32 client_ip = 1;
+  optional uint32 client_port = 2;
+}
+
+message VoipCheckInReady {
+}
+
+message VoipStatReq {
+  optional uint32 loss_rate = 1;
+  optional uint32 rtt = 2;
+  optional uint32 receiving = 4;
+}
+
+message VoipStatRsp {
+  optional uint32 up_rate = 1;
+}
+
+message OpenVoiceReq {
+  optional uint32 client_ip = 1;
+  optional uint32 client_port = 2;
+}
+
+message OpenVoiceRsp {
+  optional uint32 client_ip = 1;
+  optional uint32 client_port = 2;
+}
+
+message CloseVoiceReq {
+  optional uint32 client_ip = 1;
+  optional uint32 client_port = 2;
+}
+
+message CloseVoiceRsp {
+  optional uint32 client_ip = 1;
+  optional uint32 client_port = 2;
+}

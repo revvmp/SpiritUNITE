@@ -433,7 +433,7 @@ docs/
 /local_tools/
 .re/
 .idea/
-/src/SpiritUNITE/appsettings.json
+/src/SpiritUnite.Core/appsettings.json
 /resources/*
 !/resources/README.md
 

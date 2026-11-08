@@ -1,0 +1,44 @@
+using SpiritUnite.Database.Repositories;
+using SpiritUnite.Game.Bag;
+using SpiritUnite.Game.Role;
+using SpiritUnite.Packets.Messages;
+
+namespace SpiritUnite.Game.Shop;
+
+public sealed record ShopPurchase(
+    IReadOnlyDictionary<int, long> CoinCosts,
+    IReadOnlyList<RoleItemInfo> Items,
+    IReadOnlyList<int> PokemonIds,
+    IReadOnlyList<ShopBuyRecord> BuyRecords,
+    IReadOnlyList<BagGrant> OutSideItems)
+{
+    private const int AwardedPokemonCount = 1;
+
+    public IReadOnlyList<BagCost> ItemCosts { get; init; } = [];
+
+    public CouponsFlowEntry? CouponsFlow { get; init; }
+
+    public pbSCResourcesAwardNotify BuildResourcesAwardNotify()
+    {
+        var notify = new pbSCResourcesAwardNotify
+        {
+            ResultInfo = new pbResultInfo(),
+            AwardReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonShopadditem,
+        };
+        var awards = Items.Select(item => item.ToResourceAwardInfo())
+            .Concat(PokemonIds.Select(pokemonId => new pbCOMDT_ONE_RESOURCE_AWARD_INFO
+            {
+                ResID = pokemonId,
+                ResCnt = AwardedPokemonCount,
+                ResType = (int)PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesPokemon,
+            }))
+            .Concat(OutSideItems.Select(grant => new pbCOMDT_ONE_RESOURCE_AWARD_INFO
+            {
+                ResID = grant.ItemId,
+                ResCnt = grant.Cnt,
+                ResType = (int)PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem,
+            }));
+        notify.ResourcesList.Add(awards.Select(award => new pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO { FinallyAwardInfo = award }));
+        return notify;
+    }
+}

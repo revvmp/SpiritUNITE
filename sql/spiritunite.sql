@@ -2,6 +2,17 @@ CREATE DATABASE IF NOT EXISTS spiritunite CHARACTER SET utf8mb4 COLLATE utf8mb4_
 
 USE spiritunite;
 
+CREATE TABLE IF NOT EXISTS `battle_settlement` (
+    settlement_id CHAR(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    state TINYINT UNSIGNED NOT NULL,
+    payload LONGBLOB NOT NULL,
+    updated_at BIGINT NOT NULL,
+    last_error VARCHAR(2000) NOT NULL DEFAULT '',
+    PRIMARY KEY (settlement_id, game_ulong_uid),
+    KEY ix_battle_settlement_pending (state, updated_at)
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `account` (
     account_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     user_name VARCHAR(20) NULL,
@@ -54,6 +65,18 @@ CREATE TABLE IF NOT EXISTS `role` (
     UNIQUE KEY uq_role_name (in_game_usr_name),
     CONSTRAINT ck_role_history_max_total_exp CHECK (role_history_max_total_exp >= role_total_exp),
     CONSTRAINT fk_role_account FOREIGN KEY (game_ulong_uid) REFERENCES `account` (account_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_pve_settlement` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    settlement_id CHAR(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    battle_started_at BIGINT NOT NULL,
+    stage_id INT NOT NULL,
+    node_id INT NOT NULL,
+    difficulty_level INT NOT NULL,
+    claim_state TINYINT UNSIGNED NOT NULL,
+    refresh_drops LONGTEXT NOT NULL,
+    CONSTRAINT fk_role_pve_settlement_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `role_pokemon` (

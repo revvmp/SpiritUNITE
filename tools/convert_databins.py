@@ -7,8 +7,8 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-DEFAULT_PROTO = Path("src/SpiritUNITE/Protobuf/pb_protocol.proto")
-DEFAULT_OUTPUT = Path("src/SpiritUNITE/Databin/Tables")
+DEFAULT_PROTO = Path("src/SpiritUnite.Core/Protobuf/pb_protocol.proto")
+DEFAULT_OUTPUT = Path("src/SpiritUnite.Core/Databin/Tables")
 
 
 @dataclass(frozen=True)

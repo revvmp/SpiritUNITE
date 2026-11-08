@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
 REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
-APPSETTINGS_PATH = REPOSITORY_ROOT / "src/SpiritUNITE/appsettings.json"
+APPSETTINGS_PATH = REPOSITORY_ROOT / "src/SpiritUnite.Core/appsettings.json"
 DEFAULT_WORK_DIR = REPOSITORY_ROOT / "ipa-build"
 
 PAYLOAD_FOLDER = "Payload"

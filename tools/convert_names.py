@@ -12,7 +12,7 @@ converter_spec.loader.exec_module(databins)
 ConversionError = databins.ConversionError
 Field = databins.Field
 
-DEFAULT_OUTPUT = Path("src/SpiritUNITE/Databin/Names/en.json")
+DEFAULT_OUTPUT = Path("src/SpiritUnite.Core/Databin/Names/en.json")
 GARBLED_POKEMON = "Pok�mon"
 POKEMON_WORD = "Pokémon"
 REPLACEMENT_CHARACTER = "�"
