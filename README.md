@@ -4,7 +4,14 @@ SpiritUNITE is a C# server emulator for the [Pokemon UNITE](https://en.wikipedia
 
 ## Gallery
 
+### Lobby
 ![Frieren in lobby](gallery/frieren-lobby.png)
+
+### Shop
+![Holowear shop](gallery/shop.png)
+
+### Battle
+![Mewtwo X in battle](gallery/mewtwo-battle.png)
 
 ## Environment Setup
 
@@ -49,7 +56,7 @@ python tools/fetch_resources.py images
 
 - `archives` downloads the Android (about 7.8 GB) and iOS (about 7.7 GB) archives into `resources/1169/` and `resources/1170/`. Use `--platform android` or `--platform ios` for just one.
 - `images` downloads about 1.3 GB of images into `resources/images/`.
-- If a download stops, run the same command again to continue. Every file is checked against its official MD5.
+- If a download stops, run the same command again to continue.
 
 Files go in the folder set by `ResourceArchive.Directory` in `appsettings.json` (`resources/` by default). See [resources/README.md](resources/README.md) for the layout.
 
@@ -72,6 +79,7 @@ Files go in the folder set by `ResourceArchive.Directory` in `appsettings.json` 
 | Port | Server |
 | :--- | :--- |
 | 8085 | Update server (resource update check on every start) |
+| 8700 | Voice chat (UDP) |
 | 10001 | Directory server |
 | 10002 | Lobby server |
 | 10003 | Relay server (UDP) |
@@ -96,7 +104,7 @@ The directory server tells the client where to find the lobby server. By default
 2. Set `TcpServer.BindAddress` to `0.0.0.0` so the directory, lobby, update and relay servers accept outside connections. Keep `127.0.0.1` for local testing.
 
 
-3. Set up HTTPS on port `443` for your domain, forwarding all paths to the account server on `127.0.0.1:10081`. Open TCP ports `80`, `443`, `8085`, `10001` and `10002`, and UDP port `10003` for battles, on your router and firewall.
+3. Set up HTTPS for your domain and open your ports. Follow the [nginx hosting guide](deploy/README.md).
 
 
 4. Choose where players download the resource archive. In `appsettings.json`:
