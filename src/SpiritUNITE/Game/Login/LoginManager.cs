@@ -24,6 +24,7 @@ using SpiritUNITE.Game.Settings;
 using SpiritUNITE.Game.Shop;
 using SpiritUNITE.Game.StarRoad;
 using SpiritUNITE.Game.Tasks;
+using SpiritUNITE.Game.TenGames;
 using SpiritUNITE.Game.TrainerExpGift;
 using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Packets;
@@ -63,6 +64,7 @@ public sealed class LoginManager(
     BattlePassManager battlePass,
     WarmBattleManager warmBattles,
     InviteFriendManager inviteFriends,
+    TenGamesManager tenGames,
     TimeProvider clock,
     ILogger<LoginManager> logger)
 {
@@ -242,7 +244,7 @@ public sealed class LoginManager(
 
         replies.Add(PbScidActivityLoginShowNtf, new pbSCActivityLoginShowNtf());
         AddRedDots(replies, clientSettings);
-        AddTenGamesTeamInviteRedDotClear(replies);
+        replies.Add(await tenGames.BuildInviteRedDotAsync(role.GameUlongUID));
         return replies.ToArray();
     }
 
@@ -290,7 +292,7 @@ public sealed class LoginManager(
         replies.Add(PbScidActivityLoginShowNtf, new pbSCActivityLoginShowNtf());
         AddRedDots(replies, clientSettings);
         replies.AddRange(await BuildCouponsRefreshPacketsAsync(uid));
-        AddTenGamesTeamInviteRedDotClear(replies);
+        replies.Add(await tenGames.BuildInviteRedDotAsync(uid));
         if (HasOnlyGuestChannels(boundChannels))
         {
             replies.Add(PbScidRedDotReplaceNtf, LobbyNotices.BuildRedDotReplaceNtf(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdBindingAccount, BindingAccountBadgeNum));
@@ -403,9 +405,6 @@ public sealed class LoginManager(
         replies.Add(PbScidRedDotInfoNtf, SettingsManager.BuildRedDotInfoNtf(clientSettings));
         replies.Add(PbScidBubTipInfoNtf, SettingsManager.BuildBubTipInfoNtf(clientSettings));
     }
-
-    private static void AddTenGamesTeamInviteRedDotClear(ReplyList replies) =>
-        replies.Add(PbScidRedDotClearNtf, LobbyNotices.BuildRedDotClearNtf(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdTenGamesTeamInvite));
 
     private static bool HasOnlyGuestChannels(LoginPlatform[] boundChannels) =>
         boundChannels.All(channel => channel == LoginPlatform.GUEST);

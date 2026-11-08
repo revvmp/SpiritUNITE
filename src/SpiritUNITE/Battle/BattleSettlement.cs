@@ -23,6 +23,7 @@ using SpiritUNITE.Game.Room;
 using SpiritUNITE.Game.Settings;
 using SpiritUNITE.Game.StarRoad;
 using SpiritUNITE.Game.Tasks;
+using SpiritUNITE.Game.TenGames;
 using SpiritUNITE.Game.TrainerExpGift;
 using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Online;
@@ -122,6 +123,7 @@ public sealed class BattleSettlement
     private readonly FriendPresence presence;
     private readonly ActivityRewardNotices rewardNotices;
     private readonly GuildActivityTasks guildActivityTasks;
+    private readonly TenGamesBattleRecorder tenGamesBattles;
     private readonly GVoiceOptions gVoice;
     private readonly BattleSettlementOptions options;
     private readonly TimeProvider clock;
@@ -162,6 +164,7 @@ public sealed class BattleSettlement
         FriendPresence presence,
         ActivityRewardNotices rewardNotices,
         GuildActivityTasks guildActivityTasks,
+        TenGamesBattleRecorder tenGamesBattles,
         IOptions<GVoiceOptions> gVoiceOptions,
         IOptions<BattleSettlementOptions> options,
         TimeProvider clock,
@@ -197,6 +200,7 @@ public sealed class BattleSettlement
         this.presence = presence;
         this.rewardNotices = rewardNotices;
         this.guildActivityTasks = guildActivityTasks;
+        this.tenGamesBattles = tenGamesBattles;
         gVoice = gVoiceOptions.Value;
         this.options = options.Value;
         this.clock = clock;
@@ -323,6 +327,12 @@ public sealed class BattleSettlement
             : null;
         var isTodaySetNoReminded = !plan.IsMatch ? 0 : rankedSettlement is null ? TodaySetNoReminded : await ranked.TakeIsTodaySetNoRemindedAsync(uid);
         var gain = BuildSettleGainRsp(role, result, plan, commit, levelBefore, mvp, rankedSettlement, isTodaySetNoReminded, now);
+        if (await tenGamesBattles.RecordBattleAsync(BuildTenGamesBattle(result), uid) is { } tenGamesScore)
+        {
+            gain.Detail.AcntInfo.IncTenGamesScore = tenGamesScore.IncTenGamesScore;
+            gain.Detail.AcntInfo.TotalTenGamesScore = tenGamesScore.TotalTenGamesScore;
+        }
+
         settleGains[uid] = gain;
         _ = ForgetSettleGainAsync(uid, gain);
         fabulous.Open(result.Desk, uid);
@@ -434,6 +444,14 @@ public sealed class BattleSettlement
         result.GameStartTime,
         result.Human.ChosenHeroID,
         CreditReduceBattle.BattleIDOf(result.Desk.DeskID, result.Desk.DeskCrtSeq, result.Desk.RelayEntity));
+
+    private static TenGamesBattle BuildTenGamesBattle(BattleResult result) => new(
+        result.Desk.DeskID,
+        result.Desk.DeskCrtSeq,
+        result.Desk.DeskInfo.MapId,
+        [.. result.Desk.Humans.Select(human => new TenGamesBattlePlayer(human.Uid, human.CampClient))],
+        result.Gameover.BattleParam.WinCampClient,
+        result.IsDraw);
 
     private static bool IsCustomBattle(BattleResult result) =>
         result.Desk.DeskInfo.RoomType == (int)PB_ENUM_COM_ROOM_TYPE.PbComRoomTypeNormal;

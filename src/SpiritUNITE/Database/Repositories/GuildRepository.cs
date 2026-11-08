@@ -303,7 +303,7 @@ public sealed class GuildRepository(DataOptions options)
         return await ApplyRoleRewardAsync(database, transaction, reward.GameUlongUID, reward.RewardTime, grant);
     }
 
-    private static async Task<GuildRewardCommit> ApplyRoleRewardAsync(
+    public static async Task<GuildRewardCommit> ApplyRoleRewardAsync(
         DataConnection database,
         DataConnectionTransaction transaction,
         ulong gameUlongUID,

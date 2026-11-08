@@ -1,4 +1,5 @@
 using SpiritUNITE.Auth;
+using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Newbie;
 using SpiritUNITE.Game.Profile;
@@ -6,6 +7,7 @@ using SpiritUNITE.Game.Ranked;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Room;
 using SpiritUNITE.Game.Settings;
+using SpiritUNITE.Game.TenGames;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Friend;
@@ -17,7 +19,9 @@ public sealed class RoleBriefBuilder(
     NewbieManager newbies,
     AccountManager accounts,
     FriendPresence presence,
-    RankedManager ranked)
+    RankedManager ranked,
+    TenGamesManager tenGames,
+    FabulousRepository fabulous)
 {
     private const int GuestAccount = 1;
     private const int RegisteredAccount = 0;
@@ -35,6 +39,7 @@ public sealed class RoleBriefBuilder(
         var uid = role.GameUlongUID;
         var style = await profiles.LoadAsync(uid);
         var clientSettings = await settings.LoadAsync(uid);
+        var beFabulous = await fabulous.FindBeFabulousAsync(uid);
         return new pbCOMDT_ROLE_BRIEF_INFO
         {
             Uid = uid,
@@ -56,6 +61,9 @@ public sealed class RoleBriefBuilder(
                 TrainerImageInfo = ProfileManager.BuildProfileImageInfo(role, style).TrainerImageInfo,
             },
             UserPlantInfo = style.BuildUserPlantInfo(),
+            TenGamesTeamID = await tenGames.FindTeamIDAsync(uid),
+            BeFabulousCnt = beFabulous?.BeFabulousCnt ?? 0,
+            BeFablsCntLastUpdTime = beFabulous?.BeFblsCntLastUpdTime ?? 0,
         };
     }
 }
