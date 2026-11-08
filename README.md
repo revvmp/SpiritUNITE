@@ -25,21 +25,15 @@ SpiritUNITE is a C# server emulator for the [Pokemon UNITE](https://en.wikipedia
    ```
 
 
-2. Create a database user for the server.
-   ```sql
-   CREATE USER 'spiritunite'@'localhost' IDENTIFIED BY 'your-password';
-   GRANT ALL PRIVILEGES ON spiritunite.* TO 'spiritunite'@'localhost';
-   ```
-
-3. Copy the example settings and put your database password in the connection string.
+2. Copy the example settings and put your database user and password in the connection string.
    ```powershell
    copy src/SpiritUNITE/appsettings.example.json src/SpiritUNITE/appsettings.json
    ```
 
-4. Download the game resources (see [Download the Game Resources](#download-the-game-resources)). The game downloads about 7 GB from your server on first launch and checks it on every start, so players cannot get past "Checking update data" without it.
+3. Download the game resources (see [Download the Game Resources](#download-the-game-resources)). The game downloads about 7 GB from your server on first launch and checks it on every start, so players cannot get past "Checking update data" without it.
 
 
-5. Build and start the server from the root directory.
+4. Build and start the server from the root directory.
    ```powershell
    dotnet run --project src/SpiritUNITE
    ```
