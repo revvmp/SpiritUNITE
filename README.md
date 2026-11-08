@@ -103,16 +103,19 @@ The directory server tells the client where to find the lobby server. By default
 
 
 3. Set up HTTPS on port `443` for your domain, forwarding all paths to the account server on `127.0.0.1:10081`. Open TCP ports `80`, `443`, `8085`, `10001` and `10002`, and UDP port `10003` for battles, on your router and firewall.
-   Then point the resource archive at your domain, so players download it through your proxy:
+
+
+4. Choose where players download the resource archive. In `appsettings.json`:
+   - Leave `"BaseUrl": ""` for local development.
+   - For hosting, set it to your domain (or CDN). Serve `/resources/` over plain HTTP on port 80, not redirected to HTTPS:
    ```json
    "ResourceArchive": {
      "BaseUrl": "https://play.example.com"
    }
    ```
-   The game downloads the archive over plain HTTP, so have the proxy forward `/resources/` on port 80 to `127.0.0.1:10081` without redirecting it to HTTPS.
 
 
-4. Build the client for your domain:
+5. Build the client for your domain:
    ```powershell
    python tools/build_apk.py --apks "path/to/splits" --host play.example.com
    ```
