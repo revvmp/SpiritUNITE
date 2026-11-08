@@ -10,6 +10,8 @@ using SpiritUNITE.Battle;
 using SpiritUNITE.Database;
 using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Game.Credit;
+using SpiritUNITE.Game.Accusation;
+using SpiritUNITE.Game.BattleVoice;
 using SpiritUNITE.Game.Achievement;
 using SpiritUNITE.Game.ActivationCode;
 using SpiritUNITE.Game.Login;
@@ -20,10 +22,6 @@ using SpiritUNITE.Game.Tasks;
 using SpiritUNITE.Game.TrainerExpGift;
 using SpiritUNITE.Game.StarRoad;
 using SpiritUNITE.Game.Activity;
-using SpiritUNITE.Game.Recharge;
-using SpiritUNITE.Game.TenGames;
-using SpiritUNITE.Game.BattleVoice;
-using SpiritUNITE.Game.Accusation;
 using SpiritUNITE.Auth;
 using SpiritUNITE.Game.Chat;
 using SpiritUNITE.Game.Energy;
@@ -35,6 +33,7 @@ using SpiritUNITE.Game.Lobby;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Friend;
 using SpiritUNITE.Game.Guild;
+using SpiritUNITE.Game.TenGames;
 using SpiritUNITE.Game.Mail;
 using SpiritUNITE.Game.Newbie;
 using SpiritUNITE.Game.Observe;
@@ -42,7 +41,10 @@ using SpiritUNITE.Game.MSDKNotice;
 using SpiritUNITE.Game.FightHistory;
 using SpiritUNITE.Game.Profile;
 using SpiritUNITE.Game.PveChallenge;
+using SpiritUNITE.Game.Recharge;
 using SpiritUNITE.Game.Ranked;
+using SpiritUNITE.Game.TowerDefense;
+using SpiritUNITE.Game.RallyChallenge;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Room;
 using SpiritUNITE.Game.Settings;
@@ -194,6 +196,11 @@ public static class Server
             .Validate(options => options.IsValid(), "ActivationCode settings are invalid: codes must be distinct ASCII letters or digits of at most 32 characters, with a yyyyMMddHHmmss ValidEndTime or 0 and a MaxUseCnt of 0 or more")
             .ValidateOnStart();
 
+        builder.Services.AddOptions<MegaEvolutionOptions>()
+            .BindConfiguration(MegaEvolutionOptions.SectionName)
+            .Validate(options => options.IsValid(), "MegaEvolution settings are invalid")
+            .ValidateOnStart();
+
         builder.Services.AddOptions<HeldItemOptions>()
             .BindConfiguration(HeldItemOptions.SectionName)
             .Validate(options => options.IsValid(), "HeldItem settings are invalid")
@@ -236,17 +243,12 @@ public static class Server
         builder.Services.AddSingleton<AccountRepository>();
         builder.Services.AddSingleton<AccountTokenRepository>();
         builder.Services.AddSingleton<ActivityRepository>();
-        builder.Services.AddSingleton<CouponsFlowRepository>();
-        builder.Services.AddSingleton<PveChallengeRepository>();
-        builder.Services.AddSingleton<ActivityExchangeRepository>();
-        builder.Services.AddSingleton<FirstChargeRepository>();
-        builder.Services.AddSingleton<InviteFriendRepository>();
-        builder.Services.AddSingleton<TenGamesRepository>();
-        builder.Services.AddSingleton<CampBattleRepository>();
-        builder.Services.AddSingleton<AccusationRepository>();
-        builder.Services.AddSingleton<FabulousRepository>();
         builder.Services.AddSingleton<AchievementRepository>();
         builder.Services.AddSingleton<StarRoadRepository>();
+        builder.Services.AddSingleton<PveChallengeRepository>();
+        builder.Services.AddSingleton<ActivityExchangeRepository>();
+        builder.Services.AddSingleton<CouponsFlowRepository>();
+        builder.Services.AddSingleton<FirstChargeRepository>();
         builder.Services.AddSingleton<TrainerExpGiftRepository>();
         builder.Services.AddSingleton<ProfileRepository>();
         builder.Services.AddSingleton<FightHistoryRepository>();
@@ -255,9 +257,12 @@ public static class Server
         builder.Services.AddSingleton<TaskProcessRepository>();
         builder.Services.AddSingleton<BattleSettlementRepository>();
         builder.Services.AddSingleton<EnergyRepository>();
+        builder.Services.AddSingleton<InviteFriendRepository>();
         builder.Services.AddSingleton<EeveeChallengeRepository>();
         builder.Services.AddSingleton<CreditRepository>();
+        builder.Services.AddSingleton<AccusationRepository>();
         builder.Services.AddSingleton<WarmBattleRepository>();
+        builder.Services.AddSingleton<FabulousRepository>();
         builder.Services.AddSingleton<RankedRepository>();
         builder.Services.AddSingleton<BattlePassRepository>();
         builder.Services.AddSingleton<RoleTmpNameRepository>();
@@ -265,6 +270,8 @@ public static class Server
         builder.Services.AddSingleton<ActivationCodeRepository>();
         builder.Services.AddSingleton<VideoHistoryRepository>();
         builder.Services.AddSingleton<GuildRepository>();
+        builder.Services.AddSingleton<TenGamesRepository>();
+        builder.Services.AddSingleton<CampBattleRepository>();
     }
 
     private static void AddGameData(IHostApplicationBuilder builder)
@@ -290,10 +297,22 @@ public static class Server
         builder.Services.AddSingleton<GuildInfoBuilder>();
         builder.Services.AddSingleton<GuildComments>();
         builder.Services.AddSingleton<GuildActivityManager>();
+        builder.Services.AddSingleton<BossRushGuildActivity>();
+        builder.Services.AddSingleton<RallyChallengeRepository>();
+        builder.Services.AddSingleton<RallyChallengeManager>();
+        builder.Services.AddSingleton<AllPkmChallengeRepository>();
+        builder.Services.AddSingleton<AllPkmChallengeManager>();
+        builder.Services.AddSingleton<TowerDefenseRepository>();
+        builder.Services.AddSingleton<TowerDefenseManager>();
+        builder.Services.AddSingleton<MegaEvolutionRepository>();
+        builder.Services.AddSingleton<MegaEvolutionManager>();
+        builder.Services.AddSingleton<EventBattleRecorder>();
         builder.Services.AddSingleton<GuildActivityTasks>();
         builder.Services.AddSingleton<GuildManager>();
         builder.Services.AddSingleton<MailManager>();
         builder.Services.AddSingleton<CreditManager>();
+        builder.Services.AddSingleton<AccusationManager>();
+        builder.Services.AddSingleton<BattleVoiceManager>();
         builder.Services.AddSingleton<RankedLadder>();
         builder.Services.AddSingleton<RankedRewards>();
         builder.Services.AddSingleton<RankedManager>();
@@ -309,7 +328,9 @@ public static class Server
         builder.Services.AddSingleton<RoleInfoStore>();
         builder.Services.AddSingleton<WalletManager>();
         builder.Services.AddSingleton<EnergyManager>();
+        builder.Services.AddSingleton<InviteFriendManager>();
         builder.Services.AddSingleton<ShopManager>();
+        builder.Services.AddSingleton<MysteryShopManager>();
         builder.Services.AddSingleton<BagManager>();
         builder.Services.AddSingleton<HeldItemManager>();
         builder.Services.AddSingleton<PokemonManager>();
@@ -319,16 +340,8 @@ public static class Server
         builder.Services.AddSingleton<ActivationCodeManager>();
         builder.Services.AddSingleton<ActivitySchedule>();
         builder.Services.AddSingleton<ActivityManager>();
-        builder.Services.AddSingleton<AccusationManager>();
-        builder.Services.AddSingleton<BattleVoiceManager>();
-        builder.Services.AddSingleton<SettleFabulous>();
-        builder.Services.AddSingleton<MysteryShopManager>();
-        builder.Services.AddSingleton<ActivityProgressPushes>();
-        builder.Services.AddSingleton<PveChallengeManager>();
-        builder.Services.AddSingleton<ActivityExchangeManager>();
-        builder.Services.AddSingleton<RechargeManager>();
-        builder.Services.AddSingleton<FirstChargeManager>();
-        builder.Services.AddSingleton<InviteFriendManager>();
+        builder.Services.AddSingleton<EeveeChallengePool>();
+        builder.Services.AddSingleton<EeveeChallengeManager>();
         builder.Services.AddSingleton<CampBattleManager>();
         builder.Services.AddSingleton<MatchPredictionManager>();
         builder.Services.AddSingleton<TenGamesBPActivityManager>();
@@ -336,8 +349,6 @@ public static class Server
         builder.Services.AddSingleton<TenGamesTeamInfoBuilder>();
         builder.Services.AddSingleton<TenGamesManager>();
         builder.Services.AddSingleton<TenGamesBattleRecorder>();
-        builder.Services.AddSingleton<EeveeChallengePool>();
-        builder.Services.AddSingleton<EeveeChallengeManager>();
         builder.Services.AddSingleton<AchievementManager>();
         builder.Services.AddSingleton<TaskUpdates>();
         builder.Services.AddSingleton<StarRoadManager>();
@@ -356,14 +367,20 @@ public static class Server
         builder.Services.AddHostedService(services => services.GetRequiredService<MatchScheduler>());
         builder.Services.AddSingleton<SettleTeamPresence>();
         builder.Services.AddSingleton<ActivityRewardNotices>();
+        builder.Services.AddSingleton<ActivityProgressPushes>();
         builder.Services.AddSingleton<DeskManager>();
         builder.Services.AddSingleton<PveChallengeProgress>();
+        builder.Services.AddSingleton<PveChallengeManager>();
+        builder.Services.AddSingleton<ActivityExchangeManager>();
+        builder.Services.AddSingleton<RechargeManager>();
+        builder.Services.AddSingleton<FirstChargeManager>();
         builder.Services.AddSingleton<NewbieManager>();
         builder.Services.AddSingleton<NewbieGiftManager>();
         builder.Services.AddSingleton<NewbieChallengeManager>();
         builder.Services.AddSingleton<NewbieChallengeTaskManager>();
         builder.Services.AddSingleton<MvpScore>();
         builder.Services.AddSingleton<RankPointMedals>();
+        builder.Services.AddSingleton<SettleFabulous>();
         builder.Services.AddSingleton<BattleSettlement>();
         builder.Services.AddSingleton<RelayManager>();
         builder.Services.AddSingleton<ObserveManager>();

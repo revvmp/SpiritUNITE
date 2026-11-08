@@ -123,12 +123,15 @@ public sealed class BattleSettlement
     private readonly FriendPresence presence;
     private readonly ActivityRewardNotices rewardNotices;
     private readonly GuildActivityTasks guildActivityTasks;
+    private readonly EventBattleRecorder eventBattles;
     private readonly TenGamesBattleRecorder tenGamesBattles;
+    private readonly FriendRepository friends;
     private readonly GVoiceOptions gVoice;
     private readonly BattleSettlementOptions options;
     private readonly TimeProvider clock;
     private readonly ILogger<BattleSettlement> logger;
     private readonly IReadOnlyDictionary<int, int> pokemonIdByHeroID;
+    private readonly IReadOnlySet<int> eeveelutionPokemonIDs;
     private readonly ILookup<int, pbDrop_Static> dropsById;
     private readonly ConcurrentDictionary<ulong, pbSCMultiGameSettleGainRsp> settleGains = new();
     private static readonly BattleTaskUpdate NoBattleTasks = new([], 0, 0, null);
@@ -164,7 +167,9 @@ public sealed class BattleSettlement
         FriendPresence presence,
         ActivityRewardNotices rewardNotices,
         GuildActivityTasks guildActivityTasks,
+        EventBattleRecorder eventBattles,
         TenGamesBattleRecorder tenGamesBattles,
+        FriendRepository friends,
         IOptions<GVoiceOptions> gVoiceOptions,
         IOptions<BattleSettlementOptions> options,
         TimeProvider clock,
@@ -200,7 +205,9 @@ public sealed class BattleSettlement
         this.presence = presence;
         this.rewardNotices = rewardNotices;
         this.guildActivityTasks = guildActivityTasks;
+        this.eventBattles = eventBattles;
         this.tenGamesBattles = tenGamesBattles;
+        this.friends = friends;
         gVoice = gVoiceOptions.Value;
         this.options = options.Value;
         this.clock = clock;
@@ -210,6 +217,7 @@ public sealed class BattleSettlement
             .GroupBy(row => row.MainUnitId)
             .ToDictionary(group => group.Key, group => group.First().PokemonId);
         dropsById = gameData.DropStatic.Rows.OrderBy(drop => drop.SDropSeq).ToLookup(drop => drop.SDropID);
+        eeveelutionPokemonIDs = BattleTasks.FindEeveelutionPokemonIDs(gameData.TaskBase.Rows);
     }
 
     public pbSCMultiGameSettleGainRsp? FindSettleGain(ulong uid) => settleGains.GetValueOrDefault(uid);
@@ -342,6 +350,10 @@ public sealed class BattleSettlement
             await guildActivityTasks.RecordBattleAsync(uid, BuildGuildBattle(result, mvp));
         }
 
+        var eventBattlePushes = IsCustomBattle(result)
+            ? []
+            : await eventBattles.RecordAsync(role, plan.Won, result.Desk.DeskInfo.MapId, pokemonIdByHeroID.GetValueOrDefault(plan.HeroID));
+
         var creditPointNtf = result.QuitByExitButton ? null
             : hangupType != PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeNone ? await credit.PenalizeHangupAsync(uid, BuildCreditReduceBattle(result), hangupType)
             : await credit.RecoverAfterBattleAsync(uid, result.Desk.DeskInfo.MapId, result.Desk.DeskInfo.ManMachine == CpuMatch.ManMachine);
@@ -368,6 +380,11 @@ public sealed class BattleSettlement
         {
             logger.LogInformation("Settlement of uid {Uid} was stored but not delivered: the push failed", uid);
             return;
+        }
+
+        if (eventBattlePushes.Length > 0)
+        {
+            await lobbyRoles.PushAsync(uid, eventBattlePushes);
         }
 
         if (HasSettleRoom(result))
@@ -431,7 +448,7 @@ public sealed class BattleSettlement
 
     private async Task<BattleTaskUpdate> RecordBattleTasksAsync(LMNRoleInfo role, BattleResult result, SettlementPlan plan, long now)
     {
-        var battleTaskEvent = BuildBattleTaskEvent(result, plan);
+        var battleTaskEvent = await BuildBattleTaskEventAsync(result, plan);
         var newbieChallengeProgress = await newbieChallengeTaskManager.RecordBattleAsync(role, battleTaskEvent);
         return await taskUpdates.RecordBattleAsync(
             role,
@@ -764,14 +781,17 @@ public sealed class BattleSettlement
     private int NewbiePrivilegeShareOf(int amount, PB_ENUM_RES_RESGLOBAL privilegeGlobalId) =>
         amount * gameData.GetGlobalIntData(privilegeGlobalId) / NewbiePrivilegeRatioBase;
 
-    private BattleTaskEvent BuildBattleTaskEvent(BattleResult result, SettlementPlan plan)
+    private async Task<BattleTaskEvent> BuildBattleTaskEventAsync(BattleResult result, SettlementPlan plan)
     {
         var statistic = result.Gameover.AcntInfo
             .FirstOrDefault(info => info.AcntUid == result.Human.Uid && info.ObjType == AcntObjType)?
             .CommonData?.PokemonData?.PokemonBattleStatistic;
         var sceneInteraction = statistic?.BaseStatistic?.SceneInteractionInfo;
         var joinKills = statistic?.KillMonster?.JoinKilltMonsterDetail
-            .Select(kill => new BattleMonsterKill(kill.MonsterID, gameData.UnitBase.Find(kill.MonsterID)?.MonsterClassType ?? NoMonsterClass, Math.Max(0, kill.KillCnt)))
+            .Select(kill => new BattleMonsterKill(
+                kill.MonsterID,
+                gameData.UnitBase.Find(kill.MonsterID)?.MonsterClassType ?? NoMonsterClass,
+                Math.Max(0, kill.KillCnt)))
             .ToArray() ?? [];
         var occupationType = pokemonIdByHeroID.TryGetValue(plan.HeroID, out var pokemonId)
             ? gameData.PokemonBase.Find(pokemonId)?.OccupationType ?? NoOccupation
@@ -787,7 +807,26 @@ public sealed class BattleSettlement
             Math.Max(0, statistic?.BreakCnt ?? 0),
             BattleTasks.AddCounts(sceneInteraction?.PickRecoverBerry ?? 0, sceneInteraction?.PickMoveBerry ?? 0),
             heldItemIDs.Any(heldItemID => heldItemID != NoHeldItem),
-            joinKills);
+            joinKills)
+        {
+            IsManMachine = result.Desk.DeskInfo.ManMachine == CpuMatch.ManMachine,
+            PokemonID = pokemonId,
+            IsEeveelution = eeveelutionPokemonIDs.Contains(pokemonId),
+            CampPokemonIDs = [.. result.Desk.CampOf(result.Human.CampClient).Select(player => PokemonIdOf(player.ChosenHeroID))],
+            PlayedWithFriend = await PlayedWithFriendAsync(result),
+        };
+    }
+
+    private int PokemonIdOf(int heroID) => pokemonIdByHeroID.GetValueOrDefault(heroID, NoPokemon);
+
+    private async Task<bool> PlayedWithFriendAsync(BattleResult result)
+    {
+        var teammateUids = result.Desk.CampOf(result.Human.CampClient)
+            .Where(player => !player.IsNpc && player.Uid != result.Human.Uid)
+            .Select(player => player.Uid)
+            .ToHashSet();
+        return teammateUids.Count > 0
+            && (await friends.GetFriendsAsync(result.Human.Uid)).Any(friend => teammateUids.Contains(friend.FriendUid));
     }
 
     private static GuildBattle BuildGuildBattle(BattleResult result, MvpResult mvp)

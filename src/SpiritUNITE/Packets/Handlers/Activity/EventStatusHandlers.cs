@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SpiritUNITE.Game.Activity;
+using SpiritUNITE.Game.PveChallenge;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
 
@@ -9,11 +10,10 @@ public sealed class EventStatusHandlers(
     ActivitySchedule schedule,
     RoleInfoStore roles,
     EeveeChallengeManager eeveeChallengeManager,
+    PveChallengeManager pveChallengeManager,
     TimeProvider clock,
     ILogger<EventStatusHandlers> logger)
 {
-    private const int NoPrivilegeExpireTime = 0;
-
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidMysteryShopInfoReq)]
     public GamePacket[] OnMysteryShopInfoReq(GamePacket request)
     {
@@ -52,7 +52,7 @@ public sealed class EventStatusHandlers(
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetPvePrivilegeInfoReq)]
-    public GamePacket[] OnGetPvePrivilegeInfoReq(GamePacket request)
+    public async Task<GamePacket[]> OnGetPvePrivilegeInfoReq(GamePacket request)
     {
         var activityID = pbCSGetPvePrivilegeInfoReq.Parser.ParseFrom(request.PkgData).ActivityID;
         var result = schedule.IsOpen(activityID, PB_ENUM_RES_ACTIVITY_TYPE.PbResActivityTypePvePrivilege, clock.GetUtcNow())
@@ -68,7 +68,9 @@ public sealed class EventStatusHandlers(
         {
             ResultInfo = new pbResultInfo { ResultId = (int)result },
             ActivityID = activityID,
-            ActivityInfo = new pbCOMDT_PVE_PRIVILEGE_ACTIVITY_INFO { PrivilegeExpireTime = NoPrivilegeExpireTime },
+            ActivityInfo = result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc
+                ? await pveChallengeManager.BuildPrivilegeInfoAsync(roles.Require(request.Uid).GameUlongUID, activityID)
+                : new pbCOMDT_PVE_PRIVILEGE_ACTIVITY_INFO(),
         };
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetPvePrivilegeInfoRsp, response)];
     }

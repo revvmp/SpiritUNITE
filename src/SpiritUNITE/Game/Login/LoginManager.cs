@@ -18,6 +18,7 @@ using SpiritUNITE.Game.Match;
 using SpiritUNITE.Game.Newbie;
 using SpiritUNITE.Game.Pokemon;
 using SpiritUNITE.Game.Profile;
+using SpiritUNITE.Game.RallyChallenge;
 using SpiritUNITE.Game.Ranked;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Settings;
@@ -38,6 +39,8 @@ public sealed class LoginManager(
     GameData gameData,
     ActivityManager activityManager,
     EeveeChallengeManager eeveeChallengeManager,
+    RallyChallengeManager rallyChallenge,
+    MegaEvolutionManager megaEvolution,
     BagManager bag,
     BadgeManager badges,
     ChatManager chat,
@@ -123,7 +126,7 @@ public sealed class LoginManager(
         await warmBattles.LoadAsync(role.GameUlongUID);
 
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
-        return new pbSCAcntLoginRsp
+        var acntLoginRsp = new pbSCAcntLoginRsp
         {
             ResultInfo = new pbResultInfo(),
             IsSucc = LoginSucceeded,
@@ -189,6 +192,8 @@ public sealed class LoginManager(
             NoneRechargeInfo = new pbCOMDT_NONE_RECHARGE_ACTIVITY_VIEW_INFO(),
             PersonaliseButtonInfo = new pbCOMDT_PERSONALISE_BUTTON_LIST(),
         };
+        await rallyChallenge.FillAcntLoginRspAsync(role.GameUlongUID, acntLoginRsp);
+        return acntLoginRsp;
     }
 
     public async Task<GamePacket[]> BuildLoginFinishAsync(GamePacket request, LMNRoleInfo role, bool offingRestart)
@@ -243,6 +248,7 @@ public sealed class LoginManager(
         }
 
         replies.Add(PbScidActivityLoginShowNtf, new pbSCActivityLoginShowNtf());
+        replies.AddRange(await megaEvolution.BuildLoginNtfsAsync(role.GameUlongUID));
         AddRedDots(replies, clientSettings);
         replies.Add(await tenGames.BuildInviteRedDotAsync(role.GameUlongUID));
         return replies.ToArray();
@@ -290,6 +296,7 @@ public sealed class LoginManager(
         replies.Add(PbScidUpdateTaskInfoNtf, ownershipTasks);
         replies.Add(PbScidWeeklySettleCookieNtf, LobbyNotices.BuildWeeklySettleCookieNtf());
         replies.Add(PbScidActivityLoginShowNtf, new pbSCActivityLoginShowNtf());
+        replies.AddRange(await megaEvolution.BuildLoginNtfsAsync(role.GameUlongUID));
         AddRedDots(replies, clientSettings);
         replies.AddRange(await BuildCouponsRefreshPacketsAsync(uid));
         replies.Add(await tenGames.BuildInviteRedDotAsync(uid));
