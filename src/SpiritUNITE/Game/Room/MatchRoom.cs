@@ -39,7 +39,7 @@ public sealed class MatchRoom(int roomID, long roomSeq, int roomShowId, ulong ma
     public const int JudgeCampCapacity = (int)PB_MACRO_COM_MAX_JUDGE_NUM.PbComMaxJudgeNum;
 
     private const int FirstTeamFlag = 1;
-    private const ulong FirstBotUid = 1;
+    private const int NoReservedInOrderUids = 0;
     private const int GameEntityTypeBits = 12;
     private const int LobbyGameEntityType = 0x008;
     private const int FirstGameEntityInstance = 1;
@@ -140,12 +140,7 @@ public sealed class MatchRoom(int roomID, long roomSeq, int roomShowId, ulong ma
 
     public RoomBot AddBot(int campClient, int posOfCamp, pbAiInfoConfig row)
     {
-        var uid = FirstBotUid;
-        while (bots.Any(bot => bot.Uid == uid) || members.Any(member => member.Uid == uid))
-        {
-            uid++;
-        }
-
+        var uid = new NpcUids(members.Select(member => member.Uid).Concat(bots.Select(bot => bot.Uid))).NextRandom(NoReservedInOrderUids);
         var bot = new RoomBot(uid, campClient, posOfCamp, row);
         bots.Add(bot);
         return bot;
