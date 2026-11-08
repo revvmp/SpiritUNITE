@@ -4,7 +4,7 @@ SpiritUNITE is a C# server emulator for the [Pokemon UNITE](https://en.wikipedia
 
 ## Gallery
 
-Screenshots coming soon.
+![Frieren in lobby](gallery/frieren-lobby.png)
 
 ## Environment Setup
 
