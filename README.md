@@ -37,13 +37,28 @@ Screenshots coming soon.
    copy src/SpiritUNITE/appsettings.example.json src/SpiritUNITE/appsettings.json
    ```
 
-4. Put the game's resource archive in `resources/1169/`. The game downloads about 7 GB from it on first launch and checks it on every start, so players cannot get past "Checking update data" without it. See [resources/README.md](resources/README.md).
+4. Download the game resources (see [Download the Game Resources](#download-the-game-resources)). The game downloads about 7 GB from your server on first launch and checks it on every start, so players cannot get past "Checking update data" without it.
 
 
 5. Build and start the server from the root directory.
    ```powershell
    dotnet run --project src/SpiritUNITE
    ```
+
+## Download the Game Resources
+
+Your server hands players the files the game downloads on first launch: one resource archive per platform and the shop, outfit and event images. Get them from the official servers while they are still up (until March 23, 2027). No APK is needed.
+
+```powershell
+python tools/fetch_resources.py archives
+python tools/fetch_resources.py images
+```
+
+- `archives` downloads the Android (about 7.8 GB) and iOS (about 7.7 GB) archives into `resources/1169/` and `resources/1170/`. Use `--platform android` or `--platform ios` for just one.
+- `images` downloads about 1.3 GB of images into `resources/images/`.
+- If a download stops, run the same command again to continue. Every file is checked against its official MD5.
+
+Files go in the folder set by `ResourceArchive.Directory` in `appsettings.json` (`resources/` by default). See [resources/README.md](resources/README.md) for the layout.
 
 ## Build the APK
 
