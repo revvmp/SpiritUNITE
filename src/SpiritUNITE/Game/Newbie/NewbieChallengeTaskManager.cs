@@ -161,10 +161,7 @@ public sealed class NewbieChallengeTaskManager(
             pushes.AddRange(await starRoad.BuildSpecialCoinChangePacketsAsync(role, licensePointsBefore));
         }
 
-        if (grant.Change.CoinGrants.Keys.Any(CoinID.WalletCoins.Contains))
-        {
-            pushes.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidGetCoinValNtf, new pbSCGetCoinValNtf { CoinInfo = wallet.BuildCoinInfo() }));
-        }
+        pushes.AddRange(wallet.BuildCoinValPushes(grant.Change.CoinGrants.Keys));
 
         if (commit.ChangedItems.Count > 0)
         {

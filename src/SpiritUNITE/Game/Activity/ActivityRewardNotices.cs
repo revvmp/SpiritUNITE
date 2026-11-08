@@ -25,10 +25,7 @@ public sealed class ActivityRewardNotices(StarRoadManager starRoad)
                 SpecialCoin.BuildSpecialCoinChangeNtf(coinID, beforeCoinNum, rewards.Wallet.GetCoinVal(coinID))));
         }
 
-        if (rewards.WalletCoinsChanged)
-        {
-            packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidGetCoinValNtf, new pbSCGetCoinValNtf { CoinInfo = rewards.Wallet.BuildCoinInfo() }));
-        }
+        packets.AddRange(rewards.Wallet.BuildCoinValPushes(rewards.ChangedCoinIDs));
 
         if (rewards.ChangedItems.Count > 0)
         {

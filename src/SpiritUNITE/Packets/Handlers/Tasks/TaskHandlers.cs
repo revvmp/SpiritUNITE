@@ -258,6 +258,9 @@ public sealed class TaskHandlers(
                 TaskInfo = taskInfo,
             }),
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetCoinValNtf, new pbSCGetCoinValNtf { CoinInfo = wallet.BuildCoinInfo() }),
+            .. reward.Coins.ContainsKey(CoinID.Coupons)
+                ? [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAcntCouponsRsp, wallet.BuildAcntCouponsRsp())]
+                : Array.Empty<GamePacket>(),
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidResourcesAwardNotify, reward.BuildResourcesAwardNotify()),
             response,
         ];

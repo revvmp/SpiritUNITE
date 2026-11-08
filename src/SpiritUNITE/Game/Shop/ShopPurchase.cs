@@ -1,3 +1,4 @@
+using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
@@ -14,6 +15,8 @@ public sealed record ShopPurchase(
     private const int AwardedPokemonCount = 1;
 
     public IReadOnlyList<BagCost> ItemCosts { get; init; } = [];
+
+    public CouponsFlowEntry? CouponsFlow { get; init; }
 
     public pbSCResourcesAwardNotify BuildResourcesAwardNotify()
     {

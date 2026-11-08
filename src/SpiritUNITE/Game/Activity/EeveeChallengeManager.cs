@@ -181,9 +181,7 @@ public sealed class EeveeChallengeManager(
         .. commit.SpecialCoinsBefore.Select(coin => GamePacket.Create(
             PB_ENUM_CS_MSGID_DEF.PbScidSpecialCoinChangeNtf,
             SpecialCoin.BuildSpecialCoinChangeNtf(coin.Key, coin.Value, wallet.GetCoinVal(coin.Key)))),
-        .. CoinID.WalletCoins.Contains(item.Transmuteid)
-            ? new[] { GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidGetCoinValNtf, new pbSCGetCoinValNtf { CoinInfo = wallet.BuildCoinInfo() }) }
-            : [],
+        .. wallet.BuildCoinValPushes([item.Transmuteid]),
         GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidResourcesAwardNotify, new pbSCResourcesAwardNotify
         {
             ResultInfo = new pbResultInfo(),

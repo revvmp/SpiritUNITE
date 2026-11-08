@@ -4,6 +4,7 @@ using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.PokemonAvatar;
 using SpiritUNITE.Tools;
+using SpiritUNITE.Game.Recharge;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Packets.Messages;
@@ -140,7 +141,11 @@ public sealed class ShopManager(
             return new(PB_ENUM_RES_ERROR_CODE.PbErrNotEnoughCoin);
         }
 
-        var purchase = new ShopPurchase(coinCosts, items, pokemonIds, changedRecords, outSideItems) { ItemCosts = itemCosts };
+        var purchase = new ShopPurchase(coinCosts, items, pokemonIds, changedRecords, outSideItems)
+        {
+            ItemCosts = itemCosts,
+            CouponsFlow = CouponsFlow.SpendInShop(shopBuyInfo, gameData, coinCosts.GetValueOrDefault(CoinID.Coupons), now),
+        };
         var (commitResult, walletAfter, changedBagItems) = await repository.CommitPurchaseAsync(
             role.GameUlongUID,
             purchase,

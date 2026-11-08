@@ -333,7 +333,7 @@ public sealed class BattlePassManager(
         var change = grant.Change;
         var rewardGroup = new ActivityRewardGroup(
             wallet,
-            change.CoinCosts.Keys.Concat(change.CoinGrants.Keys).Any(CoinID.WalletCoins.Contains),
+            [.. change.CoinCosts.Keys.Union(change.CoinGrants.Keys)],
             commit.SpecialCoinsBefore,
             commit.ChangedItems,
             grant.PokemonIds,
@@ -349,9 +349,6 @@ public sealed class BattlePassManager(
                 })),
             .. PokemonAvatarManager.BuildGainPushes(grant.Items),
             .. await rewardNotices.BuildAsync(role, rewardGroup),
-            .. change.CoinCosts.ContainsKey(CoinID.Coupons)
-                ? [GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidAcntCouponsRsp, wallet.BuildAcntCouponsRsp())]
-                : Array.Empty<GamePacket>(),
             .. grant.Awards.Count > 0
                 ? [GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidResourcesAwardNotify, new pbSCResourcesAwardNotify
                 {

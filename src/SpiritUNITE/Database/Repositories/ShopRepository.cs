@@ -92,6 +92,11 @@ public sealed class ShopRepository(DataOptions options)
             });
         }
 
+        if (purchase.CouponsFlow is { } couponsFlow)
+        {
+            await CouponsFlowRepository.AddAsync(database, gameUlongUID, couponsFlow);
+        }
+
         var wallet = await WalletRepository.ReadAsync(database, gameUlongUID);
         var changedBagItems = await BagRepository.ReadItemsAsync(
             database,

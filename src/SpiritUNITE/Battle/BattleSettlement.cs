@@ -705,7 +705,7 @@ public sealed class BattleSettlement
             .CommonData?.PokemonData?.PokemonBattleStatistic;
         var sceneInteraction = statistic?.BaseStatistic?.SceneInteractionInfo;
         var joinKills = statistic?.KillMonster?.JoinKilltMonsterDetail
-            .Select(kill => new BattleMonsterKill(gameData.UnitBase.Find(kill.MonsterID)?.MonsterClassType ?? NoMonsterClass, Math.Max(0, kill.KillCnt)))
+            .Select(kill => new BattleMonsterKill(kill.MonsterID, gameData.UnitBase.Find(kill.MonsterID)?.MonsterClassType ?? NoMonsterClass, Math.Max(0, kill.KillCnt)))
             .ToArray() ?? [];
         var occupationType = pokemonIdByHeroID.TryGetValue(plan.HeroID, out var pokemonId)
             ? gameData.PokemonBase.Find(pokemonId)?.OccupationType ?? NoOccupation

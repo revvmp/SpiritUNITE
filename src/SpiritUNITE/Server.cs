@@ -232,6 +232,7 @@ public static class Server
         builder.Services.AddSingleton<AccountRepository>();
         builder.Services.AddSingleton<AccountTokenRepository>();
         builder.Services.AddSingleton<ActivityRepository>();
+        builder.Services.AddSingleton<CouponsFlowRepository>();
         builder.Services.AddSingleton<AchievementRepository>();
         builder.Services.AddSingleton<StarRoadRepository>();
         builder.Services.AddSingleton<TrainerExpGiftRepository>();

@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
+using SpiritUNITE.Auth;
 using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Game.Bag;
 using SpiritUNITE.Game.Pokemon;
-using SpiritUNITE.Game.PokemonAvatar;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Tasks;
@@ -19,6 +19,7 @@ public sealed class ActivityManager(
     EeveeChallengeRepository eeveeChallenges,
     EeveeChallengePool eeveePool,
     BagManager bag,
+    AccountManager accounts,
     GameData gameData,
     TimeProvider clock,
     ILogger<ActivityManager> logger)
@@ -68,7 +69,16 @@ public sealed class ActivityManager(
     public async Task<int> CountCompleteTasksAsync(LMNRoleInfo role) =>
         (await BuildTaskInfoListAsync(role)).Count(task => task.Status == (int)PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusComplete);
 
-    public async Task<ActivityBattleProgress> RecordBattleAsync(LMNRoleInfo role, BattleTaskEvent battle)
+    public Task<ActivityBattleProgress> RecordBattleAsync(LMNRoleInfo role, BattleTaskEvent battle) =>
+        RecordProgressAsync(role, "Battle", (task, now) => FindBattleIncrement(task, battle, now));
+
+    public Task<ActivityBattleProgress> RecordClientActionAsync(LMNRoleInfo role, Func<pbFinishCondition, bool> isCountedAction) =>
+        RecordProgressAsync(role, "Client action", (task, now) => FindClientActionIncrement(task, isCountedAction, now));
+
+    private async Task<ActivityBattleProgress> RecordProgressAsync(
+        LMNRoleInfo role,
+        string progressSource,
+        Func<ActiveActivityTask, DateTimeOffset, IEnumerable<TaskProcessIncrement>> findIncrements)
     {
         var now = clock.GetUtcNow();
         var tasks = (await FindRoleTasksAsync(role, now))
@@ -78,7 +88,7 @@ public sealed class ActivityManager(
             .ToArray();
         var before = await LoadProgressAsync(role, tasks, now);
         var completeCountBefore = tasks.Count(task => before.Evaluate(task).Status == PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusComplete);
-        var increments = tasks.Select(task => FindBattleIncrement(task, battle, now)).OfType<TaskProcessIncrement>().ToArray();
+        var increments = tasks.SelectMany(task => findIncrements(task, now)).ToArray();
         if (increments.Length == 0)
         {
             return new ActivityBattleProgress([], completeCountBefore, completeCountBefore);
@@ -86,7 +96,7 @@ public sealed class ActivityManager(
 
         if (!await taskProcesses.AddAsync(role.GameUlongUID, increments, now.ToUnixTimeSeconds()))
         {
-            logger.LogWarning("Battle task progress of uid {Uid} was not stored: the role row is missing", role.GameUlongUID);
+            logger.LogWarning("{ProgressSource} task progress of uid {Uid} was not stored: the role row is missing", progressSource, role.GameUlongUID);
             return new ActivityBattleProgress([], completeCountBefore, completeCountBefore);
         }
 
@@ -144,12 +154,18 @@ public sealed class ActivityManager(
             .Select(task => new ActiveActivityTask(activity, task, unlockedAt));
     }
 
-    private static TaskProcessIncrement? FindBattleIncrement(ActiveActivityTask task, BattleTaskEvent battle, DateTimeOffset now)
+    private static IEnumerable<TaskProcessIncrement> FindBattleIncrement(ActiveActivityTask task, BattleTaskEvent battle, DateTimeOffset now) =>
+        BattleTasks.FindBattleIncrements(task.Task, FindPeriodStart(task, now).ToUnixTimeSeconds(), battle);
+
+    private static IEnumerable<TaskProcessIncrement> FindClientActionIncrement(
+        ActiveActivityTask task,
+        Func<pbFinishCondition, bool> isCountedAction,
+        DateTimeOffset now)
     {
         var conditions = task.Task.FinishCondition.Where(condition => condition.ID != NoCondition).ToArray();
-        return conditions is [var condition] && BattleTasks.MeasureBattle(condition, battle) is { } delta
-            ? new TaskProcessIncrement(task.Task.TaskID, FindPeriodStart(task, now).ToUnixTimeSeconds(), delta, condition.TargetProcess)
-            : null;
+        return conditions is [var condition] && ActivityClientActions.IsClientAction(condition) && isCountedAction(condition)
+            ? [new TaskProcessIncrement(task.Task.TaskID, FindPeriodStart(task, now).ToUnixTimeSeconds(), ActivityClientActions.ActionCount, condition.TargetProcess)]
+            : [];
     }
 
     public async Task<ActivityTaskClaim> ClaimAsync(LMNRoleInfo role, int taskId)
@@ -283,7 +299,7 @@ public sealed class ActivityManager(
 
         return new ActivityRewardGroup(
             grants[^1].Commit.Wallet!,
-            grants.Any(grant => grant.Grant.Change.CoinGrants.Keys.Any(CoinID.WalletCoins.Contains)),
+            [.. grants.SelectMany(grant => grant.Grant.Change.CoinGrants.Keys).Distinct()],
             specialCoinsBefore,
             [.. grants.SelectMany(grant => grant.Commit.ChangedItems)
                 .GroupBy(item => (item.ItemType, item.ItemId))
@@ -311,13 +327,20 @@ public sealed class ActivityManager(
 
     private TaskProcessIncrement[] FindAddResIdIncrements(IReadOnlyDictionary<int, int> addedResources, DateTimeOffset now) =>
     [
-        .. FindAddResIdTasks(addedResources.Keys.ToHashSet(), now).Select(task =>
-        {
-            var condition = FindAddResIdCondition(task)!;
-            var delta = condition.ParamA.Distinct()
-                .Aggregate(0, (total, resId) => BattleTasks.AddCounts(total, addedResources.GetValueOrDefault(resId)));
-            return new TaskProcessIncrement(task.Task.TaskID, FindPeriodStart(task, now).ToUnixTimeSeconds(), delta, condition.TargetProcess);
-        }),
+        .. schedule.FindActiveTasks(now)
+            .DistinctBy(task => task.Task.TaskID)
+            .OrderBy(task => task.Task.TaskID)
+            .SelectMany(task => task.Task.FinishCondition
+                .Select((condition, conditionIndex) => (Condition: condition, ConditionIndex: conditionIndex))
+                .Where(pair => pair.Condition.ID == (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdAddResId
+                    && pair.Condition.ParamA.Any(addedResources.ContainsKey))
+                .Select(pair => new TaskProcessIncrement(
+                    task.Task.TaskID,
+                    FindPeriodStart(task, now).ToUnixTimeSeconds(),
+                    pair.Condition.ParamA.Distinct()
+                        .Aggregate(0, (total, resId) => BattleTasks.AddCounts(total, addedResources.GetValueOrDefault(resId))),
+                    pair.Condition.TargetProcess,
+                    pair.ConditionIndex))),
     ];
 
     private async Task<(PB_ENUM_RES_ERROR_CODE Result, ActivityTaskState? State, ActivityTaskGrantResult? Grant)> ClaimEvaluatedAsync(
@@ -381,6 +404,49 @@ public sealed class ActivityManager(
         return (PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, claimed, new ActivityTaskGrantResult(grant, commit));
     }
 
+    public ActivityTaskGrant? PlanDropGrant(LMNRoleInfo role, int sDropID, long rewardTime) =>
+        BuildGrant(role, [.. schedule.FindDrops(sDropID)], rewardTime);
+
+    public ActivityTaskGrant? PlanResourceGrant(LMNRoleInfo role, int resID, int resNum, long rewardTime) =>
+        BuildGrant(role, [new pbDrop_Static { ResID = resID, ResNum = resNum }], rewardTime);
+
+    public static void GrantToRole(LMNRoleInfo role, ActivityTaskGrant grant, long rewardTime, PB_ENUM_ENM_RESOURCE_CHG_REASON reason)
+    {
+        foreach (var item in grant.Items)
+        {
+            role.GrantItem(item.ItemType, item.ItemId, item.GainTime, item.TimeLimited, item.NewTag);
+        }
+
+        foreach (var pokemonId in grant.PokemonIds)
+        {
+            role.GrantPokemon(pokemonId, rewardTime, (int)reason);
+        }
+    }
+
+    public TaskProcessIncrement[] PlanTaskGroupIncrements(PB_ENUM_RES_CONDITION_ID conditionId, int groupId, int delta)
+    {
+        var now = clock.GetUtcNow();
+        return
+        [
+            .. schedule.FindActiveTasksInGroup(groupId, now)
+                .Select(task => (Task: task, Condition: task.Task.FinishCondition.FirstOrDefault(condition => condition.ID == (int)conditionId)))
+                .Where(pair => pair.Condition is not null)
+                .Select(pair => new TaskProcessIncrement(
+                    pair.Task.Task.TaskID,
+                    FindPeriodStart(pair.Task, now).ToUnixTimeSeconds(),
+                    delta,
+                    pair.Condition!.TargetProcess)),
+        ];
+    }
+
+    public ActivityTaskFinish? PlanTaskFinish(int taskId)
+    {
+        var now = clock.GetUtcNow();
+        return schedule.FindActiveTask(taskId, now) is { } task
+            ? new ActivityTaskFinish(taskId, FindPeriodStart(task, now).ToUnixTimeSeconds(), now.ToUnixTimeSeconds())
+            : null;
+    }
+
     private ActivityTaskGrant? BuildGrant(LMNRoleInfo role, pbDrop_Static[] drops, long rewardTime)
     {
         var items = new List<RoleItemInfo>();
@@ -411,14 +477,14 @@ public sealed class ActivityManager(
 
                 license.AddTo(pokemonIds, coins, awards);
             }
-            else if (PasterGrant.IsPaster(gameData, drop.ResID))
+            else if (CosmeticGrant.FindItemType(gameData, drop.ResID) is not null)
             {
-                if (PasterGrant.Plan(gameData, bag, role, drop.ResID, drop.ResNum, rewardTime, items) is not { } paster)
+                if (CosmeticGrant.Plan(gameData, bag, role, drop.ResID, drop.ResNum, rewardTime, items) is not { } cosmetic)
                 {
                     return null;
                 }
 
-                paster.AddTo(items, bagGrants, coins, awards);
+                cosmetic.AddTo(items, bagGrants, coins, awards);
             }
             else if (drop.ResNum == GrantableRewardCount && gameData.LobbyBg.Contains(drop.ResID))
             {
@@ -455,14 +521,24 @@ public sealed class ActivityManager(
         var rewards = await repository.FindTaskRewardsAsync(uid, earliest.ToUnixTimeSeconds());
         var roleCreateTime = await roleRepository.FindCreateTimeAsync(uid);
         var storedProcesses = await taskProcesses.FindAsync(uid);
+        var finishes = await repository.FindTaskFinishesAsync(uid, earliest.ToUnixTimeSeconds());
+        var bindingAccount = tasks.Any(task => task.Task.FinishCondition.Any(IsBindingAccount)) && await HasBoundAccountAsync(uid);
         return new ActivityTaskProgress(
             periods,
             loginDays,
             rewards,
+            finishes,
             storedProcesses,
             RoleProfile.GetLevel(gameData, role),
-            roleCreateTime);
+            roleCreateTime,
+            bindingAccount);
     }
+
+    private async Task<bool> HasBoundAccountAsync(ulong uid) =>
+        (await accounts.FindBoundChannelsAsync(uid)).Any(channel => channel != LoginPlatform.GUEST);
+
+    private static bool IsBindingAccount(pbFinishCondition condition) =>
+        condition.ID == (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdBindingAccount;
 
     private static DateTimeOffset FindPeriodStart(ActiveActivityTask task, DateTimeOffset now)
     {
@@ -485,23 +561,42 @@ public sealed class ActivityManager(
         Dictionary<int, DateTimeOffset> periodStarts,
         DateOnly[] loginDays,
         ActivityTaskReward[] rewards,
+        ActivityTaskFinish[] finishes,
         IReadOnlyDictionary<(int TaskId, long PeriodStart), StoredTaskProcess> storedProcesses,
         int trainerLevel,
-        long roleCreateTime)
+        long roleCreateTime,
+        bool bindingAccount)
     {
+        private const int BoundAccount = 1;
+        private const int NoBoundAccount = 0;
+
         public ActivityTaskState Evaluate(ActiveActivityTask task)
         {
             var periodStart = periodStarts[task.Task.TaskID];
             var firstCountedDay = DateOnly.FromDateTime(periodStart.UtcDateTime);
             var countedLoginDays = loginDays.Where(day => day >= firstCountedDay).Order().ToArray();
-            var conditions = task.Task.FinishCondition.Where(condition => condition.ID != NoCondition).ToArray();
-            var periodStartSeconds = periodStart.ToUnixTimeSeconds();
-            var storedProcess = BattleTasks.FindStoredProcess(storedProcesses, task.Task.TaskID, periodStartSeconds);
-            var process = conditions
-                .Select(condition => Math.Min(MeasureProcess(condition, countedLoginDays.Length, storedProcess), condition.TargetProcess))
+            var indexedConditions = task.Task.FinishCondition
+                .Select((condition, conditionIndex) => (Condition: condition, ConditionIndex: conditionIndex))
+                .Where(pair => pair.Condition.ID != NoCondition)
                 .ToArray();
-            var complete = conditions.All(IsMeasured)
-                && conditions.Zip(process).All(pair => pair.Second >= pair.First.TargetProcess);
+            var conditions = indexedConditions.Select(pair => pair.Condition).ToArray();
+            var periodStartSeconds = periodStart.ToUnixTimeSeconds();
+            var process = indexedConditions
+                .Select(pair => Math.Min(
+                    MeasureProcess(
+                        pair.Condition,
+                        countedLoginDays.Length,
+                        BattleTasks.FindStoredProcess(storedProcesses, task.Task.TaskID, periodStartSeconds, pair.ConditionIndex)),
+                    pair.Condition.TargetProcess))
+                .ToArray();
+            var finish = finishes.FirstOrDefault(finish => finish.TaskId == task.Task.TaskID && finish.PeriodStart == periodStartSeconds);
+            if (finish is not null)
+            {
+                process = [.. conditions.Select(condition => condition.TargetProcess)];
+            }
+
+            var complete = finish is not null
+                || (conditions.All(IsMeasured) && conditions.Zip(process).All(pair => pair.Second >= pair.First.TargetProcess));
             var recvTime = Math.Max(periodStartSeconds, roleCreateTime);
             var reward = rewards.FirstOrDefault(reward =>
                 reward.TaskId == task.Task.TaskID && reward.PeriodStart == periodStartSeconds);
@@ -515,7 +610,9 @@ public sealed class ActivityManager(
                 : storedProcesses.TryGetValue((task.Task.TaskID, periodStartSeconds), out var stored)
                   && stored.CompleteTime != NotCompletedTime
                     ? Math.Max(recvTime, stored.CompleteTime)
-                    : FindCompleteTime(conditions, countedLoginDays, recvTime);
+                    : finish is not null
+                        ? Math.Max(recvTime, finish.FinishTime)
+                        : FindCompleteTime(conditions, countedLoginDays, recvTime);
             return new ActivityTaskState(
                 task,
                 periodStartSeconds,
@@ -533,7 +630,10 @@ public sealed class ActivityManager(
                 PB_ENUM_RES_CONDITION_ID.PbResConditionIdEverydayLogin => loginDayCount,
                 PB_ENUM_RES_CONDITION_ID.PbResConditionTypeTrainerLevelReach => trainerLevel,
                 PB_ENUM_RES_CONDITION_ID.PbResConditionIdAddResId => storedProcess,
+                PB_ENUM_RES_CONDITION_ID.PbResConditionIdUseSpecPokemonWin => storedProcess,
+                PB_ENUM_RES_CONDITION_ID.PbResConditionIdBindingAccount => bindingAccount ? BoundAccount : NoBoundAccount,
                 _ when BattleTasks.IsBattleCondition(condition) => storedProcess,
+                _ when ActivityClientActions.IsClientAction(condition) => storedProcess,
                 _ => UntrackedProcess,
             };
 
@@ -553,7 +653,10 @@ public sealed class ActivityManager(
             IsEverydayLogin(condition)
             || condition.ID == (int)PB_ENUM_RES_CONDITION_ID.PbResConditionTypeTrainerLevelReach
             || condition.ID == (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdAddResId
-            || BattleTasks.IsBattleCondition(condition);
+            || condition.ID == (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdUseSpecPokemonWin
+            || IsBindingAccount(condition)
+            || BattleTasks.IsBattleCondition(condition)
+            || ActivityClientActions.IsClientAction(condition);
 
         private static bool IsEverydayLogin(pbFinishCondition condition) =>
             condition.ID == (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdEverydayLogin;
@@ -598,6 +701,8 @@ public sealed class ActivityManager(
 
 public sealed record ActivityTaskReward(int TaskId, long PeriodStart, long RewardTime);
 
+public sealed record ActivityTaskFinish(int TaskId, long PeriodStart, long FinishTime);
+
 public sealed record ActivityBattleProgress(
     pbCOMDT_TASK_INFO[] UpdatedTasks,
     int CompleteCountBefore,
@@ -620,7 +725,7 @@ public sealed record ActivityTaskChain(
 
 public sealed record ActivityRewardGroup(
     RoleWallet Wallet,
-    bool WalletCoinsChanged,
+    IReadOnlyCollection<int> ChangedCoinIDs,
     IReadOnlyDictionary<int, long> SpecialCoinsBefore,
     IReadOnlyList<BagItem> ChangedItems,
     IReadOnlyList<int> PokemonIds,

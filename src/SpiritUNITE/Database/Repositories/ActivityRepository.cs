@@ -66,6 +66,53 @@ public sealed class ActivityRepository(DataOptions options)
             .ToArrayAsync();
     }
 
+    public async Task<ActivityTaskFinish[]> FindTaskFinishesAsync(ulong gameUlongUID, long periodStartSince)
+    {
+        await using var database = new DataConnection(options);
+        return await database.GetTable<RoleActivityTaskFinish>()
+            .Where(finish => finish.GameUlongUID == gameUlongUID && finish.PeriodStart >= periodStartSince)
+            .Select(finish => new ActivityTaskFinish(finish.TaskId, finish.PeriodStart, finish.FinishTime))
+            .ToArrayAsync();
+    }
+
+    internal static async Task<bool> TryInsertTaskFinishAsync(DataConnection database, ulong gameUlongUID, ActivityTaskFinish finish)
+    {
+        try
+        {
+            await database.InsertAsync(new RoleActivityTaskFinish
+            {
+                GameUlongUID = gameUlongUID,
+                TaskId = finish.TaskId,
+                PeriodStart = finish.PeriodStart,
+                FinishTime = finish.FinishTime,
+            });
+            return true;
+        }
+        catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
+        {
+            return false;
+        }
+    }
+
+    internal static async Task<ActivityRewardCommit> ApplyRewardChangeAsync(DataConnection database, ulong gameUlongUID, BagChange change, long now)
+    {
+        var specialCoinsBefore = new Dictionary<int, long>();
+        foreach (var coinID in change.CoinGrants.Keys.Concat(change.CoinCosts.Keys).Distinct().Where(CoinID.IsSpecialCoin))
+        {
+            specialCoinsBefore[coinID] = await WalletRepository.ReadCoinValAsync(database, gameUlongUID, coinID);
+        }
+
+        var applied = await BagRepository.ApplyAsync(database, gameUlongUID, change, now);
+        if (applied != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+        {
+            return ActivityRewardCommit.Refused(applied);
+        }
+
+        var changedItems = await BagRepository.ReadItemsAsync(database, gameUlongUID, change.TouchedItems);
+        var wallet = await WalletRepository.ReadAsync(database, gameUlongUID);
+        return new ActivityRewardCommit(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, specialCoinsBefore, wallet, changedItems);
+    }
+
     public async Task<ActivityRewardCommit> CommitTaskRewardAsync(
         ulong gameUlongUID,
         ActivityTaskReward reward,

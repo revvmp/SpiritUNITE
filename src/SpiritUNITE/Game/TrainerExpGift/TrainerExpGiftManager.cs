@@ -179,10 +179,7 @@ public sealed class TrainerExpGiftManager(
                 SpecialCoin.BuildSpecialCoinChangeNtf(coinID, before, wallet.GetCoinVal(coinID))));
         }
 
-        if (reward.Change.CoinGrants.Keys.Any(CoinID.WalletCoins.Contains))
-        {
-            packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidGetCoinValNtf, new pbSCGetCoinValNtf { CoinInfo = wallet.BuildCoinInfo() }));
-        }
+        packets.AddRange(wallet.BuildCoinValPushes(reward.Change.CoinGrants.Keys));
 
         if (commit.ChangedItems.Count > 0)
         {

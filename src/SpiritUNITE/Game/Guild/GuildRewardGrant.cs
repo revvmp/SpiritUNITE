@@ -17,7 +17,7 @@ public sealed record GuildRewardClaim(PB_ENUM_RES_ERROR_CODE Result, ActivityRew
         PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc,
         new ActivityRewardGroup(
             commit.Wallet!,
-            grant.Change.CoinGrants.Keys.Any(CoinID.WalletCoins.Contains),
+            [.. grant.Change.CoinGrants.Keys],
             commit.SpecialCoinsBefore,
             commit.ChangedItems,
             [],

@@ -112,12 +112,7 @@ public sealed class NewbieGiftManager(
             grants.AddRange(await starRoad.BuildSpecialCoinChangePacketsAsync(role, licensePointsBefore));
         }
 
-        if (grant.Coins.Keys.Any(coinID => !CoinID.IsSpecialCoin(coinID)))
-        {
-            grants.Add(GamePacket.Create(
-                PB_ENUM_CS_MSGID_DEF.PbScidGetCoinValNtf,
-                new pbSCGetCoinValNtf { CoinInfo = commit.Wallet.BuildCoinInfo() }));
-        }
+        grants.AddRange(commit.Wallet.BuildCoinValPushes(grant.Coins.Keys));
 
         foreach (var pokemonId in grant.PokemonIds)
         {

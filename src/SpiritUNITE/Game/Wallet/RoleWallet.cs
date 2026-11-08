@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using SpiritUNITE.Packets;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Game.Wallet;
@@ -37,6 +38,20 @@ public sealed class RoleWallet(IReadOnlyList<KeyValuePair<int, long>> balancesIn
     };
 
     public pbSCAcntCouponsRsp BuildAcntCouponsRsp() => new() { Coupons = GetCoinVal(CoinID.Coupons) };
+
+    public GamePacket[] BuildCoinValPushes(IEnumerable<int> changedCoinIDs)
+    {
+        var changedWalletCoins = changedCoinIDs.Where(CoinID.WalletCoins.Contains).ToHashSet();
+        if (changedWalletCoins.Count == 0)
+        {
+            return [];
+        }
+
+        var coinVal = GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidGetCoinValNtf, new pbSCGetCoinValNtf { CoinInfo = BuildCoinInfo() });
+        return changedWalletCoins.Contains(CoinID.Coupons)
+            ? [coinVal, GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidAcntCouponsRsp, BuildAcntCouponsRsp())]
+            : [coinVal];
+    }
 
     public int AcntRealCoupous => ToClientCoinVal(GetCoinVal(CoinID.Coupons));
 
