@@ -147,6 +147,8 @@ public sealed class RelayGame
     public Dictionary<int, long> LastSurrenderTimes { get; } = [];
     public bool HangUpReported { get; set; }
     public bool EndedByJudge { get; set; }
+    public RefereePause? Pause { get; set; }
+    public TimeSpan PausedTime { get; set; }
 
     public IReadOnlyDictionary<int, int> NpcLoadSeconds { get; }
 

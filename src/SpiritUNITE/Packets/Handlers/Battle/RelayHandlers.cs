@@ -106,6 +106,10 @@ public sealed class RelayHandlers(RelayManager relays)
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidJudgeGameOverRsp, relays.JudgeGameOver(request.Uid))];
     }
 
+    [PacketHandler(eNetEventServerType.RelayServer, PB_ENUM_CS_MSGID_DEF.PbCsidPauseReq)]
+    public async Task<GamePacket[]> OnPauseReq(GamePacket request) =>
+        [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidPauseRsp, await relays.PauseAsync(request.Uid, pbCSPauseReq.Parser.ParseFrom(request.PkgData)))];
+
     [PacketHandler(eNetEventServerType.RelayServer, PB_ENUM_CS_MSGID_DEF.PbCsidMultgameGameoverReq)]
     public GamePacket[] OnMultgameGameoverReq(GamePacket request) =>
         [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidMultgameGameoverRsp, relays.Gameover(request.Uid, pbCSMultgameGameoverReq.Parser.ParseFrom(request.PkgData)))];

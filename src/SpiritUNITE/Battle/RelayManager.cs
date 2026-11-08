@@ -63,6 +63,11 @@ public sealed class RelayManager
     private const int SurrenderEnded = 1;
     private const int SurrenderEndSyncType = (int)CmdInfoCase.StFrameCmdSurrenderEnd;
     private const int JudgeGameOverSyncType = (int)CmdInfoCase.StGameOverReq;
+    private const int PauseStateSyncType = (int)CmdInfoCase.StPauseState;
+    private const int PauseApply = (int)PB_ENUM_CS_PAUSE_TYPE.PbCsPauseApply;
+    private const int PauseCancel = (int)PB_ENUM_CS_PAUSE_TYPE.PbCsPauseCancel;
+    private const int RefereeRoomType = (int)PB_ENUM_COM_ROOM_TYPE.PbComRoomTypeNormal;
+    private const int NoPauseMapSubMode = (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeFriendly;
     private const int HashNotEqual = 1;
     private const int HashEqual = 0;
     private const int NoLogUpload = 0;
@@ -85,6 +90,7 @@ public sealed class RelayManager
     private static readonly TimeSpan DisconnSilence = TimeSpan.FromSeconds(37);
     private static readonly TimeSpan GameTimeMargin = TimeSpan.FromMinutes(5);
     private static readonly TimeSpan FallbackMaxGameDuration = TimeSpan.FromMinutes(30);
+    private static readonly TimeSpan PreRessumeGameCountDownTimeLimit = TimeSpan.FromMilliseconds(3000);
 
     private readonly DeskManager desks;
     private readonly BattleSettlement settlement;
@@ -354,9 +360,10 @@ public sealed class RelayManager
                 VoiceAccusationInfo = new pbCOMDT_ACNT_VOICE_ACCUSATION_INFO(),
                 IsSurrenderEnd = game.SurrenderWinCampClient is null ? NotSurrender : SurrenderEnded,
                 WinCampClient = game.SurrenderWinCampClient ?? 0,
-                PauseType = PauseType,
+                PauseType = game.Pause is null ? PauseType : PauseApply,
                 CurFrapNo = state == PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateGameing ? game.KFrapsNo : 0,
-                PauseCancelType = PauseCancelType,
+                PauseCancelTime = game.Pause?.PauseCancelTime ?? 0,
+                PauseCancelType = game.Pause is { } pause ? (int)pause.CancelType : PauseCancelType,
             };
         }
     }
@@ -374,9 +381,10 @@ public sealed class RelayManager
                 VoiceAccusationInfo = new pbCOMDT_ACNT_VOICE_ACCUSATION_INFO(),
                 IsSurrenderEnd = game.SurrenderWinCampClient is null ? NotSurrender : SurrenderEnded,
                 WinCampClient = game.SurrenderWinCampClient ?? 0,
-                PauseType = PauseType,
+                PauseType = game.Pause is null ? PauseType : PauseApply,
                 CurFrapNo = state == PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateGameing ? game.KFrapsNo : 0,
-                PauseCancelType = PauseCancelType,
+                PauseCancelTime = game.Pause?.PauseCancelTime ?? 0,
+                PauseCancelType = game.Pause is { } pause ? (int)pause.CancelType : PauseCancelType,
             };
         }
     }
@@ -883,7 +891,7 @@ public sealed class RelayManager
 
     private static bool IsRelayableUper(RelayGame game, pbCSDT_GAMING_SYNC_INFO uper, RelaySeat seat) =>
         (uper.ObjID == SelfObjID || uper.ObjID == seat.ObjId)
-        && uper.SyncType is >= 0 and <= LastSyncType and not FirstUnknownSyncType and not (int)CmdInfoCase.StAcntState and not JudgeGameOverSyncType
+        && uper.SyncType is >= 0 and <= LastSyncType and not FirstUnknownSyncType and not (int)CmdInfoCase.StAcntState and not JudgeGameOverSyncType and not PauseStateSyncType
         && uper.Buff.Length <= MaxUperBuffBytes
         && (uper.SyncType != SurrenderEndSyncType || EndsAsSurrendered(game, uper));
 
@@ -942,7 +950,7 @@ public sealed class RelayManager
         return true;
     }
 
-    private static bool IsInjected(pbCSDT_FRAPBOOT_CC command) => command.SyncType is (int)CmdInfoCase.StAcntState or SurrenderEndSyncType or JudgeGameOverSyncType;
+    private static bool IsInjected(pbCSDT_FRAPBOOT_CC command) => command.SyncType is (int)CmdInfoCase.StAcntState or SurrenderEndSyncType or JudgeGameOverSyncType or PauseStateSyncType;
 
     private void InjectAcntState(RelayGame game, RelaySeat seat, PB_ENUM_CS_FRAPBOOT_ACNTSTATECHG state)
     {
@@ -1176,6 +1184,153 @@ public sealed class RelayManager
         }
 
         return new pbSCJudgeGameOverRsp { ResultInfo = new pbResultInfo() };
+    }
+
+    public async Task<pbSCPauseRsp> PauseAsync(ulong uid, pbCSPauseReq request)
+    {
+        if (FindGame(uid) is not { } game)
+        {
+            return new pbSCPauseRsp { ResultInfo = Refusal(PB_ENUM_RES_ERROR_CODE.PbErrAccountNotInDesk), Type = request.Type };
+        }
+
+        if (game.FindJudge(uid) is not { } judge || !EnablesRefereePause(game))
+        {
+            logger.LogWarning("Desk {DeskID}: uid {Uid} asked for pause type {Type} but may not pause this game", game.Desk.DeskID, uid, request.Type);
+            return new pbSCPauseRsp { ResultInfo = Refusal(PB_ENUM_RES_ERROR_CODE.PbErrJudgeIllegalOperation), Type = request.Type };
+        }
+
+        pbSCPauseRsp rsp;
+        List<RelaySend> sends = [];
+        lock (game.Gate)
+        {
+            Heard(judge);
+            rsp = request.Type switch
+            {
+                _ when game.Phase != RelayGamePhase.Fighting || game.Finished || !game.RunsFrameLoop || game.EndedByJudge || game.SurrenderWinCampClient is not null =>
+                    new pbSCPauseRsp { ResultInfo = Refusal(PB_ENUM_RES_ERROR_CODE.PbErrDeskStateInvalid), Type = request.Type },
+                PauseApply => ApplyPause(game, judge),
+                PauseCancel => CancelPause(game, judge, sends),
+                _ => new pbSCPauseRsp { ResultInfo = Refusal(PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid), Type = request.Type },
+            };
+        }
+
+        logger.LogInformation("Desk {DeskID}: judge uid {Uid} pause type {Type}: {Result}", game.Desk.DeskID, uid, request.Type, rsp.ResultInfo.ResultId);
+        await SendAllAsync(sends);
+        return rsp;
+    }
+
+    private bool EnablesRefereePause(RelayGame game) =>
+        game.Desk.DeskInfo.RoomType == RefereeRoomType
+        && gameData.SceneMap.Find(game.Desk.DeskInfo.MapId) is { } scene
+        && scene.MapSubMode != NoPauseMapSubMode;
+
+    private pbSCPauseRsp ApplyPause(RelayGame game, RelaySeat judge)
+    {
+        if (game.Pause is not null)
+        {
+            return new pbSCPauseRsp { ResultInfo = Refusal(PB_ENUM_RES_ERROR_CODE.PbErrDeskStateInvalid), Type = PauseApply };
+        }
+
+        var pauseGameTimeStamp = clock.GetUtcNow().ToUnixTimeSeconds();
+        var pause = new RefereePause(
+            judge.Human.CampClient,
+            clock.GetTimestamp(),
+            pauseGameTimeStamp,
+            pauseGameTimeStamp + gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalSysCancelpauseWaittime));
+        game.Pause = pause;
+        InjectPauseState(game, judge.ObjId, new FrameCmdPkg
+        {
+            Type = CmdInfoCase.StPauseState,
+            IntParam1 = PauseApply,
+            IntParam2 = pause.CampClient,
+            Int64Param1 = pause.PauseGameTimeStamp,
+        });
+        return new pbSCPauseRsp
+        {
+            ResultInfo = new pbResultInfo(),
+            Type = PauseApply,
+            CampClient = pause.CampClient,
+            PauseCancelTime = pause.PauseCancelTime,
+        };
+    }
+
+    private pbSCPauseRsp CancelPause(RelayGame game, RelaySeat judge, List<RelaySend> sends)
+    {
+        if (game.Pause is not { } pause || pause.CancelType == PB_ENUM_COM_PAUSE_CANCEL_TYPE.PbComPauseCancelManual)
+        {
+            return new pbSCPauseRsp { ResultInfo = Refusal(PB_ENUM_RES_ERROR_CODE.PbErrDeskStateInvalid), Type = PauseCancel };
+        }
+
+        if (pause.CancelType == PB_ENUM_COM_PAUSE_CANCEL_TYPE.PbComPauseCancelSystem)
+        {
+            return new pbSCPauseRsp { ResultInfo = Refusal(PB_ENUM_RES_ERROR_CODE.PbErrSysCancelPauseIgnore), Type = PauseCancel };
+        }
+
+        pause.Cancel(PB_ENUM_COM_PAUSE_CANCEL_TYPE.PbComPauseCancelManual, judge.Human.CampClient, clock.GetTimestamp() + (long)(PreRessumeGameCountDownTimeLimit.TotalSeconds * clock.TimestampFrequency));
+        var rsp = BuildCancelPauseRsp(pause);
+        sends.AddRange(game.ConnectedViewers
+            .Where(viewer => viewer.Uid != judge.Uid)
+            .Select(viewer => new RelaySend(viewer.Uid, RelayChannel.Stream, [GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidPauseRsp, rsp)])));
+        return rsp;
+    }
+
+    private static pbSCPauseRsp BuildCancelPauseRsp(RefereePause pause) => new()
+    {
+        ResultInfo = new pbResultInfo(),
+        Type = PauseCancel,
+        CampClient = pause.CancelCampClient,
+        PauseCancelTime = pause.PauseCancelTime,
+        PauseCancelType = (int)pause.CancelType,
+    };
+
+    private void AdvancePause(RelayGame game, long now, List<RelaySend> sends)
+    {
+        if (game.Pause is not { } pause)
+        {
+            return;
+        }
+
+        if (!pause.IsCancelled && clock.GetUtcNow().ToUnixTimeSeconds() >= pause.PauseCancelTime)
+        {
+            var countdown = TimeSpan.FromSeconds(gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalSysCancelpauseCountdown));
+            pause.Cancel(PB_ENUM_COM_PAUSE_CANCEL_TYPE.PbComPauseCancelSystem, pause.CampClient, now + (long)(countdown.TotalSeconds * clock.TimestampFrequency));
+            var notice = GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidPauseRsp, BuildCancelPauseRsp(pause));
+            sends.AddRange(game.ConnectedViewers.Select(viewer => new RelaySend(viewer.Uid, RelayChannel.Stream, [notice])));
+            logger.LogInformation("Desk {DeskID}: the system cancels the pause of camp {CampClient}", game.Desk.DeskID, pause.CampClient);
+            return;
+        }
+
+        if (!pause.IsCancelled || now < pause.ResumeAt)
+        {
+            return;
+        }
+
+        InjectPauseState(game, game.Judges.Values.FirstOrDefault(judge => judge.Human.CampClient == pause.CancelCampClient)?.ObjId ?? SelfObjID, new FrameCmdPkg
+        {
+            Type = CmdInfoCase.StPauseState,
+            IntParam1 = PauseCancel,
+            IntParam2 = pause.CancelCampClient,
+        });
+        game.PausedTime += clock.GetElapsedTime(pause.PausedAt, now);
+        game.Pause = null;
+        foreach (var seat in game.Seats.Values)
+        {
+            seat.LastCommandAt = now;
+        }
+    }
+
+    private TimeSpan PausedTimeOf(RelayGame game, long now) =>
+        game.PausedTime + (game.Pause is { } pause ? clock.GetElapsedTime(pause.PausedAt, now) : TimeSpan.Zero);
+
+    private void InjectPauseState(RelayGame game, int objId, FrameCmdPkg command)
+    {
+        game.PendingBootInfo.Add(new pbCSDT_FRAPBOOT_CC
+        {
+            ObjID = objId,
+            SyncType = PauseStateSyncType,
+            Buff = ByteString.CopyFrom(command.ToNoTagByteArray()),
+        });
+        logger.LogInformation("Desk {DeskID}: pause state {State} of camp {CampClient} at frame {KFrapsNo}", game.Desk.DeskID, command.IntParam1, command.IntParam2, game.KFrapsNo + KFrapsLater);
     }
 
     private SeatCompletion CompleteQuitter(RelayGame game, RelaySeat seat)
@@ -1516,7 +1671,7 @@ public sealed class RelayManager
     {
         var completions = new List<SeatCompletion>();
         var fightElapsed = clock.GetElapsedTime(game.FightStartedAt);
-        if (fightElapsed >= game.Limits.MaxGameDuration)
+        if (fightElapsed - PausedTimeOf(game, now) >= game.Limits.MaxGameDuration)
         {
             logger.LogWarning("Desk {DeskID} reached the game time limit of {MaxGameDuration}", game.Desk.DeskID, game.Limits.MaxGameDuration);
             return game.FindAgreedGameover() is null
@@ -1524,6 +1679,7 @@ public sealed class RelayManager
                 : new RelayStep([], EndFight(game), Finishes: false, Wait: null);
         }
 
+        AdvancePause(game, now, sends);
         sends.AddRange(CastDueNpcVotes(game));
         sends.AddRange(ExpireVotes(game));
         if (game.FirstGameoverAt is { } firstGameoverAt)
@@ -1555,7 +1711,11 @@ public sealed class RelayManager
         var due = (int)(fightElapsed.TotalMilliseconds / KFrapsFreqMs);
         if (due > game.KFrapsNo)
         {
-            ApplyTakeover(game, now);
+            if (game.Pause is null)
+            {
+                ApplyTakeover(game, now);
+            }
+
             var firstNew = game.KFrapsNo + 1;
             while (game.KFrapsNo < due)
             {

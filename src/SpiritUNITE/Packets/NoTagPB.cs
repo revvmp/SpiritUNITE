@@ -71,7 +71,28 @@ public static class NoTagPB
             output.WriteTag(FrameCmdPkgTypeField, WireFormat.WireType.Varint);
             output.WriteEnum((int)command.Type);
         }
+
+        WriteTaggedInt32(output, FrameCmdPkg.IntParam2FieldNumber, command.IntParam2);
+        WriteTaggedInt32(output, FrameCmdPkg.IntParam3FieldNumber, command.IntParam3);
+        WriteTaggedInt32(output, FrameCmdPkg.IntParam4FieldNumber, command.IntParam4);
+        WriteTaggedInt32(output, FrameCmdPkg.IntParam5FieldNumber, command.IntParam5);
+        WriteTaggedInt32(output, FrameCmdPkg.IntParam6FieldNumber, command.IntParam6);
+        WriteTaggedInt32(output, FrameCmdPkg.IntParam7FieldNumber, command.IntParam7);
+        if (command.Int64Param1 != 0)
+        {
+            output.WriteTag(FrameCmdPkg.Int64Param1FieldNumber, WireFormat.WireType.Varint);
+            output.WriteInt64(command.Int64Param1);
+        }
     });
+
+    private static void WriteTaggedInt32(CodedOutputStream output, int fieldNumber, int value)
+    {
+        if (value != 0)
+        {
+            output.WriteTag(fieldNumber, WireFormat.WireType.Varint);
+            output.WriteInt32(value);
+        }
+    }
 
     public static pbCSGamingUpermsgReq ParseGamingUpermsgReq(ReadOnlySpan<byte> data, int maxUperInfo)
     {

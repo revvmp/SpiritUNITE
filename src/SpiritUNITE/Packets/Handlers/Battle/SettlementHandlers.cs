@@ -4,8 +4,15 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers.Battle;
 
-public sealed class SettlementHandlers(BattleSettlement settlement, ILogger<SettlementHandlers> logger)
+public sealed class SettlementHandlers(BattleSettlement settlement, SettleFabulous fabulous, ILogger<SettlementHandlers> logger)
 {
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidSettleFabulousReq)]
+    public async Task<GamePacket[]> OnSettleFabulousReq(GamePacket request)
+    {
+        var beFabulousUid = pbCSSettleFabulousReq.Parser.ParseFrom(request.PkgData).BeFabulousUid;
+        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidSettleFabulousRsp, await fabulous.FabulousAsync(request.Uid, beFabulousUid))];
+    }
+
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidMultiGameSettleGainReq)]
     public GamePacket[] OnMultiGameSettleGainReq(GamePacket request)
     {

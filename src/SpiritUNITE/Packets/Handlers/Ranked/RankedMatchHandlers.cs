@@ -6,6 +6,7 @@ using SpiritUNITE.Game.Lobby;
 using SpiritUNITE.Game.PokemonAvatar;
 using SpiritUNITE.Game.Ranked;
 using SpiritUNITE.Game.Role;
+using SpiritUNITE.Game.Wallet;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers.Ranked;
@@ -282,6 +283,10 @@ public sealed class RankedMatchHandlers(
         if (grant.Change.ChangesCoins && commit.Wallet is { } wallet)
         {
             yield return request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetCoinValNtf, new pbSCGetCoinValNtf { CoinInfo = wallet.BuildCoinInfo() });
+            if (grant.Change.CoinCosts.ContainsKey(CoinID.Coupons) || grant.Change.CoinGrants.ContainsKey(CoinID.Coupons))
+            {
+                yield return request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAcntCouponsRsp, wallet.BuildAcntCouponsRsp());
+            }
         }
 
         if (grant.Awards.Count > 0)

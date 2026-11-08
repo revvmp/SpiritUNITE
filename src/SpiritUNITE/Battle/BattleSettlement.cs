@@ -114,6 +114,7 @@ public sealed class BattleSettlement
     private readonly RoomManager rooms;
     private readonly WarmBattleManager warmBattles;
     private readonly SettleTeamPresence teamPresence;
+    private readonly SettleFabulous fabulous;
     private readonly FriendPresence presence;
     private readonly ActivityRewardNotices rewardNotices;
     private readonly GuildActivityTasks guildActivityTasks;
@@ -152,6 +153,7 @@ public sealed class BattleSettlement
         RoomManager rooms,
         WarmBattleManager warmBattles,
         SettleTeamPresence teamPresence,
+        SettleFabulous fabulous,
         FriendPresence presence,
         ActivityRewardNotices rewardNotices,
         GuildActivityTasks guildActivityTasks,
@@ -185,6 +187,7 @@ public sealed class BattleSettlement
         this.rooms = rooms;
         this.warmBattles = warmBattles;
         this.teamPresence = teamPresence;
+        this.fabulous = fabulous;
         this.presence = presence;
         this.rewardNotices = rewardNotices;
         this.guildActivityTasks = guildActivityTasks;
@@ -312,6 +315,7 @@ public sealed class BattleSettlement
         var gain = BuildSettleGainRsp(role, result, plan, commit, levelBefore, mvp, rankedSettlement, isTodaySetNoReminded, now);
         settleGains[uid] = gain;
         _ = ForgetSettleGainAsync(uid, gain);
+        fabulous.Open(result.Desk, uid);
         var battleTasks = IsCustomBattle(result) ? NoBattleTasks : await RecordBattleTasksAsync(role, result, plan, now);
         if (!IsCustomBattle(result))
         {
@@ -381,6 +385,7 @@ public sealed class BattleSettlement
         };
         settleGains[uid] = gain;
         _ = ForgetSettleGainAsync(uid, gain);
+        fabulous.Open(result.Desk, uid);
         logger.LogInformation(
             "Desk {DeskID}: judge uid {Uid} settled with camp {WinCampClient} winning ({GameResult} for the first camp); judges earn nothing",
             result.Desk.DeskID,

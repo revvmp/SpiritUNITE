@@ -313,6 +313,7 @@ public static class Server
         builder.Services.AddSingleton<ActivityManager>();
         builder.Services.AddSingleton<AccusationManager>();
         builder.Services.AddSingleton<BattleVoiceManager>();
+        builder.Services.AddSingleton<SettleFabulous>();
         builder.Services.AddSingleton<EeveeChallengePool>();
         builder.Services.AddSingleton<EeveeChallengeManager>();
         builder.Services.AddSingleton<AchievementManager>();
