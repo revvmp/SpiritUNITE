@@ -7,11 +7,11 @@ public sealed class BattleSettlementOptions
     public int PveChallengeWinBaseExp { get; init; } = 150;
     public int PveChallengeLoseBaseExp { get; init; }
     public int MatchWinExpPerMinute { get; init; } = 15;
-    public int MatchLoseExpPerMinute { get; init; }
+    public int MatchLoseExpPerMinute { get; init; } = 10;
     public int MatchWinEnergy { get; init; } = 15;
-    public int MatchLoseEnergyPerMinute { get; init; }
+    public int MatchLoseEnergyPerMinute { get; init; } = 2;
     public int RankedMatchWinEnergy { get; init; } = 30;
-    public int RankedMatchLoseEnergy { get; init; }
+    public int RankedMatchLoseEnergy { get; init; } = 20;
 
     public bool IsValid() => PveChallengeWinBaseExp >= 0
         && PveChallengeLoseBaseExp >= 0

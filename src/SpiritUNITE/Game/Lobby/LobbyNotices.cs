@@ -43,7 +43,7 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
     {
         UserSchemeInfo =
         {
-            rules.UserSchemes.Select(scheme => new pbCOMDT_USER_SCHEME_INFO
+            rules.UserSchemesOrOfficial.Select(scheme => new pbCOMDT_USER_SCHEME_INFO
             {
                 BusinessType = scheme.BusinessType,
                 SchemeId = scheme.SchemeId,
@@ -52,7 +52,7 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
     };
 
     public int GetBusinessSchemeId(PB_ENUM_RES_USER_SCHEME_BUSINESS_TYPE businessType) =>
-        rules.UserSchemes.FirstOrDefault(scheme => scheme.BusinessType == (int)businessType)?.SchemeId ?? DefaultSchemeId;
+        rules.UserSchemesOrOfficial.FirstOrDefault(scheme => scheme.BusinessType == (int)businessType)?.SchemeId ?? DefaultSchemeId;
 
     public static pbSCBanPokemonListNtf BuildBanPokemonListNtf() => new();
 

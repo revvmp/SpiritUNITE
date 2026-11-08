@@ -69,7 +69,7 @@ public sealed class HeldItemManager(
                 && item.OutSideItemTypeParam.Count > BindPokemonIdTypeParam
                 && item.OutSideItemTypeParam[BindPokemonIdTypeParam] != NoBindPokemon)
             .Select(item => new BagGrant(RoleItemType.OutSideItem, item.OutSideItemId, 1, item.OutSideItemStackSize, maxLevel));
-        var starterGrants = options.Value.UnlockGrantItemIds
+        var starterGrants = options.Value.UnlockGrantItemIdsOrOfficial
             .Select(itemId => bag.CreateOutSideItemGrant(itemId, 1))
             .OfType<BagGrant>();
         return [.. starterGrants.Concat(boundGrants).Where(grant => !owned.Contains(grant.ItemId)).DistinctBy(grant => grant.ItemId)];

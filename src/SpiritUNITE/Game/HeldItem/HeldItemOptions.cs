@@ -4,7 +4,11 @@ public sealed class HeldItemOptions
 {
     public const string SectionName = "HeldItem";
 
-    public int[] UnlockGrantItemIds { get; init; } = [];
+    private static readonly int[] OfficialUnlockGrantItemIds = [1002001014];
 
-    public bool IsValid() => UnlockGrantItemIds is not null && UnlockGrantItemIds.All(itemId => itemId > 0);
+    public int[]? UnlockGrantItemIds { get; init; }
+
+    public IReadOnlyList<int> UnlockGrantItemIdsOrOfficial => UnlockGrantItemIds ?? OfficialUnlockGrantItemIds;
+
+    public bool IsValid() => UnlockGrantItemIdsOrOfficial.All(itemId => itemId > 0);
 }

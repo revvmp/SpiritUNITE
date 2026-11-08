@@ -1,16 +1,6 @@
 {
   "LobbyRules": {
-    "SubscriptionIsOpen": 1,
     "NewSaleShopIDs": [130339, 130340, 130341, 130342, 130343, 130344, 130345, 130346, 130347, 130348, 130349, 130350, 130351, 130352],
-    "UserSchemes": [
-      { "BusinessType": 1, "SchemeId": 4 },
-      { "BusinessType": 2, "SchemeId": 5 },
-      { "BusinessType": 4, "SchemeId": 3 },
-      { "BusinessType": 5, "SchemeId": 2 },
-      { "BusinessType": 6, "SchemeId": 2 },
-      { "BusinessType": 7, "SchemeId": 2 },
-      { "BusinessType": 3, "SchemeId": 1 }
-    ],
     "SubscriptionFree": {
       "FreePokemonList": [54, 816],
       "FreePasterList": [1006005403, 1006081803]
@@ -19,51 +9,8 @@
   "Pokemon": {
     "FreePokemonList": [77, 557, 845, 957]
   },
-  "Room": {
-    "MapCanUseTypes": [],
-    "HiddenMapIds": [92001, 92002, 92003, 92004],
-    "ManMachineSearchSec": 60,
-    "TeamMMRScore": 1343,
-    "SettleTeamOfflineMinSec": 14,
-    "SettleTeamOfflineMaxSec": 52
-  },
   "Match": {
-    "BotFill": true,
-    "BotFillSearchSec": 80,
-    "ContLoseWarmBattleLosses": 3,
-    "WarmBattleWaitTime": {
-      "2": [12, 14]
-    }
-  },
-  "Ranked": {
-    "WinPoint": [20, 20, 20, 20, 30, 80, 80],
-    "LoseBasePoint": [0, 4, 0, 2, 0, 0, 0],
-    "SeasonInheritRankedDivision": {
-      "34": 23, "33": 23, "32": 23, "31": 23, "30": 23,
-      "26": 22, "25": 21, "24": 20, "23": 19,
-      "22": 16, "21": 16, "20": 15, "19": 14, "18": 14,
-      "17": 13, "16": 13, "15": 13, "14": 12, "13": 12,
-      "12": 11
-    },
-    "TeamMMRScore": 96,
-    "FakePlayerWinPointMin": 0,
-    "FakePlayerWinPointMax": 93
-  },
-  "BattleSettlement": {
-    "PveChallengeWinBaseExp": 150,
-    "PveChallengeLoseBaseExp": 0,
-    "MatchWinExpPerMinute": 15,
-    "MatchLoseExpPerMinute": 10,
-    "MatchWinEnergy": 15,
-    "MatchLoseEnergyPerMinute": 2,
-    "RankedMatchWinEnergy": 30,
-    "RankedMatchLoseEnergy": 20
-  },
-  "HeroPick": {
-    "NpcHeroMaxReleaseOrder": 26
-  },
-  "HeldItem": {
-    "UnlockGrantItemIds": [1002001014]
+    "BotFill": true
   },
   "Wallet": {
     "StartingCookies": 0,
@@ -84,9 +31,5 @@
   },
   "ActivationCode": {
     "Codes": []
-  },
-  "MegaEvolution": {
-    "TrainMinComplete": 1,
-    "TrainMaxComplete": 10
   }
 }

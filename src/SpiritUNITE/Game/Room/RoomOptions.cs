@@ -16,16 +16,20 @@ public sealed class RoomOptions
     private const int MinManMachineSearchSec = 1;
     private const int MaxManMachineSearchSec = 3600;
 
+    private static readonly int[] OfficialHiddenMapIds = [92001, 92002, 92003, 92004];
+
     public List<RoomMapCanUseType> MapCanUseTypes { get; init; } = [];
-    public List<int> HiddenMapIds { get; init; } = [];
+    public List<int>? HiddenMapIds { get; init; }
     public int ManMachineSearchSec { get; init; } = 60;
     public int TeamMMRScore { get; init; } = 1343;
     public int SettleTeamOfflineMinSec { get; init; } = 14;
     public int SettleTeamOfflineMaxSec { get; init; } = 52;
 
+    public IReadOnlyList<int> HiddenMapIdsOrOfficial => HiddenMapIds ?? (IReadOnlyList<int>)OfficialHiddenMapIds;
+
     public bool IsValid()
     {
-        var mapIds = MapCanUseTypes.SelectMany(entry => entry.MapIds).Concat(HiddenMapIds).ToList();
+        var mapIds = MapCanUseTypes.SelectMany(entry => entry.MapIds).Concat(HiddenMapIdsOrOfficial).ToList();
         return ManMachineSearchSec is >= MinManMachineSearchSec and <= MaxManMachineSearchSec
             && TeamMMRScore >= 0
             && SettleTeamOfflineMinSec >= 0
@@ -36,7 +40,7 @@ public sealed class RoomOptions
             && mapIds.Distinct().Count() == mapIds.Count;
     }
 
-    public bool IsHidden(int mapId) => HiddenMapIds.Contains(mapId);
+    public bool IsHidden(int mapId) => HiddenMapIdsOrOfficial.Contains(mapId);
 
     public int? HostCanUseTypeOf(int mapId) =>
         MapCanUseTypes.FirstOrDefault(entry => entry.MapIds.Contains(mapId))?.CanUseType;

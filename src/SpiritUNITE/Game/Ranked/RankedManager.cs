@@ -134,13 +134,13 @@ public sealed class RankedManager
         this.options = options.Value;
         this.clock = clock;
         this.logger = logger;
-        if (this.options.WinPoint.Length != ladder.MaxBig)
+        if (this.options.WinPointOrOfficial.Count != ladder.MaxBig)
         {
             throw new InvalidDataException(
-                $"gamesettings Ranked WinPoint and LoseBasePoint need one value per BigRankedDivision 1-{ladder.MaxBig}, not {this.options.WinPoint.Length}");
+                $"gamesettings Ranked WinPoint and LoseBasePoint need one value per BigRankedDivision 1-{ladder.MaxBig}, not {this.options.WinPointOrOfficial.Count}");
         }
 
-        foreach (var (from, to) in this.options.SeasonInheritRankedDivision.Where(pair => !ladder.IsKnown(pair.Key) || !ladder.IsKnown(pair.Value)))
+        foreach (var (from, to) in this.options.SeasonInheritRankedDivisionOrOfficial.Where(pair => !ladder.IsKnown(pair.Key) || !ladder.IsKnown(pair.Value)))
         {
             throw new InvalidDataException(
                 $"gamesettings Ranked SeasonInheritRankedDivision maps {from} to {to}, and both must be pbRankedDivision RankedDivision ids");
@@ -929,7 +929,7 @@ public sealed class RankedManager
 
     private RankedPosition InheritedPosition(RankedPosition old)
     {
-        if (!options.SeasonInheritRankedDivision.TryGetValue(old.RankedDivision, out var inheritedDivision))
+        if (!options.SeasonInheritRankedDivisionOrOfficial.TryGetValue(old.RankedDivision, out var inheritedDivision))
         {
             return old;
         }
