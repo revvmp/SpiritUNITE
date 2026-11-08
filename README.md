@@ -8,7 +8,6 @@ SpiritUNITE is a C# server emulator for the [Pokemon UNITE](https://en.wikipedia
 
 ## Environment Setup
 
-**WARNING**: These instructions have only been tested on a Windows 11 machine.
 
 1. Clone the repository
 2. Install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
