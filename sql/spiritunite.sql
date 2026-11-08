@@ -143,7 +143,8 @@ CREATE TABLE IF NOT EXISTS `role_activity_task_finish` (
 CREATE TABLE IF NOT EXISTS `role_activity_exchange` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL,
     exchange_id INT NOT NULL,
-    done_count INT NOT NULL,
+    done_count INT NOT NULL DEFAULT 0,
+    notify INT NOT NULL DEFAULT 0,
     PRIMARY KEY (game_ulong_uid, exchange_id),
     CONSTRAINT fk_role_activity_exchange_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
@@ -305,6 +306,7 @@ CREATE TABLE IF NOT EXISTS `role_friend` (
     friend_uid BIGINT UNSIGNED NOT NULL,
     add_friend_time BIGINT NOT NULL,
     ban_chat_flag INT NOT NULL DEFAULT 0,
+    intimacy_value INT NOT NULL DEFAULT 0,
     PRIMARY KEY (game_ulong_uid, friend_uid),
     KEY ix_role_friend_friend (friend_uid),
     CONSTRAINT ck_role_friend_not_self CHECK (game_ulong_uid <> friend_uid),
@@ -333,6 +335,25 @@ CREATE TABLE IF NOT EXISTS `role_friend_black` (
     CONSTRAINT ck_role_friend_black_not_self CHECK (game_ulong_uid <> black_uid),
     CONSTRAINT fk_role_friend_black_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE,
     CONSTRAINT fk_role_friend_black_black FOREIGN KEY (black_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_daily_gift_coin` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    gift_day BIGINT NOT NULL,
+    daily_gift_coin_uid BIGINT UNSIGNED NOT NULL,
+    gift_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, gift_day, daily_gift_coin_uid),
+    KEY ix_role_daily_gift_coin_friend (daily_gift_coin_uid),
+    CONSTRAINT fk_role_daily_gift_coin_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE,
+    CONSTRAINT fk_role_daily_gift_coin_friend FOREIGN KEY (daily_gift_coin_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_daily_gift_coin_recv` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    gift_day BIGINT NOT NULL,
+    recv_count INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid, gift_day),
+    CONSTRAINT fk_role_daily_gift_coin_recv_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `role_chat_offline` (

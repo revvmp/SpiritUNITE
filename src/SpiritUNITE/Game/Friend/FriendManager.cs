@@ -449,11 +449,7 @@ public sealed class FriendManager
             AddFriendTime = friend.AddFriendTime,
         },
         BriefInfo = await briefs.BuildRoleBriefInfoAsync(friendRole, lastLogoutTime),
-        FriendInteraction = EmptyChildren.Fill(new pbCOMDT_FRIEND_INTERACTION
-        {
-            FriendUid = friend.FriendUid,
-            BanChatFlag = friend.BanChatFlag,
-        }),
+        FriendInteraction = FriendIntimacy.BuildFriendInteraction(gameData, friend),
     };
 
     private async Task<pbCOMDT_FRIEND_REQUEST> BuildFriendRequestAsync(RoleFriendRequest request, LMNRoleInfo requester, int listIndex) =>

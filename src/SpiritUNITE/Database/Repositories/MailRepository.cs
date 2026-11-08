@@ -24,6 +24,11 @@ public sealed class MailRepository(DataOptions options)
     public async Task<RoleMail> InsertAsync(RoleMail mail)
     {
         await using var database = new DataConnection(options);
+        return await InsertAsync(database, mail);
+    }
+
+    public static async Task<RoleMail> InsertAsync(DataConnection database, RoleMail mail)
+    {
         for (var attempt = 1; ; attempt++)
         {
             var lastMailIndex = await database.GetTable<RoleMail>()

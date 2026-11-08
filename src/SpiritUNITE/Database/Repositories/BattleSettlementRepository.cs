@@ -31,7 +31,11 @@ public sealed record BattleSettlementChange(
     WarmBattleGame? CountedGame = null)
 {
     public PveChallengeWeek? PveChallengeWeek { get; init; }
+
+    public BattleIntimacyGain? Intimacy { get; init; }
 }
+
+public sealed record BattleIntimacyGain(IReadOnlyList<ulong> FriendUids, int IntimacyValue);
 
 public sealed record BattleEnergyGrant(int EnergyGain, int WeeklyEnergyFreeCapacity);
 
@@ -119,6 +123,11 @@ public sealed class BattleSettlementRepository(DataOptions options)
             ? await AddChallengeCntAsync(database, gameUlongUID, challenge)
             : null;
         await FightHistoryRepository.AddAsync(database, change.FightHistory, change.MaxFightHistoryNumPerMapSubMode);
+        if (change.Intimacy is { } intimacy)
+        {
+            await FriendRepository.AddIntimacyAsync(database, gameUlongUID, intimacy.FriendUids, intimacy.IntimacyValue);
+        }
+
         var changedItems = await BagRepository.ReadItemsAsync(
             database,
             gameUlongUID,

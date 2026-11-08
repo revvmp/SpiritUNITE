@@ -33,6 +33,9 @@ public sealed class SettingsManager(SettingsRepository repository, GameData game
     public Task<RoleSettings> LoadAsync(ulong gameUlongUID) =>
         WithSettingsAsync(gameUlongUID, settings => (false, settings.Clone()));
 
+    public Task<bool> HidesFriendshipAsync(ulong gameUlongUID) =>
+        WithSettingsAsync(gameUlongUID, settings => (false, settings.IsCloseIntimacyShow == SwitchOn));
+
     public void Forget(ulong gameUlongUID) => entries.TryRemove(gameUlongUID, out _);
 
     public pbCOMDT_QUICK_SPEAK_INFO BuildQuickSpeakInfo(RoleSettings settings) =>

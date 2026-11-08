@@ -44,12 +44,15 @@ public sealed class MailManager(
     public async Task<RoleMail> SendSystemMailAsync(ulong uid, SystemMail mail)
     {
         var saved = await InsertSystemMailAsync(uid, mail);
-        await lobbyRoles.PushAsync(uid, GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidMailNewNtf, new pbSCMailNewNtf
+        await PushMailNewAsync(saved);
+        return saved;
+    }
+
+    public Task<bool> PushMailNewAsync(RoleMail saved) =>
+        lobbyRoles.PushAsync(saved.GameUlongUID, GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidMailNewNtf, new pbSCMailNewNtf
         {
             MailList = new pbCOMDT_MAIL_LIST { MailType = saved.MailType, MailInfo = { BuildMailItem(saved) } },
         }));
-        return saved;
-    }
 
     public Task<RoleMail> SendWelcomeMailAsync(ulong uid) => InsertSystemMailAsync(uid, WelcomeMail);
 
@@ -96,13 +99,28 @@ public sealed class MailManager(
 
     private async Task<RoleMail> InsertSystemMailAsync(ulong uid, SystemMail mail)
     {
+        var saved = await repository.InsertAsync(CreateSystemMail(uid, mail));
+        LogSystemMailSent(saved, mail);
+        return saved;
+    }
+
+    public void LogSystemMailSent(RoleMail saved, SystemMail mail) =>
+        logger.LogInformation(
+            "Mail {MailIndex} of type {MailType} with {AttachmentCount} attachments sent to uid {Uid}",
+            saved.MailIndex,
+            saved.MailType,
+            mail.Attachments.Count,
+            saved.GameUlongUID);
+
+    public RoleMail CreateSystemMail(ulong uid, SystemMail mail)
+    {
         ValidateSystemMail(mail);
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
         var accessInfo = new pbCOMDT_MAILACCESS_INFO
         {
             Access = { mail.Attachments.Select(award => new pbCOMDT_MAILACCESS { ResInfo = award.Clone() }) },
         };
-        var saved = await repository.InsertAsync(new RoleMail
+        return new RoleMail
         {
             GameUlongUID = uid,
             MailType = mail.MailType,
@@ -120,14 +138,7 @@ public sealed class MailManager(
             ExpireTime = now + ((long)mail.ValidDays * SecondsPerDay),
             AccessInfo = accessInfo.ToByteArray(),
             AccessState = mail.Attachments.Count > 0 ? MailBox.AccessUnget : MailBox.AccessNone,
-        });
-        logger.LogInformation(
-            "Mail {MailIndex} of type {MailType} with {AttachmentCount} attachments sent to uid {Uid}",
-            saved.MailIndex,
-            saved.MailType,
-            mail.Attachments.Count,
-            uid);
-        return saved;
+        };
     }
 
     public async Task<pbCOMDT_MAIL_LIST> GetMailListAsync(ulong uid, int mailType)

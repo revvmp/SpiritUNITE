@@ -60,6 +60,32 @@ public sealed class FriendRepository(DataOptions options)
             .ToArrayAsync();
     }
 
+    public async Task<RoleFriend[]> GetFriendsAsync(ulong gameUlongUID, IReadOnlyCollection<ulong> friendUids)
+    {
+        await using var database = new DataConnection(options);
+        return await database.GetTable<RoleFriend>()
+            .Where(friend => friend.GameUlongUID == gameUlongUID && friendUids.Contains(friend.FriendUid))
+            .ToArrayAsync();
+    }
+
+    public async Task<RoleFriend[]> GetFriendshipsAmongAsync(IReadOnlyCollection<ulong> gameUlongUIDs)
+    {
+        await using var database = new DataConnection(options);
+        return await database.GetTable<RoleFriend>()
+            .Where(friend => gameUlongUIDs.Contains(friend.GameUlongUID) && gameUlongUIDs.Contains(friend.FriendUid))
+            .ToArrayAsync();
+    }
+
+    public static Task<int> AddIntimacyAsync(
+        DataConnection database,
+        ulong gameUlongUID,
+        IReadOnlyCollection<ulong> friendUids,
+        int intimacyValue) =>
+        database.GetTable<RoleFriend>()
+            .Where(friend => friend.GameUlongUID == gameUlongUID && friendUids.Contains(friend.FriendUid))
+            .Set(friend => friend.IntimacyValue, friend => friend.IntimacyValue + intimacyValue)
+            .UpdateAsync();
+
     public async Task<RoleFriend?> FindFriendAsync(ulong gameUlongUID, ulong friendUid)
     {
         await using var database = new DataConnection(options);

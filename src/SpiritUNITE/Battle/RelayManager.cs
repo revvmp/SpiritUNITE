@@ -27,6 +27,7 @@ public sealed class RelayManager
     private const int BeginLoadClientSeq = 1;
     private const int BeginfightClientSeq = 2;
     private const int DefaultCanopyID = 1007500003;
+    private const int PersonalCanopyActiveType = (int)PB_ENUM_RES_CANOPY_ACTIVE_TYPE.PbResCanopyActiveTypeMin;
     private const int OpenCCSyncMove = 1;
     private const int SlowUpMoveCmd = 1;
     private const int MaxCltCacheFrapNum = 900;
@@ -311,6 +312,45 @@ public sealed class RelayManager
         {
             await relayRoles.PushAsync(other, RelayChannel.Stream, notice);
         }
+    }
+
+    public async Task<PB_ENUM_RES_ERROR_CODE> ShowCanopyAsync(ulong uid, int canopyID)
+    {
+        if (FindSeat(uid) is not ({ } game, { } seat))
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrAccountNotInDesk;
+        }
+
+        GamePacket notice;
+        ulong[] viewers;
+        lock (game.Gate)
+        {
+            if (game.Phase != RelayGamePhase.Loading || game.Finished || !game.CanopyShownCamps.Add(seat.Human.CampClient))
+            {
+                return PB_ENUM_RES_ERROR_CODE.PbErrDeskStateInvalid;
+            }
+
+            notice = GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidCanopyShowNtf, new pbSCCanopyShowNtf
+            {
+                CanopyShowNode = new pbCOMDT_CANOPY_SHOW_NODE
+                {
+                    CanopyID = canopyID,
+                    CampClient = seat.Human.CampClient,
+                    ShowTm = clock.GetUtcNow().ToUnixTimeSeconds(),
+                    ActiveType = PersonalCanopyActiveType,
+                    ActiveUid = uid,
+                },
+            });
+            viewers = [.. game.ConnectedViewers.Where(viewer => viewer.HasBeginLoad).Select(viewer => viewer.Uid)];
+        }
+
+        logger.LogInformation("Desk {DeskID}: uid {Uid} shows backdrop {CanopyId} for camp {Camp}", game.Desk.DeskID, uid, canopyID, seat.Human.CampClient);
+        foreach (var viewer in viewers)
+        {
+            await relayRoles.PushAsync(viewer, RelayChannel.Stream, notice);
+        }
+
+        return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
     public pbSCMultgameLoadfinRsp LoadFinished(ulong uid)

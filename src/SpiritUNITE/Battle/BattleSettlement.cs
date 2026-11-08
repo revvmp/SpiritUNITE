@@ -265,6 +265,7 @@ public sealed class BattleSettlement
             result.Gameover.GameoverSummary?.BattleReviewInfo,
             now);
         var weekReward = route is null ? null : await pveChallengeManager.LoadWeekRewardAsync(uid, utcNow);
+        var intimacy = await FindBattleIntimacyGainAsync(result);
         SettlementPlan? plan = null;
         IReadOnlyList<BagGrant> heldItemGrants = [];
         var commit = await repository.CommitAsync(uid, node, async storedStarNum =>
@@ -291,6 +292,7 @@ public sealed class BattleSettlement
                 BuildCountedGame(uid, result, plan))
             {
                 PveChallengeWeek = plan.NewWeek,
+                Intimacy = intimacy,
             };
         }, now);
         if (commit is null || plan is null)
@@ -388,6 +390,11 @@ public sealed class BattleSettlement
         if (eventBattlePushes.Length > 0)
         {
             await lobbyRoles.PushAsync(uid, eventBattlePushes);
+        }
+
+        if (intimacy is not null)
+        {
+            await lobbyRoles.PushAsync(uid, FriendIntimacy.BuildFriendInteractionNtf(gameData, await friends.GetFriendsAsync(uid, intimacy.FriendUids)));
         }
 
         if (HasSettleRoom(result))
@@ -822,14 +829,28 @@ public sealed class BattleSettlement
 
     private int PokemonIdOf(int heroID) => pokemonIdByHeroID.GetValueOrDefault(heroID, NoPokemon);
 
-    private async Task<bool> PlayedWithFriendAsync(BattleResult result)
+    private async Task<bool> PlayedWithFriendAsync(BattleResult result) => (await FindTeammateFriendUidsAsync(result)).Length > 0;
+
+    private async Task<ulong[]> FindTeammateFriendUidsAsync(BattleResult result)
     {
         var teammateUids = result.Desk.CampOf(result.Human.CampClient)
             .Where(player => !player.IsNpc && player.Uid != result.Human.Uid)
             .Select(player => player.Uid)
             .ToHashSet();
-        return teammateUids.Count > 0
-            && (await friends.GetFriendsAsync(result.Human.Uid)).Any(friend => teammateUids.Contains(friend.FriendUid));
+        return teammateUids.Count == 0
+            ? []
+            : [.. (await friends.GetFriendsAsync(result.Human.Uid)).Select(friend => friend.FriendUid).Where(teammateUids.Contains)];
+    }
+
+    private async Task<BattleIntimacyGain?> FindBattleIntimacyGainAsync(BattleResult result)
+    {
+        if (!IsMatch(result) || FriendIntimacy.FindRuleValue(gameData, PB_ENUM_RES_INTIMACY_RULE_ID.PbResIntimacyRuleFightId) is not { } fightIntimacy)
+        {
+            return null;
+        }
+
+        var friendUids = await FindTeammateFriendUidsAsync(result);
+        return friendUids.Length == 0 ? null : new BattleIntimacyGain(friendUids, fightIntimacy);
     }
 
     private static GuildBattle BuildGuildBattle(BattleResult result, MvpResult mvp)

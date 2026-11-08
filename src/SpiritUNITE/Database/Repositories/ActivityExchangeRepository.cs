@@ -28,14 +28,33 @@ public sealed record ActivityExchangeCommit(
     public static ActivityExchangeCommit Refused(PB_ENUM_RES_ERROR_CODE result) => new(result, 0, [], null, new Dictionary<int, long>(), null);
 }
 
+public sealed record ActivityExchangeState(int DoneCount, int Notify);
+
 public sealed class ActivityExchangeRepository(DataOptions options)
 {
-    public async Task<IReadOnlyDictionary<int, int>> LoadDoneCountsAsync(ulong gameUlongUID)
+    public async Task<IReadOnlyDictionary<int, ActivityExchangeState>> LoadStatesAsync(ulong gameUlongUID)
     {
         await using var database = new DataConnection(options);
         return await database.GetTable<RoleActivityExchange>()
             .Where(row => row.GameUlongUID == gameUlongUID)
-            .ToDictionaryAsync(row => row.ExchangeID, row => row.DoneCount);
+            .ToDictionaryAsync(row => row.ExchangeID, row => new ActivityExchangeState(row.DoneCount, row.Notify));
+    }
+
+    public async Task<int> LoadNotifyAsync(ulong gameUlongUID, int exchangeID)
+    {
+        await using var database = new DataConnection(options);
+        return await database.GetTable<RoleActivityExchange>()
+            .Where(row => row.GameUlongUID == gameUlongUID && row.ExchangeID == exchangeID)
+            .Select(row => row.Notify)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task SaveNotifyAsync(ulong gameUlongUID, int exchangeID, int notify)
+    {
+        await using var database = new DataConnection(options);
+        await database.GetTable<RoleActivityExchange>().InsertOrUpdateAsync(
+            () => new RoleActivityExchange { GameUlongUID = gameUlongUID, ExchangeID = exchangeID, Notify = notify },
+            _ => new RoleActivityExchange { Notify = notify });
     }
 
     public async Task<ActivityExchangeCommit> CommitAsync(ulong gameUlongUID, ActivityExchangeTrade trade)

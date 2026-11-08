@@ -145,6 +145,7 @@ public sealed class RelayGame
     public List<ulong> GameoverOrder { get; } = [];
     public Dictionary<int, CampVote> Votes { get; } = [];
     public Dictionary<int, long> LastSurrenderTimes { get; } = [];
+    public HashSet<int> CanopyShownCamps { get; } = [];
     public bool HangUpReported { get; set; }
     public bool EndedByJudge { get; set; }
     public RefereePause? Pause { get; set; }

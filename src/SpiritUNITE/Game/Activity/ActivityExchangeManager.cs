@@ -16,6 +16,8 @@ public sealed record ActivityExchangeOutcome(PB_ENUM_RES_ERROR_CODE Result, int 
     public static ActivityExchangeOutcome Refused(PB_ENUM_RES_ERROR_CODE result) => new(result, 0, []);
 }
 
+public sealed record ActivityExchangeNotifyOutcome(PB_ENUM_RES_ERROR_CODE Result, int Notify);
+
 public sealed class ActivityExchangeManager(
     GameData gameData,
     ActivitySchedule schedule,
@@ -30,12 +32,14 @@ public sealed class ActivityExchangeManager(
     private const int NoPvePrivilege = 0;
     private const int CustomTimeExchange = 1;
     private const int SingleBuffLevel = 1;
+    private const int NotifyOff = 0;
+    private const int NotifyOn = 1;
 
     private readonly ILookup<int, pbActivityExchange> exchangesByGroup = gameData.ActivityExchange.Rows.ToLookup(exchange => exchange.ExchangeGroupID);
 
     public async Task<pbCOMDT_ALL_EXCHANGE_INFO> BuildAllExchangeInfoAsync(LMNRoleInfo role)
     {
-        var doneCounts = await repository.LoadDoneCountsAsync(role.GameUlongUID);
+        var states = await repository.LoadStatesAsync(role.GameUlongUID);
         return new pbCOMDT_ALL_EXCHANGE_INFO
         {
             ExchangeList =
@@ -47,7 +51,8 @@ public sealed class ActivityExchangeManager(
                     .Select(exchange => new pbCOMDT_ONE_EXCHANGEINFO
                     {
                         ExchangeID = exchange.ExchangeID,
-                        DoneCount = doneCounts.GetValueOrDefault(exchange.ExchangeID),
+                        DoneCount = states.GetValueOrDefault(exchange.ExchangeID)?.DoneCount ?? 0,
+                        Notify = states.GetValueOrDefault(exchange.ExchangeID)?.Notify ?? NotifyOff,
                     }),
             },
         };
@@ -61,14 +66,10 @@ public sealed class ActivityExchangeManager(
         }
 
         var now = clock.GetUtcNow();
-        if (FindOpenExchangeActivities(now).FirstOrDefault(activity => activity.Row.ActivityID == activityID) is not { } activity)
+        var lookup = FindOpenExchange(activityID, exchangeID, now);
+        if (lookup is not { Activity: { } activity, Exchange: { } exchange })
         {
-            return ActivityExchangeOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrActivityNotExit);
-        }
-
-        if (gameData.ActivityExchange.Find(exchangeID) is not { } exchange || exchange.ExchangeGroupID != activity.Row.ActivityParam)
-        {
-            return ActivityExchangeOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrActivityExchangeGetExchangeErr);
+            return ActivityExchangeOutcome.Refused(lookup.Result);
         }
 
         if (exchange.CustomTime == CustomTimeExchange && !IsInValidTime(exchange, now))
@@ -94,6 +95,33 @@ public sealed class ActivityExchangeManager(
         }
 
         return new ActivityExchangeOutcome(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, commit.DoneCount, BuildPushes(trade, commit));
+    }
+
+    public async Task<ActivityExchangeNotifyOutcome> SetNotifyAsync(LMNRoleInfo role, int activityID, int exchangeID, int notify)
+    {
+        var found = FindOpenExchange(activityID, exchangeID, clock.GetUtcNow()).Result;
+        var result = found != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc ? found
+            : notify is not (NotifyOff or NotifyOn) ? PB_ENUM_RES_ERROR_CODE.PbErrActivityExchangeParamErr
+            : PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
+        if (result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+        {
+            return new ActivityExchangeNotifyOutcome(result, await repository.LoadNotifyAsync(role.GameUlongUID, exchangeID));
+        }
+
+        await repository.SaveNotifyAsync(role.GameUlongUID, exchangeID, notify);
+        return new ActivityExchangeNotifyOutcome(result, notify);
+    }
+
+    private OpenExchangeLookup FindOpenExchange(int activityID, int exchangeID, DateTimeOffset now)
+    {
+        if (FindOpenExchangeActivities(now).FirstOrDefault(activity => activity.Row.ActivityID == activityID) is not { } activity)
+        {
+            return new OpenExchangeLookup(PB_ENUM_RES_ERROR_CODE.PbErrActivityNotExit);
+        }
+
+        return gameData.ActivityExchange.Find(exchangeID) is { } exchange && exchange.ExchangeGroupID == activity.Row.ActivityParam
+            ? new OpenExchangeLookup(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, activity, exchange)
+            : new OpenExchangeLookup(PB_ENUM_RES_ERROR_CODE.PbErrActivityExchangeGetExchangeErr);
     }
 
     public static int MaxDoneNum(pbActivityExchange exchange, bool isPrivilegeActive) =>
@@ -228,4 +256,6 @@ public sealed class ActivityExchangeManager(
 
         return packets;
     }
+
+    private sealed record OpenExchangeLookup(PB_ENUM_RES_ERROR_CODE Result, ScheduledActivity? Activity = null, pbActivityExchange? Exchange = null);
 }

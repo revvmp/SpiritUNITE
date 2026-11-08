@@ -229,6 +229,7 @@ public static class Server
         builder.Services.AddSingleton(databaseOptions);
         builder.Services.AddSingleton<RoleRepository>();
         builder.Services.AddSingleton<FriendRepository>();
+        builder.Services.AddSingleton<FriendGiftRepository>();
         builder.Services.AddSingleton<MailRepository>();
         builder.Services.AddSingleton<ChatRepository>();
         builder.Services.AddSingleton<WalletRepository>();
@@ -295,6 +296,7 @@ public static class Server
         builder.Services.AddSingleton<FriendPresence>();
         builder.Services.AddSingleton<RoleBriefBuilder>();
         builder.Services.AddSingleton<FriendManager>();
+        builder.Services.AddSingleton<FriendGiftManager>();
         builder.Services.AddSingleton<GuildInfoBuilder>();
         builder.Services.AddSingleton<GuildComments>();
         builder.Services.AddSingleton<GuildActivityManager>();

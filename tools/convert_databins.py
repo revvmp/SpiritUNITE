@@ -276,6 +276,18 @@ LUA_ONLY_FIELDS = {
         288997: Field("SprayBuffID", "int32"),
         298384: Field("PokemonLimit", "int32"),
     },
+    "pbIntimacySetting": {
+        266127: Field("ID", "int32"),
+        210795: Field("Value", "int32"),
+    },
+    "pbIntimacyRule": {
+        266127: Field("ID", "int32"),
+        210795: Field("Value", "string"),
+    },
+    "pbIntimacyLevel": {
+        270334: Field("Level", "int32"),
+        279019: Field("UpgradeTotalExp", "int32"),
+    },
     "pbBadgeColor": {
         241164: Field("BadgeColorLv", "int32"),
         266754: Field("BadgeColor", "int32"),
@@ -846,6 +858,9 @@ TABLES = {
     ),
     "databin_Badge_Base": Table("pbBadge_Base", SERVER_FIELD_SUBSETS["pbBadge_Base"], key_field="BadgeId"),
     "databin_BadgeUnlock": Table("pbBadgeUnlock", LUA_ONLY_FIELDS["pbBadgeUnlock"], key_field="BadgeSchemeID"),
+    "databin_IntimacySetting": Table("pbIntimacySetting", LUA_ONLY_FIELDS["pbIntimacySetting"], key_field="ID"),
+    "databin_IntimacyRule": Table("pbIntimacyRule", LUA_ONLY_FIELDS["pbIntimacyRule"], key_field="ID"),
+    "databin_IntimacyLevel": Table("pbIntimacyLevel", LUA_ONLY_FIELDS["pbIntimacyLevel"], key_field="Level"),
     "databin_BadgeColor": Table("pbBadgeColor", LUA_ONLY_FIELDS["pbBadgeColor"]),
     "databin_NationGroup": Table("pbNationGroup", LUA_ONLY_FIELDS["pbNationGroup"], key_field="NationGroupID"),
     "databin_SubScriptionPeriod": Table("pbSubScriptionPeriod", LUA_ONLY_FIELDS["pbSubScriptionPeriod"], key_field="ID"),

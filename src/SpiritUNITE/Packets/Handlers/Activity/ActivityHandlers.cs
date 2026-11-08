@@ -57,6 +57,25 @@ public sealed class ActivityHandlers(
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetActivityExchangeInfoRsp, response)];
     }
 
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidActivityExchangeReddotReq)]
+    public async Task<GamePacket[]> OnActivityExchangeReddotReq(GamePacket request)
+    {
+        var reddot = pbCSActivityExchangeReddotReq.Parser.ParseFrom(request.PkgData);
+        var role = roles.Require(request.Uid);
+        var outcome = await activityExchange.SetNotifyAsync(role, reddot.ActivityId, reddot.ExchangeId, reddot.Notify);
+        logger.LogInformation(
+            "Activity exchange {ExchangeId} notify {Notify} in activity {ActivityId} for uid {Uid}: {Result}",
+            reddot.ExchangeId, reddot.Notify, reddot.ActivityId, request.Uid, outcome.Result);
+        var response = new pbSCActivityExchangeReddotRsp
+        {
+            ResultInfo = new pbResultInfo { ResultId = (int)outcome.Result },
+            ActivityId = reddot.ActivityId,
+            ExchangeId = reddot.ExchangeId,
+            Notify = outcome.Notify,
+        };
+        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidActivityExchangeReddotRsp, response)];
+    }
+
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidDoExchangeReq)]
     public async Task<GamePacket[]> OnDoExchangeReq(GamePacket request)
     {

@@ -212,7 +212,7 @@ public sealed class LoginManager(
     public async Task<GamePacket[]> BuildFirstClientGameSettingPacketsAsync(LMNRoleInfo role) =>
     [
         GamePacket.Create(PbScidNewbieGiftInfoNtf, await newbieGifts.BuildNewbieGiftInfoNtfAsync(role)),
-        GamePacket.Create(PbScidGetCanopyListNtf, BuildCanopyListNtf(role)),
+        GamePacket.Create(PbScidGetCanopyListNtf, await BuildCanopyListNtfAsync(role)),
         GamePacket.Create(PbScidPrivilePlatInfoNtf, new pbSCPrivilePlatInfoNtf { PrivilePlatInfo = new pbCOMDT_PRIVILE_PLAT_INFO() }),
     ];
 
@@ -222,7 +222,7 @@ public sealed class LoginManager(
         await StoreEeveeChallengeRedDotAsync(role);
         var clientSettings = await settings.LoadAsync(role.GameUlongUID);
         var route = await SyncStarRoadAsync(role);
-        var canopyList = BuildCanopyListNtf(role);
+        var canopyList = await BuildCanopyListNtfAsync(role);
 
         var replies = new ReplyList(request);
         replies.Add(PbScidLoginFinishNtf, new pbSCLoginFinishNtf());
@@ -264,7 +264,7 @@ public sealed class LoginManager(
         var ownershipTasks = await taskUpdates.BuildOwnershipUpdateTaskInfoNtfAsync(role);
         var energyInfo = EnergyCenter.BuildEnergyInfoNtf(await energies.LoadAsync(uid));
         var boundChannels = await accounts.FindBoundChannelsAsync(uid);
-        var canopyList = BuildCanopyListNtf(role);
+        var canopyList = await BuildCanopyListNtfAsync(role);
         var firstGain = registGains[0];
         var laterGains = registGains[1..];
 
@@ -383,10 +383,11 @@ public sealed class LoginManager(
         return notices.BuildCouponsRefreshPackets(coupons, grantSubscriptionOpen: true);
     }
 
-    private pbSCGetCanopyListNtf BuildCanopyListNtf(LMNRoleInfo role) => new()
+    private async Task<pbSCGetCanopyListNtf> BuildCanopyListNtfAsync(LMNRoleInfo role) => new()
     {
         ResultInfo = new pbResultInfo(),
         CanopyList = profiles.BuildCanopyList(role),
+        CurCanopyID = profiles.GetCurCanopyID(role, await profiles.LoadAsync(role.GameUlongUID)),
     };
 
     private pbSCGetCardFaceInfoNtf BuildGetCardFaceInfoNtf(LMNRoleInfo role) => new()

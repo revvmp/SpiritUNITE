@@ -3,8 +3,11 @@ using System.Globalization;
 using System.Security.Cryptography;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SpiritUNITE.Database.Models;
+using SpiritUNITE.Database.Repositories;
 using SpiritUNITE.Databin;
 using SpiritUNITE.Game.Bag;
+using SpiritUNITE.Game.Friend;
 using SpiritUNITE.Game.Login;
 using SpiritUNITE.Game.Pokemon;
 using SpiritUNITE.Game.Profile;
@@ -13,6 +16,7 @@ using SpiritUNITE.Game.Ranked;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Game.Match;
 using SpiritUNITE.Game.Room;
+using SpiritUNITE.Game.Settings;
 using SpiritUNITE.Online;
 using SpiritUNITE.Network.Lwip;
 using SpiritUNITE.Packets;
@@ -148,6 +152,8 @@ public sealed class DeskManager
     private readonly HeroPickOptions heroPick;
     private readonly LoginManager login;
     private readonly RankedManager ranked;
+    private readonly FriendRepository friends;
+    private readonly SettingsManager settings;
     private readonly TimeProvider clock;
     private readonly ILogger<DeskManager> logger;
     private readonly IReadOnlyDictionary<int, pbPokemon_Base> pokemonByHeroID;
@@ -177,6 +183,8 @@ public sealed class DeskManager
         IOptions<HeroPickOptions> heroPick,
         LoginManager login,
         RankedManager ranked,
+        FriendRepository friends,
+        SettingsManager settings,
         TimeProvider clock,
         ILogger<DeskManager> logger)
     {
@@ -194,6 +202,8 @@ public sealed class DeskManager
         this.heroPick = heroPick.Value;
         this.login = login;
         this.ranked = ranked;
+        this.friends = friends;
+        this.settings = settings;
         this.clock = clock;
         this.logger = logger;
         pokemonByHeroID = gameData.PokemonBase.Rows
@@ -230,6 +240,7 @@ public sealed class DeskManager
                 : profile with { PveChallengeBuffInfo = await pveChallengeManager.BuildBattleBuffInfoAsync(role.GameUlongUID) };
         }
 
+        var friendshipsAmongHumans = await LoadShownFriendshipsAsync(memberUids);
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
         BattleDesk desk;
         var outcome = new RoomOutcome();
@@ -253,7 +264,7 @@ public sealed class DeskManager
 
             releasedUids.ExceptWith(memberUids);
 
-            desk = CreateDesk(match, scene, humanProfiles, roomRules, now);
+            desk = CreateDesk(match, scene, humanProfiles, friendshipsAmongHumans, roomRules, now);
             desksById[desk.DeskID] = desk;
             foreach (var uid in desk.HumanUids)
             {
@@ -1036,6 +1047,7 @@ public sealed class DeskManager
         PendingMatch match,
         pbScene_Map scene,
         IReadOnlyDictionary<ulong, HumanProfile> humanProfiles,
+        IReadOnlyCollection<RoleFriend> friendshipsAmongHumans,
         FriendlyRoomRules roomRules,
         long now)
     {
@@ -1068,6 +1080,7 @@ public sealed class DeskManager
             }
         }
 
+        FillBattleIntimacyInfo(humans, friendshipsAmongHumans);
         var deskInfo = new pbCOMDT_DESKINFO
         {
             MapId = room.MapId,
@@ -1095,6 +1108,32 @@ public sealed class DeskManager
             FriendRoomRule = roomRules,
             Judges = [.. judges.OrderBy(judge => judge.PosOfCamp)],
         };
+    }
+
+    private async Task<RoleFriend[]> LoadShownFriendshipsAsync(IReadOnlyCollection<ulong> memberUids)
+    {
+        var friendshipHiders = new HashSet<ulong>();
+        foreach (var uid in memberUids)
+        {
+            if (await settings.HidesFriendshipAsync(uid))
+            {
+                friendshipHiders.Add(uid);
+            }
+        }
+
+        var friendships = await friends.GetFriendshipsAmongAsync(memberUids);
+        return [.. friendships.Where(friend => !friendshipHiders.Contains(friend.GameUlongUID) && !friendshipHiders.Contains(friend.FriendUid))];
+    }
+
+    private void FillBattleIntimacyInfo(IReadOnlyCollection<DeskPlayer> humans, IReadOnlyCollection<RoleFriend> friendshipsAmongHumans)
+    {
+        var humanUids = humans.Select(human => human.Uid).ToHashSet();
+        foreach (var human in humans)
+        {
+            human.PlayerInfo.IntimacyInfo = FriendIntimacy.BuildBattleIntimacyInfo(
+                gameData,
+                friendshipsAmongHumans.Where(friend => friend.GameUlongUID == human.Uid && humanUids.Contains(friend.FriendUid)));
+        }
     }
 
     private static DeskPlayer AsJudge(DeskPlayer human)

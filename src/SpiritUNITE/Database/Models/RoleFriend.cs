@@ -18,4 +18,7 @@ public sealed class RoleFriend
 
     [Column("ban_chat_flag")]
     public int BanChatFlag { get; set; }
+
+    [Column("intimacy_value")]
+    public int IntimacyValue { get; set; }
 }

@@ -8,7 +8,12 @@ using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers.Friend;
 
-public sealed class FriendHandlers(RoleInfoStore roles, FriendManager friends, GameData gameData, ILogger<FriendHandlers> logger)
+public sealed class FriendHandlers(
+    RoleInfoStore roles,
+    FriendManager friends,
+    FriendGiftManager friendGifts,
+    GameData gameData,
+    ILogger<FriendHandlers> logger)
 {
     private const int MaximumSearchStringBytes = 32;
     private const int Accepted = 1;
@@ -185,16 +190,34 @@ public sealed class FriendHandlers(RoleInfoStore roles, FriendManager friends, G
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetDailyGiftCoinListReq)]
-    public GamePacket[] OnGetDailyGiftCoinListReq(GamePacket request)
+    public async Task<GamePacket[]> OnGetDailyGiftCoinListReq(GamePacket request)
     {
         roles.Require(request.Uid);
         pbCSGetDailyGiftCoinListReq.Parser.ParseFrom(request.PkgData);
         var response = new pbSCGetDailyGiftCoinListRsp
         {
             ResultInfo = new pbResultInfo(),
-            DailyGiftCoinInfo = new pbCOMDT_DAILY_GIFT_COIN(),
+            DailyGiftCoinInfo = await friendGifts.GetDailyGiftCoinInfoAsync(request.Uid),
         };
+        logger.LogInformation(
+            "Uid {Uid} has given {Count} presents today",
+            request.Uid,
+            response.DailyGiftCoinInfo.DailyGiftCoinUid.Count);
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetDailyGiftCoinListRsp, response)];
+    }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidDailyGiftCoinReq)]
+    public async Task<GamePacket[]> OnDailyGiftCoinReq(GamePacket request)
+    {
+        roles.Require(request.Uid);
+        var friendUid = pbCSDailyGiftCoinReq.Parser.ParseFrom(request.PkgData).Uid;
+        var outcome = await friendGifts.DailyGiftCoinAsync(request.Uid, friendUid);
+        var response = new pbSCDailyGiftCoinRsp { ResultInfo = new pbResultInfo { ResultId = (int)outcome.Result }, Uid = friendUid };
+        return
+        [
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidDailyGiftCoinRsp, response),
+            .. outcome.SenderPushes.Select(packet => packet with { Uid = request.Uid, ClientSeq = request.ClientSeq }),
+        ];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetOverSeaPlatformFriendListReq)]

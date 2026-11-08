@@ -1,11 +1,12 @@
 using Microsoft.Extensions.Logging;
+using SpiritUNITE.Battle;
 using SpiritUNITE.Game.Profile;
 using SpiritUNITE.Game.Role;
 using SpiritUNITE.Packets.Messages;
 
 namespace SpiritUNITE.Packets.Handlers.Profile;
 
-public sealed class CanopyHandlers(RoleInfoStore roles, ProfileManager profiles, ILogger<CanopyHandlers> logger)
+public sealed class CanopyHandlers(RoleInfoStore roles, ProfileManager profiles, RelayManager relay, ILogger<CanopyHandlers> logger)
 {
     private const int CanopyUpdateType = 2;
 
@@ -105,6 +106,32 @@ public sealed class CanopyHandlers(RoleInfoStore roles, ProfileManager profiles,
             CanopyId = canopyId,
         };
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidCancelCurCanopyRsp, response)];
+    }
+
+    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidShowMyCanopyReq)]
+    public async Task<GamePacket[]> OnShowMyCanopyReq(GamePacket request)
+    {
+        var role = roles.Require(request.Uid);
+        var canopyId = pbCSShowMyCanopyReq.Parser.ParseFrom(request.PkgData).CanopyId;
+        var style = await profiles.LoadAsync(role.GameUlongUID);
+        var result = profiles.CheckCanopy(role, canopyId);
+        if (result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc && canopyId != profiles.GetCurCanopyID(role, style))
+        {
+            result = PB_ENUM_RES_ERROR_CODE.PbErrCanopyNotExists;
+        }
+
+        if (result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+        {
+            result = await relay.ShowCanopyAsync(role.GameUlongUID, canopyId);
+        }
+
+        logger.LogInformation("Backdrop {CanopyId} shown in battle loading by uid {Uid}: {Result}", canopyId, role.GameUlongUID, result);
+        var response = new pbSCShowMyCanopyRsp
+        {
+            ResultInfo = new pbResultInfo { ResultId = (int)result },
+            CanopyId = canopyId,
+        };
+        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidShowMyCanopyRsp, response)];
     }
 
     private static pbCOMDT_CANOPY_SHOW_INFO BuildCanopyShowInfo(LMNRoleInfo role, int canopyID)

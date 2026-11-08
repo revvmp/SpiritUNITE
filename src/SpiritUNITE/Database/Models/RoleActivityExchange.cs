@@ -15,4 +15,7 @@ public sealed class RoleActivityExchange
 
     [Column("done_count")]
     public int DoneCount { get; set; }
+
+    [Column("notify")]
+    public int Notify { get; set; }
 }

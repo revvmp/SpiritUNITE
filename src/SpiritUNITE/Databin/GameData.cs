@@ -138,6 +138,9 @@ public sealed class GameData
         TenGamesBPActivityOption = LoadRecords<pbTenGamesBPActivityOption>(row => row.ActivityID);
         TenGamesBPActivityReward = LoadRecords<pbTenGamesBPActivityReward>(row => pbTenGamesBPActivityReward.Key(row.ActivityID, row.Seq));
         PredictionTime = LoadRecords<pbPredictionTime>(row => row.PredictionStatge);
+        IntimacySetting = LoadRecords<pbIntimacySetting>(row => row.ID);
+        IntimacyRule = LoadRecords<pbIntimacyRule>(row => row.ID);
+        IntimacyLevel = LoadRecords<pbIntimacyLevel>(row => row.Level);
         DefaultLobbyBgId = FindDefaultLobbyBgId(LobbyBg);
     }
 
@@ -160,6 +163,9 @@ public sealed class GameData
     public DatabinTable<pbStarRoadPokemon> StarRoadPokemon { get; }
     public DatabinTable<pbActivity_Base> ActivityBase { get; }
     public DatabinTable<pbNationGroup> NationGroup { get; }
+    public DatabinTable<pbIntimacySetting> IntimacySetting { get; }
+    public DatabinTable<pbIntimacyRule> IntimacyRule { get; }
+    public DatabinTable<pbIntimacyLevel> IntimacyLevel { get; }
     public DatabinTable<pbTowerDefenseBase> TowerDefenseBase { get; }
     public DatabinTable<pbTowerDefenseShop> TowerDefenseShop { get; }
     public DatabinTable<pbTowerDefenseBuffLevelUpDesign> TowerDefenseBuffLevelUpDesign { get; }
