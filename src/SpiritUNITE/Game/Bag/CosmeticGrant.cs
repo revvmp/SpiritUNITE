@@ -50,6 +50,8 @@ public sealed record CosmeticGrant(
             RoleItemType.ContestantCardDecoration,
         PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesSkilleffectsexpandpack when gameData.SkillEffectExpandPackBase.Contains(resID) =>
             RoleItemType.SkillEffectsExpandPack,
+        PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesHeadFrame when gameData.PersonStyleHeadFrame.Contains(resID) =>
+            RoleItemType.PersonStyleHeadFrame,
         _ => null,
     };
 
@@ -60,6 +62,7 @@ public sealed record CosmeticGrant(
         RoleItemType.HeadIcon => gameData.HeadIconBase.Find(itemId) is { } row ? new(row.Transmuteid, row.TransmuteNum) : null,
         RoleItemType.ContestantCardDecoration => gameData.ContestantCardDecoration.Find(itemId) is { } row ? new(row.Transmuteid, row.TransmuteNum) : null,
         RoleItemType.SkillEffectsExpandPack => gameData.SkillEffectExpandPackBase.Find(itemId) is { } row ? new(row.Transmuteid, row.TransmuteNum) : null,
+        RoleItemType.PersonStyleHeadFrame => gameData.PersonStyleHeadFrame.Find(itemId) is { } row ? new(row.Transmuteid, row.TransmuteNum) : null,
         _ => null,
     };
 

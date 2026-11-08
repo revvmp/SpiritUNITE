@@ -329,6 +329,17 @@ public sealed class MailManager(
                 continue;
             }
 
+            if ((PB_ENUM_RES_RESOURCES_TYPE)award.ResType == PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesHeadFrame)
+            {
+                if (CosmeticGrant.Plan(gameData, bag, role, award.ResID, award.ResCnt, now, items) is not { } headFrame)
+                {
+                    return null;
+                }
+
+                headFrame.AddTo(items, bagGrants, coins, awards);
+                continue;
+            }
+
             awards.Add(new pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO { FinallyAwardInfo = award });
             switch ((PB_ENUM_RES_RESOURCES_TYPE)award.ResType)
             {
@@ -394,6 +405,7 @@ public sealed class MailManager(
             PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesCoin => award.ResID > 0,
             PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesAvatar => gameData.AvatarItem.Contains(award.ResID),
             PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesHeadicon => gameData.HeadIconBase.Contains(award.ResID),
+            PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesHeadFrame => gameData.PersonStyleHeadFrame.Contains(award.ResID),
             PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesPaster =>
                 gameData.PokemonAvatarBase.Contains(award.ResID) && award.ResCnt == AwardedPokemonCount,
             PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesLobbyBackground =>
