@@ -35,6 +35,13 @@ public sealed class GameData
         LobbyBg = LoadRecords<pbLobbyBg>(row => row.LobbyBgID);
         StarRoadSite = LoadRecords<pbStarRoadSite>(row => row.SiteID);
         NewbieGift = LoadRecords<pbNewbieGift>(row => pbNewbieGift.Key(row.GiftID, row.SchemeId));
+        ReportText = LoadRecords<pbReportText>(row => pbReportText.Key(row.ReportCategory, row.ReportReason));
+        PvePrivilegeActivity = LoadRecords<pbPvePrivilegeActivity>(row => row.ActivityID);
+        PveChallengeShop = LoadRecords<pbPveChallengeShop>(row => row.ShopID);
+        PveBuffLevelUpDesign = LoadRecords<pbPveBuffLevelUpDesign>(row => row.Id);
+        ActivityExchange = LoadRecords<pbActivityExchange>(row => row.ExchangeID);
+        FirstChargeAward = LoadRecords<pbFirstChargeAward>(row => row.LoginSeq);
+        MysteryShopDiscount = LoadRecords<pbMysteryShopDiscount>(row => pbMysteryShopDiscount.Key(row.AreaID, row.ActivityID));
         NewbieChallengeTask = LoadRecords<pbNewbieChallengeTask>(row => pbNewbieChallengeTask.Key(row.SchemeId, row.TaskDay));
         StarRoadPokemon = LoadRecords<pbStarRoadPokemon>(row => row.PokemonId);
         ActivityBase = LoadMessages<pbActivity_Base>(row => row.ActivityID);
@@ -58,9 +65,11 @@ public sealed class GameData
         RoundRule = LoadRecords<pbRoundRule>(row => row.RoundRuleId);
         FriendlyRoomRule = LoadRecords<pbFriendlyRoomRule>(row => row.Id);
         SceneMap = LoadMessages<pbScene_Map>(row => row.SceneId);
+        SceneOpenTime = LoadRecords<pbScene_OpenTime>(row => pbScene_OpenTime.Key(row.Index, row.SceneId));
         GlobalBase = LoadMessages<pbGlobal_Base>(row => row.GlobalId);
         MapBase = LoadMessages<pbMapBase>(row => row.MapBaseId);
         MvpConf = LoadRecords<pbMvp_Conf>(row => pbMvp_Conf.Key(row.GameType, row.ParamType));
+        MatchTrainer = LoadRecords<pbMatchTrainer>(row => pbMatchTrainer.Key(row.MapId, row.DifficultyLevel));
         Achievement = LoadRecords<pbAchievement>(row => row.AchievementID);
         BattlePassSeason = LoadMessages<pbBattlePassSeason>(row => row.SeasonID);
         BattlePassLevel = LoadMessages<pbBattlePassLevel>(row => pbBattlePassLevel.Key(row.SeasonID, row.Level));
@@ -102,6 +111,16 @@ public sealed class GameData
         UnitBase = LoadMessages<pbUnit_Base>(row => row.UnitId);
         NationGroup = LoadRecords<pbNationGroup>(row => row.NationGroupID);
         TowerDefenseBase = LoadRecords<pbTowerDefenseBase>(row => row.PeriodID);
+        TowerDefenseShop = LoadRecords<pbTowerDefenseShop>(row => pbTowerDefenseShop.Key(row.ShopID, row.PeriodID));
+        TowerDefenseBuffLevelUpDesign = LoadMessages<pbTowerDefenseBuffLevelUpDesign>(row => row.Id);
+        TowerDefensePassAward = LoadRecords<pbTowerDefensePassAward>(row => pbTowerDefensePassAward.Key(row.SceneId, row.PeriodID));
+        UniteChallenge = LoadRecords<pbUniteChallenge>(row => row.ID);
+        BossRushActivityBase = LoadRecords<pbBossRushActivityBase>(row => row.PeriodID);
+        BossRushGuildActivityScoreAward = LoadRecords<pbBossRushGuildActivityScoreAward>(row =>
+            pbBossRushGuildActivityScoreAward.Key(row.GearID, row.RewardID));
+        MegaEvolutionOther = LoadRecords<pbMegaEvolutionOther>(row => pbMegaEvolutionOther.Key(row.ActivityID, row.OtherType));
+        MegaEvolutionReward = LoadRecords<pbMegaEvolutionReward>(row => pbMegaEvolutionReward.Key(row.ActivityID, row.AwardKey));
+        MegaEvolutionTaskPool = LoadRecords<pbMegaEvolutionTaskPool>(row => row.Index);
         SubScriptionPeriod = LoadRecords<pbSubScriptionPeriod>(row => row.ID);
         TrainerExpGift = LoadRecords<pbTrainerExpGift>(row => pbTrainerExpGift.Key(row.SchemeId, row.TotalExp));
         TrainerSeasonExpGift = LoadRecords<pbTrainerSeasonExpGift>(row => pbTrainerSeasonExpGift.Key(row.SeasonID, row.TotalExp));
@@ -114,6 +133,11 @@ public sealed class GameData
         GuildActivityScoreGear = LoadRecords<pbGuildActivity_ScoreGear>(row => row.GearID);
         GuildActivityScoreReward = LoadRecords<pbGuildActivity_ScoreReward>(row => pbGuildActivity_ScoreReward.Key(row.RewardID, row.GearID));
         GuildActivityTask = LoadRecords<pbGuildActivity_Task>(row => row.RewardID);
+        TenGames = LoadRecords<pbTenGames>(row => row.GamesId);
+        TenGamesRankReward = LoadRecords<pbTenGamesRankReward>(row => pbTenGamesRankReward.Key(row.GamesId, row.GearID));
+        TenGamesBPActivityOption = LoadRecords<pbTenGamesBPActivityOption>(row => row.ActivityID);
+        TenGamesBPActivityReward = LoadRecords<pbTenGamesBPActivityReward>(row => pbTenGamesBPActivityReward.Key(row.ActivityID, row.Seq));
+        PredictionTime = LoadRecords<pbPredictionTime>(row => row.PredictionStatge);
         DefaultLobbyBgId = FindDefaultLobbyBgId(LobbyBg);
     }
 
@@ -125,11 +149,27 @@ public sealed class GameData
     public DatabinTable<pbLobbyBg> LobbyBg { get; }
     public DatabinTable<pbStarRoadSite> StarRoadSite { get; }
     public DatabinTable<pbNewbieGift> NewbieGift { get; }
+    public DatabinTable<pbReportText> ReportText { get; }
+    public DatabinTable<pbPvePrivilegeActivity> PvePrivilegeActivity { get; }
+    public DatabinTable<pbPveChallengeShop> PveChallengeShop { get; }
+    public DatabinTable<pbPveBuffLevelUpDesign> PveBuffLevelUpDesign { get; }
+    public DatabinTable<pbActivityExchange> ActivityExchange { get; }
+    public DatabinTable<pbFirstChargeAward> FirstChargeAward { get; }
+    public DatabinTable<pbMysteryShopDiscount> MysteryShopDiscount { get; }
     public DatabinTable<pbNewbieChallengeTask> NewbieChallengeTask { get; }
     public DatabinTable<pbStarRoadPokemon> StarRoadPokemon { get; }
     public DatabinTable<pbActivity_Base> ActivityBase { get; }
     public DatabinTable<pbNationGroup> NationGroup { get; }
     public DatabinTable<pbTowerDefenseBase> TowerDefenseBase { get; }
+    public DatabinTable<pbTowerDefenseShop> TowerDefenseShop { get; }
+    public DatabinTable<pbTowerDefenseBuffLevelUpDesign> TowerDefenseBuffLevelUpDesign { get; }
+    public DatabinTable<pbTowerDefensePassAward> TowerDefensePassAward { get; }
+    public DatabinTable<pbUniteChallenge> UniteChallenge { get; }
+    public DatabinTable<pbBossRushActivityBase> BossRushActivityBase { get; }
+    public DatabinTable<pbBossRushGuildActivityScoreAward> BossRushGuildActivityScoreAward { get; }
+    public DatabinTable<pbMegaEvolutionOther> MegaEvolutionOther { get; }
+    public DatabinTable<pbMegaEvolutionReward> MegaEvolutionReward { get; }
+    public DatabinTable<pbMegaEvolutionTaskPool> MegaEvolutionTaskPool { get; }
     public DatabinTable<pbSubScriptionPeriod> SubScriptionPeriod { get; }
     public DatabinTable<pbTrainerExpGift> TrainerExpGift { get; }
     public DatabinTable<pbTrainerSeasonExpGift> TrainerSeasonExpGift { get; }
@@ -155,9 +195,11 @@ public sealed class GameData
     public DatabinTable<pbRoundRule> RoundRule { get; }
     public DatabinTable<pbFriendlyRoomRule> FriendlyRoomRule { get; }
     public DatabinTable<pbScene_Map> SceneMap { get; }
+    public DatabinTable<pbScene_OpenTime> SceneOpenTime { get; }
     public DatabinTable<pbGlobal_Base> GlobalBase { get; }
     public DatabinTable<pbMapBase> MapBase { get; }
     public DatabinTable<pbMvp_Conf> MvpConf { get; }
+    public DatabinTable<pbMatchTrainer> MatchTrainer { get; }
     public DatabinTable<pbAchievement> Achievement { get; }
     public DatabinTable<pbBattlePassSeason> BattlePassSeason { get; }
     public DatabinTable<pbBattlePassLevel> BattlePassLevel { get; }
@@ -201,6 +243,11 @@ public sealed class GameData
     public DatabinTable<pbGuildActivity_RewardPool> GuildActivityRewardPool { get; }
     public DatabinTable<pbGuildActivity_ScoreGear> GuildActivityScoreGear { get; }
     public DatabinTable<pbGuildActivity_ScoreReward> GuildActivityScoreReward { get; }
+    public DatabinTable<pbTenGames> TenGames { get; }
+    public DatabinTable<pbTenGamesRankReward> TenGamesRankReward { get; }
+    public DatabinTable<pbTenGamesBPActivityOption> TenGamesBPActivityOption { get; }
+    public DatabinTable<pbTenGamesBPActivityReward> TenGamesBPActivityReward { get; }
+    public DatabinTable<pbPredictionTime> PredictionTime { get; }
     public DatabinTable<pbGuildActivity_Task> GuildActivityTask { get; }
     public int DefaultLobbyBgId { get; }
 

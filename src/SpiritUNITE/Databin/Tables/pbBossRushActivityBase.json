@@ -1,0 +1,72 @@
+[
+  {
+    "PeriodID": 1,
+    "DisplayEndTime": "20220730235959",
+    "RewardID": 1001,
+    "StartTime": "20220721000000",
+    "EndTime": "20220724235959"
+  },
+  {
+    "PeriodID": 2,
+    "DisplayEndTime": "20220813235959",
+    "RewardID": 1002,
+    "StartTime": "20220801000000",
+    "EndTime": "20220807235959"
+  },
+  {
+    "PeriodID": 3,
+    "DisplayEndTime": "20220827235959",
+    "RewardID": 1003,
+    "StartTime": "20220815000000",
+    "EndTime": "20220821235959"
+  },
+  {
+    "PeriodID": 4,
+    "DisplayEndTime": "20230311235959",
+    "RewardID": 1004,
+    "StartTime": "20230227040000",
+    "EndTime": "20230305235959"
+  },
+  {
+    "PeriodID": 5,
+    "DisplayEndTime": "20230325235959",
+    "RewardID": 1005,
+    "StartTime": "20230313000000",
+    "EndTime": "20230319235959"
+  },
+  {
+    "PeriodID": 6,
+    "DisplayEndTime": "20230408235959",
+    "RewardID": 1006,
+    "StartTime": "20230327000000",
+    "EndTime": "20230402235959"
+  },
+  {
+    "PeriodID": 7,
+    "DisplayEndTime": "20241229235959",
+    "RewardID": 1007,
+    "StartTime": "20241218000000",
+    "EndTime": "20241224235959"
+  },
+  {
+    "PeriodID": 8,
+    "DisplayEndTime": "20250113235959",
+    "RewardID": 1008,
+    "StartTime": "20241231000000",
+    "EndTime": "20250106235959"
+  },
+  {
+    "PeriodID": 9,
+    "DisplayEndTime": "20250521235959",
+    "RewardID": 1009,
+    "StartTime": "20250430000000",
+    "EndTime": "20250513235959"
+  },
+  {
+    "PeriodID": 10,
+    "DisplayEndTime": "20250608235959",
+    "RewardID": 1010,
+    "StartTime": "20250523000000",
+    "EndTime": "20250604235959"
+  }
+]

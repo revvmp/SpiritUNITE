@@ -1,0 +1,1052 @@
+[
+  {
+    "WinCnt": 1,
+    "FreeDropID": 160035,
+    "ActivityID": 16011,
+    "SenierDropID": 160040,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160036,
+    "ActivityID": 16011,
+    "SenierDropID": 160041,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160037,
+    "ActivityID": 16011,
+    "SenierDropID": 160042,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160038,
+    "ActivityID": 16011,
+    "SenierDropID": 160043,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 160039,
+    "ActivityID": 16011,
+    "SenierDropID": 160044,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 160600,
+    "ActivityID": 16238,
+    "SenierDropID": 160605,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160601,
+    "ActivityID": 16238,
+    "SenierDropID": 160606,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160602,
+    "ActivityID": 16238,
+    "SenierDropID": 160607,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160603,
+    "ActivityID": 16238,
+    "SenierDropID": 160608,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 160604,
+    "ActivityID": 16238,
+    "SenierDropID": 160609,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 160610,
+    "ActivityID": 16240,
+    "SenierDropID": 160615,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 16240,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 16240,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 16240,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 160614,
+    "ActivityID": 16240,
+    "SenierDropID": 160619,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 160610,
+    "ActivityID": 17205,
+    "SenierDropID": 160615,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 17205,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 17205,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 17205,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 171223,
+    "ActivityID": 17205,
+    "SenierDropID": 171226,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 160610,
+    "ActivityID": 17207,
+    "SenierDropID": 160615,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 17207,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 17207,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 17207,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 171224,
+    "ActivityID": 17207,
+    "SenierDropID": 171227,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 160610,
+    "ActivityID": 17209,
+    "SenierDropID": 160615,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 17209,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 17209,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 17209,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 171225,
+    "ActivityID": 17209,
+    "SenierDropID": 171228,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 160610,
+    "ActivityID": 18230,
+    "SenierDropID": 160615,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 18230,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 18230,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 18230,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 180430,
+    "ActivityID": 18230,
+    "SenierDropID": 190150,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 160610,
+    "ActivityID": 18232,
+    "SenierDropID": 160615,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 18232,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 18232,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 18232,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 180431,
+    "ActivityID": 18232,
+    "SenierDropID": 190151,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 160610,
+    "ActivityID": 18234,
+    "SenierDropID": 160615,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 18234,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 18234,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 18234,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 180432,
+    "ActivityID": 18234,
+    "SenierDropID": 190152,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 160610,
+    "ActivityID": 18236,
+    "SenierDropID": 160615,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 18236,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 18236,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 18236,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 180433,
+    "ActivityID": 18236,
+    "SenierDropID": 190153,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 160610,
+    "ActivityID": 18238,
+    "SenierDropID": 160615,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 18238,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 18238,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 18238,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 180434,
+    "ActivityID": 18238,
+    "SenierDropID": 190154,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 160610,
+    "ActivityID": 18240,
+    "SenierDropID": 160615,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 18240,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 18240,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 18240,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 180435,
+    "ActivityID": 18240,
+    "SenierDropID": 190155,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 160610,
+    "ActivityID": 20047,
+    "SenierDropID": 160615,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 20047,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 20047,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 20047,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 200369,
+    "ActivityID": 20047,
+    "SenierDropID": 200375,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 160610,
+    "ActivityID": 20049,
+    "SenierDropID": 160615,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 20049,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 20049,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 20049,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 200370,
+    "ActivityID": 20049,
+    "SenierDropID": 200376,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 160610,
+    "ActivityID": 20051,
+    "SenierDropID": 160615,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 20051,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 20051,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 20051,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 200371,
+    "ActivityID": 20051,
+    "SenierDropID": 200377,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 200899,
+    "ActivityID": 20053,
+    "SenierDropID": 200900,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 20053,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 20053,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 20053,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 200372,
+    "ActivityID": 20053,
+    "SenierDropID": 200378,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 200899,
+    "ActivityID": 20055,
+    "SenierDropID": 200900,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 20055,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 20055,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 20055,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 200373,
+    "ActivityID": 20055,
+    "SenierDropID": 200379,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 200899,
+    "ActivityID": 20057,
+    "SenierDropID": 200900,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 20057,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 20057,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 20057,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 200374,
+    "ActivityID": 20057,
+    "SenierDropID": 200380,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 200899,
+    "ActivityID": 21202,
+    "SenierDropID": 200900,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 21202,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 21202,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 21202,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 220116,
+    "ActivityID": 21202,
+    "SenierDropID": 220122,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 200899,
+    "ActivityID": 21204,
+    "SenierDropID": 200900,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 21204,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 21204,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 21204,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 220117,
+    "ActivityID": 21204,
+    "SenierDropID": 220123,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 200899,
+    "ActivityID": 21206,
+    "SenierDropID": 200900,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 21206,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 21206,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 21206,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 220118,
+    "ActivityID": 21206,
+    "SenierDropID": 220124,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 200899,
+    "ActivityID": 21208,
+    "SenierDropID": 200900,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 21208,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 21208,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 21208,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 220119,
+    "ActivityID": 21208,
+    "SenierDropID": 220125,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 200899,
+    "ActivityID": 21210,
+    "SenierDropID": 200900,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 21210,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 21210,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 21210,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 220120,
+    "ActivityID": 21210,
+    "SenierDropID": 220126,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 200899,
+    "ActivityID": 21212,
+    "SenierDropID": 200900,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 21212,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 21212,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 21212,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 220121,
+    "ActivityID": 21212,
+    "SenierDropID": 220127,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 200899,
+    "ActivityID": 23137,
+    "SenierDropID": 200900,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 23137,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 23137,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 23137,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 221926,
+    "ActivityID": 23137,
+    "SenierDropID": 221913,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 200899,
+    "ActivityID": 23139,
+    "SenierDropID": 200900,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 23139,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 23139,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 23139,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 221927,
+    "ActivityID": 23139,
+    "SenierDropID": 221914,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 200899,
+    "ActivityID": 23141,
+    "SenierDropID": 200900,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 23141,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 23141,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 23141,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 221928,
+    "ActivityID": 23141,
+    "SenierDropID": 221915,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 200899,
+    "ActivityID": 23143,
+    "SenierDropID": 200900,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 23143,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 23143,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 23143,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 221929,
+    "ActivityID": 23143,
+    "SenierDropID": 221916,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 200899,
+    "ActivityID": 23145,
+    "SenierDropID": 200900,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 23145,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 23145,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 23145,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 221930,
+    "ActivityID": 23145,
+    "SenierDropID": 221917,
+    "Seq": 5
+  },
+  {
+    "WinCnt": 1,
+    "FreeDropID": 200899,
+    "ActivityID": 23147,
+    "SenierDropID": 200900,
+    "Seq": 1
+  },
+  {
+    "WinCnt": 2,
+    "FreeDropID": 160611,
+    "ActivityID": 23147,
+    "SenierDropID": 160616,
+    "Seq": 2
+  },
+  {
+    "WinCnt": 3,
+    "FreeDropID": 160612,
+    "ActivityID": 23147,
+    "SenierDropID": 160617,
+    "Seq": 3
+  },
+  {
+    "WinCnt": 4,
+    "FreeDropID": 160613,
+    "ActivityID": 23147,
+    "SenierDropID": 160618,
+    "Seq": 4
+  },
+  {
+    "WinCnt": 5,
+    "FreeDropID": 221931,
+    "ActivityID": 23147,
+    "SenierDropID": 221918,
+    "Seq": 5
+  }
+]

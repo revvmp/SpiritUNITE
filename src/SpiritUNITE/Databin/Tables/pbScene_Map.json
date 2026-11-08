@@ -349,6 +349,7 @@
     "GameType": 7,
     "CampPlayerNum": 5,
     "SurrenderStartTime": 300,
+    "ChallengeTrainerMode": 1,
     "SceneId": 208071,
     "OpenHeroMode": 2,
     "Timeout": 1500,

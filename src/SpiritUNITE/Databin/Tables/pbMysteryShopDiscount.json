@@ -1,0 +1,420 @@
+[
+  {
+    "Discount": 80,
+    "ActivityID": 10147
+  },
+  {
+    "Discount": 80,
+    "ActivityID": 10147,
+    "AreaID": 1
+  },
+  {
+    "Discount": 70,
+    "ActivityID": 10147,
+    "AreaID": 2
+  },
+  {
+    "Discount": 50,
+    "ActivityID": 10147,
+    "AreaID": 3
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 1034
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 1034,
+    "AreaID": 1
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 1034,
+    "AreaID": 2
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 1034,
+    "AreaID": 3
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 1152
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 1152,
+    "AreaID": 1
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 1152,
+    "AreaID": 2
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 1152,
+    "AreaID": 3
+  },
+  {
+    "Discount": 80,
+    "ActivityID": 1332
+  },
+  {
+    "Discount": 80,
+    "ActivityID": 1332,
+    "AreaID": 1
+  },
+  {
+    "Discount": 70,
+    "ActivityID": 1332,
+    "AreaID": 2
+  },
+  {
+    "Discount": 50,
+    "ActivityID": 1332,
+    "AreaID": 3
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 14010
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 14010,
+    "AreaID": 1
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 14010,
+    "AreaID": 2
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 14010,
+    "AreaID": 3
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 15031
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 15031,
+    "AreaID": 1
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 15031,
+    "AreaID": 2
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 15031,
+    "AreaID": 3
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 16502
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 16502,
+    "AreaID": 1
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 16502,
+    "AreaID": 2
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 16502,
+    "AreaID": 3
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 17080
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 17080,
+    "AreaID": 1
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 17080,
+    "AreaID": 2
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 17080,
+    "AreaID": 3
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 17111
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 17111,
+    "AreaID": 1
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 17111,
+    "AreaID": 2
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 17111,
+    "AreaID": 3
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 19051
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 19051,
+    "AreaID": 1
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 19051,
+    "AreaID": 2
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 19051,
+    "AreaID": 3
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 19429
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 19429,
+    "AreaID": 1
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 19429,
+    "AreaID": 2
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 19429,
+    "AreaID": 3
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 20157
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 20157,
+    "AreaID": 1
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 20157,
+    "AreaID": 2
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 20157,
+    "AreaID": 3
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 20225
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 20225,
+    "AreaID": 1
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 20225,
+    "AreaID": 2
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 20225,
+    "AreaID": 3
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 20280
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 20280,
+    "AreaID": 1
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 20280,
+    "AreaID": 2
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 20280,
+    "AreaID": 3
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 20353
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 20353,
+    "AreaID": 1
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 20353,
+    "AreaID": 2
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 20353,
+    "AreaID": 3
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 20377
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 20377,
+    "AreaID": 1
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 20377,
+    "AreaID": 2
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 20377,
+    "AreaID": 3
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 21178
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 21178,
+    "AreaID": 1
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 21178,
+    "AreaID": 2
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 21178,
+    "AreaID": 3
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 21180
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 21180,
+    "AreaID": 1
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 21180,
+    "AreaID": 2
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 21180,
+    "AreaID": 3
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 21239
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 21239,
+    "AreaID": 1
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 21239,
+    "AreaID": 2
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 21239,
+    "AreaID": 3
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 22111
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 22111,
+    "AreaID": 1
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 22111,
+    "AreaID": 2
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 22111,
+    "AreaID": 3
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 23109
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 23109,
+    "AreaID": 1
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 23109,
+    "AreaID": 2
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 23109,
+    "AreaID": 3
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 23275
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 23275,
+    "AreaID": 1
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 23275,
+    "AreaID": 2
+  },
+  {
+    "Discount": 100,
+    "ActivityID": 23275,
+    "AreaID": 3
+  }
+]

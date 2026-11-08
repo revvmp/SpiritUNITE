@@ -59,6 +59,62 @@ LUA_ONLY_FIELDS = {
         271458: Field("RewardID", "int32"),
         289808: Field("TaskID", "int32", repeated=True),
     },
+    "pbPvePrivilegeActivity": {
+        244760: Field("ActivityID", "int32"),
+        265903: Field("WeekExtraRewardNum", "int32"),
+        263714: Field("WeekRewardLimit", "int32"),
+        235416: Field("CostCoupons", "int32"),
+        242945: Field("UnlockBuffNum", "int32"),
+        217633: Field("PrivilegeKeepTime", "int32"),
+    },
+    "pbPveChallengeShop": {
+        225340: Field("PeriodID", "int32"),
+        297445: Field("ShopID", "int32"),
+        223098: Field("Score", "int32"),
+        213727: Field("BuyNumLimit", "int32"),
+        203263: Field("ResID", "int32"),
+        205709: Field("IsBuff", "int32"),
+        251718: Field("GroupId", "int32"),
+        270334: Field("Level", "int32"),
+        265356: Field("JumpLink", "int32"),
+    },
+    "pbPveBuffLevelUpDesign": {
+        266095: Field("Id", "int32"),
+        251718: Field("GroupId", "int32"),
+        270334: Field("Level", "int32"),
+    },
+    "pbActivityExchange": {
+        274344: Field("ExchangeID", "int32"),
+        288083: Field("ExchangeGroupID", "int32"),
+        294986: Field("FromRes", "pbFromRes", repeated=True),
+        289336: Field("ToResID", "int32"),
+        241047: Field("ToResNum", "int32"),
+        205464: Field("ToDst", "pbToDst", repeated=True),
+        201878: Field("MaxDoneNum", "int32"),
+        271334: Field("CustomTime", "int32"),
+        291705: Field("ValidStartTime", "int64"),
+        229558: Field("ValidEndTime", "int64"),
+        258440: Field("NeedPvePrivilege", "int32"),
+        243906: Field("PvePrivilegeExtra", "int32"),
+    },
+    "pbFirstChargeAward": {
+        256220: Field("LoginSeq", "int32"),
+        269784: Field("DropID", "int32"),
+    },
+    "pbMysteryShopDiscount": {
+        244760: Field("ActivityID", "int32"),
+        277708: Field("AreaID", "int32"),
+        233113: Field("Discount", "int32"),
+    },
+    "pbReportText": {
+        224410: Field("ReportCategory", "int32"),
+        262118: Field("ReportReason", "int32"),
+    },
+    "pbMatchTrainer": {
+        217303: Field("MapId", "int32"),
+        282995: Field("DifficultyLevel", "int32"),
+        294469: Field("NeedCnt", "int32"),
+    },
     "pbMvp_Conf": {
         244570: Field("GameType", "int32"),
         284285: Field("ParamVec", "int32", repeated=True),
@@ -163,6 +219,8 @@ LUA_ONLY_FIELDS = {
         221526: Field("HeadIconID", "int32"),
         266240: Field("OnTime", "int64"),
         282160: Field("IsOpen", "int32"),
+        295986: Field("Transmuteid", "int32"),
+        297667: Field("TransmuteNum", "int32"),
     },
     "pbPersonalityLabel": {
         266127: Field("ID", "int32"),
@@ -244,6 +302,21 @@ LUA_ONLY_FIELDS = {
         285755: Field("OpenTime", "int64"),
         287307: Field("TrainMapID", "int32"),
     },
+    "pbScene_OpenTime": {
+        223148: Field("Index", "int32"),
+        262999: Field("SceneId", "int32"),
+        250068: Field("OpenDate", "int64"),
+        224768: Field("CloseDate", "int64"),
+        294206: Field("DisplayDate", "int64"),
+        265884: Field("HideDate", "int64"),
+        285755: Field("OpenTime", "int64"),
+        265497: Field("CloseTime", "int64"),
+        260263: Field("OpenMode", "int32"),
+        268252: Field("OpenModeParaA", "string"),
+        268249: Field("OpenModeParaB", "int32"),
+        268250: Field("OpenModeParaC", "int32"),
+        212815: Field("IsShowDate", "int32"),
+    },
     "pbRankMatchPointMedal": {
         223098: Field("Score", "int32"),
         232230: Field("MedalGroup", "int32"),
@@ -264,6 +337,64 @@ LUA_ONLY_FIELDS = {
         232620: Field("ResourceNum", "int32"),
         239380: Field("ResourceType", "int32"),
         282173: Field("ResourceId", "int32"),
+    },
+    "pbUniteChallenge": {
+        225340: Field("PeriodID", "int32"),
+        235280: Field("ShowMapId", "int32"),
+        252587: Field("WinReward", "pbUniteChallengeWinReward", repeated=True),
+        265497: Field("CloseTime", "int64"),
+        266127: Field("ID", "int32"),
+        285755: Field("OpenTime", "int64"),
+    },
+    "pbTowerDefenseShop": {
+        203263: Field("ResID", "int32"),
+        205709: Field("IsBuff", "int32"),
+        213727: Field("BuyNumLimit", "int32"),
+        223098: Field("Score", "int32"),
+        225340: Field("PeriodID", "int32"),
+        245712: Field("GameLevel", "int32"),
+        251718: Field("GroupId", "int32"),
+        266240: Field("OnTime", "int64"),
+        270334: Field("Level", "int32"),
+        286796: Field("OffTime", "int64"),
+        297445: Field("ShopID", "int32"),
+    },
+    "pbTowerDefensePassAward": {
+        225340: Field("PeriodID", "int32"),
+        256687: Field("SDropID", "int32"),
+        262999: Field("SceneId", "int32"),
+    },
+    "pbBossRushActivityBase": {
+        225340: Field("PeriodID", "int32"),
+        266186: Field("DisplayEndTime", "int64"),
+        271458: Field("RewardID", "int32"),
+        288591: Field("StartTime", "int64"),
+        294988: Field("EndTime", "int64"),
+    },
+    "pbBossRushGuildActivityScoreAward": {
+        205430: Field("GearID", "int32"),
+        223098: Field("Score", "int32"),
+        256687: Field("SDropID", "int32"),
+        271458: Field("RewardID", "int32"),
+    },
+    "pbMegaEvolutionOther": {
+        243219: Field("OtherType", "int32"),
+        244760: Field("ActivityID", "int32"),
+        270501: Field("OtherVal", "int32"),
+    },
+    "pbMegaEvolutionReward": {
+        202350: Field("TargetComplete", "int32"),
+        221161: Field("AwardDropID", "int32"),
+        244760: Field("ActivityID", "int32"),
+        288679: Field("StateIndex", "int32"),
+        299688: Field("AwardKey", "int32"),
+    },
+    "pbMegaEvolutionTaskPool": {
+        223148: Field("Index", "int32"),
+        236922: Field("CompleteCoupons", "int32"),
+        244760: Field("ActivityID", "int32"),
+        263409: Field("TaskType", "int32"),
+        289808: Field("TaskID", "int32"),
     },
     "pbEeveeChallenge": {
         205577: Field("EeveeID", "int32"),
@@ -289,6 +420,43 @@ LUA_ONLY_FIELDS = {
         239263: Field("TimeOut", "int32"),
         247017: Field("CampTwoPos", "int32", repeated=True),
         251891: Field("CampOnePos", "int32", repeated=True),
+    },
+    "pbTenGames": {
+        263802: Field("GamesId", "int32"),
+        294206: Field("DisplayDate", "int64"),
+        265884: Field("HideDate", "int64"),
+        250068: Field("OpenDate", "int64"),
+        224768: Field("CloseDate", "int64"),
+        283815: Field("OpenGameTime", "int64", repeated=True),
+        227203: Field("CloseGameTime", "int64", repeated=True),
+        275391: Field("SettleEndTime", "int64"),
+        264707: Field("JoinReward", "int32"),
+        225220: Field("CanApplyMember", "int32", repeated=True),
+        203478: Field("MapList", "int32", repeated=True),
+    },
+    "pbTenGamesRankReward": {
+        263802: Field("GamesId", "int32"),
+        205430: Field("GearID", "int32"),
+        218630: Field("StartRank", "int32"),
+        296573: Field("EndRank", "int32"),
+        248095: Field("RewardDropID", "int32"),
+        273074: Field("IsParticipationAward", "int32"),
+    },
+    "pbTenGamesBPActivityOption": {
+        244760: Field("ActivityID", "int32"),
+        236745: Field("SenierCertCoupons", "int32"),
+    },
+    "pbTenGamesBPActivityReward": {
+        244760: Field("ActivityID", "int32"),
+        277077: Field("Seq", "int32"),
+        213775: Field("WinCnt", "int32"),
+        216746: Field("FreeDropID", "int32"),
+        249166: Field("SenierDropID", "int32"),
+    },
+    "pbPredictionTime": {
+        299365: Field("PredictionStatge", "int32"),
+        288591: Field("StartTime", "int64"),
+        294988: Field("EndTime", "int64"),
     },
 }
 
@@ -338,8 +506,12 @@ SERVER_FIELD_SUBSETS = {
 }
 
 NESTED_MESSAGE_FIELDS = {
+    "pbUniteChallengeWinReward": {
+        269752: Field("DropId", "int32"),
+    },
     "pbFinishCondition": {
         266127: Field("ID", "int32"),
+        270539: Field("ParamD", "int32", repeated=True),
         270541: Field("ParamB", "int32", repeated=True),
         270544: Field("ParamA", "int32", repeated=True),
         288334: Field("TargetProcess", "int32"),
@@ -358,6 +530,14 @@ NESTED_MESSAGE_FIELDS = {
     },
     "pbWelfareTask": {
         289808: Field("TaskID", "int32"),
+    },
+    "pbFromRes": {
+        260768: Field("Num", "int32"),
+        266127: Field("ID", "int32"),
+    },
+    "pbToDst": {
+        203263: Field("ResID", "int32"),
+        293282: Field("ResNum", "int32"),
     },
 }
 
@@ -438,6 +618,7 @@ PVE_CHALLENGE_STAGE_ROUTE_SERVER_FIELDS = (
     "TwoStarDrops",
     "ThreeStarDrops",
     "CompleteDrops",
+    "RefreshDrops",
     "TaskID",
 )
 
@@ -447,7 +628,7 @@ HEAD_ICON_SERVER_FIELDS = ("HeadIconID", "IsOpen", "OnTime", "Transmuteid", "Tra
 
 BATTLE_SIGNAL_COMMUNICATE_SERVER_FIELDS = ("Id", "SignalType", "PhraseLocation")
 
-NATION_SELECT_INFORMATION_SERVER_FIELDS = ("NationID",)
+NATION_SELECT_INFORMATION_SERVER_FIELDS = ("NationID", "ArpRegionID")
 
 POKEMON_AVATAR_BASE_SERVER_FIELDS = (
     "PokemonAvatarId",
@@ -496,6 +677,7 @@ SCENE_MAP_SERVER_FIELDS = (
     "PickHeroMode",
     "PickAdjustSec",
     "SubModeFriendRule",
+    "ChallengeTrainerMode",
 )
 
 RANKED_DIVISION_SERVER_FIELDS = (
@@ -515,7 +697,29 @@ MAP_BASE_SERVER_FIELDS = ("MapBaseId", "MatchTime")
 POKEMON_RELEASE_SERVER_FIELDS = ("PokemonId", "OnTime", "Order")
 
 TABLES = {
+    "databin_TenGames": Table("pbTenGames", LUA_ONLY_FIELDS["pbTenGames"], key_field="GamesId"),
+    "databin_TenGamesRankReward": Table("pbTenGamesRankReward", LUA_ONLY_FIELDS["pbTenGamesRankReward"]),
+    "databin_TenGamesBPActivityOption": Table(
+        "pbTenGamesBPActivityOption", LUA_ONLY_FIELDS["pbTenGamesBPActivityOption"], key_field="ActivityID"
+    ),
+    "databin_TenGamesBPActivityReward": Table(
+        "pbTenGamesBPActivityReward", LUA_ONLY_FIELDS["pbTenGamesBPActivityReward"]
+    ),
+    "databin_PredictionTime": Table(
+        "pbPredictionTime", LUA_ONLY_FIELDS["pbPredictionTime"], key_field="PredictionStatge"
+    ),
     "databin_GuildLabel": Table("pbGuildLabel", LUA_ONLY_FIELDS["pbGuildLabel"], key_field="LableID"),
+    "databin_ReportText": Table("pbReportText", LUA_ONLY_FIELDS["pbReportText"]),
+    "databin_PvePrivilegeActivity": Table(
+        "pbPvePrivilegeActivity", LUA_ONLY_FIELDS["pbPvePrivilegeActivity"], key_field="ActivityID"
+    ),
+    "databin_PveChallengeShop": Table("pbPveChallengeShop", LUA_ONLY_FIELDS["pbPveChallengeShop"]),
+    "databin_PveBuffLevelUpDesign": Table("pbPveBuffLevelUpDesign", LUA_ONLY_FIELDS["pbPveBuffLevelUpDesign"], key_field="Id"),
+    "databin_ActivityExchange": Table(
+        "pbActivityExchange", LUA_ONLY_FIELDS["pbActivityExchange"], key_field="ExchangeID"
+    ),
+    "databin_FirstChargeAward": Table("pbFirstChargeAward", LUA_ONLY_FIELDS["pbFirstChargeAward"], key_field="LoginSeq"),
+    "databin_MysteryShopDiscount": Table("pbMysteryShopDiscount", LUA_ONLY_FIELDS["pbMysteryShopDiscount"]),
     "databin_GuildActivity_Base": Table(
         "pbGuildActivity_Base", LUA_ONLY_FIELDS["pbGuildActivity_Base"], key_field="PeriodID"
     ),
@@ -564,13 +768,30 @@ TABLES = {
         "pbNewPlayerDefaultRes", LUA_ONLY_FIELDS["pbNewPlayerDefaultRes"], key_field="NewplayerRewardId"
     ),
     "databin_EeveeChallenge": Table("pbEeveeChallenge", LUA_ONLY_FIELDS["pbEeveeChallenge"]),
+    "databin_UniteChallenge": Table("pbUniteChallenge", LUA_ONLY_FIELDS["pbUniteChallenge"], key_field="ID"),
+    "databin_TowerDefenseShop": Table("pbTowerDefenseShop", LUA_ONLY_FIELDS["pbTowerDefenseShop"]),
+    "databin_TowerDefenseBuffLevelUpDesign": Table("pbTowerDefenseBuffLevelUpDesign", key_field="Id"),
+    "databin_TowerDefensePassAward": Table("pbTowerDefensePassAward", LUA_ONLY_FIELDS["pbTowerDefensePassAward"]),
+    "databin_BossRushActivityBase": Table(
+        "pbBossRushActivityBase", LUA_ONLY_FIELDS["pbBossRushActivityBase"], key_field="PeriodID"
+    ),
+    "databin_BossRushGuildActivityScoreAward": Table(
+        "pbBossRushGuildActivityScoreAward", LUA_ONLY_FIELDS["pbBossRushGuildActivityScoreAward"]
+    ),
+    "databin_MegaEvolutionOther": Table("pbMegaEvolutionOther", LUA_ONLY_FIELDS["pbMegaEvolutionOther"]),
+    "databin_MegaEvolutionReward": Table("pbMegaEvolutionReward", LUA_ONLY_FIELDS["pbMegaEvolutionReward"]),
+    "databin_MegaEvolutionTaskPool": Table(
+        "pbMegaEvolutionTaskPool", LUA_ONLY_FIELDS["pbMegaEvolutionTaskPool"], key_field="Index"
+    ),
     "databin_BanPickRule": Table("pbBanPickRule", LUA_ONLY_FIELDS["pbBanPickRule"], key_field="BanPickRuleId"),
     "databin_RoundRule": Table("pbRoundRule", LUA_ONLY_FIELDS["pbRoundRule"], key_field="RoundRuleId"),
     "databin_FriendlyRoomRule": Table("pbFriendlyRoomRule", LUA_ONLY_FIELDS["pbFriendlyRoomRule"], key_field="Id"),
     "databin_RoleImage": Table("pbRoleImage"),
+    "databin_Scene_OpenTime": Table("pbScene_OpenTime", LUA_ONLY_FIELDS["pbScene_OpenTime"]),
     "databin_Scene_Map": Table("pbScene_Map", key_field="SceneId", kept_fields=SCENE_MAP_SERVER_FIELDS),
     "databin_MapBase": Table("pbMapBase", key_field="MapBaseId", kept_fields=MAP_BASE_SERVER_FIELDS),
     "databin_Mvp_Conf": Table("pbMvp_Conf", LUA_ONLY_FIELDS["pbMvp_Conf"]),
+    "databin_MatchTrainer": Table("pbMatchTrainer", LUA_ONLY_FIELDS["pbMatchTrainer"]),
     "databin_TrainerLevel": Table("pbTrainerLevel", key_field="Level"),
     "databin_Shop.group.1": Table("pbShop", key_field="ShopID", kept_fields=SHOP_SERVER_FIELDS),
     "databin_StarRoadSite": Table("pbStarRoadSite", LUA_ONLY_FIELDS["pbStarRoadSite"]),

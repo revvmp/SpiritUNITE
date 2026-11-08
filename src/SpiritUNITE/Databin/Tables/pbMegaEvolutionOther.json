@@ -1,0 +1,528 @@
+[
+  {
+    "OtherType": 1,
+    "ActivityID": 19582,
+    "OtherVal": 1002011303
+  },
+  {
+    "OtherType": 2,
+    "ActivityID": 19582,
+    "OtherVal": 1
+  },
+  {
+    "OtherType": 3,
+    "ActivityID": 19582,
+    "OtherVal": 10
+  },
+  {
+    "OtherType": 4,
+    "ActivityID": 19582,
+    "OtherVal": 1
+  },
+  {
+    "OtherType": 5,
+    "ActivityID": 19582,
+    "OtherVal": 2
+  },
+  {
+    "OtherType": 6,
+    "ActivityID": 19582,
+    "OtherVal": 15
+  },
+  {
+    "OtherType": 7,
+    "ActivityID": 19582,
+    "OtherVal": 10000
+  },
+  {
+    "OtherType": 8,
+    "ActivityID": 19582,
+    "OtherVal": 1
+  },
+  {
+    "OtherType": 10,
+    "ActivityID": 19582
+  },
+  {
+    "OtherType": 1,
+    "ActivityID": 19583,
+    "OtherVal": 1002011389
+  },
+  {
+    "OtherType": 2,
+    "ActivityID": 19583,
+    "OtherVal": 1
+  },
+  {
+    "OtherType": 3,
+    "ActivityID": 19583,
+    "OtherVal": 10
+  },
+  {
+    "OtherType": 4,
+    "ActivityID": 19583,
+    "OtherVal": 1
+  },
+  {
+    "OtherType": 5,
+    "ActivityID": 19583,
+    "OtherVal": 2
+  },
+  {
+    "OtherType": 6,
+    "ActivityID": 19583,
+    "OtherVal": 2
+  },
+  {
+    "OtherType": 7,
+    "ActivityID": 19583,
+    "OtherVal": 10000
+  },
+  {
+    "OtherType": 8,
+    "ActivityID": 19583,
+    "OtherVal": 8
+  },
+  {
+    "OtherType": 9,
+    "ActivityID": 19583,
+    "OtherVal": 1002011417
+  },
+  {
+    "OtherType": 10,
+    "ActivityID": 19583,
+    "OtherVal": 8
+  },
+  {
+    "OtherType": 12,
+    "ActivityID": 19583,
+    "OtherVal": 1002011395
+  },
+  {
+    "OtherType": 1,
+    "ActivityID": 20296,
+    "OtherVal": 1002011437
+  },
+  {
+    "OtherType": 2,
+    "ActivityID": 20296,
+    "OtherVal": 1
+  },
+  {
+    "OtherType": 3,
+    "ActivityID": 20296,
+    "OtherVal": 10
+  },
+  {
+    "OtherType": 4,
+    "ActivityID": 20296,
+    "OtherVal": 1
+  },
+  {
+    "OtherType": 5,
+    "ActivityID": 20296,
+    "OtherVal": 2
+  },
+  {
+    "OtherType": 6,
+    "ActivityID": 20296,
+    "OtherVal": 15
+  },
+  {
+    "OtherType": 7,
+    "ActivityID": 20296,
+    "OtherVal": 10000
+  },
+  {
+    "OtherType": 8,
+    "ActivityID": 20296,
+    "OtherVal": 1
+  },
+  {
+    "OtherType": 10,
+    "ActivityID": 20296
+  },
+  {
+    "OtherType": 9,
+    "ActivityID": 20296,
+    "OtherVal": 1002011551
+  },
+  {
+    "OtherType": 1,
+    "ActivityID": 21167,
+    "OtherVal": 1002011630
+  },
+  {
+    "OtherType": 2,
+    "ActivityID": 21167,
+    "OtherVal": 1
+  },
+  {
+    "OtherType": 3,
+    "ActivityID": 21167,
+    "OtherVal": 10
+  },
+  {
+    "OtherType": 4,
+    "ActivityID": 21167,
+    "OtherVal": 1
+  },
+  {
+    "OtherType": 5,
+    "ActivityID": 21167,
+    "OtherVal": 2
+  },
+  {
+    "OtherType": 6,
+    "ActivityID": 21167,
+    "OtherVal": 2
+  },
+  {
+    "OtherType": 7,
+    "ActivityID": 21167,
+    "OtherVal": 10000
+  },
+  {
+    "OtherType": 8,
+    "ActivityID": 21167,
+    "OtherVal": 8
+  },
+  {
+    "OtherType": 9,
+    "ActivityID": 21167,
+    "OtherVal": 1002011704
+  },
+  {
+    "OtherType": 10,
+    "ActivityID": 21167,
+    "OtherVal": 8
+  },
+  {
+    "OtherType": 12,
+    "ActivityID": 21167,
+    "OtherVal": 1002011627
+  },
+  {
+    "OtherType": 1,
+    "ActivityID": 21170,
+    "OtherVal": 1002011631
+  },
+  {
+    "OtherType": 2,
+    "ActivityID": 21170,
+    "OtherVal": 1
+  },
+  {
+    "OtherType": 3,
+    "ActivityID": 21170,
+    "OtherVal": 10
+  },
+  {
+    "OtherType": 4,
+    "ActivityID": 21170,
+    "OtherVal": 1
+  },
+  {
+    "OtherType": 5,
+    "ActivityID": 21170,
+    "OtherVal": 2
+  },
+  {
+    "OtherType": 6,
+    "ActivityID": 21170,
+    "OtherVal": 2
+  },
+  {
+    "OtherType": 7,
+    "ActivityID": 21170,
+    "OtherVal": 10000
+  },
+  {
+    "OtherType": 8,
+    "ActivityID": 21170,
+    "OtherVal": 8
+  },
+  {
+    "OtherType": 9,
+    "ActivityID": 21170,
+    "OtherVal": 1002011705
+  },
+  {
+    "OtherType": 10,
+    "ActivityID": 21170,
+    "OtherVal": 8
+  },
+  {
+    "OtherType": 12,
+    "ActivityID": 21170,
+    "OtherVal": 1002011628
+  },
+  {
+    "OtherType": 1,
+    "ActivityID": 21173,
+    "OtherVal": 1002011629
+  },
+  {
+    "OtherType": 2,
+    "ActivityID": 21173,
+    "OtherVal": 1
+  },
+  {
+    "OtherType": 3,
+    "ActivityID": 21173,
+    "OtherVal": 10
+  },
+  {
+    "OtherType": 4,
+    "ActivityID": 21173,
+    "OtherVal": 1
+  },
+  {
+    "OtherType": 5,
+    "ActivityID": 21173,
+    "OtherVal": 2
+  },
+  {
+    "OtherType": 6,
+    "ActivityID": 21173,
+    "OtherVal": 2
+  },
+  {
+    "OtherType": 7,
+    "ActivityID": 21173,
+    "OtherVal": 10000
+  },
+  {
+    "OtherType": 8,
+    "ActivityID": 21173,
+    "OtherVal": 8
+  },
+  {
+    "OtherType": 9,
+    "ActivityID": 21173,
+    "OtherVal": 1002011703
+  },
+  {
+    "OtherType": 10,
+    "ActivityID": 21173,
+    "OtherVal": 8
+  },
+  {
+    "OtherType": 12,
+    "ActivityID": 21173,
+    "OtherVal": 1002011626
+  },
+  {
+    "OtherType": 1,
+    "ActivityID": 21301,
+    "OtherVal": 1002015642
+  },
+  {
+    "OtherType": 2,
+    "ActivityID": 21301,
+    "OtherVal": 1
+  },
+  {
+    "OtherType": 3,
+    "ActivityID": 21301,
+    "OtherVal": 5
+  },
+  {
+    "OtherType": 4,
+    "ActivityID": 21301,
+    "OtherVal": 1
+  },
+  {
+    "OtherType": 5,
+    "ActivityID": 21301,
+    "OtherVal": 1
+  },
+  {
+    "OtherType": 6,
+    "ActivityID": 21301,
+    "OtherVal": 3
+  },
+  {
+    "OtherType": 7,
+    "ActivityID": 21301,
+    "OtherVal": 10000
+  },
+  {
+    "OtherType": 8,
+    "ActivityID": 21301,
+    "OtherVal": 5
+  },
+  {
+    "OtherType": 9,
+    "ActivityID": 21301,
+    "OtherVal": 1002015643
+  },
+  {
+    "OtherType": 10,
+    "ActivityID": 21301
+  },
+  {
+    "OtherType": 12,
+    "ActivityID": 21301,
+    "OtherVal": 1002015642
+  },
+  {
+    "OtherType": 1,
+    "ActivityID": 23112,
+    "OtherVal": 1002015753
+  },
+  {
+    "OtherType": 2,
+    "ActivityID": 23112,
+    "OtherVal": 1
+  },
+  {
+    "OtherType": 3,
+    "ActivityID": 23112,
+    "OtherVal": 10
+  },
+  {
+    "OtherType": 4,
+    "ActivityID": 23112,
+    "OtherVal": 2
+  },
+  {
+    "OtherType": 5,
+    "ActivityID": 23112,
+    "OtherVal": 2
+  },
+  {
+    "OtherType": 6,
+    "ActivityID": 23112,
+    "OtherVal": 2
+  },
+  {
+    "OtherType": 7,
+    "ActivityID": 23112,
+    "OtherVal": 10000
+  },
+  {
+    "OtherType": 8,
+    "ActivityID": 23112,
+    "OtherVal": 8
+  },
+  {
+    "OtherType": 9,
+    "ActivityID": 23112,
+    "OtherVal": 1002015754
+  },
+  {
+    "OtherType": 10,
+    "ActivityID": 23112,
+    "OtherVal": 8
+  },
+  {
+    "OtherType": 12,
+    "ActivityID": 23112,
+    "OtherVal": 1002015752
+  },
+  {
+    "OtherType": 1,
+    "ActivityID": 23114,
+    "OtherVal": 1002015723
+  },
+  {
+    "OtherType": 2,
+    "ActivityID": 23114,
+    "OtherVal": 1
+  },
+  {
+    "OtherType": 3,
+    "ActivityID": 23114,
+    "OtherVal": 10
+  },
+  {
+    "OtherType": 4,
+    "ActivityID": 23114,
+    "OtherVal": 2
+  },
+  {
+    "OtherType": 5,
+    "ActivityID": 23114,
+    "OtherVal": 2
+  },
+  {
+    "OtherType": 6,
+    "ActivityID": 23114,
+    "OtherVal": 12
+  },
+  {
+    "OtherType": 7,
+    "ActivityID": 23114,
+    "OtherVal": 10000
+  },
+  {
+    "OtherType": 8,
+    "ActivityID": 23114,
+    "OtherVal": 1
+  },
+  {
+    "OtherType": 9,
+    "ActivityID": 23114,
+    "OtherVal": 1002015723
+  },
+  {
+    "OtherType": 10,
+    "ActivityID": 23114
+  },
+  {
+    "OtherType": 1,
+    "ActivityID": 23211,
+    "OtherVal": 1002015865
+  },
+  {
+    "OtherType": 2,
+    "ActivityID": 23211,
+    "OtherVal": 1
+  },
+  {
+    "OtherType": 3,
+    "ActivityID": 23211,
+    "OtherVal": 10
+  },
+  {
+    "OtherType": 4,
+    "ActivityID": 23211,
+    "OtherVal": 2
+  },
+  {
+    "OtherType": 5,
+    "ActivityID": 23211,
+    "OtherVal": 2
+  },
+  {
+    "OtherType": 6,
+    "ActivityID": 23211,
+    "OtherVal": 2
+  },
+  {
+    "OtherType": 7,
+    "ActivityID": 23211,
+    "OtherVal": 10000
+  },
+  {
+    "OtherType": 8,
+    "ActivityID": 23211,
+    "OtherVal": 8
+  },
+  {
+    "OtherType": 9,
+    "ActivityID": 23211,
+    "OtherVal": 1002015866
+  },
+  {
+    "OtherType": 10,
+    "ActivityID": 23211,
+    "OtherVal": 8
+  },
+  {
+    "OtherType": 12,
+    "ActivityID": 23211,
+    "OtherVal": 1002015864
+  }
+]

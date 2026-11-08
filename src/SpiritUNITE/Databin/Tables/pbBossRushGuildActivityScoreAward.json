@@ -1,0 +1,704 @@
+[
+  {
+    "GearID": 1,
+    "Score": 10000,
+    "SDropID": 70001,
+    "RewardID": 1001
+  },
+  {
+    "GearID": 2,
+    "Score": 25000,
+    "SDropID": 70002,
+    "RewardID": 1001
+  },
+  {
+    "GearID": 3,
+    "Score": 45000,
+    "SDropID": 70003,
+    "RewardID": 1001
+  },
+  {
+    "GearID": 4,
+    "Score": 60000,
+    "SDropID": 70004,
+    "RewardID": 1001
+  },
+  {
+    "GearID": 5,
+    "Score": 75000,
+    "SDropID": 70005,
+    "RewardID": 1001
+  },
+  {
+    "GearID": 1,
+    "Score": 10000,
+    "SDropID": 70041,
+    "RewardID": 1002
+  },
+  {
+    "GearID": 2,
+    "Score": 25000,
+    "SDropID": 70042,
+    "RewardID": 1002
+  },
+  {
+    "GearID": 3,
+    "Score": 45000,
+    "SDropID": 70043,
+    "RewardID": 1002
+  },
+  {
+    "GearID": 4,
+    "Score": 60000,
+    "SDropID": 70044,
+    "RewardID": 1002
+  },
+  {
+    "GearID": 5,
+    "Score": 75000,
+    "SDropID": 70045,
+    "RewardID": 1002
+  },
+  {
+    "GearID": 6,
+    "Score": 90000,
+    "SDropID": 70046,
+    "RewardID": 1002
+  },
+  {
+    "GearID": 7,
+    "Score": 105000,
+    "SDropID": 70047,
+    "RewardID": 1002
+  },
+  {
+    "GearID": 1,
+    "Score": 10000,
+    "SDropID": 70048,
+    "RewardID": 1003
+  },
+  {
+    "GearID": 2,
+    "Score": 25000,
+    "SDropID": 70049,
+    "RewardID": 1003
+  },
+  {
+    "GearID": 3,
+    "Score": 45000,
+    "SDropID": 70050,
+    "RewardID": 1003
+  },
+  {
+    "GearID": 4,
+    "Score": 60000,
+    "SDropID": 70051,
+    "RewardID": 1003
+  },
+  {
+    "GearID": 5,
+    "Score": 75000,
+    "SDropID": 70052,
+    "RewardID": 1003
+  },
+  {
+    "GearID": 6,
+    "Score": 90000,
+    "SDropID": 70053,
+    "RewardID": 1003
+  },
+  {
+    "GearID": 7,
+    "Score": 105000,
+    "SDropID": 70054,
+    "RewardID": 1003
+  },
+  {
+    "GearID": 1,
+    "Score": 100,
+    "SDropID": 71001,
+    "RewardID": 1004
+  },
+  {
+    "GearID": 2,
+    "Score": 200,
+    "SDropID": 71002,
+    "RewardID": 1004
+  },
+  {
+    "GearID": 3,
+    "Score": 300,
+    "SDropID": 71003,
+    "RewardID": 1004
+  },
+  {
+    "GearID": 4,
+    "Score": 500,
+    "SDropID": 71004,
+    "RewardID": 1004
+  },
+  {
+    "GearID": 5,
+    "Score": 1000,
+    "SDropID": 71005,
+    "RewardID": 1004
+  },
+  {
+    "GearID": 6,
+    "Score": 1500,
+    "SDropID": 71006,
+    "RewardID": 1004
+  },
+  {
+    "GearID": 7,
+    "Score": 2000,
+    "SDropID": 71007,
+    "RewardID": 1004
+  },
+  {
+    "GearID": 8,
+    "Score": 4000,
+    "SDropID": 71008,
+    "RewardID": 1004
+  },
+  {
+    "GearID": 9,
+    "Score": 6000,
+    "SDropID": 71009,
+    "RewardID": 1004
+  },
+  {
+    "GearID": 10,
+    "Score": 8000,
+    "SDropID": 71010,
+    "RewardID": 1004
+  },
+  {
+    "GearID": 11,
+    "Score": 10000,
+    "SDropID": 71011,
+    "RewardID": 1004
+  },
+  {
+    "GearID": 12,
+    "Score": 20000,
+    "SDropID": 71012,
+    "RewardID": 1004
+  },
+  {
+    "GearID": 13,
+    "Score": 25000,
+    "SDropID": 71013,
+    "RewardID": 1004
+  },
+  {
+    "GearID": 14,
+    "Score": 50000,
+    "SDropID": 71014,
+    "RewardID": 1004
+  },
+  {
+    "GearID": 1,
+    "Score": 100,
+    "SDropID": 71015,
+    "RewardID": 1005
+  },
+  {
+    "GearID": 2,
+    "Score": 200,
+    "SDropID": 71016,
+    "RewardID": 1005
+  },
+  {
+    "GearID": 3,
+    "Score": 300,
+    "SDropID": 71017,
+    "RewardID": 1005
+  },
+  {
+    "GearID": 4,
+    "Score": 500,
+    "SDropID": 71018,
+    "RewardID": 1005
+  },
+  {
+    "GearID": 5,
+    "Score": 1000,
+    "SDropID": 71019,
+    "RewardID": 1005
+  },
+  {
+    "GearID": 6,
+    "Score": 1500,
+    "SDropID": 71020,
+    "RewardID": 1005
+  },
+  {
+    "GearID": 7,
+    "Score": 2000,
+    "SDropID": 71021,
+    "RewardID": 1005
+  },
+  {
+    "GearID": 8,
+    "Score": 4000,
+    "SDropID": 71022,
+    "RewardID": 1005
+  },
+  {
+    "GearID": 9,
+    "Score": 6000,
+    "SDropID": 71023,
+    "RewardID": 1005
+  },
+  {
+    "GearID": 10,
+    "Score": 8000,
+    "SDropID": 71024,
+    "RewardID": 1005
+  },
+  {
+    "GearID": 11,
+    "Score": 10000,
+    "SDropID": 71025,
+    "RewardID": 1005
+  },
+  {
+    "GearID": 12,
+    "Score": 20000,
+    "SDropID": 71026,
+    "RewardID": 1005
+  },
+  {
+    "GearID": 13,
+    "Score": 25000,
+    "SDropID": 71027,
+    "RewardID": 1005
+  },
+  {
+    "GearID": 14,
+    "Score": 50000,
+    "SDropID": 71028,
+    "RewardID": 1005
+  },
+  {
+    "GearID": 1,
+    "Score": 100,
+    "SDropID": 71029,
+    "RewardID": 1006
+  },
+  {
+    "GearID": 2,
+    "Score": 200,
+    "SDropID": 71030,
+    "RewardID": 1006
+  },
+  {
+    "GearID": 3,
+    "Score": 300,
+    "SDropID": 71031,
+    "RewardID": 1006
+  },
+  {
+    "GearID": 4,
+    "Score": 500,
+    "SDropID": 71032,
+    "RewardID": 1006
+  },
+  {
+    "GearID": 5,
+    "Score": 1000,
+    "SDropID": 71033,
+    "RewardID": 1006
+  },
+  {
+    "GearID": 6,
+    "Score": 1500,
+    "SDropID": 71034,
+    "RewardID": 1006
+  },
+  {
+    "GearID": 7,
+    "Score": 2000,
+    "SDropID": 71035,
+    "RewardID": 1006
+  },
+  {
+    "GearID": 8,
+    "Score": 4000,
+    "SDropID": 71036,
+    "RewardID": 1006
+  },
+  {
+    "GearID": 9,
+    "Score": 6000,
+    "SDropID": 71037,
+    "RewardID": 1006
+  },
+  {
+    "GearID": 10,
+    "Score": 8000,
+    "SDropID": 71038,
+    "RewardID": 1006
+  },
+  {
+    "GearID": 11,
+    "Score": 10000,
+    "SDropID": 71039,
+    "RewardID": 1006
+  },
+  {
+    "GearID": 12,
+    "Score": 20000,
+    "SDropID": 71040,
+    "RewardID": 1006
+  },
+  {
+    "GearID": 13,
+    "Score": 25000,
+    "SDropID": 71041,
+    "RewardID": 1006
+  },
+  {
+    "GearID": 14,
+    "Score": 50000,
+    "SDropID": 71042,
+    "RewardID": 1006
+  },
+  {
+    "GearID": 1,
+    "Score": 100,
+    "SDropID": 71015,
+    "RewardID": 1007
+  },
+  {
+    "GearID": 2,
+    "Score": 200,
+    "SDropID": 71016,
+    "RewardID": 1007
+  },
+  {
+    "GearID": 3,
+    "Score": 300,
+    "SDropID": 71017,
+    "RewardID": 1007
+  },
+  {
+    "GearID": 4,
+    "Score": 500,
+    "SDropID": 71018,
+    "RewardID": 1007
+  },
+  {
+    "GearID": 5,
+    "Score": 1000,
+    "SDropID": 71019,
+    "RewardID": 1007
+  },
+  {
+    "GearID": 6,
+    "Score": 1500,
+    "SDropID": 71020,
+    "RewardID": 1007
+  },
+  {
+    "GearID": 7,
+    "Score": 2000,
+    "SDropID": 71021,
+    "RewardID": 1007
+  },
+  {
+    "GearID": 8,
+    "Score": 4000,
+    "SDropID": 71022,
+    "RewardID": 1007
+  },
+  {
+    "GearID": 9,
+    "Score": 6000,
+    "SDropID": 71023,
+    "RewardID": 1007
+  },
+  {
+    "GearID": 10,
+    "Score": 8000,
+    "SDropID": 71024,
+    "RewardID": 1007
+  },
+  {
+    "GearID": 11,
+    "Score": 10000,
+    "SDropID": 71025,
+    "RewardID": 1007
+  },
+  {
+    "GearID": 12,
+    "Score": 20000,
+    "SDropID": 71026,
+    "RewardID": 1007
+  },
+  {
+    "GearID": 13,
+    "Score": 25000,
+    "SDropID": 71027,
+    "RewardID": 1007
+  },
+  {
+    "GearID": 14,
+    "Score": 50000,
+    "SDropID": 71083,
+    "RewardID": 1007
+  },
+  {
+    "GearID": 1,
+    "Score": 100,
+    "SDropID": 71029,
+    "RewardID": 1008
+  },
+  {
+    "GearID": 2,
+    "Score": 200,
+    "SDropID": 71030,
+    "RewardID": 1008
+  },
+  {
+    "GearID": 3,
+    "Score": 300,
+    "SDropID": 71031,
+    "RewardID": 1008
+  },
+  {
+    "GearID": 4,
+    "Score": 500,
+    "SDropID": 71032,
+    "RewardID": 1008
+  },
+  {
+    "GearID": 5,
+    "Score": 1000,
+    "SDropID": 71033,
+    "RewardID": 1008
+  },
+  {
+    "GearID": 6,
+    "Score": 1500,
+    "SDropID": 71034,
+    "RewardID": 1008
+  },
+  {
+    "GearID": 7,
+    "Score": 2000,
+    "SDropID": 71035,
+    "RewardID": 1008
+  },
+  {
+    "GearID": 8,
+    "Score": 4000,
+    "SDropID": 71036,
+    "RewardID": 1008
+  },
+  {
+    "GearID": 9,
+    "Score": 6000,
+    "SDropID": 71037,
+    "RewardID": 1008
+  },
+  {
+    "GearID": 10,
+    "Score": 8000,
+    "SDropID": 71038,
+    "RewardID": 1008
+  },
+  {
+    "GearID": 11,
+    "Score": 10000,
+    "SDropID": 71039,
+    "RewardID": 1008
+  },
+  {
+    "GearID": 12,
+    "Score": 20000,
+    "SDropID": 71040,
+    "RewardID": 1008
+  },
+  {
+    "GearID": 13,
+    "Score": 25000,
+    "SDropID": 71041,
+    "RewardID": 1008
+  },
+  {
+    "GearID": 14,
+    "Score": 50000,
+    "SDropID": 71014,
+    "RewardID": 1008
+  },
+  {
+    "GearID": 1,
+    "Score": 100,
+    "SDropID": 71015,
+    "RewardID": 1009
+  },
+  {
+    "GearID": 2,
+    "Score": 200,
+    "SDropID": 71016,
+    "RewardID": 1009
+  },
+  {
+    "GearID": 3,
+    "Score": 300,
+    "SDropID": 71017,
+    "RewardID": 1009
+  },
+  {
+    "GearID": 4,
+    "Score": 500,
+    "SDropID": 71018,
+    "RewardID": 1009
+  },
+  {
+    "GearID": 5,
+    "Score": 1000,
+    "SDropID": 71019,
+    "RewardID": 1009
+  },
+  {
+    "GearID": 6,
+    "Score": 1500,
+    "SDropID": 71020,
+    "RewardID": 1009
+  },
+  {
+    "GearID": 7,
+    "Score": 2000,
+    "SDropID": 71021,
+    "RewardID": 1009
+  },
+  {
+    "GearID": 8,
+    "Score": 4000,
+    "SDropID": 71022,
+    "RewardID": 1009
+  },
+  {
+    "GearID": 9,
+    "Score": 6000,
+    "SDropID": 71023,
+    "RewardID": 1009
+  },
+  {
+    "GearID": 10,
+    "Score": 8000,
+    "SDropID": 71024,
+    "RewardID": 1009
+  },
+  {
+    "GearID": 11,
+    "Score": 10000,
+    "SDropID": 71025,
+    "RewardID": 1009
+  },
+  {
+    "GearID": 12,
+    "Score": 20000,
+    "SDropID": 71026,
+    "RewardID": 1009
+  },
+  {
+    "GearID": 13,
+    "Score": 25000,
+    "SDropID": 71027,
+    "RewardID": 1009
+  },
+  {
+    "GearID": 14,
+    "Score": 50000,
+    "SDropID": 71083,
+    "RewardID": 1009
+  },
+  {
+    "GearID": 1,
+    "Score": 100,
+    "SDropID": 71029,
+    "RewardID": 1010
+  },
+  {
+    "GearID": 2,
+    "Score": 200,
+    "SDropID": 71030,
+    "RewardID": 1010
+  },
+  {
+    "GearID": 3,
+    "Score": 300,
+    "SDropID": 71031,
+    "RewardID": 1010
+  },
+  {
+    "GearID": 4,
+    "Score": 500,
+    "SDropID": 71032,
+    "RewardID": 1010
+  },
+  {
+    "GearID": 5,
+    "Score": 1000,
+    "SDropID": 71033,
+    "RewardID": 1010
+  },
+  {
+    "GearID": 6,
+    "Score": 1500,
+    "SDropID": 71034,
+    "RewardID": 1010
+  },
+  {
+    "GearID": 7,
+    "Score": 2000,
+    "SDropID": 71035,
+    "RewardID": 1010
+  },
+  {
+    "GearID": 8,
+    "Score": 4000,
+    "SDropID": 71036,
+    "RewardID": 1010
+  },
+  {
+    "GearID": 9,
+    "Score": 6000,
+    "SDropID": 71037,
+    "RewardID": 1010
+  },
+  {
+    "GearID": 10,
+    "Score": 8000,
+    "SDropID": 71038,
+    "RewardID": 1010
+  },
+  {
+    "GearID": 11,
+    "Score": 10000,
+    "SDropID": 71039,
+    "RewardID": 1010
+  },
+  {
+    "GearID": 12,
+    "Score": 20000,
+    "SDropID": 71040,
+    "RewardID": 1010
+  },
+  {
+    "GearID": 13,
+    "Score": 25000,
+    "SDropID": 71041,
+    "RewardID": 1010
+  },
+  {
+    "GearID": 14,
+    "Score": 50000,
+    "SDropID": 71014,
+    "RewardID": 1010
+  }
+]

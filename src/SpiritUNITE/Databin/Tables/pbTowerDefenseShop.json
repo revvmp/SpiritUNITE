@@ -1,0 +1,3098 @@
+[
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 1,
+    "GroupId": 1,
+    "Level": 1,
+    "ShopID": 1001
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 1,
+    "GroupId": 1,
+    "Level": 2,
+    "ShopID": 1002
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 1,
+    "GroupId": 1,
+    "Level": 3,
+    "ShopID": 1003
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 1,
+    "GroupId": 1,
+    "Level": 4,
+    "ShopID": 1004
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 1,
+    "GroupId": 1,
+    "Level": 5,
+    "ShopID": 1005
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 1,
+    "GroupId": 2,
+    "Level": 1,
+    "ShopID": 1006
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 1,
+    "GroupId": 2,
+    "Level": 2,
+    "ShopID": 1007
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 1,
+    "GroupId": 2,
+    "Level": 3,
+    "ShopID": 1008
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 1,
+    "GroupId": 2,
+    "Level": 4,
+    "ShopID": 1009
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 1,
+    "GroupId": 2,
+    "Level": 5,
+    "ShopID": 1010
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 1,
+    "GroupId": 3,
+    "Level": 1,
+    "ShopID": 1011
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 1,
+    "GroupId": 3,
+    "Level": 2,
+    "ShopID": 1012
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 1,
+    "GroupId": 3,
+    "Level": 3,
+    "ShopID": 1013
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 1,
+    "GroupId": 3,
+    "Level": 4,
+    "ShopID": 1014
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 1,
+    "GroupId": 3,
+    "Level": 5,
+    "ShopID": 1015
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 1,
+    "GroupId": 4,
+    "Level": 1,
+    "ShopID": 1016
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 1,
+    "GroupId": 4,
+    "Level": 2,
+    "ShopID": 1017
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 1,
+    "GroupId": 4,
+    "Level": 3,
+    "ShopID": 1018
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 1,
+    "GroupId": 4,
+    "Level": 4,
+    "ShopID": 1019
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 1,
+    "GroupId": 4,
+    "Level": 5,
+    "ShopID": 1020
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 1,
+    "GroupId": 5,
+    "Level": 1,
+    "ShopID": 1021
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 1,
+    "GroupId": 5,
+    "Level": 2,
+    "ShopID": 1022
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 1,
+    "GroupId": 5,
+    "Level": 3,
+    "ShopID": 1023
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 1,
+    "GroupId": 5,
+    "Level": 4,
+    "ShopID": 1024
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 1,
+    "GroupId": 5,
+    "Level": 5,
+    "ShopID": 1025
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 1,
+    "GroupId": 6,
+    "Level": 1,
+    "ShopID": 1026
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 1,
+    "GroupId": 6,
+    "Level": 2,
+    "ShopID": 1027
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 1,
+    "GroupId": 6,
+    "Level": 3,
+    "ShopID": 1028
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 1,
+    "GroupId": 6,
+    "Level": 4,
+    "ShopID": 1029
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 1,
+    "GroupId": 6,
+    "Level": 5,
+    "ShopID": 1030
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 1,
+    "GroupId": 7,
+    "Level": 1,
+    "ShopID": 1031
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 1,
+    "GroupId": 7,
+    "Level": 2,
+    "ShopID": 1032
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 1,
+    "GroupId": 7,
+    "Level": 3,
+    "ShopID": 1033
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 1,
+    "GroupId": 7,
+    "Level": 4,
+    "ShopID": 1034
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 1,
+    "GroupId": 7,
+    "Level": 5,
+    "ShopID": 1035
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 1,
+    "GroupId": 8,
+    "Level": 1,
+    "ShopID": 1036
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 1,
+    "GroupId": 8,
+    "Level": 2,
+    "ShopID": 1037
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 1,
+    "GroupId": 8,
+    "Level": 3,
+    "ShopID": 1038
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 1,
+    "GroupId": 8,
+    "Level": 4,
+    "ShopID": 1039
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 1,
+    "GroupId": 8,
+    "Level": 5,
+    "ShopID": 1040
+  },
+  {
+    "ResID": 1002009216,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 1,
+    "GameLevel": 1,
+    "ShopID": 1041
+  },
+  {
+    "ResID": 1002009216,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 1,
+    "GameLevel": 2,
+    "ShopID": 1042
+  },
+  {
+    "ResID": 1002009216,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 1,
+    "GameLevel": 3,
+    "ShopID": 1043
+  },
+  {
+    "ResID": 1002009216,
+    "BuyNumLimit": 4,
+    "Score": 1000,
+    "PeriodID": 1,
+    "ShopID": 1044
+  },
+  {
+    "ResID": 1007004290,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 1,
+    "GameLevel": 1,
+    "ShopID": 1045
+  },
+  {
+    "ResID": 1007004291,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 1,
+    "GameLevel": 2,
+    "ShopID": 1046
+  },
+  {
+    "ResID": 1007004284,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 1,
+    "GameLevel": 3,
+    "ShopID": 1047
+  },
+  {
+    "ResID": 1002000153,
+    "BuyNumLimit": 3,
+    "Score": 1050,
+    "PeriodID": 1,
+    "ShopID": 1048
+  },
+  {
+    "ResID": 1002000134,
+    "BuyNumLimit": 5,
+    "Score": 160,
+    "PeriodID": 1,
+    "ShopID": 1049
+  },
+  {
+    "ResID": 1002000053,
+    "BuyNumLimit": 5,
+    "Score": 320,
+    "PeriodID": 1,
+    "ShopID": 1050
+  },
+  {
+    "ResID": 1002000066,
+    "BuyNumLimit": 10,
+    "Score": 200,
+    "PeriodID": 1,
+    "ShopID": 1051
+  },
+  {
+    "ResID": 1002000067,
+    "BuyNumLimit": 5,
+    "Score": 800,
+    "PeriodID": 1,
+    "ShopID": 1052
+  },
+  {
+    "ResID": 1002000054,
+    "BuyNumLimit": 1,
+    "Score": 900,
+    "PeriodID": 1,
+    "ShopID": 1053
+  },
+  {
+    "ResID": 1000000001,
+    "BuyNumLimit": 500,
+    "Score": 10,
+    "PeriodID": 1,
+    "ShopID": 1054
+  },
+  {
+    "ResID": 1002001001,
+    "BuyNumLimit": 375,
+    "Score": 10,
+    "PeriodID": 1,
+    "ShopID": 1055
+  },
+  {
+    "ResID": 1000000002,
+    "BuyNumLimit": 4375,
+    "Score": 1,
+    "PeriodID": 1,
+    "ShopID": 1056
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 2,
+    "GroupId": 1,
+    "Level": 1,
+    "ShopID": 2001
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 2,
+    "GroupId": 1,
+    "Level": 2,
+    "ShopID": 2002
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 2,
+    "GroupId": 1,
+    "Level": 3,
+    "ShopID": 2003
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 2,
+    "GroupId": 1,
+    "Level": 4,
+    "ShopID": 2004
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 2,
+    "GroupId": 1,
+    "Level": 5,
+    "ShopID": 2005
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 2,
+    "GroupId": 2,
+    "Level": 1,
+    "ShopID": 2006
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 2,
+    "GroupId": 2,
+    "Level": 2,
+    "ShopID": 2007
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 2,
+    "GroupId": 2,
+    "Level": 3,
+    "ShopID": 2008
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 2,
+    "GroupId": 2,
+    "Level": 4,
+    "ShopID": 2009
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 2,
+    "GroupId": 2,
+    "Level": 5,
+    "ShopID": 2010
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 2,
+    "GroupId": 3,
+    "Level": 1,
+    "ShopID": 2011
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 2,
+    "GroupId": 3,
+    "Level": 2,
+    "ShopID": 2012
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 2,
+    "GroupId": 3,
+    "Level": 3,
+    "ShopID": 2013
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 2,
+    "GroupId": 3,
+    "Level": 4,
+    "ShopID": 2014
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 2,
+    "GroupId": 3,
+    "Level": 5,
+    "ShopID": 2015
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 2,
+    "GroupId": 4,
+    "Level": 1,
+    "ShopID": 2016
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 2,
+    "GroupId": 4,
+    "Level": 2,
+    "ShopID": 2017
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 2,
+    "GroupId": 4,
+    "Level": 3,
+    "ShopID": 2018
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 2,
+    "GroupId": 4,
+    "Level": 4,
+    "ShopID": 2019
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 2,
+    "GroupId": 4,
+    "Level": 5,
+    "ShopID": 2020
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 2,
+    "GroupId": 5,
+    "Level": 1,
+    "ShopID": 2021
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 2,
+    "GroupId": 5,
+    "Level": 2,
+    "ShopID": 2022
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 2,
+    "GroupId": 5,
+    "Level": 3,
+    "ShopID": 2023
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 2,
+    "GroupId": 5,
+    "Level": 4,
+    "ShopID": 2024
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 2,
+    "GroupId": 5,
+    "Level": 5,
+    "ShopID": 2025
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 2,
+    "GroupId": 6,
+    "Level": 1,
+    "ShopID": 2026
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 2,
+    "GroupId": 6,
+    "Level": 2,
+    "ShopID": 2027
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 2,
+    "GroupId": 6,
+    "Level": 3,
+    "ShopID": 2028
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 2,
+    "GroupId": 6,
+    "Level": 4,
+    "ShopID": 2029
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 2,
+    "GroupId": 6,
+    "Level": 5,
+    "ShopID": 2030
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 2,
+    "GroupId": 7,
+    "Level": 1,
+    "ShopID": 2031
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 2,
+    "GroupId": 7,
+    "Level": 2,
+    "ShopID": 2032
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 2,
+    "GroupId": 7,
+    "Level": 3,
+    "ShopID": 2033
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 2,
+    "GroupId": 7,
+    "Level": 4,
+    "ShopID": 2034
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 2,
+    "GroupId": 7,
+    "Level": 5,
+    "ShopID": 2035
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 2,
+    "GroupId": 8,
+    "Level": 1,
+    "ShopID": 2036
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 2,
+    "GroupId": 8,
+    "Level": 2,
+    "ShopID": 2037
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 2,
+    "GroupId": 8,
+    "Level": 3,
+    "ShopID": 2038
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 2,
+    "GroupId": 8,
+    "Level": 4,
+    "ShopID": 2039
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 2,
+    "GroupId": 8,
+    "Level": 5,
+    "ShopID": 2040
+  },
+  {
+    "ResID": 1006035906,
+    "BuyNumLimit": 1,
+    "Score": 5000,
+    "PeriodID": 2,
+    "GameLevel": 3,
+    "ShopID": 2041
+  },
+  {
+    "ResID": 1007005068,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 2,
+    "GameLevel": 2,
+    "ShopID": 2042
+  },
+  {
+    "ResID": 1007006039,
+    "BuyNumLimit": 1,
+    "Score": 800,
+    "PeriodID": 2,
+    "GameLevel": 3,
+    "ShopID": 2043
+  },
+  {
+    "ResID": 1002000153,
+    "BuyNumLimit": 3,
+    "Score": 1050,
+    "PeriodID": 2,
+    "ShopID": 2044
+  },
+  {
+    "ResID": 1002000134,
+    "BuyNumLimit": 5,
+    "Score": 160,
+    "PeriodID": 2,
+    "ShopID": 2045
+  },
+  {
+    "ResID": 1002000053,
+    "BuyNumLimit": 5,
+    "Score": 320,
+    "PeriodID": 2,
+    "ShopID": 2046
+  },
+  {
+    "ResID": 1002000066,
+    "BuyNumLimit": 10,
+    "Score": 200,
+    "PeriodID": 2,
+    "ShopID": 2047
+  },
+  {
+    "ResID": 1002000067,
+    "BuyNumLimit": 5,
+    "Score": 800,
+    "PeriodID": 2,
+    "ShopID": 2048
+  },
+  {
+    "ResID": 1002000054,
+    "BuyNumLimit": 1,
+    "Score": 900,
+    "PeriodID": 2,
+    "ShopID": 2049
+  },
+  {
+    "ResID": 1000000001,
+    "BuyNumLimit": 500,
+    "Score": 10,
+    "PeriodID": 2,
+    "ShopID": 2050
+  },
+  {
+    "ResID": 1002001001,
+    "BuyNumLimit": 375,
+    "Score": 10,
+    "PeriodID": 2,
+    "ShopID": 2051
+  },
+  {
+    "ResID": 1000000002,
+    "BuyNumLimit": 4375,
+    "Score": 1,
+    "PeriodID": 2,
+    "ShopID": 2052
+  },
+  {
+    "ResID": 1006009405,
+    "BuyNumLimit": 1,
+    "Score": 5000,
+    "PeriodID": 3,
+    "GameLevel": 3,
+    "ShopID": 3000
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 3,
+    "GroupId": 1,
+    "Level": 1,
+    "ShopID": 3001
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 3,
+    "GroupId": 1,
+    "Level": 2,
+    "ShopID": 3002
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 3,
+    "GroupId": 1,
+    "Level": 3,
+    "ShopID": 3003
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 3,
+    "GroupId": 1,
+    "Level": 4,
+    "ShopID": 3004
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 3,
+    "GroupId": 1,
+    "Level": 5,
+    "ShopID": 3005
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 3,
+    "GroupId": 2,
+    "Level": 1,
+    "ShopID": 3006
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 3,
+    "GroupId": 2,
+    "Level": 2,
+    "ShopID": 3007
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 3,
+    "GroupId": 2,
+    "Level": 3,
+    "ShopID": 3008
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 3,
+    "GroupId": 2,
+    "Level": 4,
+    "ShopID": 3009
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 3,
+    "GroupId": 2,
+    "Level": 5,
+    "ShopID": 3010
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 3,
+    "GroupId": 3,
+    "Level": 1,
+    "ShopID": 3011
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 3,
+    "GroupId": 3,
+    "Level": 2,
+    "ShopID": 3012
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 3,
+    "GroupId": 3,
+    "Level": 3,
+    "ShopID": 3013
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 3,
+    "GroupId": 3,
+    "Level": 4,
+    "ShopID": 3014
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 3,
+    "GroupId": 3,
+    "Level": 5,
+    "ShopID": 3015
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 3,
+    "GroupId": 4,
+    "Level": 1,
+    "ShopID": 3016
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 3,
+    "GroupId": 4,
+    "Level": 2,
+    "ShopID": 3017
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 3,
+    "GroupId": 4,
+    "Level": 3,
+    "ShopID": 3018
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 3,
+    "GroupId": 4,
+    "Level": 4,
+    "ShopID": 3019
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 3,
+    "GroupId": 4,
+    "Level": 5,
+    "ShopID": 3020
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 3,
+    "GroupId": 5,
+    "Level": 1,
+    "ShopID": 3021
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 3,
+    "GroupId": 5,
+    "Level": 2,
+    "ShopID": 3022
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 3,
+    "GroupId": 5,
+    "Level": 3,
+    "ShopID": 3023
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 3,
+    "GroupId": 5,
+    "Level": 4,
+    "ShopID": 3024
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 3,
+    "GroupId": 5,
+    "Level": 5,
+    "ShopID": 3025
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 3,
+    "GroupId": 6,
+    "Level": 1,
+    "ShopID": 3026
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 3,
+    "GroupId": 6,
+    "Level": 2,
+    "ShopID": 3027
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 3,
+    "GroupId": 6,
+    "Level": 3,
+    "ShopID": 3028
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 3,
+    "GroupId": 6,
+    "Level": 4,
+    "ShopID": 3029
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 3,
+    "GroupId": 6,
+    "Level": 5,
+    "ShopID": 3030
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 3,
+    "GroupId": 7,
+    "Level": 1,
+    "ShopID": 3031
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 3,
+    "GroupId": 7,
+    "Level": 2,
+    "ShopID": 3032
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 3,
+    "GroupId": 7,
+    "Level": 3,
+    "ShopID": 3033
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 3,
+    "GroupId": 7,
+    "Level": 4,
+    "ShopID": 3034
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 3,
+    "GroupId": 7,
+    "Level": 5,
+    "ShopID": 3035
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 3,
+    "GroupId": 8,
+    "Level": 1,
+    "ShopID": 3036
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 3,
+    "GroupId": 8,
+    "Level": 2,
+    "ShopID": 3037
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 3,
+    "GroupId": 8,
+    "Level": 3,
+    "ShopID": 3038
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 3,
+    "GroupId": 8,
+    "Level": 4,
+    "ShopID": 3039
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 3,
+    "GroupId": 8,
+    "Level": 5,
+    "ShopID": 3040
+  },
+  {
+    "ResID": 1002010219,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 3,
+    "GameLevel": 1,
+    "ShopID": 3041
+  },
+  {
+    "ResID": 1002010219,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 3,
+    "GameLevel": 2,
+    "ShopID": 3042
+  },
+  {
+    "ResID": 1002010219,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 3,
+    "GameLevel": 3,
+    "ShopID": 3043
+  },
+  {
+    "ResID": 1002010219,
+    "BuyNumLimit": 4,
+    "Score": 1000,
+    "PeriodID": 3,
+    "ShopID": 3044
+  },
+  {
+    "ResID": 1007004290,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 3,
+    "GameLevel": 1,
+    "ShopID": 3045
+  },
+  {
+    "ResID": 1007004291,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 3,
+    "GameLevel": 2,
+    "ShopID": 3046
+  },
+  {
+    "ResID": 1007004284,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 3,
+    "GameLevel": 3,
+    "ShopID": 3047
+  },
+  {
+    "ResID": 1002000153,
+    "BuyNumLimit": 3,
+    "Score": 1050,
+    "PeriodID": 3,
+    "ShopID": 3048
+  },
+  {
+    "ResID": 1002000134,
+    "BuyNumLimit": 5,
+    "Score": 160,
+    "PeriodID": 3,
+    "ShopID": 3049
+  },
+  {
+    "ResID": 1002000053,
+    "BuyNumLimit": 5,
+    "Score": 320,
+    "PeriodID": 3,
+    "ShopID": 3050
+  },
+  {
+    "ResID": 1002000066,
+    "BuyNumLimit": 10,
+    "Score": 200,
+    "PeriodID": 3,
+    "ShopID": 3051
+  },
+  {
+    "ResID": 1002000067,
+    "BuyNumLimit": 5,
+    "Score": 800,
+    "PeriodID": 3,
+    "ShopID": 3052
+  },
+  {
+    "ResID": 1002000054,
+    "BuyNumLimit": 1,
+    "Score": 900,
+    "PeriodID": 3,
+    "ShopID": 3053
+  },
+  {
+    "ResID": 1000000001,
+    "BuyNumLimit": 500,
+    "Score": 10,
+    "PeriodID": 3,
+    "ShopID": 3054
+  },
+  {
+    "ResID": 1002001001,
+    "BuyNumLimit": 375,
+    "Score": 10,
+    "PeriodID": 3,
+    "ShopID": 3055
+  },
+  {
+    "ResID": 1000000002,
+    "BuyNumLimit": 4375,
+    "Score": 1,
+    "PeriodID": 3,
+    "ShopID": 3056
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 4,
+    "GroupId": 1,
+    "Level": 1,
+    "ShopID": 4001
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 4,
+    "GroupId": 1,
+    "Level": 2,
+    "ShopID": 4002
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 4,
+    "GroupId": 1,
+    "Level": 3,
+    "ShopID": 4003
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 4,
+    "GroupId": 1,
+    "Level": 4,
+    "ShopID": 4004
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 4,
+    "GroupId": 1,
+    "Level": 5,
+    "ShopID": 4005
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 4,
+    "GroupId": 2,
+    "Level": 1,
+    "ShopID": 4006
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 4,
+    "GroupId": 2,
+    "Level": 2,
+    "ShopID": 4007
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 4,
+    "GroupId": 2,
+    "Level": 3,
+    "ShopID": 4008
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 4,
+    "GroupId": 2,
+    "Level": 4,
+    "ShopID": 4009
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 4,
+    "GroupId": 2,
+    "Level": 5,
+    "ShopID": 4010
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 4,
+    "GroupId": 3,
+    "Level": 1,
+    "ShopID": 4011
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 4,
+    "GroupId": 3,
+    "Level": 2,
+    "ShopID": 4012
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 4,
+    "GroupId": 3,
+    "Level": 3,
+    "ShopID": 4013
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 4,
+    "GroupId": 3,
+    "Level": 4,
+    "ShopID": 4014
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 4,
+    "GroupId": 3,
+    "Level": 5,
+    "ShopID": 4015
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 4,
+    "GroupId": 4,
+    "Level": 1,
+    "ShopID": 4016
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 4,
+    "GroupId": 4,
+    "Level": 2,
+    "ShopID": 4017
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 4,
+    "GroupId": 4,
+    "Level": 3,
+    "ShopID": 4018
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 4,
+    "GroupId": 4,
+    "Level": 4,
+    "ShopID": 4019
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 4,
+    "GroupId": 4,
+    "Level": 5,
+    "ShopID": 4020
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 4,
+    "GroupId": 5,
+    "Level": 1,
+    "ShopID": 4021
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 4,
+    "GroupId": 5,
+    "Level": 2,
+    "ShopID": 4022
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 4,
+    "GroupId": 5,
+    "Level": 3,
+    "ShopID": 4023
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 4,
+    "GroupId": 5,
+    "Level": 4,
+    "ShopID": 4024
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 4,
+    "GroupId": 5,
+    "Level": 5,
+    "ShopID": 4025
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 4,
+    "GroupId": 6,
+    "Level": 1,
+    "ShopID": 4026
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 4,
+    "GroupId": 6,
+    "Level": 2,
+    "ShopID": 4027
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 4,
+    "GroupId": 6,
+    "Level": 3,
+    "ShopID": 4028
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 4,
+    "GroupId": 6,
+    "Level": 4,
+    "ShopID": 4029
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 4,
+    "GroupId": 6,
+    "Level": 5,
+    "ShopID": 4030
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 4,
+    "GroupId": 7,
+    "Level": 1,
+    "ShopID": 4031
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 4,
+    "GroupId": 7,
+    "Level": 2,
+    "ShopID": 4032
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 4,
+    "GroupId": 7,
+    "Level": 3,
+    "ShopID": 4033
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 4,
+    "GroupId": 7,
+    "Level": 4,
+    "ShopID": 4034
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 4,
+    "GroupId": 7,
+    "Level": 5,
+    "ShopID": 4035
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 4,
+    "GroupId": 8,
+    "Level": 1,
+    "ShopID": 4036
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 4,
+    "GroupId": 8,
+    "Level": 2,
+    "ShopID": 4037
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 4,
+    "GroupId": 8,
+    "Level": 3,
+    "ShopID": 4038
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 4,
+    "GroupId": 8,
+    "Level": 4,
+    "ShopID": 4039
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 4,
+    "GroupId": 8,
+    "Level": 5,
+    "ShopID": 4040
+  },
+  {
+    "ResID": 1002010256,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 4,
+    "GameLevel": 1,
+    "OnTime": "20240719000000",
+    "OffTime": "20240811235959",
+    "ShopID": 4041
+  },
+  {
+    "ResID": 1002010256,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 4,
+    "GameLevel": 2,
+    "OnTime": "20240719000000",
+    "OffTime": "20240811235959",
+    "ShopID": 4042
+  },
+  {
+    "ResID": 1002010256,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 4,
+    "GameLevel": 3,
+    "OnTime": "20240719000000",
+    "OffTime": "20240811235959",
+    "ShopID": 4043
+  },
+  {
+    "ResID": 1002010256,
+    "BuyNumLimit": 4,
+    "Score": 1000,
+    "PeriodID": 4,
+    "OnTime": "20240719000000",
+    "OffTime": "20240811235959",
+    "ShopID": 4044
+  },
+  {
+    "ResID": 1007004290,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 4,
+    "GameLevel": 1,
+    "ShopID": 4045
+  },
+  {
+    "ResID": 1007004291,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 4,
+    "GameLevel": 2,
+    "ShopID": 4046
+  },
+  {
+    "ResID": 1007004284,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 4,
+    "GameLevel": 3,
+    "ShopID": 4047
+  },
+  {
+    "ResID": 1006035906,
+    "BuyNumLimit": 1,
+    "Score": 5000,
+    "PeriodID": 4,
+    "GameLevel": 3,
+    "ShopID": 4048
+  },
+  {
+    "ResID": 1002000153,
+    "BuyNumLimit": 3,
+    "Score": 1050,
+    "PeriodID": 4,
+    "ShopID": 4049
+  },
+  {
+    "ResID": 1002000134,
+    "BuyNumLimit": 5,
+    "Score": 160,
+    "PeriodID": 4,
+    "ShopID": 4050
+  },
+  {
+    "ResID": 1002000053,
+    "BuyNumLimit": 5,
+    "Score": 320,
+    "PeriodID": 4,
+    "ShopID": 4051
+  },
+  {
+    "ResID": 1002000066,
+    "BuyNumLimit": 10,
+    "Score": 200,
+    "PeriodID": 4,
+    "ShopID": 4052
+  },
+  {
+    "ResID": 1002000067,
+    "BuyNumLimit": 5,
+    "Score": 800,
+    "PeriodID": 4,
+    "ShopID": 4053
+  },
+  {
+    "ResID": 1002000054,
+    "BuyNumLimit": 1,
+    "Score": 900,
+    "PeriodID": 4,
+    "ShopID": 4054
+  },
+  {
+    "ResID": 1000000001,
+    "BuyNumLimit": 500,
+    "Score": 10,
+    "PeriodID": 4,
+    "ShopID": 4055
+  },
+  {
+    "ResID": 1002001001,
+    "BuyNumLimit": 375,
+    "Score": 10,
+    "PeriodID": 4,
+    "ShopID": 4056
+  },
+  {
+    "ResID": 1000000002,
+    "BuyNumLimit": 4375,
+    "Score": 1,
+    "PeriodID": 4,
+    "ShopID": 4057
+  },
+  {
+    "ResID": 1007005068,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 4,
+    "GameLevel": 2,
+    "ShopID": 4058
+  },
+  {
+    "ResID": 1007006039,
+    "BuyNumLimit": 1,
+    "Score": 800,
+    "PeriodID": 4,
+    "GameLevel": 3,
+    "ShopID": 4059
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 5,
+    "GroupId": 1,
+    "Level": 1,
+    "ShopID": 5001
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 5,
+    "GroupId": 1,
+    "Level": 2,
+    "ShopID": 5002
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 5,
+    "GroupId": 1,
+    "Level": 3,
+    "ShopID": 5003
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 5,
+    "GroupId": 1,
+    "Level": 4,
+    "ShopID": 5004
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 5,
+    "GroupId": 1,
+    "Level": 5,
+    "ShopID": 5005
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 5,
+    "GroupId": 2,
+    "Level": 1,
+    "ShopID": 5006
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 5,
+    "GroupId": 2,
+    "Level": 2,
+    "ShopID": 5007
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 5,
+    "GroupId": 2,
+    "Level": 3,
+    "ShopID": 5008
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 5,
+    "GroupId": 2,
+    "Level": 4,
+    "ShopID": 5009
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 5,
+    "GroupId": 2,
+    "Level": 5,
+    "ShopID": 5010
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 5,
+    "GroupId": 3,
+    "Level": 1,
+    "ShopID": 5011
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 5,
+    "GroupId": 3,
+    "Level": 2,
+    "ShopID": 5012
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 5,
+    "GroupId": 3,
+    "Level": 3,
+    "ShopID": 5013
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 5,
+    "GroupId": 3,
+    "Level": 4,
+    "ShopID": 5014
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 5,
+    "GroupId": 3,
+    "Level": 5,
+    "ShopID": 5015
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 5,
+    "GroupId": 4,
+    "Level": 1,
+    "ShopID": 5016
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 5,
+    "GroupId": 4,
+    "Level": 2,
+    "ShopID": 5017
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 5,
+    "GroupId": 4,
+    "Level": 3,
+    "ShopID": 5018
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 5,
+    "GroupId": 4,
+    "Level": 4,
+    "ShopID": 5019
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 5,
+    "GroupId": 4,
+    "Level": 5,
+    "ShopID": 5020
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 5,
+    "GroupId": 5,
+    "Level": 1,
+    "ShopID": 5021
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 5,
+    "GroupId": 5,
+    "Level": 2,
+    "ShopID": 5022
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 5,
+    "GroupId": 5,
+    "Level": 3,
+    "ShopID": 5023
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 5,
+    "GroupId": 5,
+    "Level": 4,
+    "ShopID": 5024
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 5,
+    "GroupId": 5,
+    "Level": 5,
+    "ShopID": 5025
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 5,
+    "GroupId": 6,
+    "Level": 1,
+    "ShopID": 5026
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 5,
+    "GroupId": 6,
+    "Level": 2,
+    "ShopID": 5027
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 5,
+    "GroupId": 6,
+    "Level": 3,
+    "ShopID": 5028
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 5,
+    "GroupId": 6,
+    "Level": 4,
+    "ShopID": 5029
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 5,
+    "GroupId": 6,
+    "Level": 5,
+    "ShopID": 5030
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 5,
+    "GroupId": 7,
+    "Level": 1,
+    "ShopID": 5031
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 5,
+    "GroupId": 7,
+    "Level": 2,
+    "ShopID": 5032
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 5,
+    "GroupId": 7,
+    "Level": 3,
+    "ShopID": 5033
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 5,
+    "GroupId": 7,
+    "Level": 4,
+    "ShopID": 5034
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 5,
+    "GroupId": 7,
+    "Level": 5,
+    "ShopID": 5035
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 5,
+    "GroupId": 8,
+    "Level": 1,
+    "ShopID": 5036
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 5,
+    "GroupId": 8,
+    "Level": 2,
+    "ShopID": 5037
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 5,
+    "GroupId": 8,
+    "Level": 3,
+    "ShopID": 5038
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 5,
+    "GroupId": 8,
+    "Level": 4,
+    "ShopID": 5039
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 5,
+    "GroupId": 8,
+    "Level": 5,
+    "ShopID": 5040
+  },
+  {
+    "ResID": 1007004290,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 5,
+    "GameLevel": 1,
+    "ShopID": 5041
+  },
+  {
+    "ResID": 1007004291,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 5,
+    "GameLevel": 2,
+    "ShopID": 5042
+  },
+  {
+    "ResID": 1007004284,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 5,
+    "GameLevel": 3,
+    "ShopID": 5043
+  },
+  {
+    "ResID": 1006009405,
+    "BuyNumLimit": 1,
+    "Score": 5000,
+    "PeriodID": 5,
+    "GameLevel": 3,
+    "ShopID": 5044
+  },
+  {
+    "ResID": 1002000153,
+    "BuyNumLimit": 3,
+    "Score": 1050,
+    "PeriodID": 5,
+    "ShopID": 5045
+  },
+  {
+    "ResID": 1002000134,
+    "BuyNumLimit": 5,
+    "Score": 160,
+    "PeriodID": 5,
+    "ShopID": 5046
+  },
+  {
+    "ResID": 1002000053,
+    "BuyNumLimit": 5,
+    "Score": 320,
+    "PeriodID": 5,
+    "ShopID": 5047
+  },
+  {
+    "ResID": 1002000066,
+    "BuyNumLimit": 12,
+    "Score": 200,
+    "PeriodID": 5,
+    "ShopID": 5048
+  },
+  {
+    "ResID": 1002000067,
+    "BuyNumLimit": 10,
+    "Score": 800,
+    "PeriodID": 5,
+    "ShopID": 5049
+  },
+  {
+    "ResID": 1002000054,
+    "BuyNumLimit": 1,
+    "Score": 900,
+    "PeriodID": 5,
+    "ShopID": 5050
+  },
+  {
+    "ResID": 1000000001,
+    "BuyNumLimit": 500,
+    "Score": 10,
+    "PeriodID": 5,
+    "ShopID": 5051
+  },
+  {
+    "ResID": 1002001001,
+    "BuyNumLimit": 375,
+    "Score": 10,
+    "PeriodID": 5,
+    "ShopID": 5052
+  },
+  {
+    "ResID": 1000000002,
+    "BuyNumLimit": 4375,
+    "Score": 1,
+    "PeriodID": 5,
+    "ShopID": 5053
+  },
+  {
+    "ResID": 1007005068,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 5,
+    "GameLevel": 2,
+    "ShopID": 5054
+  },
+  {
+    "ResID": 1007006039,
+    "BuyNumLimit": 1,
+    "Score": 800,
+    "PeriodID": 5,
+    "GameLevel": 3,
+    "ShopID": 5055
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 6,
+    "GroupId": 1,
+    "Level": 1,
+    "ShopID": 6001
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 6,
+    "GroupId": 1,
+    "Level": 2,
+    "ShopID": 6002
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 6,
+    "GroupId": 1,
+    "Level": 3,
+    "ShopID": 6003
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 6,
+    "GroupId": 1,
+    "Level": 4,
+    "ShopID": 6004
+  },
+  {
+    "ResID": 1002010000,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 6,
+    "GroupId": 1,
+    "Level": 5,
+    "ShopID": 6005
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 6,
+    "GroupId": 2,
+    "Level": 1,
+    "ShopID": 6006
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 6,
+    "GroupId": 2,
+    "Level": 2,
+    "ShopID": 6007
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 6,
+    "GroupId": 2,
+    "Level": 3,
+    "ShopID": 6008
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 6,
+    "GroupId": 2,
+    "Level": 4,
+    "ShopID": 6009
+  },
+  {
+    "ResID": 1002010001,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 6,
+    "GroupId": 2,
+    "Level": 5,
+    "ShopID": 6010
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 6,
+    "GroupId": 3,
+    "Level": 1,
+    "ShopID": 6011
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 6,
+    "GroupId": 3,
+    "Level": 2,
+    "ShopID": 6012
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 6,
+    "GroupId": 3,
+    "Level": 3,
+    "ShopID": 6013
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 6,
+    "GroupId": 3,
+    "Level": 4,
+    "ShopID": 6014
+  },
+  {
+    "ResID": 1002010002,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 6,
+    "GroupId": 3,
+    "Level": 5,
+    "ShopID": 6015
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 6,
+    "GroupId": 4,
+    "Level": 1,
+    "ShopID": 6016
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 6,
+    "GroupId": 4,
+    "Level": 2,
+    "ShopID": 6017
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 6,
+    "GroupId": 4,
+    "Level": 3,
+    "ShopID": 6018
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 6,
+    "GroupId": 4,
+    "Level": 4,
+    "ShopID": 6019
+  },
+  {
+    "ResID": 1002010003,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 6,
+    "GroupId": 4,
+    "Level": 5,
+    "ShopID": 6020
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 6,
+    "GroupId": 5,
+    "Level": 1,
+    "ShopID": 6021
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 6,
+    "GroupId": 5,
+    "Level": 2,
+    "ShopID": 6022
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 6,
+    "GroupId": 5,
+    "Level": 3,
+    "ShopID": 6023
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 6,
+    "GroupId": 5,
+    "Level": 4,
+    "ShopID": 6024
+  },
+  {
+    "ResID": 1002010004,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 6,
+    "GroupId": 5,
+    "Level": 5,
+    "ShopID": 6025
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 6,
+    "GroupId": 6,
+    "Level": 1,
+    "ShopID": 6026
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 6,
+    "GroupId": 6,
+    "Level": 2,
+    "ShopID": 6027
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 6,
+    "GroupId": 6,
+    "Level": 3,
+    "ShopID": 6028
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 6,
+    "GroupId": 6,
+    "Level": 4,
+    "ShopID": 6029
+  },
+  {
+    "ResID": 1002010005,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 6,
+    "GroupId": 6,
+    "Level": 5,
+    "ShopID": 6030
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 6,
+    "GroupId": 7,
+    "Level": 1,
+    "ShopID": 6031
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 6,
+    "GroupId": 7,
+    "Level": 2,
+    "ShopID": 6032
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 6,
+    "GroupId": 7,
+    "Level": 3,
+    "ShopID": 6033
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 6,
+    "GroupId": 7,
+    "Level": 4,
+    "ShopID": 6034
+  },
+  {
+    "ResID": 1002010006,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 6,
+    "GroupId": 7,
+    "Level": 5,
+    "ShopID": 6035
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 50,
+    "PeriodID": 6,
+    "GroupId": 8,
+    "Level": 1,
+    "ShopID": 6036
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 100,
+    "PeriodID": 6,
+    "GroupId": 8,
+    "Level": 2,
+    "ShopID": 6037
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 200,
+    "PeriodID": 6,
+    "GroupId": 8,
+    "Level": 3,
+    "ShopID": 6038
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 6,
+    "GroupId": 8,
+    "Level": 4,
+    "ShopID": 6039
+  },
+  {
+    "ResID": 1002010007,
+    "IsBuff": 1,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 6,
+    "GroupId": 8,
+    "Level": 5,
+    "ShopID": 6040
+  },
+  {
+    "ResID": 1007004290,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 6,
+    "GameLevel": 1,
+    "ShopID": 6041
+  },
+  {
+    "ResID": 1007004291,
+    "BuyNumLimit": 1,
+    "Score": 400,
+    "PeriodID": 6,
+    "GameLevel": 2,
+    "ShopID": 6042
+  },
+  {
+    "ResID": 1007004284,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 6,
+    "GameLevel": 3,
+    "ShopID": 6043
+  },
+  {
+    "ResID": 1006035906,
+    "BuyNumLimit": 1,
+    "Score": 5000,
+    "PeriodID": 6,
+    "GameLevel": 3,
+    "ShopID": 6044
+  },
+  {
+    "ResID": 1002000153,
+    "BuyNumLimit": 3,
+    "Score": 1050,
+    "PeriodID": 6,
+    "ShopID": 6045
+  },
+  {
+    "ResID": 1002000134,
+    "BuyNumLimit": 5,
+    "Score": 160,
+    "PeriodID": 6,
+    "ShopID": 6046
+  },
+  {
+    "ResID": 1002009148,
+    "BuyNumLimit": 5,
+    "Score": 320,
+    "PeriodID": 6,
+    "ShopID": 6047
+  },
+  {
+    "ResID": 1002000066,
+    "BuyNumLimit": 12,
+    "Score": 200,
+    "PeriodID": 6,
+    "ShopID": 6048
+  },
+  {
+    "ResID": 1002000067,
+    "BuyNumLimit": 10,
+    "Score": 800,
+    "PeriodID": 6,
+    "ShopID": 6049
+  },
+  {
+    "ResID": 1002000054,
+    "BuyNumLimit": 1,
+    "Score": 900,
+    "PeriodID": 6,
+    "ShopID": 6050
+  },
+  {
+    "ResID": 1002001001,
+    "BuyNumLimit": 375,
+    "Score": 10,
+    "PeriodID": 6,
+    "ShopID": 6051
+  },
+  {
+    "ResID": 1000000002,
+    "BuyNumLimit": 9999,
+    "Score": 1,
+    "PeriodID": 6,
+    "ShopID": 6052
+  },
+  {
+    "ResID": 1007005068,
+    "BuyNumLimit": 1,
+    "Score": 600,
+    "PeriodID": 6,
+    "GameLevel": 2,
+    "ShopID": 6053
+  },
+  {
+    "ResID": 1007006039,
+    "BuyNumLimit": 1,
+    "Score": 800,
+    "PeriodID": 6,
+    "GameLevel": 3,
+    "ShopID": 6054
+  }
+]

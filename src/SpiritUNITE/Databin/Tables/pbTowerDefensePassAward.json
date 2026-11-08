@@ -1,0 +1,122 @@
+[
+  {
+    "PeriodID": 1,
+    "SDropID": 100300,
+    "SceneId": 601
+  },
+  {
+    "PeriodID": 1,
+    "SDropID": 100301,
+    "SceneId": 602
+  },
+  {
+    "PeriodID": 1,
+    "SDropID": 100302,
+    "SceneId": 603
+  },
+  {
+    "PeriodID": 1,
+    "SDropID": 100303,
+    "SceneId": 604
+  },
+  {
+    "PeriodID": 2,
+    "SDropID": 100300,
+    "SceneId": 601
+  },
+  {
+    "PeriodID": 2,
+    "SDropID": 100301,
+    "SceneId": 602
+  },
+  {
+    "PeriodID": 2,
+    "SDropID": 100302,
+    "SceneId": 603
+  },
+  {
+    "PeriodID": 2,
+    "SDropID": 100303,
+    "SceneId": 604
+  },
+  {
+    "PeriodID": 3,
+    "SDropID": 100300,
+    "SceneId": 601
+  },
+  {
+    "PeriodID": 3,
+    "SDropID": 100301,
+    "SceneId": 602
+  },
+  {
+    "PeriodID": 3,
+    "SDropID": 100302,
+    "SceneId": 603
+  },
+  {
+    "PeriodID": 3,
+    "SDropID": 100303,
+    "SceneId": 604
+  },
+  {
+    "PeriodID": 4,
+    "SDropID": 100300,
+    "SceneId": 601
+  },
+  {
+    "PeriodID": 4,
+    "SDropID": 100301,
+    "SceneId": 602
+  },
+  {
+    "PeriodID": 4,
+    "SDropID": 100302,
+    "SceneId": 603
+  },
+  {
+    "PeriodID": 4,
+    "SDropID": 100303,
+    "SceneId": 604
+  },
+  {
+    "PeriodID": 5,
+    "SDropID": 100300,
+    "SceneId": 601
+  },
+  {
+    "PeriodID": 5,
+    "SDropID": 100301,
+    "SceneId": 602
+  },
+  {
+    "PeriodID": 5,
+    "SDropID": 100302,
+    "SceneId": 603
+  },
+  {
+    "PeriodID": 5,
+    "SDropID": 100303,
+    "SceneId": 604
+  },
+  {
+    "PeriodID": 6,
+    "SDropID": 100300,
+    "SceneId": 611
+  },
+  {
+    "PeriodID": 6,
+    "SDropID": 190413,
+    "SceneId": 612
+  },
+  {
+    "PeriodID": 6,
+    "SDropID": 100302,
+    "SceneId": 613
+  },
+  {
+    "PeriodID": 6,
+    "SDropID": 100303,
+    "SceneId": 614
+  }
+]

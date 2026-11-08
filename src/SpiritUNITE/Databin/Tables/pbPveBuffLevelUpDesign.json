@@ -1,0 +1,962 @@
+[
+  {
+    "GroupId": 1,
+    "Id": 1,
+    "Level": 1
+  },
+  {
+    "GroupId": 1,
+    "Id": 2,
+    "Level": 2
+  },
+  {
+    "GroupId": 1,
+    "Id": 3,
+    "Level": 3
+  },
+  {
+    "GroupId": 1,
+    "Id": 4,
+    "Level": 4
+  },
+  {
+    "GroupId": 1,
+    "Id": 5,
+    "Level": 5
+  },
+  {
+    "GroupId": 1,
+    "Id": 6,
+    "Level": 6
+  },
+  {
+    "GroupId": 1,
+    "Id": 7,
+    "Level": 7
+  },
+  {
+    "GroupId": 1,
+    "Id": 8,
+    "Level": 8
+  },
+  {
+    "GroupId": 1,
+    "Id": 9,
+    "Level": 9
+  },
+  {
+    "GroupId": 1,
+    "Id": 10,
+    "Level": 10
+  },
+  {
+    "GroupId": 1,
+    "Id": 11,
+    "Level": 11
+  },
+  {
+    "GroupId": 1,
+    "Id": 12,
+    "Level": 12
+  },
+  {
+    "GroupId": 1,
+    "Id": 13,
+    "Level": 13
+  },
+  {
+    "GroupId": 1,
+    "Id": 14,
+    "Level": 14
+  },
+  {
+    "GroupId": 1,
+    "Id": 15,
+    "Level": 15
+  },
+  {
+    "GroupId": 1,
+    "Id": 16,
+    "Level": 16
+  },
+  {
+    "GroupId": 1,
+    "Id": 17,
+    "Level": 17
+  },
+  {
+    "GroupId": 1,
+    "Id": 18,
+    "Level": 18
+  },
+  {
+    "GroupId": 1,
+    "Id": 19,
+    "Level": 19
+  },
+  {
+    "GroupId": 1,
+    "Id": 20,
+    "Level": 20
+  },
+  {
+    "GroupId": 1,
+    "Id": 21,
+    "Level": 21
+  },
+  {
+    "GroupId": 1,
+    "Id": 22,
+    "Level": 22
+  },
+  {
+    "GroupId": 1,
+    "Id": 23,
+    "Level": 23
+  },
+  {
+    "GroupId": 1,
+    "Id": 24,
+    "Level": 24
+  },
+  {
+    "GroupId": 1,
+    "Id": 25,
+    "Level": 25
+  },
+  {
+    "GroupId": 1,
+    "Id": 26,
+    "Level": 26
+  },
+  {
+    "GroupId": 1,
+    "Id": 27,
+    "Level": 27
+  },
+  {
+    "GroupId": 1,
+    "Id": 28,
+    "Level": 28
+  },
+  {
+    "GroupId": 1,
+    "Id": 29,
+    "Level": 29
+  },
+  {
+    "GroupId": 1,
+    "Id": 30,
+    "Level": 30
+  },
+  {
+    "GroupId": 2,
+    "Id": 31,
+    "Level": 1
+  },
+  {
+    "GroupId": 2,
+    "Id": 32,
+    "Level": 2
+  },
+  {
+    "GroupId": 2,
+    "Id": 33,
+    "Level": 3
+  },
+  {
+    "GroupId": 2,
+    "Id": 34,
+    "Level": 4
+  },
+  {
+    "GroupId": 2,
+    "Id": 35,
+    "Level": 5
+  },
+  {
+    "GroupId": 2,
+    "Id": 36,
+    "Level": 6
+  },
+  {
+    "GroupId": 2,
+    "Id": 37,
+    "Level": 7
+  },
+  {
+    "GroupId": 2,
+    "Id": 38,
+    "Level": 8
+  },
+  {
+    "GroupId": 2,
+    "Id": 39,
+    "Level": 9
+  },
+  {
+    "GroupId": 2,
+    "Id": 40,
+    "Level": 10
+  },
+  {
+    "GroupId": 2,
+    "Id": 41,
+    "Level": 11
+  },
+  {
+    "GroupId": 2,
+    "Id": 42,
+    "Level": 12
+  },
+  {
+    "GroupId": 2,
+    "Id": 43,
+    "Level": 13
+  },
+  {
+    "GroupId": 2,
+    "Id": 44,
+    "Level": 14
+  },
+  {
+    "GroupId": 2,
+    "Id": 45,
+    "Level": 15
+  },
+  {
+    "GroupId": 2,
+    "Id": 46,
+    "Level": 16
+  },
+  {
+    "GroupId": 2,
+    "Id": 47,
+    "Level": 17
+  },
+  {
+    "GroupId": 2,
+    "Id": 48,
+    "Level": 18
+  },
+  {
+    "GroupId": 2,
+    "Id": 49,
+    "Level": 19
+  },
+  {
+    "GroupId": 2,
+    "Id": 50,
+    "Level": 20
+  },
+  {
+    "GroupId": 2,
+    "Id": 51,
+    "Level": 21
+  },
+  {
+    "GroupId": 2,
+    "Id": 52,
+    "Level": 22
+  },
+  {
+    "GroupId": 2,
+    "Id": 53,
+    "Level": 23
+  },
+  {
+    "GroupId": 2,
+    "Id": 54,
+    "Level": 24
+  },
+  {
+    "GroupId": 2,
+    "Id": 55,
+    "Level": 25
+  },
+  {
+    "GroupId": 2,
+    "Id": 56,
+    "Level": 26
+  },
+  {
+    "GroupId": 2,
+    "Id": 57,
+    "Level": 27
+  },
+  {
+    "GroupId": 2,
+    "Id": 58,
+    "Level": 28
+  },
+  {
+    "GroupId": 2,
+    "Id": 59,
+    "Level": 29
+  },
+  {
+    "GroupId": 2,
+    "Id": 60,
+    "Level": 30
+  },
+  {
+    "GroupId": 3,
+    "Id": 61,
+    "Level": 1
+  },
+  {
+    "GroupId": 3,
+    "Id": 62,
+    "Level": 2
+  },
+  {
+    "GroupId": 3,
+    "Id": 63,
+    "Level": 3
+  },
+  {
+    "GroupId": 3,
+    "Id": 64,
+    "Level": 4
+  },
+  {
+    "GroupId": 3,
+    "Id": 65,
+    "Level": 5
+  },
+  {
+    "GroupId": 3,
+    "Id": 66,
+    "Level": 6
+  },
+  {
+    "GroupId": 3,
+    "Id": 67,
+    "Level": 7
+  },
+  {
+    "GroupId": 3,
+    "Id": 68,
+    "Level": 8
+  },
+  {
+    "GroupId": 3,
+    "Id": 69,
+    "Level": 9
+  },
+  {
+    "GroupId": 3,
+    "Id": 70,
+    "Level": 10
+  },
+  {
+    "GroupId": 3,
+    "Id": 71,
+    "Level": 11
+  },
+  {
+    "GroupId": 3,
+    "Id": 72,
+    "Level": 12
+  },
+  {
+    "GroupId": 3,
+    "Id": 73,
+    "Level": 13
+  },
+  {
+    "GroupId": 3,
+    "Id": 74,
+    "Level": 14
+  },
+  {
+    "GroupId": 3,
+    "Id": 75,
+    "Level": 15
+  },
+  {
+    "GroupId": 3,
+    "Id": 76,
+    "Level": 16
+  },
+  {
+    "GroupId": 3,
+    "Id": 77,
+    "Level": 17
+  },
+  {
+    "GroupId": 3,
+    "Id": 78,
+    "Level": 18
+  },
+  {
+    "GroupId": 3,
+    "Id": 79,
+    "Level": 19
+  },
+  {
+    "GroupId": 3,
+    "Id": 80,
+    "Level": 20
+  },
+  {
+    "GroupId": 3,
+    "Id": 81,
+    "Level": 21
+  },
+  {
+    "GroupId": 3,
+    "Id": 82,
+    "Level": 22
+  },
+  {
+    "GroupId": 3,
+    "Id": 83,
+    "Level": 23
+  },
+  {
+    "GroupId": 3,
+    "Id": 84,
+    "Level": 24
+  },
+  {
+    "GroupId": 3,
+    "Id": 85,
+    "Level": 25
+  },
+  {
+    "GroupId": 3,
+    "Id": 86,
+    "Level": 26
+  },
+  {
+    "GroupId": 3,
+    "Id": 87,
+    "Level": 27
+  },
+  {
+    "GroupId": 3,
+    "Id": 88,
+    "Level": 28
+  },
+  {
+    "GroupId": 3,
+    "Id": 89,
+    "Level": 29
+  },
+  {
+    "GroupId": 3,
+    "Id": 90,
+    "Level": 30
+  },
+  {
+    "GroupId": 4,
+    "Id": 91,
+    "Level": 1
+  },
+  {
+    "GroupId": 4,
+    "Id": 92,
+    "Level": 2
+  },
+  {
+    "GroupId": 4,
+    "Id": 93,
+    "Level": 3
+  },
+  {
+    "GroupId": 4,
+    "Id": 94,
+    "Level": 4
+  },
+  {
+    "GroupId": 4,
+    "Id": 95,
+    "Level": 5
+  },
+  {
+    "GroupId": 4,
+    "Id": 96,
+    "Level": 6
+  },
+  {
+    "GroupId": 4,
+    "Id": 97,
+    "Level": 7
+  },
+  {
+    "GroupId": 4,
+    "Id": 98,
+    "Level": 8
+  },
+  {
+    "GroupId": 4,
+    "Id": 99,
+    "Level": 9
+  },
+  {
+    "GroupId": 4,
+    "Id": 100,
+    "Level": 10
+  },
+  {
+    "GroupId": 4,
+    "Id": 101,
+    "Level": 11
+  },
+  {
+    "GroupId": 4,
+    "Id": 102,
+    "Level": 12
+  },
+  {
+    "GroupId": 4,
+    "Id": 103,
+    "Level": 13
+  },
+  {
+    "GroupId": 4,
+    "Id": 104,
+    "Level": 14
+  },
+  {
+    "GroupId": 4,
+    "Id": 105,
+    "Level": 15
+  },
+  {
+    "GroupId": 4,
+    "Id": 106,
+    "Level": 16
+  },
+  {
+    "GroupId": 4,
+    "Id": 107,
+    "Level": 17
+  },
+  {
+    "GroupId": 4,
+    "Id": 108,
+    "Level": 18
+  },
+  {
+    "GroupId": 4,
+    "Id": 109,
+    "Level": 19
+  },
+  {
+    "GroupId": 4,
+    "Id": 110,
+    "Level": 20
+  },
+  {
+    "GroupId": 4,
+    "Id": 111,
+    "Level": 21
+  },
+  {
+    "GroupId": 4,
+    "Id": 112,
+    "Level": 22
+  },
+  {
+    "GroupId": 4,
+    "Id": 113,
+    "Level": 23
+  },
+  {
+    "GroupId": 4,
+    "Id": 114,
+    "Level": 24
+  },
+  {
+    "GroupId": 4,
+    "Id": 115,
+    "Level": 25
+  },
+  {
+    "GroupId": 4,
+    "Id": 116,
+    "Level": 26
+  },
+  {
+    "GroupId": 4,
+    "Id": 117,
+    "Level": 27
+  },
+  {
+    "GroupId": 4,
+    "Id": 118,
+    "Level": 28
+  },
+  {
+    "GroupId": 4,
+    "Id": 119,
+    "Level": 29
+  },
+  {
+    "GroupId": 4,
+    "Id": 120,
+    "Level": 30
+  },
+  {
+    "GroupId": 5,
+    "Id": 121,
+    "Level": 1
+  },
+  {
+    "GroupId": 5,
+    "Id": 122,
+    "Level": 2
+  },
+  {
+    "GroupId": 5,
+    "Id": 123,
+    "Level": 3
+  },
+  {
+    "GroupId": 5,
+    "Id": 124,
+    "Level": 4
+  },
+  {
+    "GroupId": 5,
+    "Id": 125,
+    "Level": 5
+  },
+  {
+    "GroupId": 5,
+    "Id": 126,
+    "Level": 6
+  },
+  {
+    "GroupId": 5,
+    "Id": 127,
+    "Level": 7
+  },
+  {
+    "GroupId": 5,
+    "Id": 128,
+    "Level": 8
+  },
+  {
+    "GroupId": 5,
+    "Id": 129,
+    "Level": 9
+  },
+  {
+    "GroupId": 5,
+    "Id": 130,
+    "Level": 10
+  },
+  {
+    "GroupId": 5,
+    "Id": 131,
+    "Level": 11
+  },
+  {
+    "GroupId": 5,
+    "Id": 132,
+    "Level": 12
+  },
+  {
+    "GroupId": 5,
+    "Id": 133,
+    "Level": 13
+  },
+  {
+    "GroupId": 5,
+    "Id": 134,
+    "Level": 14
+  },
+  {
+    "GroupId": 5,
+    "Id": 135,
+    "Level": 15
+  },
+  {
+    "GroupId": 5,
+    "Id": 136,
+    "Level": 16
+  },
+  {
+    "GroupId": 5,
+    "Id": 137,
+    "Level": 17
+  },
+  {
+    "GroupId": 5,
+    "Id": 138,
+    "Level": 18
+  },
+  {
+    "GroupId": 5,
+    "Id": 139,
+    "Level": 19
+  },
+  {
+    "GroupId": 5,
+    "Id": 140,
+    "Level": 20
+  },
+  {
+    "GroupId": 5,
+    "Id": 141,
+    "Level": 21
+  },
+  {
+    "GroupId": 5,
+    "Id": 142,
+    "Level": 22
+  },
+  {
+    "GroupId": 5,
+    "Id": 143,
+    "Level": 23
+  },
+  {
+    "GroupId": 5,
+    "Id": 144,
+    "Level": 24
+  },
+  {
+    "GroupId": 5,
+    "Id": 145,
+    "Level": 25
+  },
+  {
+    "GroupId": 5,
+    "Id": 146,
+    "Level": 26
+  },
+  {
+    "GroupId": 5,
+    "Id": 147,
+    "Level": 27
+  },
+  {
+    "GroupId": 5,
+    "Id": 148,
+    "Level": 28
+  },
+  {
+    "GroupId": 5,
+    "Id": 149,
+    "Level": 29
+  },
+  {
+    "GroupId": 5,
+    "Id": 150,
+    "Level": 30
+  },
+  {
+    "GroupId": 6,
+    "Id": 151,
+    "Level": 1
+  },
+  {
+    "GroupId": 6,
+    "Id": 152,
+    "Level": 2
+  },
+  {
+    "GroupId": 6,
+    "Id": 153,
+    "Level": 3
+  },
+  {
+    "GroupId": 6,
+    "Id": 154,
+    "Level": 4
+  },
+  {
+    "GroupId": 6,
+    "Id": 155,
+    "Level": 5
+  },
+  {
+    "GroupId": 6,
+    "Id": 156,
+    "Level": 6
+  },
+  {
+    "GroupId": 6,
+    "Id": 157,
+    "Level": 7
+  },
+  {
+    "GroupId": 6,
+    "Id": 158,
+    "Level": 8
+  },
+  {
+    "GroupId": 6,
+    "Id": 159,
+    "Level": 9
+  },
+  {
+    "GroupId": 6,
+    "Id": 160,
+    "Level": 10
+  },
+  {
+    "GroupId": 6,
+    "Id": 161,
+    "Level": 11
+  },
+  {
+    "GroupId": 6,
+    "Id": 162,
+    "Level": 12
+  },
+  {
+    "GroupId": 6,
+    "Id": 163,
+    "Level": 13
+  },
+  {
+    "GroupId": 6,
+    "Id": 164,
+    "Level": 14
+  },
+  {
+    "GroupId": 6,
+    "Id": 165,
+    "Level": 15
+  },
+  {
+    "GroupId": 6,
+    "Id": 166,
+    "Level": 16
+  },
+  {
+    "GroupId": 6,
+    "Id": 167,
+    "Level": 17
+  },
+  {
+    "GroupId": 6,
+    "Id": 168,
+    "Level": 18
+  },
+  {
+    "GroupId": 6,
+    "Id": 169,
+    "Level": 19
+  },
+  {
+    "GroupId": 6,
+    "Id": 170,
+    "Level": 20
+  },
+  {
+    "GroupId": 6,
+    "Id": 171,
+    "Level": 21
+  },
+  {
+    "GroupId": 6,
+    "Id": 172,
+    "Level": 22
+  },
+  {
+    "GroupId": 6,
+    "Id": 173,
+    "Level": 23
+  },
+  {
+    "GroupId": 6,
+    "Id": 174,
+    "Level": 24
+  },
+  {
+    "GroupId": 6,
+    "Id": 175,
+    "Level": 25
+  },
+  {
+    "GroupId": 6,
+    "Id": 176,
+    "Level": 26
+  },
+  {
+    "GroupId": 6,
+    "Id": 177,
+    "Level": 27
+  },
+  {
+    "GroupId": 6,
+    "Id": 178,
+    "Level": 28
+  },
+  {
+    "GroupId": 6,
+    "Id": 179,
+    "Level": 29
+  },
+  {
+    "GroupId": 6,
+    "Id": 180,
+    "Level": 30
+  },
+  {
+    "GroupId": 7,
+    "Id": 181,
+    "Level": 1
+  },
+  {
+    "GroupId": 7,
+    "Id": 182,
+    "Level": 2
+  },
+  {
+    "GroupId": 7,
+    "Id": 183,
+    "Level": 3
+  },
+  {
+    "GroupId": 7,
+    "Id": 184,
+    "Level": 4
+  },
+  {
+    "GroupId": 7,
+    "Id": 185,
+    "Level": 5
+  },
+  {
+    "GroupId": 7,
+    "Id": 186,
+    "Level": 6
+  },
+  {
+    "GroupId": 8,
+    "Id": 187,
+    "Level": 1
+  },
+  {
+    "GroupId": 8,
+    "Id": 188,
+    "Level": 2
+  },
+  {
+    "GroupId": 8,
+    "Id": 189,
+    "Level": 3
+  },
+  {
+    "GroupId": 8,
+    "Id": 190,
+    "Level": 4
+  },
+  {
+    "GroupId": 8,
+    "Id": 191,
+    "Level": 5
+  },
+  {
+    "GroupId": 8,
+    "Id": 192,
+    "Level": 6
+  }
+]

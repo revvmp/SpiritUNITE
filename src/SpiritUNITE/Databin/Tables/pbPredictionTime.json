@@ -1,0 +1,17 @@
+[
+  {
+    "StartTime": "20260814000000",
+    "EndTime": "20260827235959",
+    "PredictionStatge": 1
+  },
+  {
+    "StartTime": "20260828000000",
+    "EndTime": "20260831065959",
+    "PredictionStatge": 2
+  },
+  {
+    "StartTime": "20260831070000",
+    "EndTime": "20260903035959",
+    "PredictionStatge": 3
+  }
+]

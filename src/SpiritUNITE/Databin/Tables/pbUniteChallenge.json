@@ -1,0 +1,2906 @@
+[
+  {
+    "PeriodID": 1,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 50166
+      },
+      {
+        "DropId": 50167
+      },
+      {
+        "DropId": 50168
+      },
+      {
+        "DropId": 50169
+      },
+      {
+        "DropId": 50170
+      }
+    ],
+    "CloseTime": "20220624235959",
+    "ID": 1,
+    "OpenTime": "20220624000000"
+  },
+  {
+    "PeriodID": 1,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 50166
+      },
+      {
+        "DropId": 50167
+      },
+      {
+        "DropId": 50168
+      },
+      {
+        "DropId": 50169
+      },
+      {
+        "DropId": 50170
+      }
+    ],
+    "CloseTime": "20220625235959",
+    "ID": 2,
+    "OpenTime": "20220625000000"
+  },
+  {
+    "PeriodID": 1,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 50166
+      },
+      {
+        "DropId": 50167
+      },
+      {
+        "DropId": 50168
+      },
+      {
+        "DropId": 50169
+      },
+      {
+        "DropId": 50170
+      }
+    ],
+    "CloseTime": "20220626235959",
+    "ID": 3,
+    "OpenTime": "20220626000000"
+  },
+  {
+    "PeriodID": 2,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 50166
+      },
+      {
+        "DropId": 50167
+      },
+      {
+        "DropId": 50168
+      },
+      {
+        "DropId": 50169
+      },
+      {
+        "DropId": 50170
+      }
+    ],
+    "CloseTime": "20220701235959",
+    "ID": 4,
+    "OpenTime": "20220701000000"
+  },
+  {
+    "PeriodID": 2,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 50166
+      },
+      {
+        "DropId": 50167
+      },
+      {
+        "DropId": 50168
+      },
+      {
+        "DropId": 50169
+      },
+      {
+        "DropId": 50170
+      }
+    ],
+    "CloseTime": "20220702235959",
+    "ID": 5,
+    "OpenTime": "20220702000000"
+  },
+  {
+    "PeriodID": 2,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 50166
+      },
+      {
+        "DropId": 50167
+      },
+      {
+        "DropId": 50168
+      },
+      {
+        "DropId": 50169
+      },
+      {
+        "DropId": 50170
+      }
+    ],
+    "CloseTime": "20220703235959",
+    "ID": 6,
+    "OpenTime": "20220703000000"
+  },
+  {
+    "PeriodID": 3,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 50166
+      },
+      {
+        "DropId": 50167
+      },
+      {
+        "DropId": 50168
+      },
+      {
+        "DropId": 50169
+      },
+      {
+        "DropId": 50170
+      }
+    ],
+    "CloseTime": "20220708235959",
+    "ID": 7,
+    "OpenTime": "20220708000000"
+  },
+  {
+    "PeriodID": 3,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 50166
+      },
+      {
+        "DropId": 50167
+      },
+      {
+        "DropId": 50168
+      },
+      {
+        "DropId": 50169
+      },
+      {
+        "DropId": 50170
+      }
+    ],
+    "CloseTime": "20220709235959",
+    "ID": 8,
+    "OpenTime": "20220709000000"
+  },
+  {
+    "PeriodID": 3,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 50166
+      },
+      {
+        "DropId": 50167
+      },
+      {
+        "DropId": 50168
+      },
+      {
+        "DropId": 50169
+      },
+      {
+        "DropId": 50170
+      }
+    ],
+    "CloseTime": "20220710235959",
+    "ID": 9,
+    "OpenTime": "20220710000000"
+  },
+  {
+    "PeriodID": 4,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 80033
+      },
+      {
+        "DropId": 80034
+      },
+      {
+        "DropId": 80035
+      },
+      {
+        "DropId": 80036
+      },
+      {
+        "DropId": 80037
+      }
+    ],
+    "CloseTime": "20221007235959",
+    "ID": 10,
+    "OpenTime": "20221007000000"
+  },
+  {
+    "PeriodID": 4,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 80033
+      },
+      {
+        "DropId": 80034
+      },
+      {
+        "DropId": 80035
+      },
+      {
+        "DropId": 80036
+      },
+      {
+        "DropId": 80037
+      }
+    ],
+    "CloseTime": "20221008235959",
+    "ID": 11,
+    "OpenTime": "20221008000000"
+  },
+  {
+    "PeriodID": 4,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 80033
+      },
+      {
+        "DropId": 80034
+      },
+      {
+        "DropId": 80035
+      },
+      {
+        "DropId": 80036
+      },
+      {
+        "DropId": 80037
+      }
+    ],
+    "CloseTime": "20221009235959",
+    "ID": 12,
+    "OpenTime": "20221009000000"
+  },
+  {
+    "PeriodID": 4,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 80033
+      },
+      {
+        "DropId": 80034
+      },
+      {
+        "DropId": 80035
+      },
+      {
+        "DropId": 80036
+      },
+      {
+        "DropId": 80037
+      }
+    ],
+    "CloseTime": "20221010235959",
+    "ID": 13,
+    "OpenTime": "20221010000000"
+  },
+  {
+    "PeriodID": 4,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 80033
+      },
+      {
+        "DropId": 80034
+      },
+      {
+        "DropId": 80035
+      },
+      {
+        "DropId": 80036
+      },
+      {
+        "DropId": 80037
+      }
+    ],
+    "CloseTime": "20221011235959",
+    "ID": 14,
+    "OpenTime": "20221011000000"
+  },
+  {
+    "PeriodID": 4,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 80033
+      },
+      {
+        "DropId": 80034
+      },
+      {
+        "DropId": 80035
+      },
+      {
+        "DropId": 80036
+      },
+      {
+        "DropId": 80037
+      }
+    ],
+    "CloseTime": "20221012235959",
+    "ID": 15,
+    "OpenTime": "20221012000000"
+  },
+  {
+    "PeriodID": 4,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 80033
+      },
+      {
+        "DropId": 80034
+      },
+      {
+        "DropId": 80035
+      },
+      {
+        "DropId": 80036
+      },
+      {
+        "DropId": 80037
+      }
+    ],
+    "CloseTime": "20221013235959",
+    "ID": 16,
+    "OpenTime": "20221013000000"
+  },
+  {
+    "PeriodID": 5,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 80438
+      },
+      {
+        "DropId": 80439
+      },
+      {
+        "DropId": 80440
+      },
+      {
+        "DropId": 80441
+      },
+      {
+        "DropId": 80442
+      }
+    ],
+    "CloseTime": "20230206235959",
+    "ID": 17,
+    "OpenTime": "20230206000000"
+  },
+  {
+    "PeriodID": 5,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 80438
+      },
+      {
+        "DropId": 80439
+      },
+      {
+        "DropId": 80440
+      },
+      {
+        "DropId": 80441
+      },
+      {
+        "DropId": 80442
+      }
+    ],
+    "CloseTime": "20230207235959",
+    "ID": 18,
+    "OpenTime": "20230207000000"
+  },
+  {
+    "PeriodID": 5,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 80438
+      },
+      {
+        "DropId": 80439
+      },
+      {
+        "DropId": 80440
+      },
+      {
+        "DropId": 80441
+      },
+      {
+        "DropId": 80442
+      }
+    ],
+    "CloseTime": "20230208235959",
+    "ID": 19,
+    "OpenTime": "20230208000000"
+  },
+  {
+    "PeriodID": 5,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 80438
+      },
+      {
+        "DropId": 80439
+      },
+      {
+        "DropId": 80440
+      },
+      {
+        "DropId": 80441
+      },
+      {
+        "DropId": 80442
+      }
+    ],
+    "CloseTime": "20230209235959",
+    "ID": 20,
+    "OpenTime": "20230209000000"
+  },
+  {
+    "PeriodID": 5,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 80438
+      },
+      {
+        "DropId": 80439
+      },
+      {
+        "DropId": 80440
+      },
+      {
+        "DropId": 80441
+      },
+      {
+        "DropId": 80442
+      }
+    ],
+    "CloseTime": "20230210235959",
+    "ID": 21,
+    "OpenTime": "20230210000000"
+  },
+  {
+    "PeriodID": 5,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 80438
+      },
+      {
+        "DropId": 80439
+      },
+      {
+        "DropId": 80440
+      },
+      {
+        "DropId": 80441
+      },
+      {
+        "DropId": 80442
+      }
+    ],
+    "CloseTime": "20230211235959",
+    "ID": 22,
+    "OpenTime": "20230211000000"
+  },
+  {
+    "PeriodID": 5,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 80438
+      },
+      {
+        "DropId": 80439
+      },
+      {
+        "DropId": 80440
+      },
+      {
+        "DropId": 80441
+      },
+      {
+        "DropId": 80442
+      }
+    ],
+    "CloseTime": "20230212235959",
+    "ID": 23,
+    "OpenTime": "20230212000000"
+  },
+  {
+    "PeriodID": 6,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 100040
+      },
+      {
+        "DropId": 100041
+      },
+      {
+        "DropId": 100042
+      },
+      {
+        "DropId": 100043
+      },
+      {
+        "DropId": 100044
+      }
+    ],
+    "CloseTime": "20230501235959",
+    "ID": 24,
+    "OpenTime": "20230501000000"
+  },
+  {
+    "PeriodID": 6,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 100040
+      },
+      {
+        "DropId": 100041
+      },
+      {
+        "DropId": 100042
+      },
+      {
+        "DropId": 100043
+      },
+      {
+        "DropId": 100044
+      }
+    ],
+    "CloseTime": "20230502235959",
+    "ID": 25,
+    "OpenTime": "20230502000000"
+  },
+  {
+    "PeriodID": 6,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 100040
+      },
+      {
+        "DropId": 100041
+      },
+      {
+        "DropId": 100042
+      },
+      {
+        "DropId": 100043
+      },
+      {
+        "DropId": 100044
+      }
+    ],
+    "CloseTime": "20230503235959",
+    "ID": 26,
+    "OpenTime": "20230503000000"
+  },
+  {
+    "PeriodID": 6,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 100040
+      },
+      {
+        "DropId": 100041
+      },
+      {
+        "DropId": 100042
+      },
+      {
+        "DropId": 100043
+      },
+      {
+        "DropId": 100044
+      }
+    ],
+    "CloseTime": "20230504235959",
+    "ID": 27,
+    "OpenTime": "20230504000000"
+  },
+  {
+    "PeriodID": 6,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 100040
+      },
+      {
+        "DropId": 100041
+      },
+      {
+        "DropId": 100042
+      },
+      {
+        "DropId": 100043
+      },
+      {
+        "DropId": 100044
+      }
+    ],
+    "CloseTime": "20230505235959",
+    "ID": 28,
+    "OpenTime": "20230505000000"
+  },
+  {
+    "PeriodID": 6,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 100040
+      },
+      {
+        "DropId": 100041
+      },
+      {
+        "DropId": 100042
+      },
+      {
+        "DropId": 100043
+      },
+      {
+        "DropId": 100044
+      }
+    ],
+    "CloseTime": "20230506235959",
+    "ID": 29,
+    "OpenTime": "20230506000000"
+  },
+  {
+    "PeriodID": 6,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 100040
+      },
+      {
+        "DropId": 100041
+      },
+      {
+        "DropId": 100042
+      },
+      {
+        "DropId": 100043
+      },
+      {
+        "DropId": 100044
+      }
+    ],
+    "CloseTime": "20230507235959",
+    "ID": 30,
+    "OpenTime": "20230507000000"
+  },
+  {
+    "PeriodID": 7,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 100045
+      },
+      {
+        "DropId": 100046
+      },
+      {
+        "DropId": 100047
+      },
+      {
+        "DropId": 100048
+      },
+      {
+        "DropId": 100049
+      }
+    ],
+    "CloseTime": "20230522235959",
+    "ID": 31,
+    "OpenTime": "20230522000000"
+  },
+  {
+    "PeriodID": 7,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 100045
+      },
+      {
+        "DropId": 100046
+      },
+      {
+        "DropId": 100047
+      },
+      {
+        "DropId": 100048
+      },
+      {
+        "DropId": 100049
+      }
+    ],
+    "CloseTime": "20230523235959",
+    "ID": 32,
+    "OpenTime": "20230523000000"
+  },
+  {
+    "PeriodID": 7,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 100045
+      },
+      {
+        "DropId": 100046
+      },
+      {
+        "DropId": 100047
+      },
+      {
+        "DropId": 100048
+      },
+      {
+        "DropId": 100049
+      }
+    ],
+    "CloseTime": "20230524235959",
+    "ID": 33,
+    "OpenTime": "20230524000000"
+  },
+  {
+    "PeriodID": 7,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 100045
+      },
+      {
+        "DropId": 100046
+      },
+      {
+        "DropId": 100047
+      },
+      {
+        "DropId": 100048
+      },
+      {
+        "DropId": 100049
+      }
+    ],
+    "CloseTime": "20230525235959",
+    "ID": 34,
+    "OpenTime": "20230525000000"
+  },
+  {
+    "PeriodID": 7,
+    "ShowMapId": 411,
+    "WinReward": [
+      {
+        "DropId": 100045
+      },
+      {
+        "DropId": 100046
+      },
+      {
+        "DropId": 100047
+      },
+      {
+        "DropId": 100048
+      },
+      {
+        "DropId": 100049
+      }
+    ],
+    "CloseTime": "20230526235959",
+    "ID": 35,
+    "OpenTime": "20230526000000"
+  },
+  {
+    "PeriodID": 7,
+    "ShowMapId": 411,
+    "WinReward": [
+      {
+        "DropId": 100045
+      },
+      {
+        "DropId": 100046
+      },
+      {
+        "DropId": 100047
+      },
+      {
+        "DropId": 100048
+      },
+      {
+        "DropId": 100049
+      }
+    ],
+    "CloseTime": "20230527235959",
+    "ID": 36,
+    "OpenTime": "20230527000000"
+  },
+  {
+    "PeriodID": 7,
+    "ShowMapId": 411,
+    "WinReward": [
+      {
+        "DropId": 100045
+      },
+      {
+        "DropId": 100046
+      },
+      {
+        "DropId": 100047
+      },
+      {
+        "DropId": 100048
+      },
+      {
+        "DropId": 100049
+      }
+    ],
+    "CloseTime": "20230528235959",
+    "ID": 37,
+    "OpenTime": "20230528000000"
+  },
+  {
+    "PeriodID": 8,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 100428
+      },
+      {
+        "DropId": 100429
+      },
+      {
+        "DropId": 100430
+      },
+      {
+        "DropId": 100431
+      },
+      {
+        "DropId": 100432
+      }
+    ],
+    "CloseTime": "20231115235959",
+    "ID": 38,
+    "OpenTime": "20231115000000"
+  },
+  {
+    "PeriodID": 8,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 100428
+      },
+      {
+        "DropId": 100429
+      },
+      {
+        "DropId": 100430
+      },
+      {
+        "DropId": 100431
+      },
+      {
+        "DropId": 100432
+      }
+    ],
+    "CloseTime": "20231116235959",
+    "ID": 39,
+    "OpenTime": "20231116000000"
+  },
+  {
+    "PeriodID": 8,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 100428
+      },
+      {
+        "DropId": 100429
+      },
+      {
+        "DropId": 100430
+      },
+      {
+        "DropId": 100431
+      },
+      {
+        "DropId": 100432
+      }
+    ],
+    "CloseTime": "20231117235959",
+    "ID": 40,
+    "OpenTime": "20231117000000"
+  },
+  {
+    "PeriodID": 8,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 100428
+      },
+      {
+        "DropId": 100429
+      },
+      {
+        "DropId": 100430
+      },
+      {
+        "DropId": 100431
+      },
+      {
+        "DropId": 100432
+      }
+    ],
+    "CloseTime": "20231118235959",
+    "ID": 41,
+    "OpenTime": "20231118000000"
+  },
+  {
+    "PeriodID": 8,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 100428
+      },
+      {
+        "DropId": 100429
+      },
+      {
+        "DropId": 100430
+      },
+      {
+        "DropId": 100431
+      },
+      {
+        "DropId": 100432
+      }
+    ],
+    "CloseTime": "20231119235959",
+    "ID": 42,
+    "OpenTime": "20231119000000"
+  },
+  {
+    "PeriodID": 8,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 100428
+      },
+      {
+        "DropId": 100429
+      },
+      {
+        "DropId": 100430
+      },
+      {
+        "DropId": 100431
+      },
+      {
+        "DropId": 100432
+      }
+    ],
+    "CloseTime": "20231120235959",
+    "ID": 43,
+    "OpenTime": "20231120000000"
+  },
+  {
+    "PeriodID": 8,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 100428
+      },
+      {
+        "DropId": 100429
+      },
+      {
+        "DropId": 100430
+      },
+      {
+        "DropId": 100431
+      },
+      {
+        "DropId": 100432
+      }
+    ],
+    "CloseTime": "20231121235959",
+    "ID": 44,
+    "OpenTime": "20231121000000"
+  },
+  {
+    "PeriodID": 8,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 100428
+      },
+      {
+        "DropId": 100429
+      },
+      {
+        "DropId": 100430
+      },
+      {
+        "DropId": 100431
+      },
+      {
+        "DropId": 100432
+      }
+    ],
+    "CloseTime": "20231122235959",
+    "ID": 45,
+    "OpenTime": "20231122000000"
+  },
+  {
+    "PeriodID": 8,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 100428
+      },
+      {
+        "DropId": 100429
+      },
+      {
+        "DropId": 100430
+      },
+      {
+        "DropId": 100431
+      },
+      {
+        "DropId": 100432
+      }
+    ],
+    "CloseTime": "20231123235959",
+    "ID": 46,
+    "OpenTime": "20231123000000"
+  },
+  {
+    "PeriodID": 8,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 100428
+      },
+      {
+        "DropId": 100429
+      },
+      {
+        "DropId": 100430
+      },
+      {
+        "DropId": 100431
+      },
+      {
+        "DropId": 100432
+      }
+    ],
+    "CloseTime": "20231124235959",
+    "ID": 47,
+    "OpenTime": "20231124000000"
+  },
+  {
+    "PeriodID": 9,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 130622
+      },
+      {
+        "DropId": 130623
+      },
+      {
+        "DropId": 130624
+      },
+      {
+        "DropId": 130625
+      },
+      {
+        "DropId": 130626
+      }
+    ],
+    "CloseTime": "20240603235959",
+    "ID": 48,
+    "OpenTime": "20240603000000"
+  },
+  {
+    "PeriodID": 9,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 130622
+      },
+      {
+        "DropId": 130623
+      },
+      {
+        "DropId": 130624
+      },
+      {
+        "DropId": 130625
+      },
+      {
+        "DropId": 130626
+      }
+    ],
+    "CloseTime": "20240604235959",
+    "ID": 49,
+    "OpenTime": "20240604000000"
+  },
+  {
+    "PeriodID": 9,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 130622
+      },
+      {
+        "DropId": 130623
+      },
+      {
+        "DropId": 130624
+      },
+      {
+        "DropId": 130625
+      },
+      {
+        "DropId": 130626
+      }
+    ],
+    "CloseTime": "20240605235959",
+    "ID": 50,
+    "OpenTime": "20240605000000"
+  },
+  {
+    "PeriodID": 9,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 130622
+      },
+      {
+        "DropId": 130623
+      },
+      {
+        "DropId": 130624
+      },
+      {
+        "DropId": 130625
+      },
+      {
+        "DropId": 130626
+      }
+    ],
+    "CloseTime": "20240606235959",
+    "ID": 51,
+    "OpenTime": "20240606000000"
+  },
+  {
+    "PeriodID": 9,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 130622
+      },
+      {
+        "DropId": 130623
+      },
+      {
+        "DropId": 130624
+      },
+      {
+        "DropId": 130625
+      },
+      {
+        "DropId": 130626
+      }
+    ],
+    "CloseTime": "20240607235959",
+    "ID": 52,
+    "OpenTime": "20240607000000"
+  },
+  {
+    "PeriodID": 9,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 130622
+      },
+      {
+        "DropId": 130623
+      },
+      {
+        "DropId": 130624
+      },
+      {
+        "DropId": 130625
+      },
+      {
+        "DropId": 130626
+      }
+    ],
+    "CloseTime": "20240608235959",
+    "ID": 53,
+    "OpenTime": "20240608000000"
+  },
+  {
+    "PeriodID": 9,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 130622
+      },
+      {
+        "DropId": 130623
+      },
+      {
+        "DropId": 130624
+      },
+      {
+        "DropId": 130625
+      },
+      {
+        "DropId": 130626
+      }
+    ],
+    "CloseTime": "20240609235959",
+    "ID": 54,
+    "OpenTime": "20240609000000"
+  },
+  {
+    "PeriodID": 9,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 130622
+      },
+      {
+        "DropId": 130623
+      },
+      {
+        "DropId": 130624
+      },
+      {
+        "DropId": 130625
+      },
+      {
+        "DropId": 130626
+      }
+    ],
+    "CloseTime": "20240610235959",
+    "ID": 55,
+    "OpenTime": "20240610000000"
+  },
+  {
+    "PeriodID": 9,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 130622
+      },
+      {
+        "DropId": 130623
+      },
+      {
+        "DropId": 130624
+      },
+      {
+        "DropId": 130625
+      },
+      {
+        "DropId": 130626
+      }
+    ],
+    "CloseTime": "20240611235959",
+    "ID": 56,
+    "OpenTime": "20240611000000"
+  },
+  {
+    "PeriodID": 9,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 130622
+      },
+      {
+        "DropId": 130623
+      },
+      {
+        "DropId": 130624
+      },
+      {
+        "DropId": 130625
+      },
+      {
+        "DropId": 130626
+      }
+    ],
+    "CloseTime": "20240612235959",
+    "ID": 57,
+    "OpenTime": "20240612000000"
+  },
+  {
+    "PeriodID": 10,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 160083
+      },
+      {
+        "DropId": 160084
+      },
+      {
+        "DropId": 160085
+      },
+      {
+        "DropId": 160086
+      },
+      {
+        "DropId": 160087
+      }
+    ],
+    "CloseTime": "20240930235959",
+    "ID": 58,
+    "OpenTime": "20240930000000"
+  },
+  {
+    "PeriodID": 10,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 160083
+      },
+      {
+        "DropId": 160084
+      },
+      {
+        "DropId": 160085
+      },
+      {
+        "DropId": 160086
+      },
+      {
+        "DropId": 160087
+      }
+    ],
+    "CloseTime": "20241001235959",
+    "ID": 59,
+    "OpenTime": "20241001000000"
+  },
+  {
+    "PeriodID": 10,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 160083
+      },
+      {
+        "DropId": 160084
+      },
+      {
+        "DropId": 160085
+      },
+      {
+        "DropId": 160086
+      },
+      {
+        "DropId": 160087
+      }
+    ],
+    "CloseTime": "20241002235959",
+    "ID": 60,
+    "OpenTime": "20241002000000"
+  },
+  {
+    "PeriodID": 10,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 160083
+      },
+      {
+        "DropId": 160084
+      },
+      {
+        "DropId": 160085
+      },
+      {
+        "DropId": 160086
+      },
+      {
+        "DropId": 160087
+      }
+    ],
+    "CloseTime": "20241003235959",
+    "ID": 61,
+    "OpenTime": "20241003000000"
+  },
+  {
+    "PeriodID": 10,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 160083
+      },
+      {
+        "DropId": 160084
+      },
+      {
+        "DropId": 160085
+      },
+      {
+        "DropId": 160086
+      },
+      {
+        "DropId": 160087
+      }
+    ],
+    "CloseTime": "20241004235959",
+    "ID": 62,
+    "OpenTime": "20241004000000"
+  },
+  {
+    "PeriodID": 10,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 160083
+      },
+      {
+        "DropId": 160084
+      },
+      {
+        "DropId": 160085
+      },
+      {
+        "DropId": 160086
+      },
+      {
+        "DropId": 160087
+      }
+    ],
+    "CloseTime": "20241005235959",
+    "ID": 63,
+    "OpenTime": "20241005000000"
+  },
+  {
+    "PeriodID": 10,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 160083
+      },
+      {
+        "DropId": 160084
+      },
+      {
+        "DropId": 160085
+      },
+      {
+        "DropId": 160086
+      },
+      {
+        "DropId": 160087
+      }
+    ],
+    "CloseTime": "20241006235959",
+    "ID": 64,
+    "OpenTime": "20241006000000"
+  },
+  {
+    "PeriodID": 11,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 180001
+      },
+      {
+        "DropId": 180002
+      },
+      {
+        "DropId": 180003
+      },
+      {
+        "DropId": 180004
+      },
+      {
+        "DropId": 180005
+      }
+    ],
+    "CloseTime": "20250410235959",
+    "ID": 65,
+    "OpenTime": "20250410000000"
+  },
+  {
+    "PeriodID": 11,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 180001
+      },
+      {
+        "DropId": 180002
+      },
+      {
+        "DropId": 180003
+      },
+      {
+        "DropId": 180004
+      },
+      {
+        "DropId": 180005
+      }
+    ],
+    "CloseTime": "20250411235959",
+    "ID": 66,
+    "OpenTime": "20250411000000"
+  },
+  {
+    "PeriodID": 11,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 180001
+      },
+      {
+        "DropId": 180002
+      },
+      {
+        "DropId": 180003
+      },
+      {
+        "DropId": 180004
+      },
+      {
+        "DropId": 180005
+      }
+    ],
+    "CloseTime": "20250412235959",
+    "ID": 67,
+    "OpenTime": "20250412000000"
+  },
+  {
+    "PeriodID": 11,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 180001
+      },
+      {
+        "DropId": 180002
+      },
+      {
+        "DropId": 180003
+      },
+      {
+        "DropId": 180004
+      },
+      {
+        "DropId": 180005
+      }
+    ],
+    "CloseTime": "20250413235959",
+    "ID": 68,
+    "OpenTime": "20250413000000"
+  },
+  {
+    "PeriodID": 11,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 180001
+      },
+      {
+        "DropId": 180002
+      },
+      {
+        "DropId": 180003
+      },
+      {
+        "DropId": 180004
+      },
+      {
+        "DropId": 180005
+      }
+    ],
+    "CloseTime": "20250414235959",
+    "ID": 69,
+    "OpenTime": "20250414000000"
+  },
+  {
+    "PeriodID": 11,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 180001
+      },
+      {
+        "DropId": 180002
+      },
+      {
+        "DropId": 180003
+      },
+      {
+        "DropId": 180004
+      },
+      {
+        "DropId": 180005
+      }
+    ],
+    "CloseTime": "20250415235959",
+    "ID": 70,
+    "OpenTime": "20250415000000"
+  },
+  {
+    "PeriodID": 11,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 180001
+      },
+      {
+        "DropId": 180002
+      },
+      {
+        "DropId": 180003
+      },
+      {
+        "DropId": 180004
+      },
+      {
+        "DropId": 180005
+      }
+    ],
+    "CloseTime": "20250416235959",
+    "ID": 71,
+    "OpenTime": "20250416000000"
+  },
+  {
+    "PeriodID": 11,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 180001
+      },
+      {
+        "DropId": 180002
+      },
+      {
+        "DropId": 180003
+      },
+      {
+        "DropId": 180004
+      },
+      {
+        "DropId": 180005
+      }
+    ],
+    "CloseTime": "20250417235959",
+    "ID": 72,
+    "OpenTime": "20250417000000"
+  },
+  {
+    "PeriodID": 11,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 180001
+      },
+      {
+        "DropId": 180002
+      },
+      {
+        "DropId": 180003
+      },
+      {
+        "DropId": 180004
+      },
+      {
+        "DropId": 180005
+      }
+    ],
+    "CloseTime": "20250418235959",
+    "ID": 73,
+    "OpenTime": "20250418000000"
+  },
+  {
+    "PeriodID": 11,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 180001
+      },
+      {
+        "DropId": 180002
+      },
+      {
+        "DropId": 180003
+      },
+      {
+        "DropId": 180004
+      },
+      {
+        "DropId": 180005
+      }
+    ],
+    "CloseTime": "20250419235959",
+    "ID": 74,
+    "OpenTime": "20250419000000"
+  },
+  {
+    "PeriodID": 11,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 180001
+      },
+      {
+        "DropId": 180002
+      },
+      {
+        "DropId": 180003
+      },
+      {
+        "DropId": 180004
+      },
+      {
+        "DropId": 180005
+      }
+    ],
+    "CloseTime": "20250420235959",
+    "ID": 75,
+    "OpenTime": "20250420000000"
+  },
+  {
+    "PeriodID": 12,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 180006
+      },
+      {
+        "DropId": 180007
+      },
+      {
+        "DropId": 180008
+      },
+      {
+        "DropId": 180009
+      },
+      {
+        "DropId": 180010
+      }
+    ],
+    "CloseTime": "20250508235959",
+    "ID": 76,
+    "OpenTime": "20250508000000"
+  },
+  {
+    "PeriodID": 12,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 180006
+      },
+      {
+        "DropId": 180007
+      },
+      {
+        "DropId": 180008
+      },
+      {
+        "DropId": 180009
+      },
+      {
+        "DropId": 180010
+      }
+    ],
+    "CloseTime": "20250509235959",
+    "ID": 77,
+    "OpenTime": "20250509000000"
+  },
+  {
+    "PeriodID": 12,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 180006
+      },
+      {
+        "DropId": 180007
+      },
+      {
+        "DropId": 180008
+      },
+      {
+        "DropId": 180009
+      },
+      {
+        "DropId": 180010
+      }
+    ],
+    "CloseTime": "20250510235959",
+    "ID": 78,
+    "OpenTime": "20250510000000"
+  },
+  {
+    "PeriodID": 12,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 180006
+      },
+      {
+        "DropId": 180007
+      },
+      {
+        "DropId": 180008
+      },
+      {
+        "DropId": 180009
+      },
+      {
+        "DropId": 180010
+      }
+    ],
+    "CloseTime": "20250511235959",
+    "ID": 79,
+    "OpenTime": "20250511000000"
+  },
+  {
+    "PeriodID": 12,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 180006
+      },
+      {
+        "DropId": 180007
+      },
+      {
+        "DropId": 180008
+      },
+      {
+        "DropId": 180009
+      },
+      {
+        "DropId": 180010
+      }
+    ],
+    "CloseTime": "20250512235959",
+    "ID": 80,
+    "OpenTime": "20250512000000"
+  },
+  {
+    "PeriodID": 12,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 180006
+      },
+      {
+        "DropId": 180007
+      },
+      {
+        "DropId": 180008
+      },
+      {
+        "DropId": 180009
+      },
+      {
+        "DropId": 180010
+      }
+    ],
+    "CloseTime": "20250513235959",
+    "ID": 81,
+    "OpenTime": "20250513000000"
+  },
+  {
+    "PeriodID": 12,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 180006
+      },
+      {
+        "DropId": 180007
+      },
+      {
+        "DropId": 180008
+      },
+      {
+        "DropId": 180009
+      },
+      {
+        "DropId": 180010
+      }
+    ],
+    "CloseTime": "20250514235959",
+    "ID": 82,
+    "OpenTime": "20250514000000"
+  },
+  {
+    "PeriodID": 12,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 180006
+      },
+      {
+        "DropId": 180007
+      },
+      {
+        "DropId": 180008
+      },
+      {
+        "DropId": 180009
+      },
+      {
+        "DropId": 180010
+      }
+    ],
+    "CloseTime": "20250515235959",
+    "ID": 83,
+    "OpenTime": "20250515000000"
+  },
+  {
+    "PeriodID": 12,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 180006
+      },
+      {
+        "DropId": 180007
+      },
+      {
+        "DropId": 180008
+      },
+      {
+        "DropId": 180009
+      },
+      {
+        "DropId": 180010
+      }
+    ],
+    "CloseTime": "20250516235959",
+    "ID": 84,
+    "OpenTime": "20250516000000"
+  },
+  {
+    "PeriodID": 12,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 180006
+      },
+      {
+        "DropId": 180007
+      },
+      {
+        "DropId": 180008
+      },
+      {
+        "DropId": 180009
+      },
+      {
+        "DropId": 180010
+      }
+    ],
+    "CloseTime": "20250517235959",
+    "ID": 85,
+    "OpenTime": "20250517000000"
+  },
+  {
+    "PeriodID": 12,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 180006
+      },
+      {
+        "DropId": 180007
+      },
+      {
+        "DropId": 180008
+      },
+      {
+        "DropId": 180009
+      },
+      {
+        "DropId": 180010
+      }
+    ],
+    "CloseTime": "20250518235959",
+    "ID": 86,
+    "OpenTime": "20250518000000"
+  },
+  {
+    "PeriodID": 13,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 191012
+      },
+      {
+        "DropId": 191013
+      },
+      {
+        "DropId": 191014
+      },
+      {
+        "DropId": 191015
+      },
+      {
+        "DropId": 191016
+      }
+    ],
+    "CloseTime": "20250627235959",
+    "ID": 87,
+    "OpenTime": "20250627000000"
+  },
+  {
+    "PeriodID": 13,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 191012
+      },
+      {
+        "DropId": 191013
+      },
+      {
+        "DropId": 191014
+      },
+      {
+        "DropId": 191015
+      },
+      {
+        "DropId": 191016
+      }
+    ],
+    "CloseTime": "20250628235959",
+    "ID": 88,
+    "OpenTime": "20250628000000"
+  },
+  {
+    "PeriodID": 13,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 191012
+      },
+      {
+        "DropId": 191013
+      },
+      {
+        "DropId": 191014
+      },
+      {
+        "DropId": 191015
+      },
+      {
+        "DropId": 191016
+      }
+    ],
+    "CloseTime": "20250629235959",
+    "ID": 89,
+    "OpenTime": "20250629000000"
+  },
+  {
+    "PeriodID": 13,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 191012
+      },
+      {
+        "DropId": 191013
+      },
+      {
+        "DropId": 191014
+      },
+      {
+        "DropId": 191015
+      },
+      {
+        "DropId": 191016
+      }
+    ],
+    "CloseTime": "20250630235959",
+    "ID": 90,
+    "OpenTime": "20250630000000"
+  },
+  {
+    "PeriodID": 13,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 191012
+      },
+      {
+        "DropId": 191013
+      },
+      {
+        "DropId": 191014
+      },
+      {
+        "DropId": 191015
+      },
+      {
+        "DropId": 191016
+      }
+    ],
+    "CloseTime": "20250701235959",
+    "ID": 91,
+    "OpenTime": "20250701000000"
+  },
+  {
+    "PeriodID": 13,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 191012
+      },
+      {
+        "DropId": 191013
+      },
+      {
+        "DropId": 191014
+      },
+      {
+        "DropId": 191015
+      },
+      {
+        "DropId": 191016
+      }
+    ],
+    "CloseTime": "20250702235959",
+    "ID": 92,
+    "OpenTime": "20250702000000"
+  },
+  {
+    "PeriodID": 13,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 191012
+      },
+      {
+        "DropId": 191013
+      },
+      {
+        "DropId": 191014
+      },
+      {
+        "DropId": 191015
+      },
+      {
+        "DropId": 191016
+      }
+    ],
+    "CloseTime": "20250703235959",
+    "ID": 93,
+    "OpenTime": "20250703000000"
+  },
+  {
+    "PeriodID": 13,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 191012
+      },
+      {
+        "DropId": 191013
+      },
+      {
+        "DropId": 191014
+      },
+      {
+        "DropId": 191015
+      },
+      {
+        "DropId": 191016
+      }
+    ],
+    "CloseTime": "20250704235959",
+    "ID": 94,
+    "OpenTime": "20250704000000"
+  },
+  {
+    "PeriodID": 13,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 191012
+      },
+      {
+        "DropId": 191013
+      },
+      {
+        "DropId": 191014
+      },
+      {
+        "DropId": 191015
+      },
+      {
+        "DropId": 191016
+      }
+    ],
+    "CloseTime": "20250705235959",
+    "ID": 95,
+    "OpenTime": "20250705000000"
+  },
+  {
+    "PeriodID": 13,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 191012
+      },
+      {
+        "DropId": 191013
+      },
+      {
+        "DropId": 191014
+      },
+      {
+        "DropId": 191015
+      },
+      {
+        "DropId": 191016
+      }
+    ],
+    "CloseTime": "20250706235959",
+    "ID": 96,
+    "OpenTime": "20250706000000"
+  },
+  {
+    "PeriodID": 14,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 191025
+      },
+      {
+        "DropId": 191026
+      },
+      {
+        "DropId": 191027
+      },
+      {
+        "DropId": 191028
+      },
+      {
+        "DropId": 191029
+      }
+    ],
+    "CloseTime": "20250801235959",
+    "ID": 97,
+    "OpenTime": "20250801000000"
+  },
+  {
+    "PeriodID": 14,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 191025
+      },
+      {
+        "DropId": 191026
+      },
+      {
+        "DropId": 191027
+      },
+      {
+        "DropId": 191028
+      },
+      {
+        "DropId": 191029
+      }
+    ],
+    "CloseTime": "20250802235959",
+    "ID": 98,
+    "OpenTime": "20250802000000"
+  },
+  {
+    "PeriodID": 14,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 191025
+      },
+      {
+        "DropId": 191026
+      },
+      {
+        "DropId": 191027
+      },
+      {
+        "DropId": 191028
+      },
+      {
+        "DropId": 191029
+      }
+    ],
+    "CloseTime": "20250803235959",
+    "ID": 99,
+    "OpenTime": "20250803000000"
+  },
+  {
+    "PeriodID": 14,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 191025
+      },
+      {
+        "DropId": 191026
+      },
+      {
+        "DropId": 191027
+      },
+      {
+        "DropId": 191028
+      },
+      {
+        "DropId": 191029
+      }
+    ],
+    "CloseTime": "20250804235959",
+    "ID": 100,
+    "OpenTime": "20250804000000"
+  },
+  {
+    "PeriodID": 14,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 191025
+      },
+      {
+        "DropId": 191026
+      },
+      {
+        "DropId": 191027
+      },
+      {
+        "DropId": 191028
+      },
+      {
+        "DropId": 191029
+      }
+    ],
+    "CloseTime": "20250805235959",
+    "ID": 101,
+    "OpenTime": "20250805000000"
+  },
+  {
+    "PeriodID": 14,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 191025
+      },
+      {
+        "DropId": 191026
+      },
+      {
+        "DropId": 191027
+      },
+      {
+        "DropId": 191028
+      },
+      {
+        "DropId": 191029
+      }
+    ],
+    "CloseTime": "20250806235959",
+    "ID": 102,
+    "OpenTime": "20250806000000"
+  },
+  {
+    "PeriodID": 14,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 191025
+      },
+      {
+        "DropId": 191026
+      },
+      {
+        "DropId": 191027
+      },
+      {
+        "DropId": 191028
+      },
+      {
+        "DropId": 191029
+      }
+    ],
+    "CloseTime": "20250807235959",
+    "ID": 103,
+    "OpenTime": "20250807000000"
+  },
+  {
+    "PeriodID": 14,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 191025
+      },
+      {
+        "DropId": 191026
+      },
+      {
+        "DropId": 191027
+      },
+      {
+        "DropId": 191028
+      },
+      {
+        "DropId": 191029
+      }
+    ],
+    "CloseTime": "20250808235959",
+    "ID": 104,
+    "OpenTime": "20250808000000"
+  },
+  {
+    "PeriodID": 14,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 191025
+      },
+      {
+        "DropId": 191026
+      },
+      {
+        "DropId": 191027
+      },
+      {
+        "DropId": 191028
+      },
+      {
+        "DropId": 191029
+      }
+    ],
+    "CloseTime": "20250809235959",
+    "ID": 105,
+    "OpenTime": "20250809000000"
+  },
+  {
+    "PeriodID": 14,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 191025
+      },
+      {
+        "DropId": 191026
+      },
+      {
+        "DropId": 191027
+      },
+      {
+        "DropId": 191028
+      },
+      {
+        "DropId": 191029
+      }
+    ],
+    "CloseTime": "20250810235959",
+    "ID": 106,
+    "OpenTime": "20250810000000"
+  },
+  {
+    "PeriodID": 15,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 191030
+      },
+      {
+        "DropId": 191031
+      },
+      {
+        "DropId": 191032
+      },
+      {
+        "DropId": 191033
+      },
+      {
+        "DropId": 191034
+      }
+    ],
+    "CloseTime": "20250828235959",
+    "ID": 107,
+    "OpenTime": "20250828000000"
+  },
+  {
+    "PeriodID": 15,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 191030
+      },
+      {
+        "DropId": 191031
+      },
+      {
+        "DropId": 191032
+      },
+      {
+        "DropId": 191033
+      },
+      {
+        "DropId": 191034
+      }
+    ],
+    "CloseTime": "20250829235959",
+    "ID": 108,
+    "OpenTime": "20250829000000"
+  },
+  {
+    "PeriodID": 15,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 191030
+      },
+      {
+        "DropId": 191031
+      },
+      {
+        "DropId": 191032
+      },
+      {
+        "DropId": 191033
+      },
+      {
+        "DropId": 191034
+      }
+    ],
+    "CloseTime": "20250830235959",
+    "ID": 109,
+    "OpenTime": "20250830000000"
+  },
+  {
+    "PeriodID": 15,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 191030
+      },
+      {
+        "DropId": 191031
+      },
+      {
+        "DropId": 191032
+      },
+      {
+        "DropId": 191033
+      },
+      {
+        "DropId": 191034
+      }
+    ],
+    "CloseTime": "20250831235959",
+    "ID": 110,
+    "OpenTime": "20250831000000"
+  },
+  {
+    "PeriodID": 15,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 191030
+      },
+      {
+        "DropId": 191031
+      },
+      {
+        "DropId": 191032
+      },
+      {
+        "DropId": 191033
+      },
+      {
+        "DropId": 191034
+      }
+    ],
+    "CloseTime": "20250901235959",
+    "ID": 111,
+    "OpenTime": "20250901000000"
+  },
+  {
+    "PeriodID": 15,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 191030
+      },
+      {
+        "DropId": 191031
+      },
+      {
+        "DropId": 191032
+      },
+      {
+        "DropId": 191033
+      },
+      {
+        "DropId": 191034
+      }
+    ],
+    "CloseTime": "20250902235959",
+    "ID": 112,
+    "OpenTime": "20250902000000"
+  },
+  {
+    "PeriodID": 15,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 191030
+      },
+      {
+        "DropId": 191031
+      },
+      {
+        "DropId": 191032
+      },
+      {
+        "DropId": 191033
+      },
+      {
+        "DropId": 191034
+      }
+    ],
+    "CloseTime": "20250903235959",
+    "ID": 113,
+    "OpenTime": "20250903000000"
+  },
+  {
+    "PeriodID": 16,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 201216
+      },
+      {
+        "DropId": 201217
+      },
+      {
+        "DropId": 201218
+      },
+      {
+        "DropId": 201219
+      },
+      {
+        "DropId": 201220
+      }
+    ],
+    "CloseTime": "20260313235959",
+    "ID": 114,
+    "OpenTime": "20260313000000"
+  },
+  {
+    "PeriodID": 16,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 201216
+      },
+      {
+        "DropId": 201217
+      },
+      {
+        "DropId": 201218
+      },
+      {
+        "DropId": 201219
+      },
+      {
+        "DropId": 201220
+      }
+    ],
+    "CloseTime": "20260314235959",
+    "ID": 115,
+    "OpenTime": "20260314000000"
+  },
+  {
+    "PeriodID": 16,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 201216
+      },
+      {
+        "DropId": 201217
+      },
+      {
+        "DropId": 201218
+      },
+      {
+        "DropId": 201219
+      },
+      {
+        "DropId": 201220
+      }
+    ],
+    "CloseTime": "20260315235959",
+    "ID": 116,
+    "OpenTime": "20260315000000"
+  },
+  {
+    "PeriodID": 16,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 201216
+      },
+      {
+        "DropId": 201217
+      },
+      {
+        "DropId": 201218
+      },
+      {
+        "DropId": 201219
+      },
+      {
+        "DropId": 201220
+      }
+    ],
+    "CloseTime": "20260316235959",
+    "ID": 117,
+    "OpenTime": "20260316000000"
+  },
+  {
+    "PeriodID": 16,
+    "ShowMapId": 310,
+    "WinReward": [
+      {
+        "DropId": 201216
+      },
+      {
+        "DropId": 201217
+      },
+      {
+        "DropId": 201218
+      },
+      {
+        "DropId": 201219
+      },
+      {
+        "DropId": 201220
+      }
+    ],
+    "CloseTime": "20260317235959",
+    "ID": 118,
+    "OpenTime": "20260317000000"
+  },
+  {
+    "PeriodID": 16,
+    "ShowMapId": 301,
+    "WinReward": [
+      {
+        "DropId": 201216
+      },
+      {
+        "DropId": 201217
+      },
+      {
+        "DropId": 201218
+      },
+      {
+        "DropId": 201219
+      },
+      {
+        "DropId": 201220
+      }
+    ],
+    "CloseTime": "20260318235959",
+    "ID": 119,
+    "OpenTime": "20260318000000"
+  },
+  {
+    "PeriodID": 16,
+    "ShowMapId": 304,
+    "WinReward": [
+      {
+        "DropId": 201216
+      },
+      {
+        "DropId": 201217
+      },
+      {
+        "DropId": 201218
+      },
+      {
+        "DropId": 201219
+      },
+      {
+        "DropId": 201220
+      }
+    ],
+    "CloseTime": "20260319235959",
+    "ID": 120,
+    "OpenTime": "20260319000000"
+  },
+  {
+    "PeriodID": 16,
+    "ShowMapId": 319,
+    "WinReward": [
+      {
+        "DropId": 201216
+      },
+      {
+        "DropId": 201217
+      },
+      {
+        "DropId": 201218
+      },
+      {
+        "DropId": 201219
+      },
+      {
+        "DropId": 201220
+      }
+    ],
+    "CloseTime": "20260320235959",
+    "ID": 121,
+    "OpenTime": "20260320000000"
+  }
+]

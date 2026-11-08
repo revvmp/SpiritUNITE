@@ -1,0 +1,1386 @@
+[
+  {
+    "LevelUpCostScore": 500,
+    "BuffIds": [
+      40100101,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15545_001",
+    "GameLevel": 1,
+    "GroupId": 1,
+    "Icon": "t_TD_buff_Atk",
+    "Id": 1,
+    "Level": 1,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15546_001",
+    "NameParameter": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 800,
+    "BuffIds": [
+      40100102,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15545_001",
+    "GameLevel": 1,
+    "GroupId": 1,
+    "Icon": "t_TD_buff_Atk",
+    "Id": 2,
+    "Level": 2,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15547_001",
+    "NameParameter": [
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 1000,
+    "BuffIds": [
+      40100103,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15545_001",
+    "GameLevel": 2,
+    "GroupId": 1,
+    "Icon": "t_TD_buff_Atk",
+    "Id": 3,
+    "Level": 3,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15548_001",
+    "NameParameter": [
+      3,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 2000,
+    "BuffIds": [
+      40100104,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15545_001",
+    "GameLevel": 3,
+    "GroupId": 1,
+    "Icon": "t_TD_buff_Atk",
+    "Id": 4,
+    "Level": 4,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15549_001",
+    "NameParameter": [
+      4,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BuffIds": [
+      40100105,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15545_001",
+    "GroupId": 1,
+    "Icon": "t_TD_buff_Atk",
+    "Id": 5,
+    "Level": 5,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15550_001",
+    "NameParameter": [
+      5,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 500,
+    "BuffIds": [
+      40100201,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15551_001",
+    "GameLevel": 1,
+    "GroupId": 2,
+    "Icon": "t_TD_buff_SpAtk",
+    "Id": 6,
+    "Level": 1,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15552_001",
+    "NameParameter": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 800,
+    "BuffIds": [
+      40100202,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15551_001",
+    "GameLevel": 1,
+    "GroupId": 2,
+    "Icon": "t_TD_buff_SpAtk",
+    "Id": 7,
+    "Level": 2,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15553_001",
+    "NameParameter": [
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 1000,
+    "BuffIds": [
+      40100203,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15551_001",
+    "GameLevel": 2,
+    "GroupId": 2,
+    "Icon": "t_TD_buff_SpAtk",
+    "Id": 8,
+    "Level": 3,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15554_001",
+    "NameParameter": [
+      3,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 2000,
+    "BuffIds": [
+      40100204,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15551_001",
+    "GameLevel": 3,
+    "GroupId": 2,
+    "Icon": "t_TD_buff_SpAtk",
+    "Id": 9,
+    "Level": 4,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15555_001",
+    "NameParameter": [
+      4,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BuffIds": [
+      40100205,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15551_001",
+    "GroupId": 2,
+    "Icon": "t_TD_buff_SpAtk",
+    "Id": 10,
+    "Level": 5,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15556_001",
+    "NameParameter": [
+      5,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 500,
+    "BuffIds": [
+      40100301,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15557_001",
+    "GameLevel": 1,
+    "GroupId": 3,
+    "Icon": "t_TD_buff_Atkspd",
+    "Id": 11,
+    "Level": 1,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15558_001",
+    "NameParameter": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 800,
+    "BuffIds": [
+      40100302,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15557_001",
+    "GameLevel": 1,
+    "GroupId": 3,
+    "Icon": "t_TD_buff_Atkspd",
+    "Id": 12,
+    "Level": 2,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15559_001",
+    "NameParameter": [
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 1000,
+    "BuffIds": [
+      40100303,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15557_001",
+    "GameLevel": 2,
+    "GroupId": 3,
+    "Icon": "t_TD_buff_Atkspd",
+    "Id": 13,
+    "Level": 3,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15560_001",
+    "NameParameter": [
+      3,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 2000,
+    "BuffIds": [
+      40100304,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15557_001",
+    "GameLevel": 3,
+    "GroupId": 3,
+    "Icon": "t_TD_buff_Atkspd",
+    "Id": 14,
+    "Level": 4,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15561_001",
+    "NameParameter": [
+      4,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BuffIds": [
+      40100305,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15557_001",
+    "GroupId": 3,
+    "Icon": "t_TD_buff_Atkspd",
+    "Id": 15,
+    "Level": 5,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15562_001",
+    "NameParameter": [
+      5,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 500,
+    "BuffIds": [
+      40100401,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15563_001",
+    "GameLevel": 1,
+    "GroupId": 4,
+    "Icon": "t_TD_buff_CriticalDmg",
+    "Id": 16,
+    "Level": 1,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15564_001",
+    "NameParameter": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 800,
+    "BuffIds": [
+      40100402,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15563_001",
+    "GameLevel": 1,
+    "GroupId": 4,
+    "Icon": "t_TD_buff_CriticalDmg",
+    "Id": 17,
+    "Level": 2,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15565_001",
+    "NameParameter": [
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 1000,
+    "BuffIds": [
+      40100403,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15563_001",
+    "GameLevel": 2,
+    "GroupId": 4,
+    "Icon": "t_TD_buff_CriticalDmg",
+    "Id": 18,
+    "Level": 3,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15566_001",
+    "NameParameter": [
+      3,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 2000,
+    "BuffIds": [
+      40100404,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15563_001",
+    "GameLevel": 3,
+    "GroupId": 4,
+    "Icon": "t_TD_buff_CriticalDmg",
+    "Id": 19,
+    "Level": 4,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15567_001",
+    "NameParameter": [
+      4,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BuffIds": [
+      40100405,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15563_001",
+    "GroupId": 4,
+    "Icon": "t_TD_buff_CriticalDmg",
+    "Id": 20,
+    "Level": 5,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15568_001",
+    "NameParameter": [
+      5,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 500,
+    "BuffIds": [
+      40100501,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15569_001",
+    "GameLevel": 1,
+    "GroupId": 5,
+    "Icon": "t_TD_buff_DrainsHP",
+    "Id": 21,
+    "Level": 1,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15570_001",
+    "NameParameter": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 800,
+    "BuffIds": [
+      40100502,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15569_001",
+    "GameLevel": 1,
+    "GroupId": 5,
+    "Icon": "t_TD_buff_DrainsHP",
+    "Id": 22,
+    "Level": 2,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15571_001",
+    "NameParameter": [
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 1000,
+    "BuffIds": [
+      40100503,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15569_001",
+    "GameLevel": 2,
+    "GroupId": 5,
+    "Icon": "t_TD_buff_DrainsHP",
+    "Id": 23,
+    "Level": 3,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15572_001",
+    "NameParameter": [
+      3,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 2000,
+    "BuffIds": [
+      40100504,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15569_001",
+    "GameLevel": 3,
+    "GroupId": 5,
+    "Icon": "t_TD_buff_DrainsHP",
+    "Id": 24,
+    "Level": 4,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15573_001",
+    "NameParameter": [
+      4,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BuffIds": [
+      40100505,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15569_001",
+    "GroupId": 5,
+    "Icon": "t_TD_buff_DrainsHP",
+    "Id": 25,
+    "Level": 5,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15574_001",
+    "NameParameter": [
+      5,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 500,
+    "BuffIds": [
+      40100601,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15575_001",
+    "GameLevel": 1,
+    "GroupId": 6,
+    "Icon": "t_TD_buff_CD",
+    "Id": 26,
+    "Level": 1,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15576_001",
+    "NameParameter": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 800,
+    "BuffIds": [
+      40100602,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15575_001",
+    "GameLevel": 1,
+    "GroupId": 6,
+    "Icon": "t_TD_buff_CD",
+    "Id": 27,
+    "Level": 2,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15577_001",
+    "NameParameter": [
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 1000,
+    "BuffIds": [
+      40100603,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15575_001",
+    "GameLevel": 2,
+    "GroupId": 6,
+    "Icon": "t_TD_buff_CD",
+    "Id": 28,
+    "Level": 3,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15578_001",
+    "NameParameter": [
+      3,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 2000,
+    "BuffIds": [
+      40100604,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15575_001",
+    "GameLevel": 3,
+    "GroupId": 6,
+    "Icon": "t_TD_buff_CD",
+    "Id": 29,
+    "Level": 4,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15579_001",
+    "NameParameter": [
+      4,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BuffIds": [
+      40100605,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15575_001",
+    "GroupId": 6,
+    "Icon": "t_TD_buff_CD",
+    "Id": 30,
+    "Level": 5,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15580_001",
+    "NameParameter": [
+      5,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 500,
+    "BuffIds": [
+      40100701,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15581_001",
+    "GameLevel": 1,
+    "GroupId": 7,
+    "Icon": "t_TD_buff_HP",
+    "Id": 31,
+    "Level": 1,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15582_001",
+    "NameParameter": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 800,
+    "BuffIds": [
+      40100702,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15581_001",
+    "GameLevel": 1,
+    "GroupId": 7,
+    "Icon": "t_TD_buff_HP",
+    "Id": 32,
+    "Level": 2,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15583_001",
+    "NameParameter": [
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 1000,
+    "BuffIds": [
+      40100703,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15581_001",
+    "GameLevel": 2,
+    "GroupId": 7,
+    "Icon": "t_TD_buff_HP",
+    "Id": 33,
+    "Level": 3,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15584_001",
+    "NameParameter": [
+      3,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 2000,
+    "BuffIds": [
+      40100704,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15581_001",
+    "GameLevel": 3,
+    "GroupId": 7,
+    "Icon": "t_TD_buff_HP",
+    "Id": 34,
+    "Level": 4,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15585_001",
+    "NameParameter": [
+      4,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BuffIds": [
+      40100705,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15581_001",
+    "GroupId": 7,
+    "Icon": "t_TD_buff_HP",
+    "Id": 35,
+    "Level": 5,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15586_001",
+    "NameParameter": [
+      5,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 500,
+    "BuffIds": [
+      40100801,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15587_001",
+    "GameLevel": 1,
+    "GroupId": 8,
+    "Icon": "t_TD_buff_Speed",
+    "Id": 36,
+    "Level": 1,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15588_001",
+    "NameParameter": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 800,
+    "BuffIds": [
+      40100802,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15587_001",
+    "GameLevel": 1,
+    "GroupId": 8,
+    "Icon": "t_TD_buff_Speed",
+    "Id": 37,
+    "Level": 2,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15589_001",
+    "NameParameter": [
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 1000,
+    "BuffIds": [
+      40100803,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15587_001",
+    "GameLevel": 2,
+    "GroupId": 8,
+    "Icon": "t_TD_buff_Speed",
+    "Id": 38,
+    "Level": 3,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15590_001",
+    "NameParameter": [
+      3,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "LevelUpCostScore": 2000,
+    "BuffIds": [
+      40100804,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15587_001",
+    "GameLevel": 3,
+    "GroupId": 8,
+    "Icon": "t_TD_buff_Speed",
+    "Id": 39,
+    "Level": 4,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15591_001",
+    "NameParameter": [
+      4,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "BuffIds": [
+      40100805,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "Name": "Battle_TD_Buff_Name_15587_001",
+    "GroupId": 8,
+    "Icon": "t_TD_buff_Speed",
+    "Id": 40,
+    "Level": 5,
+    "PassiveSkillId": [
+      0,
+      0,
+      0
+    ],
+    "Desc": "Battle_TD_Buff_Desc_15592_001",
+    "NameParameter": [
+      5,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+]
