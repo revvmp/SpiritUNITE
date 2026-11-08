@@ -17,6 +17,10 @@ public sealed class RoleTaskProcess
     [Column("period_start")]
     public long PeriodStart { get; set; }
 
+    [PrimaryKey(3)]
+    [Column("condition_index")]
+    public int ConditionIndex { get; set; }
+
     [Column("task_process")]
     public int TaskProcess { get; set; }
 

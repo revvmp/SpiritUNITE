@@ -131,6 +131,121 @@ CREATE TABLE IF NOT EXISTS `role_activity_task_reward` (
     CONSTRAINT fk_role_activity_task_reward_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `role_activity_task_finish` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    task_id INT NOT NULL,
+    period_start BIGINT NOT NULL,
+    finish_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, task_id, period_start),
+    CONSTRAINT fk_role_activity_task_finish_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_activity_exchange` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    exchange_id INT NOT NULL,
+    done_count INT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, exchange_id),
+    CONSTRAINT fk_role_activity_exchange_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_unite_challenge` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    period_id INT NOT NULL,
+    is_click_start INT NOT NULL DEFAULT 0,
+    click_start_time BIGINT NOT NULL DEFAULT 0,
+    round_cnt INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid, period_id),
+    CONSTRAINT fk_role_unite_challenge_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_unite_challenge_battle` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    period_id INT NOT NULL,
+    battle_index INT NOT NULL,
+    battle_status INT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, period_id, battle_index),
+    CONSTRAINT fk_role_unite_challenge_battle_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_unite_challenge_reward` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    period_id INT NOT NULL,
+    reward_index INT NOT NULL,
+    reward_status INT NOT NULL,
+    reward_time BIGINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid, period_id, reward_index),
+    CONSTRAINT fk_role_unite_challenge_reward_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_all_pkm_challenge` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    activity_id INT NOT NULL,
+    pkm_id INT NOT NULL,
+    is_played INT NOT NULL DEFAULT 0,
+    win_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, activity_id, pkm_id),
+    CONSTRAINT fk_role_all_pkm_challenge_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_tower_defense` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    period_id INT NOT NULL,
+    score INT NOT NULL DEFAULT 0,
+    max_pass_game_level INT NOT NULL DEFAULT 0,
+    is_new_unlock INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid, period_id),
+    CONSTRAINT fk_role_tower_defense_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_tower_defense_shop` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    period_id INT NOT NULL,
+    shop_id INT NOT NULL,
+    shop_buy_num INT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, period_id, shop_id),
+    CONSTRAINT fk_role_tower_defense_shop_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_tower_defense_buff` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    period_id INT NOT NULL,
+    buff_id INT NOT NULL,
+    buff_level INT NOT NULL,
+    attr_id INT NOT NULL,
+    is_new_unlock INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid, period_id, buff_id),
+    CONSTRAINT fk_role_tower_defense_buff_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_mega_evolution` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    activity_id INT NOT NULL,
+    complete INT NOT NULL DEFAULT 0,
+    cur_stage INT NOT NULL DEFAULT 1,
+    last_daily_update_time BIGINT NOT NULL DEFAULT 0,
+    last_week_update_time BIGINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid, activity_id),
+    CONSTRAINT fk_role_mega_evolution_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_mega_evolution_reward` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    activity_id INT NOT NULL,
+    award_key INT NOT NULL,
+    reward_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, activity_id, award_key),
+    CONSTRAINT fk_role_mega_evolution_reward_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_mega_evolution_task` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    activity_id INT NOT NULL,
+    task_type INT NOT NULL,
+    task_id INT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, activity_id, task_type, task_id),
+    CONSTRAINT fk_role_mega_evolution_task_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `role_eevee_challenge` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL,
     activity_id INT NOT NULL,
@@ -164,6 +279,7 @@ CREATE TABLE IF NOT EXISTS `role_star_road_site` (
 CREATE TABLE IF NOT EXISTS `role_star_road` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL,
     tips_site_id INT NOT NULL,
+    pokemon_tips_close_time BIGINT NOT NULL DEFAULT 0,
     PRIMARY KEY (game_ulong_uid),
     CONSTRAINT fk_role_star_road_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
@@ -331,6 +447,40 @@ CREATE TABLE IF NOT EXISTS `role_pve_challenge_node` (
     CONSTRAINT fk_role_pve_challenge_node_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `role_pve_challenge_week` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    week_start_time BIGINT NOT NULL,
+    week_reward_get_num INT NOT NULL DEFAULT 0,
+    privilege_reward_get_num INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid),
+    CONSTRAINT fk_role_pve_challenge_week_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_pve_challenge_buff` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    buff_id INT NOT NULL,
+    buff_level INT NOT NULL,
+    is_new_unlock TINYINT NOT NULL DEFAULT 1,
+    PRIMARY KEY (game_ulong_uid, buff_id),
+    CONSTRAINT fk_role_pve_challenge_buff_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_pve_challenge_shop` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    shop_id INT NOT NULL,
+    shop_buy_num INT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, shop_id),
+    CONSTRAINT fk_role_pve_challenge_shop_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_pve_privilege` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    activity_id INT NOT NULL,
+    privilege_expire_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, activity_id),
+    CONSTRAINT fk_role_pve_privilege_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `role_challenge_trainer_record` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL,
     map_id INT NOT NULL,
@@ -359,10 +509,21 @@ CREATE TABLE IF NOT EXISTS `role_task_process` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL,
     task_id INT NOT NULL,
     period_start BIGINT NOT NULL,
+    condition_index TINYINT NOT NULL DEFAULT 0,
     task_process INT NOT NULL,
     complete_time BIGINT NOT NULL DEFAULT 0,
-    PRIMARY KEY (game_ulong_uid, task_id, period_start),
+    PRIMARY KEY (game_ulong_uid, task_id, period_start, condition_index),
     CONSTRAINT fk_role_task_process_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_task_process_value` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    task_id INT NOT NULL,
+    period_start BIGINT NOT NULL,
+    condition_index TINYINT NOT NULL,
+    counted_value INT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, task_id, period_start, condition_index, counted_value),
+    CONSTRAINT fk_role_task_process_value_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `role_fight_history` (
@@ -419,6 +580,44 @@ CREATE TABLE IF NOT EXISTS `role_credit` (
     CONSTRAINT fk_role_credit_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `role_credit_reduce_record` (
+    credit_reduce_record_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    game_start_time BIGINT NOT NULL,
+    map_mode INT NOT NULL,
+    map_sub_mode INT NOT NULL,
+    reason INT NOT NULL,
+    reduce_point INT NOT NULL,
+    hero_id INT NOT NULL,
+    desk_uniq_id VARCHAR(64) NOT NULL DEFAULT '',
+    KEY ix_role_credit_reduce_record_role (game_ulong_uid, credit_reduce_record_id),
+    KEY ix_role_credit_reduce_record_desk (game_ulong_uid, desk_uniq_id),
+    CONSTRAINT fk_role_credit_reduce_record_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_accusation` (
+    accusation_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    accused_uid BIGINT UNSIGNED NOT NULL,
+    accused_account_id VARCHAR(64) NOT NULL DEFAULT '',
+    accused_role_name VARCHAR(64) NOT NULL DEFAULT '',
+    category INT NOT NULL,
+    scene INT NOT NULL,
+    reason VARCHAR(64) NOT NULL DEFAULT '',
+    battle_id VARCHAR(64) NOT NULL DEFAULT '',
+    battle_time INT NOT NULL DEFAULT 0,
+    relay_id VARCHAR(32) NOT NULL DEFAULT '',
+    description VARCHAR(1024) NOT NULL DEFAULT '',
+    content MEDIUMTEXT NOT NULL,
+    voice_accusation_source INT NOT NULL DEFAULT 0,
+    accusation_result INT NOT NULL,
+    credit_punish INT NOT NULL DEFAULT 0,
+    accusation_time BIGINT NOT NULL,
+    KEY ix_role_accusation_reporter (game_ulong_uid, accused_uid, battle_id),
+    KEY ix_role_accusation_accused (accused_uid, accusation_id),
+    CONSTRAINT fk_role_accusation_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `role_ranked` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     protect_card_select_status INT NOT NULL DEFAULT 0,
@@ -468,6 +667,24 @@ CREATE TABLE IF NOT EXISTS `role_warm_battle` (
     PRIMARY KEY (game_ulong_uid, map_sub_mode),
     CONSTRAINT ck_role_warm_battle_counts CHECK (game_cnt >= 0 AND single_warm_cnt >= 0 AND mult_warm_cnt >= 0 AND single_warm_cnt + mult_warm_cnt <= game_cnt AND cont_lose_cnt >= 0 AND cont_lose_cnt <= game_cnt),
     CONSTRAINT fk_role_warm_battle_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_be_fabulous` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    be_fabulous_cnt INT NOT NULL DEFAULT 0,
+    be_fbls_cnt_last_upd_time BIGINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid),
+    CONSTRAINT ck_role_be_fabulous_cnt CHECK (be_fabulous_cnt >= 0),
+    CONSTRAINT fk_role_be_fabulous_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_mic_tips` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    show_mic_tips_time BIGINT NOT NULL DEFAULT 0,
+    show_mic_tips_cnt INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid),
+    CONSTRAINT ck_role_mic_tips_cnt CHECK (show_mic_tips_cnt >= 0),
+    CONSTRAINT fk_role_mic_tips_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `guild` (
@@ -686,4 +903,140 @@ CREATE TABLE IF NOT EXISTS `role_skill_effects_expand_pack` (
     skill_effects_expand_pack_id INT NOT NULL,
     PRIMARY KEY (game_ulong_uid, pokemon_avatar_id, skill_effects_expand_pack_type),
     CONSTRAINT fk_role_skill_effects_expand_pack_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ten_games_team` (
+    team_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    team_name VARCHAR(64) NOT NULL,
+    team_leader_uid BIGINT UNSIGNED NOT NULL,
+    join_ten_games_id INT NOT NULL DEFAULT 0,
+    cur_score INT NOT NULL DEFAULT 0,
+    win_count INT NOT NULL DEFAULT 0,
+    lose_count INT NOT NULL DEFAULT 0,
+    modify_name_time BIGINT NOT NULL DEFAULT 0,
+    create_time BIGINT NOT NULL,
+    PRIMARY KEY (team_id),
+    UNIQUE KEY ux_ten_games_team_name (team_name),
+    KEY ix_ten_games_team_games (join_ten_games_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ten_games_team_member` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    team_id BIGINT UNSIGNED NOT NULL,
+    join_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid),
+    KEY ix_ten_games_team_member_team (team_id),
+    CONSTRAINT fk_ten_games_team_member_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE,
+    CONSTRAINT fk_ten_games_team_member_team FOREIGN KEY (team_id) REFERENCES `ten_games_team` (team_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ten_games_team_invite` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    team_id BIGINT UNSIGNED NOT NULL,
+    invite_uid BIGINT UNSIGNED NOT NULL,
+    invited_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, team_id),
+    KEY ix_ten_games_team_invite_team (team_id),
+    CONSTRAINT fk_ten_games_team_invite_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE,
+    CONSTRAINT fk_ten_games_team_invite_team FOREIGN KEY (team_id) REFERENCES `ten_games_team` (team_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_ten_games` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    ten_games_team_create_time BIGINT NOT NULL DEFAULT 0,
+    ten_games_last_read_invite_time BIGINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid),
+    CONSTRAINT fk_role_ten_games_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ten_games_history` (
+    games_id INT NOT NULL,
+    team_id BIGINT UNSIGNED NOT NULL,
+    team_name VARCHAR(64) NOT NULL,
+    team_leader_uid BIGINT UNSIGNED NOT NULL,
+    total_score INT NOT NULL,
+    rank_no INT NOT NULL,
+    PRIMARY KEY (games_id, team_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ten_games_history_member` (
+    games_id INT NOT NULL,
+    team_id BIGINT UNSIGNED NOT NULL,
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (games_id, team_id, game_ulong_uid),
+    KEY ix_ten_games_history_member_role (game_ulong_uid),
+    CONSTRAINT fk_ten_games_history_member_history FOREIGN KEY (games_id, team_id) REFERENCES `ten_games_history` (games_id, team_id) ON DELETE CASCADE,
+    CONSTRAINT fk_ten_games_history_member_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_ten_games_bp` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    activity_id INT NOT NULL,
+    is_buy_senier_reward TINYINT NOT NULL DEFAULT 0,
+    win_cnt INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid, activity_id),
+    CONSTRAINT fk_role_ten_games_bp_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_ten_games_bp_reward` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    activity_id INT NOT NULL,
+    reward_seq INT NOT NULL,
+    receive_reward_type INT NOT NULL,
+    reward_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, activity_id, reward_seq, receive_reward_type),
+    CONSTRAINT fk_role_ten_games_bp_reward_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_camp_battle` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    activity_id INT NOT NULL,
+    camp INT NOT NULL,
+    score BIGINT NOT NULL DEFAULT 0,
+    is_award TINYINT NOT NULL DEFAULT 0,
+    join_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, activity_id),
+    KEY ix_role_camp_battle_activity (activity_id, camp),
+    CONSTRAINT fk_role_camp_battle_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_first_charge` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    first_charge_time BIGINT NOT NULL DEFAULT 0,
+    last_face_shot_time BIGINT NOT NULL DEFAULT 0,
+    face_shot_cnt INT NOT NULL DEFAULT 0,
+    is_ban_face_shot TINYINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid),
+    CONSTRAINT fk_role_first_charge_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_first_charge_award` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    login_seq INT NOT NULL,
+    award_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, login_seq),
+    CONSTRAINT fk_role_first_charge_award_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_coupons_flow` (
+    flow_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    num INT NOT NULL,
+    flow_time BIGINT NOT NULL,
+    system_type INT NOT NULL,
+    extra_info BLOB NOT NULL,
+    PRIMARY KEY (flow_id),
+    KEY ix_role_coupons_flow_role (game_ulong_uid, flow_id),
+    CONSTRAINT fk_role_coupons_flow_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_invite_friend` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    friend_ulong_uid BIGINT UNSIGNED NOT NULL,
+    bind_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid),
+    KEY ix_role_invite_friend_friend (friend_ulong_uid),
+    CONSTRAINT ck_role_invite_friend_not_self CHECK (friend_ulong_uid <> game_ulong_uid),
+    CONSTRAINT fk_role_invite_friend_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE,
+    CONSTRAINT fk_role_invite_friend_friend FOREIGN KEY (friend_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;

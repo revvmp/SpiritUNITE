@@ -55,6 +55,7 @@ public static class DatabaseManager
             await database.GetTable<RoleBattlePassTaskReward>().AnyAsync();
             await database.GetTable<RolePokemonUsed>().FirstOrDefaultAsync();
             await database.GetTable<RolePveChallengeNode>().AnyAsync();
+            await database.GetTable<RoleActivityExchange>().AnyAsync();
             await database.GetTable<RoleChallengeTrainerRecord>().FirstOrDefaultAsync();
             await database.GetTable<RoleNewbieChallenge>().AnyAsync();
             await database.GetTable<RoleNewbieChallengeTask>().AnyAsync();
@@ -65,6 +66,8 @@ public static class DatabaseManager
             await database.GetTable<RoleRankedSeason>().FirstOrDefaultAsync();
             await database.GetTable<RoleRankedSeasonTaskAward>().FirstOrDefaultAsync();
             await database.GetTable<RoleWarmBattle>().AnyAsync();
+            await database.GetTable<RoleBeFabulous>().AnyAsync();
+            await database.GetTable<RoleMicTips>().AnyAsync();
             await database.GetTable<RoleBadgeShow>().AnyAsync();
             await database.GetTable<RoleTmpName>().AnyAsync();
             await database.GetTable<RolePokemonCarryEquipment>().AnyAsync();

@@ -11,4 +11,7 @@ public sealed class RoleStarRoad
 
     [Column("tips_site_id")]
     public int TipsSiteID { get; set; }
+
+    [Column("pokemon_tips_close_time")]
+    public long PokemonTipsCloseTime { get; set; }
 }
