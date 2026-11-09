@@ -90,6 +90,30 @@ public sealed class NewbieChallengeTaskManager(
         return new NewbieChallengeUnlock(new pbSCUpdateTaskInfoNtf { TaskInfoList = { receivedTasks } }, dayTaskProgress);
     }
 
+    public async Task<IReadOnlyList<GamePacket>> BuildDayUnlockPushesAsync(LMNRoleInfo role)
+    {
+        var challenge = await LoadChallengeAsync(role);
+        if (!challenge.DaysReceivedNow.Contains(challenge.UnlockDays))
+        {
+            return [];
+        }
+
+        var newDayTasks = challenge.Tasks.Where(task => task.TaskDay == challenge.UnlockDays).ToArray();
+        var dayTasks = newDayTasks.Where(task => IsDayTask(task.Task)).Select(task => task.Info).ToArray();
+        logger.LogInformation(
+            "Beginner Challenge day {TaskDay} received by uid {Uid}: {TaskCount} tasks",
+            challenge.UnlockDays,
+            role.GameUlongUID,
+            newDayTasks.Length);
+        return
+        [
+            GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf, new pbSCUpdateTaskInfoNtf { TaskInfoList = { dayTasks } }),
+            GamePacket.Create(
+                PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf,
+                new pbSCUpdateTaskInfoNtf { TaskInfoList = { newDayTasks.Select(task => task.Info) } }),
+        ];
+    }
+
     public async Task<NewbieChallengeClaim> ClaimAsync(LMNRoleInfo role, int taskId)
     {
         var uid = role.GameUlongUID;
@@ -284,32 +308,45 @@ public sealed class NewbieChallengeTaskManager(
         return gameData.NewbieChallengeTask.Rows.Any(day => day.SchemeId == schemeId && day.DayTaskID == task.TaskID);
     }
 
-    private async Task<ChallengeTask[]> LoadTasksAsync(LMNRoleInfo role)
+    private async Task<ChallengeTask[]> LoadTasksAsync(LMNRoleInfo role) => (await LoadChallengeAsync(role)).Tasks;
+
+    private async Task<LoadedChallenge> LoadChallengeAsync(LMNRoleInfo role)
     {
         if (!challenges.IsUnlocked(role))
         {
-            return [];
+            return new LoadedChallenge([], new HashSet<int>(), 0);
         }
 
-        var recvTime = await repository.ReceiveAsync(role.GameUlongUID, clock.GetUtcNow().ToUnixTimeSeconds());
+        var now = clock.GetUtcNow().ToUnixTimeSeconds();
+        var firstDayRecvTime = await repository.ReceiveAsync(role.GameUlongUID, now);
         var rewardTimes = await repository.FindRewardTimesAsync(role.GameUlongUID);
-        var unlockDays = (await challenges.BuildUnlockInfoAsync(role)).UnlockDays;
+        var unlockDays = Math.Max(0, (await challenges.BuildUnlockInfoAsync(role)).UnlockDays);
+        var laterDays = Enumerable.Range(FirstTaskDay + 1, Math.Max(0, unlockDays - FirstTaskDay)).ToArray();
+        var dayReceipt = await repository.ReceiveDaysAsync(role.GameUlongUID, laterDays, now);
         var storedProcesses = await taskProcesses.FindAsync(role.GameUlongUID);
         var schemeId = GetSchemeId();
-        return
+        ChallengeTask[] tasks =
         [
-            .. Enumerable.Range(FirstTaskDay, Math.Max(0, unlockDays))
+            .. Enumerable.Range(FirstTaskDay, unlockDays)
                 .Select(taskDay => gameData.NewbieChallengeTask.Find(pbNewbieChallengeTask.Key(schemeId, taskDay)))
                 .OfType<pbNewbieChallengeTask>()
-                .SelectMany(day => day.SubTaskID.Prepend(day.DayTaskID))
-                .Where(taskId => taskId != NoTask)
-                .Select(taskId => gameData.TaskBase.Find(taskId))
-                .OfType<pbTask_Base>()
-                .Select(task => new ChallengeTask(
-                    task,
-                    BuildTaskInfo(role, task, recvTime, rewardTimes, storedProcesses, countsSubTasks: true),
-                    BuildTaskInfo(role, task, recvTime, rewardTimes, storedProcesses, countsSubTasks: false))),
+                .SelectMany(day => day.SubTaskID.Prepend(day.DayTaskID)
+                    .Where(taskId => taskId != NoTask)
+                    .Select(taskId => (Day: day, Task: gameData.TaskBase.Find(taskId))))
+                .Where(pair => pair.Task is not null)
+                .Select(pair =>
+                {
+                    var recvTime = pair.Day.TaskDay == FirstTaskDay
+                        ? firstDayRecvTime
+                        : dayReceipt.RecvTimes.GetValueOrDefault(pair.Day.TaskDay, now);
+                    return new ChallengeTask(
+                        pair.Task!,
+                        pair.Day.TaskDay,
+                        BuildTaskInfo(role, pair.Task!, recvTime, rewardTimes, storedProcesses, countsSubTasks: true),
+                        BuildTaskInfo(role, pair.Task!, recvTime, rewardTimes, storedProcesses, countsSubTasks: false));
+                }),
         ];
+        return new LoadedChallenge(tasks, dayReceipt.ReceivedNow, unlockDays);
     }
 
     private pbCOMDT_TASK_INFO BuildTaskInfo(
@@ -379,5 +416,7 @@ public sealed class NewbieChallengeTaskManager(
             _ => NotStarted,
         };
 
-    private sealed record ChallengeTask(pbTask_Base Task, pbCOMDT_TASK_INFO Info, pbCOMDT_TASK_INFO Received);
+    private sealed record ChallengeTask(pbTask_Base Task, int TaskDay, pbCOMDT_TASK_INFO Info, pbCOMDT_TASK_INFO Received);
+
+    private sealed record LoadedChallenge(ChallengeTask[] Tasks, IReadOnlySet<int> DaysReceivedNow, int UnlockDays);
 }

@@ -555,6 +555,14 @@ CREATE TABLE IF NOT EXISTS `role_newbie_challenge` (
     CONSTRAINT fk_role_newbie_challenge_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `role_newbie_challenge_day` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    task_day INT NOT NULL,
+    recv_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, task_day),
+    CONSTRAINT fk_role_newbie_challenge_day_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `role_newbie_challenge_task` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL,
     task_id INT NOT NULL,

@@ -18,8 +18,32 @@ public sealed record NewbieChallengeRewardCommit(
     public static NewbieChallengeRewardCommit Refused(PB_ENUM_RES_ERROR_CODE result) => new(result, null, [], new Dictionary<int, long>());
 }
 
+public sealed record NewbieChallengeDayReceipt(IReadOnlyDictionary<int, long> RecvTimes, IReadOnlySet<int> ReceivedNow);
+
 public sealed class NewbieChallengeRepository(DataOptions options)
 {
+    public async Task<NewbieChallengeDayReceipt> ReceiveDaysAsync(ulong gameUlongUID, IReadOnlyCollection<int> taskDays, long now)
+    {
+        await using var database = new DataConnection(options);
+        var recvTimes = await FindDayRecvTimesAsync(database, gameUlongUID);
+        var receivedNow = new HashSet<int>();
+        foreach (var taskDay in taskDays.Where(taskDay => !recvTimes.ContainsKey(taskDay)))
+        {
+            try
+            {
+                await database.InsertAsync(new RoleNewbieChallengeDay { GameUlongUID = gameUlongUID, TaskDay = taskDay, RecvTime = now });
+                receivedNow.Add(taskDay);
+            }
+            catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
+            {
+            }
+        }
+
+        return new NewbieChallengeDayReceipt(
+            receivedNow.Count == 0 ? recvTimes : await FindDayRecvTimesAsync(database, gameUlongUID),
+            receivedNow);
+    }
+
     public async Task<long> ReceiveAsync(ulong gameUlongUID, long now)
     {
         await using var database = new DataConnection(options);
@@ -79,6 +103,11 @@ public sealed class NewbieChallengeRepository(DataOptions options)
         await transaction.CommitAsync();
         return new NewbieChallengeRewardCommit(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, wallet, changedItems, beforeCoinNums);
     }
+
+    private static async Task<Dictionary<int, long>> FindDayRecvTimesAsync(DataConnection database, ulong gameUlongUID) =>
+        await database.GetTable<RoleNewbieChallengeDay>()
+            .Where(day => day.GameUlongUID == gameUlongUID)
+            .ToDictionaryAsync(day => day.TaskDay, day => day.RecvTime);
 
     private static async Task<long?> FindRecvTimeAsync(DataConnection database, ulong gameUlongUID) =>
         await database.GetTable<RoleNewbieChallenge>()
