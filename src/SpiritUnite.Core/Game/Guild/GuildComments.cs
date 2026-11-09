@@ -54,6 +54,7 @@ public sealed class GuildComments(
         }
 
         var saved = await AddAsync(comment);
+        await repository.SaveCommentReadIndexAsync(member.GameUlongUID, member.GuildID, saved.CommentIndex);
         logger.LogInformation("Uid {Uid} left a type {CommentType} comment {CommentIndex} in guild {GuildID}",
             member.GameUlongUID, saved.CommentType, saved.CommentIndex, saved.GuildID);
         var ntf = await BuildAppendedNtfAsync(saved);
@@ -61,10 +62,11 @@ public sealed class GuildComments(
         return new GuildCommentPost(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, ntf);
     }
 
-    public async Task<GamePacket?> BuildCommentNtfAsync(ulong guildID, long lastReceivedIndex)
+    public async Task<GamePacket?> OpenCommentsAsync(GuildMember member, long lastReceivedIndex)
     {
-        var comments = await repository.GetCommentsAsync(guildID, NoCommentIndex);
+        var comments = await repository.GetCommentsAsync(member.GuildID, NoCommentIndex);
         var lastIndex = comments.Length == 0 ? NoCommentIndex : comments[^1].CommentIndex;
+        await repository.SaveCommentReadIndexAsync(member.GameUlongUID, member.GuildID, lastIndex);
         var append = lastReceivedIndex > NoCommentIndex && lastReceivedIndex <= lastIndex;
         var sent = append ? comments.Where(comment => comment.CommentIndex > lastReceivedIndex).ToArray() : comments;
         if (sent.Length == 0)
@@ -207,7 +209,7 @@ public sealed class GuildComments(
         var office = member?.GuildID == comment.GuildID ? member.Office : GuildRules.NormalOffice;
         if (await roles.FindAsync(comment.GameUlongUID) is not { } role)
         {
-            return (EmptyChildren.Fill(new pbCOMDT_HEAD_INFO()), office, new pbCOMDT_HEAD_ICON_BASE_INFO(), EmptyChildren.Fill(new pbCOMDT_ROLE_HEAD_URL_INFO()));
+            return (GuildInfoBuilder.BuildUnknownHeadInfo(), office, new pbCOMDT_HEAD_ICON_BASE_INFO(), EmptyChildren.Fill(new pbCOMDT_ROLE_HEAD_URL_INFO()));
         }
 
         return (await builder.BuildHeadInfoAsync(role), office, await builder.BuildCurHeadIconInfoAsync(role), await builder.BuildUserPlantInfoAsync(role));

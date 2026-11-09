@@ -50,7 +50,7 @@ public static class RoomMemberDetail
             .Select(mapId => new pbCOMDT_ACNTMAP_DETAIL
             {
                 MapId = mapId,
-                CanUseType = options.HostCanUseTypeOf(mapId) ?? SceneMapOpening.CanUseTypeOf(gameData, mapId, now),
+                CanUseType = options.CanUseTypeOf(gameData, mapId, now),
                 HasResource = HasMapResource,
             }));
         return acntMapInfo;

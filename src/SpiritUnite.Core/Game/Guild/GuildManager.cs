@@ -303,11 +303,11 @@ public sealed class GuildManager(
         var response = EmptyChildren.Fill(new pbSCGuildQuerySearchGuildInfoRsp
         {
             ResultInfo = new pbResultInfo(),
-            MasterHeadInfo = master is null ? null : await builder.BuildHeadInfoAsync(master),
             Notice = guild.Notice,
             MemberNum = members.Length,
             MasterHeadIconInfo = master is null ? null : await builder.BuildCurHeadIconInfoAsync(master),
         });
+        response.MasterHeadInfo = master is null ? GuildInfoBuilder.BuildUnknownHeadInfo() : await builder.BuildHeadInfoAsync(master);
         response.GuildInfo = guildInfo;
         return response;
     }
@@ -467,7 +467,7 @@ public sealed class GuildManager(
                     await repository.DeleteJoinRequestAsync(guild.GuildID, request.GameUlongUID);
                     if (requester is not null)
                     {
-                        response.DeletedList.Add(EmptyChildren.Fill(new pbCOMDT_GUILD_MEMBER_INFO { Uid = request.GameUlongUID, RoleName = requester.InGameUsrName }));
+                        response.DeletedList.Add(GuildInfoBuilder.BuildDeletedMemberInfo(request.GameUlongUID, requester.InGameUsrName));
                     }
 
                     refusal = PB_ENUM_RES_ERROR_CODE.PbErrGuildJoinMemberHasGuild;

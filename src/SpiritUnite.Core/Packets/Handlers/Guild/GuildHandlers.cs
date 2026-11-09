@@ -185,7 +185,7 @@ public sealed class GuildHandlers(
             return [request.Reply(PbScidGuildCommentListRsp, response)];
         }
 
-        var commentNtf = await comments.BuildCommentNtfAsync(membership.Guild.GuildID, list.LastReceivedIndex);
+        var commentNtf = await comments.OpenCommentsAsync(membership.Member, list.LastReceivedIndex);
         return
         [
             request.Reply(PbScidGuildCommentListRsp, response),

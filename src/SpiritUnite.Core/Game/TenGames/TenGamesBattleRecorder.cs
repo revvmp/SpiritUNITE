@@ -72,16 +72,7 @@ public sealed class TenGamesBattleRecorder(
 
     private async Task<IReadOnlyDictionary<ulong, TenGamesBattleScore>> SettleDeskAsync(TenGamesBattle battle)
     {
-        var camps = new Dictionary<int, TenGamesTeam>();
-        foreach (var camp in battle.Humans.GroupBy(human => human.CampClient))
-        {
-            if (await tenGames.FindPlayingTeamAsync(camp.First().Uid, battle.MapId) is { } team
-                && await AllInTeamAsync(camp, team))
-            {
-                camps[camp.Key] = team;
-            }
-        }
-
+        var entries = await FindPlayingEntriesAsync(battle);
         var scores = new Dictionary<ulong, TenGamesBattleScore>();
         if (battle.IsDraw)
         {
@@ -91,13 +82,17 @@ public sealed class TenGamesBattleRecorder(
         var initScore = gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalTenGamesInitMmrscore);
         var lower = gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalTenGamesMmrLowerboundary);
         var upper = gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalTenGamesMmrUpperboundary);
-        var before = camps.ToDictionary(camp => camp.Key, camp => camp.Value.CurScore);
-        foreach (var (campClient, team) in camps)
+        var scoresBefore = entries.Select(entry => (entry.CampClient, Score: entry.Team.CurScore)).ToList();
+        foreach (var entry in entries)
         {
-            var won = campClient == battle.WinCampClient;
-            var opponentScore = before.Where(other => other.Key != campClient).Select(other => other.Value).DefaultIfEmpty(initScore).First();
-            var teamSize = battle.Humans.Count(human => human.CampClient == campClient);
-            var k = gameData.GetGlobalIntData(EloKByTeamSize[Math.Clamp(teamSize, 1, EloKByTeamSize.Length) - 1]);
+            var team = entry.Team;
+            var won = entry.CampClient == battle.WinCampClient;
+            var opponentScore = scoresBefore
+                .Where(other => other.CampClient != entry.CampClient)
+                .Select(other => (double)other.Score)
+                .DefaultIfEmpty(initScore)
+                .Average();
+            var k = gameData.GetGlobalIntData(EloKByTeamSize[Math.Clamp(entry.Uids.Count, 1, EloKByTeamSize.Length) - 1]);
             var expected = 1 / (1 + Math.Pow(EloBase, (opponentScore - team.CurScore) / EloScale));
             var newScore = Math.Clamp(
                 (int)Math.Round(team.CurScore + k * ((won ? WinScore : LoseScore) - expected), MidpointRounding.AwayFromZero),
@@ -116,14 +111,14 @@ public sealed class TenGamesBattleRecorder(
 
             await tenGames.SaveBattleAsync(team);
             logger.LogInformation(
-                "Ten games team {TeamID} {Result} on desk {DeskID}: score {Inc:+0;-0;0} to {Score} ({WinCount}-{LoseCount})",
-                team.TeamID, won ? "won" : "lost", battle.DeskID, inc, newScore, team.WinCount, team.LoseCount);
-            foreach (var human in battle.Humans.Where(human => human.CampClient == campClient))
+                "Ten games team {TeamID} {Result} on desk {DeskID} camp {CampClient}: score {Inc:+0;-0;0} to {Score} ({WinCount}-{LoseCount})",
+                team.TeamID, won ? "won" : "lost", battle.DeskID, entry.CampClient, inc, newScore, team.WinCount, team.LoseCount);
+            foreach (var uid in entry.Uids)
             {
-                scores[human.Uid] = new TenGamesBattleScore(inc, newScore);
+                scores[uid] = new TenGamesBattleScore(inc, newScore);
                 if (won)
                 {
-                    await bpActivity.RecordWinAsync(human.Uid);
+                    await bpActivity.RecordWinAsync(uid);
                 }
             }
         }
@@ -131,9 +126,37 @@ public sealed class TenGamesBattleRecorder(
         return scores;
     }
 
-    private async Task<bool> AllInTeamAsync(IEnumerable<TenGamesBattlePlayer> camp, TenGamesTeam team)
+    private async Task<List<TenGamesCampEntry>> FindPlayingEntriesAsync(TenGamesBattle battle)
     {
-        var memberUids = await tenGames.GetMemberUidsAsync(team.TeamID);
-        return camp.All(human => memberUids.Contains(human.Uid));
+        var playing = new List<(TenGamesBattlePlayer Human, TenGamesTeam Team)>();
+        foreach (var human in battle.Humans)
+        {
+            if (await tenGames.FindPlayingTeamAsync(human.Uid, battle.MapId) is { } team)
+            {
+                playing.Add((human, team));
+            }
+        }
+
+        var entries = new List<TenGamesCampEntry>();
+        foreach (var teamPlayers in playing.GroupBy(player => player.Team.TeamID))
+        {
+            var campClients = teamPlayers.Select(player => player.Human.CampClient).Distinct().ToList();
+            if (campClients.Count != 1)
+            {
+                logger.LogWarning(
+                    "Ten games team {TeamID} played in {CampCount} camps on desk {DeskID}; its result is not scored",
+                    teamPlayers.Key, campClients.Count, battle.DeskID);
+                continue;
+            }
+
+            entries.Add(new TenGamesCampEntry(
+                campClients[0],
+                teamPlayers.First().Team,
+                [.. teamPlayers.Select(player => player.Human.Uid)]));
+        }
+
+        return entries;
     }
+
+    private sealed record TenGamesCampEntry(int CampClient, TenGamesTeam Team, IReadOnlyList<ulong> Uids);
 }

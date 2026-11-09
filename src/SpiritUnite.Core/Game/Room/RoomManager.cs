@@ -80,6 +80,7 @@ public sealed class RoomManager(
     private const int CompetitionSubMode = (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeCompetition;
     private const int OnlineCompetitionSubMode = (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeOnlineCompetition;
     private const PB_ENUM_RES_ERROR_CODE TenGamesRoomChangeRefused = PB_ENUM_RES_ERROR_CODE.PbErrRoomCompetitionToOtherSubMode;
+    private const int TimestampArgType = 2;
 
     private readonly Lock gate = new();
     private readonly Dictionary<int, MatchRoom> roomsById = [];
@@ -373,6 +374,16 @@ public sealed class RoomManager(
                 return RoomOutcome.Refused(rankedRefusal.Result, rankedRefusal.Args);
             }
 
+            if (RefuseClosedMap(room.MapId) is { } closedMapRefusal)
+            {
+                return closedMapRefusal;
+            }
+
+            if (!HasTenGamesRoster(room))
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomOnlineCompetitionPlayerNumError);
+            }
+
             if (room.PveChallengeSelectNode is { } selectNode)
             {
                 return room.Members.All(member => roles.Find(member.Uid) is { } role && IsSelectableNode(role, room.MapId, selectNode))
@@ -535,6 +546,11 @@ public sealed class RoomManager(
                 return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomMapInvalidNoMap);
             }
 
+            if (RefuseClosedMap(mapId) is { } closedMapRefusal)
+            {
+                return closedMapRefusal;
+            }
+
             if (room.CampsInUse().Any(camp => room.CountIn(camp) > CapacityAfter(room, scene, camp)))
             {
                 return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomMapInvalidToMorePlayer);
@@ -572,7 +588,7 @@ public sealed class RoomManager(
                 return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomSameSubMode);
             }
 
-            var scene = FindDefaultMap(subMode, room.CanUseMap());
+            var scene = FindDefaultMap(subMode, room.PlayableMaps());
             if (scene is null)
             {
                 return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomInvalidSubMode);
@@ -1821,7 +1837,35 @@ public sealed class RoomManager(
         && gameData.SceneMap.Find(ranked.CurrentMapId(clock.GetUtcNow().ToUnixTimeSeconds())) is { } openRankedMap
         && usableMaps.Contains(openRankedMap.SceneId)
             ? openRankedMap
-            : RoomMaps.FindDefaultMap(gameData, mapSubMode, usableMaps);
+            : RoomMaps.FindDefaultMap(gameData, mapSubMode, usableMaps, clock.GetUtcNow());
+
+    private RoomOutcome? RefuseClosedMap(int mapId)
+    {
+        var now = clock.GetUtcNow();
+        if (Options.CanUseTypeOf(gameData, mapId, now) != SceneMapOpening.LimitedTimeMapNotOpen)
+        {
+            return null;
+        }
+
+        return SceneMapOpening.NextOpenTimeOf(gameData, mapId, now) is { } nextOpenTime
+            ? RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomMapInvalidNotCircleOpenTime, new pbArgList
+            {
+                Args =
+                {
+                    new pbArgData
+                    {
+                        Type = TimestampArgType,
+                        Value = new pbArgDataValue { TimestampValue = new pbArgTimestampValue { TimestampValue = nextOpenTime } },
+                    },
+                },
+            })
+            : RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomMapInvalidNoMap);
+    }
+
+    private static bool HasTenGamesRoster(MatchRoom room) =>
+        room.TenGamesTeamInfo is not { } teamInfo
+        || (room.Members.Count == teamInfo.TeamMemberUidList.Count
+            && room.Members.All(member => teamInfo.TeamMemberUidList.Contains(member.Uid)));
 
     private static HashSet<int> UsableMapsOf(pbCOMDT_ACNTMAP_INFO acntMapInfo) =>
         [.. acntMapInfo.MapList.Where(map => map.CanUseType == RoomOptions.CanUseMap).Select(map => map.MapId)];

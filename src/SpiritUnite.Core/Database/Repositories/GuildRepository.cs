@@ -107,6 +107,16 @@ public sealed class GuildRepository(DataOptions options)
         }
     }
 
+    public async Task SaveCommentReadIndexAsync(ulong gameUlongUID, ulong guildID, long commentIndex)
+    {
+        await using var database = new DataConnection(options);
+        await database.GetTable<GuildMember>()
+            .Where(member => member.GameUlongUID == gameUlongUID && member.GuildID == guildID)
+            .Set(member => member.CommentLastSendIndex, commentIndex)
+            .Set(member => member.CommentLastReadIndex, commentIndex)
+            .UpdateAsync();
+    }
+
     public async Task RemoveMemberAsync(ulong gameUlongUID)
     {
         await using var database = new DataConnection(options);

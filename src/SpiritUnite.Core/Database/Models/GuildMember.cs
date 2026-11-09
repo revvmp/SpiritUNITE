@@ -17,4 +17,10 @@ public sealed class GuildMember
 
     [Column("join_time")]
     public long JoinTime { get; set; }
+
+    [Column("comment_last_send_index")]
+    public long? CommentLastSendIndex { get; set; }
+
+    [Column("comment_last_read_index")]
+    public long? CommentLastReadIndex { get; set; }
 }

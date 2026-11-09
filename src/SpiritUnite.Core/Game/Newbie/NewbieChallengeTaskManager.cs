@@ -56,7 +56,14 @@ public sealed class NewbieChallengeTaskManager(
 
     public async Task<pbCOMDT_TASK_INFO[]> RecordBattleAsync(LMNRoleInfo role, BattleTaskEvent battle)
     {
-        var increments = (await LoadTasksAsync(role))
+        var challenge = await LoadChallengeAsync(role);
+        if (challenge.IsChallengeOvered)
+        {
+            logger.LogDebug("Beginner Challenge progress of uid {Uid} not counted: the challenge period is over", role.GameUlongUID);
+            return [];
+        }
+
+        var increments = challenge.Tasks
             .Select(task => task.Task.FinishCondition.FirstOrDefault() is { } condition && BattleTasks.MeasureBattle(condition, battle) is { } delta
                 ? new TaskProcessIncrement(task.Task.TaskID, NoResetPeriod, delta, condition.TargetProcess)
                 : null)
@@ -314,13 +321,14 @@ public sealed class NewbieChallengeTaskManager(
     {
         if (!challenges.IsUnlocked(role))
         {
-            return new LoadedChallenge([], new HashSet<int>(), 0);
+            return new LoadedChallenge([], new HashSet<int>(), 0, true);
         }
 
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
         var firstDayRecvTime = await repository.ReceiveAsync(role.GameUlongUID, now);
         var rewardTimes = await repository.FindRewardTimesAsync(role.GameUlongUID);
-        var unlockDays = Math.Max(0, (await challenges.BuildUnlockInfoAsync(role)).UnlockDays);
+        var unlockInfo = await challenges.BuildUnlockInfoAsync(role);
+        var unlockDays = Math.Max(0, unlockInfo.UnlockDays);
         var laterDays = Enumerable.Range(FirstTaskDay + 1, Math.Max(0, unlockDays - FirstTaskDay)).ToArray();
         var dayReceipt = await repository.ReceiveDaysAsync(role.GameUlongUID, laterDays, now);
         var storedProcesses = await taskProcesses.FindAsync(role.GameUlongUID);
@@ -346,7 +354,7 @@ public sealed class NewbieChallengeTaskManager(
                         BuildTaskInfo(role, pair.Task!, recvTime, rewardTimes, storedProcesses, countsSubTasks: false));
                 }),
         ];
-        return new LoadedChallenge(tasks, dayReceipt.ReceivedNow, unlockDays);
+        return new LoadedChallenge(tasks, dayReceipt.ReceivedNow, unlockDays, challenges.IsChallengeOvered(unlockInfo));
     }
 
     private pbCOMDT_TASK_INFO BuildTaskInfo(
@@ -418,5 +426,5 @@ public sealed class NewbieChallengeTaskManager(
 
     private sealed record ChallengeTask(pbTask_Base Task, int TaskDay, pbCOMDT_TASK_INFO Info, pbCOMDT_TASK_INFO Received);
 
-    private sealed record LoadedChallenge(ChallengeTask[] Tasks, IReadOnlySet<int> DaysReceivedNow, int UnlockDays);
+    private sealed record LoadedChallenge(ChallengeTask[] Tasks, IReadOnlySet<int> DaysReceivedNow, int UnlockDays, bool IsChallengeOvered);
 }

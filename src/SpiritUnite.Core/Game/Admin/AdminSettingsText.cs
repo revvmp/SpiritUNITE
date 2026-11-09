@@ -67,8 +67,10 @@ public static class AdminSettingsText
         [(typeof(BattleSettlementOptions), nameof(BattleSettlementOptions.RankedMatchLoseEnergy))] = new("Ranked loss energy", "Energy for a ranked loss"),
         [(typeof(HeroPickOptions), nameof(HeroPickOptions.NpcHeroMaxReleaseOrder))] = new("Bot Pokemon release limit", "Bots pick only Pokemon released up to this number. 0 lets them pick every Pokemon"),
         [(typeof(HeldItemOptions), nameof(HeldItemOptions.UnlockGrantItemIds))] = new("Held items given at unlock", "Held item ids given when the first held item slot unlocks"),
-        [(typeof(MegaEvolutionOptions), nameof(MegaEvolutionOptions.TrainMinComplete))] = new("Least progress per training", "Least progress one Mega Evolution training gives"),
-        [(typeof(MegaEvolutionOptions), nameof(MegaEvolutionOptions.TrainMaxComplete))] = new("Most progress per training", "Most progress one Mega Evolution training gives"),
+        [(typeof(MegaEvolutionOptions), nameof(MegaEvolutionOptions.TrainResults))] = new("Training outcomes", "The progress values one training can give in each Mega Evolution event, each equally likely. Change only with official values"),
+        [(typeof(MegaEvolutionTrainResultOptions), nameof(MegaEvolutionTrainResultOptions.ActivityID))] = new(null, "Mega Evolution event"),
+        [(typeof(MegaEvolutionTrainResultOptions), nameof(MegaEvolutionTrainResultOptions.TrainResults))] = new(null, "Progress values, each equally likely"),
+        [(typeof(MegaEvolutionOptions), nameof(MegaEvolutionOptions.FallbackTrainResults))] = new("Outcomes for other events", "Progress values for a Mega Evolution event with no published outcomes, each equally likely"),
     }.ToFrozenDictionary();
 
     public static AdminFieldText? Find(Type type, string property) => Fields.GetValueOrDefault((type, property));

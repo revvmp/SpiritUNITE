@@ -24,6 +24,21 @@ public static class SceneMapOpening
             _ => LockedMap,
         };
 
+    public static bool IsOpenRotationMap(GameData gameData, int sceneId, DateTimeOffset now) =>
+        gameData.SceneOpenTime.Rows.Any(row => row.SceneId == sceneId && row.OpenMode == CycleOpenMode)
+        && IsSceneMapOpening(gameData, sceneId, now) is { IsOpen: true };
+
+    public static long? NextOpenTimeOf(GameData gameData, int sceneId, DateTimeOffset now)
+    {
+        var serverNow = now.ToUnixTimeSeconds();
+        var nextOpenTimes = gameData.SceneOpenTime.Rows
+            .Where(row => row.SceneId == sceneId)
+            .Select(row => row.OpenMode == CycleOpenMode ? NextCycleOpenTime(gameData, row, serverNow) : NextNormalOpenTime(row, serverNow))
+            .OfType<long>()
+            .ToList();
+        return nextOpenTimes.Count == 0 ? null : nextOpenTimes.Min();
+    }
+
     public static bool IsHiddenEventMap(GameData gameData, int sceneId, DateTimeOffset now) =>
         gameData.SceneMap.Find(sceneId) is { GameType: TowerDefenseGameType } && !IsTowerDefensePeriodShown(gameData, now);
 
@@ -101,6 +116,43 @@ public static class SceneMapOpening
         }
 
         return new SceneMapStatus(false, false);
+    }
+
+    private static long? NextNormalOpenTime(pbScene_OpenTime row, long serverNow)
+    {
+        var openDate = UTCTimeUtil.CfgTime2ServerUnixTime(row.OpenDate);
+        return openDate > serverNow ? openDate : null;
+    }
+
+    private static long? NextCycleOpenTime(GameData gameData, pbScene_OpenTime row, long serverNow)
+    {
+        var circleMapNum = gameData.SceneOpenTime.Rows.Count(other =>
+            other.OpenMode == CycleOpenMode && other.OpenModeParaA == row.OpenModeParaA);
+        var openIntervalSecond = (long)row.OpenModeParaC * SecondsPerHour;
+        var oneCycleSecond = circleMapNum * openIntervalSecond;
+        if (oneCycleSecond <= 0)
+        {
+            return null;
+        }
+
+        var openDate = UTCTimeUtil.CfgTime2ServerUnixTime(row.OpenDate);
+        var closeDate = UTCTimeUtil.CfgTime2ServerUnixTime(row.CloseDate);
+        var firstCycle = Math.Max((long)Math.Floor((double)(serverNow - openDate) / oneCycleSecond), 0);
+        for (var cycle = firstCycle; cycle <= firstCycle + 1; cycle++)
+        {
+            var start = Math.Max(openDate + (cycle * oneCycleSecond) + ((row.OpenModeParaB - 1) * openIntervalSecond), openDate);
+            if (start >= closeDate)
+            {
+                return null;
+            }
+
+            if (start > serverNow)
+            {
+                return start;
+            }
+        }
+
+        return null;
     }
 
     private static SceneMapStatus StatusInRange(long serverNow, long openStamp, long closeStamp) =>

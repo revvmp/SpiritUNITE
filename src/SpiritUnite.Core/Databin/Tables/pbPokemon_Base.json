@@ -31,6 +31,7 @@
   },
   {
     "OriginalForm": 6004,
+    "PokemonIDForShare": 4,
     "IsMultiform": 7004,
     "OccupationType": 7,
     "PokemonId": 6004,
@@ -65,6 +66,7 @@
   },
   {
     "OriginalForm": 8004,
+    "PokemonIDForShare": 4,
     "IsMultiform": 9004,
     "OccupationType": 7,
     "PokemonId": 8004,
@@ -114,6 +116,7 @@
   },
   {
     "OriginalForm": 8448,
+    "PokemonIDForShare": 448,
     "IsMultiform": 9448,
     "OccupationType": 7,
     "PokemonId": 8448,
@@ -163,6 +166,7 @@
   },
   {
     "OriginalForm": 9129,
+    "PokemonIDForShare": 129,
     "IsMultiform": 8129,
     "OccupationType": 7,
     "PokemonId": 9129,

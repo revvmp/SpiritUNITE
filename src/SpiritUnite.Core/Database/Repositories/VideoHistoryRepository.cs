@@ -3,6 +3,7 @@ using LinqToDB.Async;
 using LinqToDB.Data;
 using MySqlConnector;
 using SpiritUnite.Database.Models;
+using SpiritUnite.Game.Video;
 
 namespace SpiritUnite.Database.Repositories;
 
@@ -41,7 +42,7 @@ public sealed class VideoHistoryRepository(DataOptions options)
             if (replacedAbsIds.Count > 0)
             {
                 await database.GetTable<RoleVideoHistory>()
-                    .Where(saved => saved.GameUlongUID == video.GameUlongUID && replacedAbsIds.Contains(saved.AbsId))
+                    .Where(saved => saved.GameUlongUID == video.GameUlongUID && replacedAbsIds.Contains(saved.AbsId) && saved.CollectFlag == VideoHistoryManager.NotCollected)
                     .DeleteAsync();
             }
 

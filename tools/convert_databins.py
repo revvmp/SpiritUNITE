@@ -511,6 +511,7 @@ SERVER_FIELD_SUBSETS = {
         201545: Field("OriginalForm", "int32"),
         211739: Field("IsMultiform", "int32"),
         250599: Field("RecommendEquips", "int32", repeated=True),
+        205734: Field("PokemonIDForShare", "int32"),
     },
     "pbUnit_Base": {
         259263: Field("UnitId", "int32"),

@@ -61,6 +61,14 @@ public sealed class BattlePassSeasons(GameData gameData)
         return FirstWeekIndex + weeksSinceStart;
     }
 
+    public BattlePassWeekWindow FindWeekWindow(BattlePassSeasonState current, int weekIndex)
+    {
+        var firstWeekStart = FindWeekStart(DateTimeOffset.FromUnixTimeSeconds(current.StartTime));
+        var weekStart = firstWeekStart.AddDays((weekIndex - FirstWeekIndex) * DaysPerWeek);
+        var lastSecond = weekStart.AddDays(DaysPerWeek).ToUnixTimeSeconds() - 1;
+        return new(Math.Max(weekStart.ToUnixTimeSeconds(), current.StartTime), Math.Min(lastSecond, current.EndTime));
+    }
+
     private static DateTimeOffset FindWeekStart(DateTimeOffset time)
     {
         var day = new DateTimeOffset(time.UtcDateTime.Date, TimeSpan.Zero);
@@ -93,35 +101,36 @@ public sealed class BattlePassSeasons(GameData gameData)
         {
             foreach (var taskID in row.TaskID.Where(IsTask))
             {
-                yield return new(taskID, PB_ENUM_ENM_TASKSYSTEM.PbEnmTasksystemBattlepassSeasontask, false);
+                yield return new(taskID, PB_ENUM_ENM_TASKSYSTEM.PbEnmTasksystemBattlepassSeasontask, false, null);
             }
 
             foreach (var taskID in row.WelfareTaskID.Where(IsTask))
             {
-                yield return new(taskID, PB_ENUM_ENM_TASKSYSTEM.PbEnmTasksystemBattlepassSeasontask, true);
+                yield return new(taskID, PB_ENUM_ENM_TASKSYSTEM.PbEnmTasksystemBattlepassSeasontask, true, null);
             }
         }
 
         var weekGroups = gameData.BattlePassWeekIndex.Rows
             .Where(row => row.SeasonID == seasonID && row.WeekIndex <= weekIndex)
-            .Select(row => gameData.BattlePassWeekTaskGroup.Find(row.TaskGroupID))
-            .OfType<pbBattlePass_WeekTaskGroup>();
-        foreach (var group in weekGroups)
+            .Select(row => (row.WeekIndex, Group: gameData.BattlePassWeekTaskGroup.Find(row.TaskGroupID)))
+            .Where(week => week.Group is not null);
+        foreach (var (taskWeekIndex, group) in weekGroups)
         {
-            foreach (var taskID in group.BPWeekTask.Select(task => task.TaskID).Where(IsTask))
+            var window = FindWeekWindow(current, taskWeekIndex);
+            foreach (var taskID in group!.BPWeekTask.Select(task => task.TaskID).Where(IsTask))
             {
-                yield return new(taskID, PB_ENUM_ENM_TASKSYSTEM.PbEnmTasksystemBattlepassWeektask, false);
+                yield return new(taskID, PB_ENUM_ENM_TASKSYSTEM.PbEnmTasksystemBattlepassWeektask, false, window);
             }
 
             foreach (var taskID in group.WelfareTask.Select(task => task.TaskID).Where(IsTask))
             {
-                yield return new(taskID, PB_ENUM_ENM_TASKSYSTEM.PbEnmTasksystemBattlepassWeektask, true);
+                yield return new(taskID, PB_ENUM_ENM_TASKSYSTEM.PbEnmTasksystemBattlepassWeektask, true, window);
             }
         }
 
         foreach (var row in FindTimeLimitTasks(seasonID, now))
         {
-            yield return new(row.TimeLimitTaskID, PB_ENUM_ENM_TASKSYSTEM.PbEnmTasksystemBattlepassTimelimittask, false);
+            yield return new(row.TimeLimitTaskID, PB_ENUM_ENM_TASKSYSTEM.PbEnmTasksystemBattlepassTimelimittask, false, null);
         }
     }
 
@@ -138,4 +147,9 @@ public sealed class BattlePassSeasons(GameData gameData)
     private static bool IsTask(int taskID) => taskID != NoTask;
 }
 
-public sealed record BattlePassTaskSlot(int TaskID, PB_ENUM_ENM_TASKSYSTEM TaskSystem, bool IsWelfare);
+public sealed record BattlePassTaskSlot(int TaskID, PB_ENUM_ENM_TASKSYSTEM TaskSystem, bool IsWelfare, BattlePassWeekWindow? Week);
+
+public readonly record struct BattlePassWeekWindow(long StartTime, long LastTime)
+{
+    public bool HasEnded(DateTimeOffset now) => now.ToUnixTimeSeconds() > LastTime;
+}

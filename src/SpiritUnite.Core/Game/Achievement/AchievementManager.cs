@@ -23,6 +23,13 @@ public sealed class AchievementManager
     private const int NoNewTag = 0;
     private const long NoPeriod = 0;
 
+    private static readonly FrozenSet<int> AchievementBattleSubModes = new[]
+    {
+        (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceNormal,
+        (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceRank,
+        (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRelaxNormal,
+    }.ToFrozenSet();
+
     private readonly GameData gameData;
     private readonly AchievementRepository repository;
     private readonly TaskProcessRepository taskProcesses;
@@ -93,8 +100,19 @@ public sealed class AchievementManager
     public async Task<int> CountCompleteTasksAsync(LMNRoleInfo role) =>
         (await BuildTaskInfoListAsync(role)).Count(task => task.Status == (int)PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusComplete);
 
+    private static bool CountsForAchievements(BattleTaskEvent battle) =>
+        !battle.IsManMachine && AchievementBattleSubModes.Contains(battle.MapSubMode);
+
     public async Task<pbCOMDT_TASK_INFO[]> RecordBattleAsync(LMNRoleInfo role, BattleTaskEvent battle)
     {
+        if (!CountsForAchievements(battle))
+        {
+            logger.LogInformation(
+                "Battle of uid {Uid} on map {MapID} (sub mode {MapSubMode}, CPU match {IsManMachine}) does not count toward achievements",
+                role.GameUlongUID, battle.MapID, battle.MapSubMode, battle.IsManMachine);
+            return [];
+        }
+
         var increments = definitions
             .Select(definition => MeasureBattle(definition.Condition, battle) is { } delta
                 ? new TaskProcessIncrement(definition.Task.TaskID, NoPeriod, delta, definition.Condition.TargetProcess)

@@ -23,6 +23,9 @@ public sealed class RoomMember(
 
     public IReadOnlySet<int> UsableMaps =>
         AcntMapInfo.MapList.Where(map => map.CanUseType == RoomOptions.CanUseMap).Select(map => map.MapId).ToHashSet();
+
+    public IReadOnlySet<int> ListedMaps =>
+        AcntMapInfo.MapList.Where(map => RoomOptions.IsListedCanUseType(map.CanUseType)).Select(map => map.MapId).ToHashSet();
 }
 
 public sealed record RoomBot(ulong Uid, int CampClient, int PosOfCamp, pbAiInfoConfig Row);
@@ -240,12 +243,16 @@ public sealed class MatchRoom(int roomID, long roomSeq, int roomShowId, ulong ma
 
     public void Remove(RoomMember member) => members.Remove(member);
 
-    public HashSet<int> CanUseMap()
+    public HashSet<int> CanUseMap() => CommonMaps(member => member.ListedMaps);
+
+    public HashSet<int> PlayableMaps() => CommonMaps(member => member.UsableMaps);
+
+    private HashSet<int> CommonMaps(Func<RoomMember, IReadOnlySet<int>> mapsOf)
     {
-        var common = new HashSet<int>(members.Count == 0 ? [] : members[0].UsableMaps);
+        var common = new HashSet<int>(members.Count == 0 ? [] : mapsOf(members[0]));
         foreach (var member in members.Skip(1))
         {
-            common.IntersectWith(member.UsableMaps);
+            common.IntersectWith(mapsOf(member));
         }
 
         return common;

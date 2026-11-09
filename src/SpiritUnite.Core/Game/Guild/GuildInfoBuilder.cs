@@ -70,15 +70,41 @@ public sealed class GuildInfoBuilder(
     {
         var style = await profiles.LoadAsync(role.GameUlongUID);
         var (headType, curHeadResID) = style.CurPersonStyleHead;
-        return EmptyChildren.Fill(new pbCOMDT_HEAD_INFO
+        return new pbCOMDT_HEAD_INFO
         {
             Gender = role.Gender,
             HeadId = RoleImage.GetHeadID(gameData, role),
             AvatarInfo = role.RoleAvatarInfo.Clone(),
             HeadType = headType,
             CurPersonStyleInfo = new pbCOMDT_PLAYER_PERSON_STYLE_CUR_INFO { CurHeadResID = curHeadResID },
-        });
+        };
     }
+
+    public static pbCOMDT_HEAD_INFO BuildUnknownHeadInfo() => new()
+    {
+        AvatarInfo = new pbCOMDT_ROLE_AVATAR_INFO(),
+        CurPersonStyleInfo = new pbCOMDT_PLAYER_PERSON_STYLE_CUR_INFO(),
+    };
+
+    public static pbCOMDT_GUILD_MEMBER_INFO BuildDeletedMemberInfo(ulong uid, string roleName) => new()
+    {
+        Uid = uid,
+        RoleName = roleName,
+        RankedDivision = new pbCOMDT_RANKED_DIVISION(),
+        HeadInfo = BuildUnknownHeadInfo(),
+        GameState = EmptyChildren.Fill(new pbCOMDT_GAME_STATE_INFO()),
+        CurHeadIconInfo = new pbCOMDT_HEAD_ICON_BASE_INFO(),
+    };
+
+    public static pbCOMDT_COMMENT_REDDOT_INFO? BuildCommentRedDotInfo(GuildMember member) =>
+        member.CommentLastSendIndex is { } lastSendIndex && member.CommentLastReadIndex is { } lastReadIndex
+            ? new pbCOMDT_COMMENT_REDDOT_INFO
+            {
+                RedDotDetail = new pbCOMDT_RED_DOT_DETAIL(),
+                LastSendIndex = lastSendIndex,
+                LastReadIndex = lastReadIndex,
+            }
+            : null;
 
     public async Task<pbCOMDT_HEAD_ICON_BASE_INFO> BuildCurHeadIconInfoAsync(LMNRoleInfo role)
     {
@@ -93,7 +119,7 @@ public sealed class GuildInfoBuilder(
     {
         var uid = role.GameUlongUID;
         await ranked.LoadAsync(uid);
-        return EmptyChildren.Fill(new pbCOMDT_GUILD_MEMBER_INFO
+        return new pbCOMDT_GUILD_MEMBER_INFO
         {
             Uid = uid,
             RoleName = role.InGameUsrName,
@@ -105,7 +131,8 @@ public sealed class GuildInfoBuilder(
             ABMode = (await settings.LoadAsync(uid)).ABMode,
             IsGuestAccount = await FindIsGuestAccountAsync(uid),
             CurHeadIconInfo = await BuildCurHeadIconInfoAsync(role),
-        });
+            CommentRedDotInfo = BuildCommentRedDotInfo(member),
+        };
     }
 
     public async Task<pbCOMDT_GUILD_MEMBER_INFO[]> BuildMemberInfosAsync(IEnumerable<GuildMember> members)
@@ -126,7 +153,7 @@ public sealed class GuildInfoBuilder(
     {
         var uid = role.GameUlongUID;
         await ranked.LoadAsync(uid);
-        return EmptyChildren.Fill(new pbCOMDT_GUILD_JOIN_REQUEST_INFO
+        return new pbCOMDT_GUILD_JOIN_REQUEST_INFO
         {
             Uid = uid,
             RoleName = role.InGameUsrName,
@@ -136,7 +163,7 @@ public sealed class GuildInfoBuilder(
             ABMode = (await settings.LoadAsync(uid)).ABMode,
             IsGuestAccount = await FindIsGuestAccountAsync(uid),
             CurHeadIconInfo = await BuildCurHeadIconInfoAsync(role),
-        });
+        };
     }
 
     public async Task<pbCOMDT_GUILD_JOIN_REQUEST_INFO[]> BuildJoinRequestInfosAsync(IEnumerable<GuildJoinRequest> requests)

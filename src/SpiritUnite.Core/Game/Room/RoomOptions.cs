@@ -1,3 +1,4 @@
+using SpiritUnite.Databin;
 using SpiritUnite.Packets.Messages;
 
 namespace SpiritUnite.Game.Room;
@@ -40,7 +41,13 @@ public sealed class RoomOptions
             && mapIds.Distinct().Count() == mapIds.Count;
     }
 
+    public static bool IsListedCanUseType(int canUseType) =>
+        canUseType is CanUseMap or SceneMapOpening.LimitedTimeMapNotOpen;
+
     public bool IsHidden(int mapId) => HiddenMapIdsOrOfficial.Contains(mapId);
+
+    public int CanUseTypeOf(GameData gameData, int mapId, DateTimeOffset now) =>
+        HostCanUseTypeOf(mapId) ?? SceneMapOpening.CanUseTypeOf(gameData, mapId, now);
 
     public int? HostCanUseTypeOf(int mapId) =>
         MapCanUseTypes.FirstOrDefault(entry => entry.MapIds.Contains(mapId))?.CanUseType;

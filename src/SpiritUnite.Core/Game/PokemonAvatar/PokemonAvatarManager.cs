@@ -72,6 +72,12 @@ public sealed class PokemonAvatarManager(GameData gameData, BagManager bag, Past
         WearPasterSprayID = wearPasterSprayID,
     };
 
+    public static int GetPokemonIDForShare(pbPokemon_Base pokemon) =>
+        pokemon.PokemonIDForShare is not 0 and var pokemonIDForShare ? pokemonIDForShare : pokemon.PokemonId;
+
+    public int GetPokemonIDForShare(int pokemonId) =>
+        gameData.PokemonBase.Find(pokemonId) is { } pokemon ? GetPokemonIDForShare(pokemon) : pokemonId;
+
     public async Task<RoleItemInfo[]> ListUsablePastersAsync(LMNRoleInfo role)
     {
         var now = Now;
@@ -361,7 +367,7 @@ public sealed class PokemonAvatarManager(GameData gameData, BagManager bag, Past
         gameData.PokemonAvatarBase.Find(pasterID) switch
         {
             null => PB_ENUM_RES_ERROR_CODE.PbErrPasterIdinvalid,
-            { } paster when paster.PokemonId != pokemonId => PB_ENUM_RES_ERROR_CODE.PbErrPasterNotForThisPokemon,
+            { } paster when paster.PokemonId != GetPokemonIDForShare(pokemonId) => PB_ENUM_RES_ERROR_CODE.PbErrPasterNotForThisPokemon,
             _ => PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc,
         };
 

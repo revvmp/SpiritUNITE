@@ -91,7 +91,7 @@ public sealed class BattlePassTasks(
 
         var states = await EvaluateAsync(role, current, now);
         var increments = states
-            .Where(state => state.Status == PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusRecved && !state.Locked)
+            .Where(state => state.Status == PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusRecved && !state.Locked && !state.Expired)
             .Select(state => FindBattleIncrement(state, battle))
             .OfType<TaskProcessIncrement>()
             .ToArray();
@@ -195,7 +195,7 @@ public sealed class BattlePassTasks(
         var rewards = (await repository.FindTaskRewardsAsync(uid, current.StartTime))
             .ToDictionary(reward => (reward.TaskId, reward.PeriodStart));
         var days = await loginDays.FindLoginDaysAsync(uid, DateOnly.FromDateTime(DateTimeOffset.FromUnixTimeSeconds(current.StartTime).UtcDateTime));
-        var lastCountedDay = DateOnly.FromDateTime(now.UtcDateTime);
+        var today = DateOnly.FromDateTime(now.UtcDateTime);
         return
         [
             .. slots.Select(pair =>
@@ -203,7 +203,9 @@ public sealed class BattlePassTasks(
                 var task = pair.Task!;
                 var periodStart = FindPeriodStart(task, current, now);
                 var conditions = task.FinishCondition.Where(condition => condition.ID != NoCondition).ToArray();
-                var firstCountedDay = DateOnly.FromDateTime(DateTimeOffset.FromUnixTimeSeconds(periodStart).UtcDateTime);
+                var week = pair.Slot.Week;
+                var firstCountedDay = ToDay(Math.Max(periodStart, week?.StartTime ?? periodStart));
+                var lastCountedDay = week is { } window && ToDay(window.LastTime) < today ? ToDay(window.LastTime) : today;
                 var loginDayCount = days.Count(day => day >= firstCountedDay && day <= lastCountedDay);
                 var storedProcess = BattleTasks.FindStoredProcess(stored, task.TaskID, periodStart);
                 int[] process = [.. conditions.Select(condition => Math.Min(MeasureProcess(condition, loginDayCount, storedProcess), condition.TargetProcess))];
@@ -221,10 +223,13 @@ public sealed class BattlePassTasks(
                     : stored.TryGetValue((task.TaskID, periodStart), out var storedTask) && storedTask.CompleteTime != NotCompletedTime
                         ? storedTask.CompleteTime
                         : periodStart;
-                return new BattlePassTaskState(pair.Slot, task, conditions, periodStart, process, status, completeTime, reward?.RewardTime ?? 0, locked);
+                var expired = week is { } ended && ended.HasEnded(now);
+                return new BattlePassTaskState(pair.Slot, task, conditions, periodStart, process, status, completeTime, reward?.RewardTime ?? 0, locked, expired);
             }),
         ];
     }
+
+    private static DateOnly ToDay(long unixSeconds) => DateOnly.FromDateTime(DateTimeOffset.FromUnixTimeSeconds(unixSeconds).UtcDateTime);
 
     private static int MeasureProcess(pbFinishCondition condition, int loginDayCount, int storedProcess) =>
         (PB_ENUM_RES_CONDITION_ID)condition.ID switch
@@ -259,7 +264,8 @@ public sealed class BattlePassTasks(
         PB_ENUM_ENM_TASKSTATUS Status,
         long CompleteTime,
         long RewardTime,
-        bool Locked)
+        bool Locked,
+        bool Expired)
     {
         public pbCOMDT_TASK_INFO ToTaskInfo() => new()
         {

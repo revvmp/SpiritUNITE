@@ -12,8 +12,8 @@ public sealed class NewbieChallengeManager(
     RoleRepository roleRepository,
     TimeProvider clock)
 {
-    private const int NewbieChallengeOpenDays = 32;
     private const int FirstUnlockDay = 1;
+    private const int SecondsPerDay = 86400;
     private const int MaxNewbieChallengeDayNum = (int)PB_MACRO_COM_MAX_NEWBIE_CHALLENGE_DAY_NUM.PbComMaxNewbieChallengeDayNum;
 
     public async Task<pbCOMDT_NEWBIE_CHALLENGE_UNLOCK_INFO> BuildUnlockInfoAsync(LMNRoleInfo role)
@@ -32,6 +32,9 @@ public sealed class NewbieChallengeManager(
             UnlockDays = Math.Clamp(today.DayNumber - registerDay.DayNumber + FirstUnlockDay, FirstUnlockDay, MaxNewbieChallengeDayNum),
         };
     }
+
+    public bool IsChallengeOvered(pbCOMDT_NEWBIE_CHALLENGE_UNLOCK_INFO unlockInfo) =>
+        unlockInfo.LeftTime <= (long)(GetCloseDays() - GetOpenDays()) * SecondsPerDay;
 
     public async Task<(PB_ENUM_RES_ERROR_CODE Result, pbCOMDT_NEWBIE_CHALLENGE_UNLOCK_INFO UnlockInfo)> GetNewbieChallengeAsync(LMNRoleInfo role)
     {
@@ -58,7 +61,13 @@ public sealed class NewbieChallengeManager(
         return DateOnly.FromDateTime(DateTimeOffset.FromUnixTimeSeconds(registerTime).UtcDateTime);
     }
 
-    private static long FindCloseTime(DateOnly registerDay) =>
-        new DateTimeOffset(registerDay.AddDays(NewbieChallengeOpenDays).ToDateTime(TimeOnly.MinValue), TimeSpan.Zero)
+    private long FindCloseTime(DateOnly registerDay) =>
+        new DateTimeOffset(registerDay.AddDays(GetCloseDays()).ToDateTime(TimeOnly.MinValue), TimeSpan.Zero)
             .ToUnixTimeSeconds() - 1;
+
+    private int GetCloseDays() =>
+        gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalNewbieChallengeCloseDays);
+
+    private int GetOpenDays() =>
+        gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalNewbieChallengeOpenDays);
 }

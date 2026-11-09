@@ -19,11 +19,16 @@ public static class RoomMaps
     public static bool IsListed(GameData gameData, int mapId) =>
         gameData.SceneMap.Find(mapId) is { ShowInList: ListedMap };
 
-    public static pbScene_Map? FindDefaultMap(GameData gameData, int mapSubMode, IReadOnlySet<int> usableMaps) =>
-        ListedMapsOf(gameData, mapSubMode, usableMaps)
+    public static pbScene_Map? FindDefaultMap(GameData gameData, int mapSubMode, IReadOnlySet<int> playableMaps, DateTimeOffset now) =>
+        FindOpenRotationMap(gameData, mapSubMode, playableMaps, now)
+        ?? ListedMapsOf(gameData, mapSubMode, playableMaps)
             .OrderByDescending(scene => scene.SortPriority)
             .ThenBy(scene => scene.SceneId)
             .FirstOrDefault();
+
+    private static pbScene_Map? FindOpenRotationMap(GameData gameData, int mapSubMode, IReadOnlySet<int> playableMaps, DateTimeOffset now) =>
+        ListedMapsOf(gameData, mapSubMode, playableMaps)
+            .FirstOrDefault(scene => SceneMapOpening.IsOpenRotationMap(gameData, scene.SceneId, now));
 
     public static pbCOMDT_ROOMMAP_INFO BuildCanUseMap(GameData gameData, int mapSubMode, IReadOnlySet<int> usableMaps)
     {

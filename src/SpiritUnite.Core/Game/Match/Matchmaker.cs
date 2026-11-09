@@ -3,13 +3,16 @@ using SpiritUnite.Packets.Messages;
 
 namespace SpiritUnite.Game.Match;
 
-public sealed record MatchKey(int MapSubMode, int MapId, int ManMachine, int RankedTeamMemberNumType)
+public sealed record MatchKey(int MapSubMode, int MapId, int ManMachine, int RankedTeamMemberNumType, int JoinTenGamesID)
 {
+    private const int NoTenGames = 0;
+
     public static MatchKey Of(MatchRoom room) => new(
         room.MapSubMode,
         room.MapId,
         room.ManMachine,
-        room.MapSubMode == (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceRank ? room.RankedTeamMemberNumType : 0);
+        room.MapSubMode == (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceRank ? room.RankedTeamMemberNumType : 0,
+        room.TenGamesTeamInfo?.JoinTenGamesID ?? NoTenGames);
 }
 
 public sealed record MasterPointBand(int MinMasterPoint, int MaxMasterPoint, int Width)

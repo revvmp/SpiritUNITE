@@ -309,16 +309,17 @@ public sealed class BadgeManager(
         }
 
         var schedules = await GetSchedulesAsync(gameUlongUID);
-        var leavesNone = owned.Cnt == badgeCost;
-        if (force != Confirmed && leavesNone && schedules.Any(schedue => schedue.BadgeIDList.Contains(badgeId)))
+        var successLeavesNone = owned.Cnt == badgeCost;
+        if (force != Confirmed && successLeavesNone && schedules.Any(schedue => schedue.BadgeIDList.Contains(badgeId)))
         {
             return new BadgeUpgradeOutcome(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, NeedConfirm, upgraded.BadgeId);
         }
 
         var successes = Enumerable.Range(0, upgradeNum).Count(_ => Random.Shared.Next(ProbabilityScale) < cost.Probability);
+        var consumedBadges = cost.BadgeNum * successes;
         var change = new BagChange
         {
-            Costs = [new BagCost(RoleItemType.Badge, badgeId, badgeCost)],
+            Costs = consumedBadges > 0 ? [new BagCost(RoleItemType.Badge, badgeId, consumedBadges)] : [],
             Grants = successes > 0
                 ? [new BagGrant(RoleItemType.Badge, upgraded.BadgeId, successes, UnlimitedBadgeStack, NoItemLevel, ShowNewTag)]
                 : [],
@@ -330,7 +331,8 @@ public sealed class BadgeManager(
             return new BadgeUpgradeOutcome(commit.Result);
         }
 
-        var changedCur = leavesNone ? await RemoveFromSchedulesAsync(gameUlongUID, schedules, badgeId) : null;
+        var leftNone = commit.ChangedItems.Any(item => item.ItemType == RoleItemType.Badge && item.ItemId == badgeId && !item.IsOwned);
+        var changedCur = leftNone ? await RemoveFromSchedulesAsync(gameUlongUID, schedules, badgeId) : null;
         return new BadgeUpgradeOutcome(
             commit.Result,
             0,

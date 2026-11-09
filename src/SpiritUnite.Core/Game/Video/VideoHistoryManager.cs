@@ -27,11 +27,9 @@ public sealed partial class VideoHistoryManager(
     private const int NormalSave = 0;
     private const int TipShown = 1;
     private const int NoTip = 0;
-    private const int ReservedUncollectedSlots = 1;
 
     private readonly long videoSaveContinueTime = gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalVideoSaveContinueTime);
     private readonly int normalBattlevideoLimitMax = gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalNormalBattlevideoLimitMax);
-    private readonly int maxCollected = gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalSubscriptionBattlevideoLimitMax) - ReservedUncollectedSlots;
 
     public async Task<VideoHistoryView> BuildHistoryAsync(ulong uid)
     {
@@ -69,9 +67,9 @@ public sealed partial class VideoHistoryManager(
         var videos = await LoadCurrentAsync(uid);
         if (videos.All(video => video.AbsId != absId))
         {
-            var replaced = videos
-                .OrderBy(video => video.SaveTime)
-                .Take(Math.Max(0, videos.Length - normalBattlevideoLimitMax + 1))
+            var uncollected = videos.Where(video => video.CollectFlag != Collected).OrderBy(video => video.SaveTime).ToArray();
+            var replaced = uncollected
+                .Take(Math.Max(0, uncollected.Length - normalBattlevideoLimitMax + 1))
                 .Select(video => video.AbsId)
                 .ToArray();
             var version = BattleVersion.Build();
@@ -105,9 +103,9 @@ public sealed partial class VideoHistoryManager(
             return VideoHistoryView.Refused(PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid);
         }
 
-        if (isCollect == Collected && target.CollectFlag != Collected && videos.Count(video => video.CollectFlag == Collected) >= maxCollected)
+        if (isCollect == Collected && target.CollectFlag != Collected)
         {
-            return VideoHistoryView.Refused(PB_ENUM_RES_ERROR_CODE.PbErrVideoHistoryCollectFull);
+            return VideoHistoryView.Refused(PB_ENUM_RES_ERROR_CODE.PbErrSubscriptionOutdate);
         }
 
         await repository.SetCollectFlagAsync(uid, absId, isCollect);
@@ -117,6 +115,12 @@ public sealed partial class VideoHistoryManager(
     public async Task<VideoHistoryView> DeleteAsync(ulong uid, string absId)
     {
         if (!IsValidAbsId(absId))
+        {
+            return VideoHistoryView.Refused(PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid);
+        }
+
+        var videos = await LoadCurrentAsync(uid);
+        if (videos.FirstOrDefault(video => video.AbsId == absId) is { CollectFlag: Collected })
         {
             return VideoHistoryView.Refused(PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid);
         }
@@ -138,7 +142,7 @@ public sealed partial class VideoHistoryManager(
         var videos = await repository.ListAsync(uid);
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
         var version = BattleVersion.Build();
-        var expired = videos.Where(video => video.SaveTime + videoSaveContinueTime <= now).Select(video => video.AbsId).ToHashSet();
+        var expired = videos.Where(video => video.CollectFlag != Collected && video.SaveTime + videoSaveContinueTime <= now).Select(video => video.AbsId).ToHashSet();
         var outdated = videos
             .Where(video => !expired.Contains(video.AbsId) && (video.BattleVersionSection1 != version.Section1 || video.BattleVersionSection2 != version.Section2))
             .Select(video => video.AbsId)

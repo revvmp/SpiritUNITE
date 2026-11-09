@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SpiritUnite.Database.Repositories;
@@ -52,6 +53,8 @@ public sealed class MegaEvolutionManager(
     private const int DailyTask = (int)PB_ENUM_RES_MEGA_EVOLUTION_TASK_TYPE.PbResMegaEvolutionTaskTypeDaily;
     private const int WeekTask = (int)PB_ENUM_RES_MEGA_EVOLUTION_TASK_TYPE.PbResMegaEvolutionTaskTypeWeek;
 
+    private readonly ConcurrentDictionary<int, bool> fallbackWarnedActivityIDs = new();
+
     public IEnumerable<int> FindOpenActivityIds() =>
         schedule.FindActive(clock.GetUtcNow())
             .Select(activity => activity.Row.ActivityID)
@@ -104,8 +107,8 @@ public sealed class MegaEvolutionManager(
         var consumId = Other(activityID, Consum);
         var cost = (long)Other(activityID, ConsumNum) * trainNum;
         var bagCost = BuildCost(consumId, cost);
-        var settings = options.CurrentValue;
-        int[] trainResults = [.. Enumerable.Range(0, trainNum).Select(_ => Random.Shared.Next(settings.TrainMinComplete, settings.TrainMaxComplete + 1))];
+        var outcomes = FindTrainOutcomes(activityID);
+        int[] trainResults = [.. Enumerable.Range(0, trainNum).Select(_ => outcomes[Random.Shared.Next(outcomes.Count)])];
         var completeAfter = Math.Min(MaxComplete, state.Complete + trainResults.Sum());
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
         var commit = await repository.CommitTrainAsync(uid, activityID, state.Complete, completeAfter, bagCost, now);
@@ -118,6 +121,24 @@ public sealed class MegaEvolutionManager(
             "Mega Evolution activity {ActivityID} trained {TrainNum} times by uid {Uid}: complete {Before} -> {After} for {Cost} of {ConsumId}",
             activityID, trainNum, uid, state.Complete, completeAfter, cost, consumId);
         return await BuildChangedAsync(role, activityID, bagCost, commit, trainResults);
+    }
+
+    private IReadOnlyList<int> FindTrainOutcomes(int activityID)
+    {
+        var settings = options.CurrentValue;
+        if (settings.FindTrainResults(activityID) is { } published)
+        {
+            return published;
+        }
+
+        if (fallbackWarnedActivityIDs.TryAdd(activityID, true))
+        {
+            logger.LogWarning(
+                "Mega Evolution activity {ActivityID} has no published training outcomes: using the fallback [{Outcomes}]",
+                activityID, string.Join(", ", settings.FallbackTrainResultsOrOfficial));
+        }
+
+        return settings.FallbackTrainResultsOrOfficial;
     }
 
     public async Task<MegaEvolutionOutcome> SuperTrainAsync(LMNRoleInfo role, int activityID, int buyNum)

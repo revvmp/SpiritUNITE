@@ -784,6 +784,8 @@ CREATE TABLE IF NOT EXISTS `guild_member` (
     guild_id BIGINT UNSIGNED NOT NULL,
     office INT NOT NULL,
     join_time BIGINT NOT NULL,
+    comment_last_send_index BIGINT NULL,
+    comment_last_read_index BIGINT NULL,
     PRIMARY KEY (game_ulong_uid),
     KEY ix_guild_member_guild (guild_id),
     CONSTRAINT fk_guild_member_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE,
