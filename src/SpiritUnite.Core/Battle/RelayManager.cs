@@ -704,41 +704,123 @@ public sealed class RelayManager
         lock (game.Gate)
         {
             Heard(seat);
-            var camp = seat.Human.CampClient;
-            if (FindSurrenderFault(game, seat, request) is { } fault)
+            if (IsAISurrenderBallot(game, seat, request))
             {
-                logger.LogInformation("Desk {DeskID}: refused the surrender vote of uid {Uid} (flag {SurrenderFlag}): {Fault}", game.Desk.DeskID, uid, request.SurrenderFlag, fault);
-                return [BuildSurrenderRsp(Refusal(PB_ENUM_RES_ERROR_CODE.PbErrDeskStateInvalid), 0)];
+                sends.AddRange(CastAISurrenderBallot(game, seat, request));
+                toSender = [];
             }
-
-            if (request.SurrenderCampIdx != camp)
+            else
             {
-                logger.LogDebug("Desk {DeskID}: uid {Uid} named camp {SurrenderCampIdx} in its surrender vote; its camp is {Camp}", game.Desk.DeskID, uid, request.SurrenderCampIdx, camp);
-            }
+                if (FindSurrenderFault(game, seat, request) is { } fault)
+                {
+                    logger.LogInformation("Desk {DeskID}: refused the surrender vote of uid {Uid} (flag {SurrenderFlag}): {Fault}", game.Desk.DeskID, uid, request.SurrenderFlag, fault);
+                    return [BuildSurrenderRsp(Refusal(PB_ENUM_RES_ERROR_CODE.PbErrDeskStateInvalid), 0)];
+                }
 
-            var vote = game.Votes.GetValueOrDefault(camp) ?? StartSurrenderVote(game, seat);
-            vote.RecordScores(request.Camp1Score, request.Camp2Score);
-            vote.TryCast(seat.Human, request.SurrenderFlag == VoteAgrees);
-            var notices = new List<GamePacket> { BuildSurrenderNtf(vote) };
-            notices.AddRange(CastAutomaticVotes(game, vote, BuildSurrenderNtf));
-            logger.LogInformation(
-                "Desk {DeskID}: uid {Uid} votes {Agrees} on the surrender of camp {Camp}; {AgreesCnt} of {ValidCnt} agree, {Needed} needed",
-                game.Desk.DeskID,
-                uid,
-                request.SurrenderFlag == VoteAgrees ? "yes" : "no",
-                camp,
-                vote.Agrees,
-                vote.SurrenderValidCnt,
-                vote.AgreesNeeded);
-            toSender = [BuildSurrenderRsp(new pbResultInfo(), vote.SurrenderTime), .. notices];
-            sends.AddRange(game.ConnectedSeats
-                .Where(other => other.Uid != uid && other.Human.CampClient == camp)
-                .Select(other => new RelaySend(other.Uid, RelayChannel.Stream, [.. notices])));
-            sends.AddRange(CloseDecidedVote(game, vote));
+                var camp = seat.Human.CampClient;
+                var vote = game.Votes.GetValueOrDefault(camp) ?? StartSurrenderVote(game, seat);
+                vote.RecordScores(request.Camp1Score, request.Camp2Score);
+                vote.TryCast(seat.Human, request.SurrenderFlag == VoteAgrees);
+                var notices = new List<GamePacket> { BuildSurrenderNtf(vote) };
+                notices.AddRange(CastAutomaticVotes(game, vote, BuildSurrenderNtf));
+                logger.LogInformation(
+                    "Desk {DeskID}: uid {Uid} votes {Agrees} on the surrender of camp {Camp}; {AgreesCnt} of {ValidCnt} agree, {Needed} needed",
+                    game.Desk.DeskID,
+                    uid,
+                    request.SurrenderFlag == VoteAgrees ? "yes" : "no",
+                    camp,
+                    vote.Agrees,
+                    vote.SurrenderValidCnt,
+                    vote.AgreesNeeded);
+                toSender = [BuildSurrenderRsp(new pbResultInfo(), vote.SurrenderTime), .. notices];
+                sends.AddRange(game.ConnectedSeats
+                    .Where(other => other.Uid != uid && other.Human.CampClient == camp)
+                    .Select(other => new RelaySend(other.Uid, RelayChannel.Stream, [.. notices])));
+                sends.AddRange(CloseDecidedVote(game, vote));
+            }
         }
 
         await SendAllAsync(sends);
         return toSender;
+    }
+
+    private static bool IsAISurrenderBallot(RelayGame game, RelaySeat seat, pbCSSurrenderReq request) =>
+        request.SurrenderCampIdx != seat.Human.CampClient
+        || (!game.IsSingleAcnt
+            && game.ClientAISurrenders
+            && request.SurrenderFlag == VoteAgrees
+            && CarriesNoBattleScores(request)
+            && game.Desk.CampOf(request.SurrenderCampIdx).Any(player => IsAIControlled(game, player)));
+
+    private static bool CarriesNoBattleScores(pbCSSurrenderReq request) =>
+        request is { Camp1Score: 0, Camp2Score: 0, KillDragonCamp: 0 };
+
+    private static DeskPlayer? FindAISurrenderVoter(RelayGame game, int campClient) =>
+        game.Desk.CampOf(campClient).OrderBy(player => !player.IsNpc).FirstOrDefault(player =>
+            IsAIControlled(game, player)
+            && (game.Votes.GetValueOrDefault(campClient) is not { } open || open.CanVote(player)));
+
+    private static bool IsAIControlled(RelayGame game, DeskPlayer player) =>
+        player.IsNpc || game.FindSeat(player.Uid) is { Takeover: not RelaySeatTakeover.None };
+
+    private List<RelaySend> CastAISurrenderBallot(RelayGame game, RelaySeat sender, pbCSSurrenderReq request)
+    {
+        var campClient = request.SurrenderCampIdx;
+        if (FindAISurrenderFault(game, campClient, request) is { } fault)
+        {
+            logger.LogInformation("Desk {DeskID}: ignored the AI surrender ballot for camp {Camp} sent by uid {Uid}: {Fault}", game.Desk.DeskID, campClient, sender.Uid, fault);
+            return [];
+        }
+
+        game.AISurrenderCamps.Add(campClient);
+        var voter = FindAISurrenderVoter(game, campClient)!;
+        var vote = game.Votes.GetValueOrDefault(campClient) ?? StartSurrenderVote(game, campClient);
+        vote.TryCast(voter, agrees: true);
+        GamePacket[] notices = [BuildSurrenderNtf(vote), .. CastAutomaticVotes(game, vote, BuildSurrenderNtf)];
+        logger.LogInformation(
+            "Desk {DeskID}: uid {Uid} sent the AI surrender ballot of object {ObjId} in camp {Camp}; {AgreesCnt} of {ValidCnt} agree, {Needed} needed",
+            game.Desk.DeskID,
+            sender.Uid,
+            voter.ObjId,
+            campClient,
+            vote.Agrees,
+            vote.SurrenderValidCnt,
+            vote.AgreesNeeded);
+        return [.. CampNotices(game, campClient, notices), .. CloseDecidedVote(game, vote)];
+    }
+
+    private string? FindAISurrenderFault(RelayGame game, int campClient, pbCSSurrenderReq request)
+    {
+        if (game.Phase != RelayGamePhase.Fighting || game.Finished || game.SurrenderWinCampClient is not null)
+        {
+            return $"the desk is in phase {game.Phase}";
+        }
+
+        if (request.SurrenderFlag != VoteAgrees)
+        {
+            return "an AI ballot always agrees";
+        }
+
+        if (game.AISurrenderCamps.Contains(campClient))
+        {
+            return "the camp's AI already sent its ballot";
+        }
+
+        if (FindAISurrenderVoter(game, campClient) is null)
+        {
+            return "no AI-controlled object of the camp can vote";
+        }
+
+        if (game.Votes.GetValueOrDefault(campClient) is { } open)
+        {
+            return open.Kind != CampVoteKind.Surrender ? "a hang-up vote is open" : null;
+        }
+
+        var rules = game.Limits.Surrender;
+        var fightSeconds = clock.GetElapsedTime(game.FightStartedAt).TotalSeconds;
+        return fightSeconds < rules.StartSeconds ? $"surrender opens at {rules.StartSeconds} s, the fight is at {fightSeconds:F0} s"
+            : game.LastSurrenderTimes.TryGetValue(campClient, out var last) && clock.GetUtcNow().ToUnixTimeSeconds() < last + rules.CDSeconds ? "the camp's surrender is in its cool down"
+            : null;
     }
 
     private string? FindSurrenderFault(RelayGame game, RelaySeat seat, pbCSSurrenderReq request)
@@ -776,9 +858,13 @@ public sealed class RelayManager
 
     private CampVote StartSurrenderVote(RelayGame game, RelaySeat initiator)
     {
-        var camp = initiator.Human.CampClient;
-        var vote = new CampVote(CampVoteKind.Surrender, camp, [.. game.Desk.CampOf(camp)], clock.GetTimestamp(), clock.GetUtcNow().ToUnixTimeSeconds());
         initiator.StartedSurrenderVotes++;
+        return StartSurrenderVote(game, initiator.Human.CampClient);
+    }
+
+    private CampVote StartSurrenderVote(RelayGame game, int camp)
+    {
+        var vote = new CampVote(CampVoteKind.Surrender, camp, [.. game.Desk.CampOf(camp)], clock.GetTimestamp(), clock.GetUtcNow().ToUnixTimeSeconds());
         game.LastSurrenderTimes[camp] = vote.SurrenderTime;
         game.Votes[camp] = vote;
         return vote;

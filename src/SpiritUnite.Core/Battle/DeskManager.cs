@@ -12,6 +12,7 @@ using SpiritUnite.Game.Friend;
 using SpiritUnite.Game.HeldItem;
 using SpiritUnite.Game.Login;
 using SpiritUnite.Game.Pokemon;
+using SpiritUnite.Game.PokemonAvatar;
 using SpiritUnite.Game.Profile;
 using SpiritUnite.Game.PveChallenge;
 using SpiritUnite.Game.Ranked;
@@ -56,6 +57,7 @@ public sealed class DeskManager
     private const int FixedPasterRule = (int)PB_ENUM_RES_CHOOSE_PASTER_RULE.PbResChoosePasterRuleAssign;
     private const int FixedPasterIndex = 0;
     private const int CatchGameType = (int)PB_ENUM_RES_MATCHGAMETYPE.PbMatchGameTypeCatch;
+    private const int HeavenTrainerGameType = (int)PB_ENUM_RES_MATCHGAMETYPE.PbMatchGameTypeHeavenTrainer;
     private const int TrialLicenseItemType = (int)PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypePokemontimelimited;
     private const int TrialLicensePokemonParamIndex = 0;
     private const int CardShowIcon = (int)PB_ENUM_ENM_PICK_POKEMON_SHOW_ICON_TYPE.PbEnmPickPokemonShowIconTypeCard;
@@ -833,7 +835,7 @@ public sealed class DeskManager
         {
             if (npc.IsHeroLocked)
             {
-                outcome.PushAll(NpcPickViewers(desk, npc), PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(npc, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroChooseHero));
+                outcome.PushAll(desk.HumanUids, PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(npc, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroChooseHero));
             }
             else if (npc.ChosenHeroID != NoHeroID || ChooseLiveBot(desk, npc, now, outcome))
             {
@@ -851,7 +853,7 @@ public sealed class DeskManager
     {
         var enemies = Enemies(desk).ToHashSet();
         var enemyHeroIDs = HeroIDsOf(route.EnemyldList);
-        int[]? fixedAllyHeroIDs = IsCatchDesk(desk) && route.TeamPickMode != RandomTeamPickMode
+        int[]? fixedAllyHeroIDs = route.TeamPickMode != RandomTeamPickMode
             ? HeroIDsOf(route.TeamldList)
             : null;
         foreach (var npc in desk.Players.Where(player => player.IsNpc))
@@ -1124,7 +1126,7 @@ public sealed class DeskManager
                 }
                 else if (member.MemberDetail.MemberOfNpc?.Detail is { } npc)
                 {
-                    npcs.Add(BuildNpcPlayer(member, npc, camp.CampClient, NpcObjIdBase + npcs.Count + 1, match.NpcConfigs.GetValueOrDefault(npc.Uid), isPveDesk: room.PveChallengeSelectNode is not null));
+                    npcs.Add(BuildNpcPlayer(member, npc, camp.CampClient, NpcObjIdBase + npcs.Count + 1, match.NpcConfigs.GetValueOrDefault(npc.Uid), NpcPlayerAILevelOf(room, scene)));
                 }
             }
         }
@@ -1141,7 +1143,7 @@ public sealed class DeskManager
             IsForbidQuitGame = room.PveChallengeSelectNode is null ? ForbidQuitGame : 0,
             LegendPokemonInfo = new pbCOMDT_LEGEND_POKEMON_INFO(),
             PickHeroMode = scene.PickHeroMode == BanPickDraft.PickHeroMode ? DefaultPickHeroMode : scene.PickHeroMode,
-            TrainerDifficultyLevel = scene.GameType == (int)PB_ENUM_RES_MATCHGAMETYPE.PbMatchGameTypeHeavenTrainer ? room.HeavenDifficultyLevel : room.TrainerDifficultyLevel,
+            TrainerDifficultyLevel = scene.GameType == HeavenTrainerGameType ? room.HeavenDifficultyLevel : room.TrainerDifficultyLevel,
             IsWarmBattle = matchSucc.RoomInfo.IsWarmBattle,
             WarmBattleType = matchSucc.RoomInfo.IsWarmBattle != NoWarmBattle ? match.WarmBattleType : NoWarmBattle,
         };
@@ -1268,7 +1270,7 @@ public sealed class DeskManager
         int campClient,
         int objId,
         pbAiInfoConfig? npcConfig,
-        bool isPveDesk)
+        int npcPlayerAILevel)
     {
         var campPlayerInfo = new pbCSDT_CAMPPLAYERINFO
         {
@@ -1294,7 +1296,7 @@ public sealed class DeskManager
                         ContestantCameraDis = npc.ContestantCameraDis,
                         ContestantDir = npc.ContestantDir,
                         ContestantPos = new pbCOMDT_TRAINER_IMAGE_POSITION(),
-                        AILevel = isPveDesk ? NpcPlayerAILevel : NoNpcPlayerAILevel,
+                        AILevel = npcPlayerAILevel,
                         UserPlantInfo = npc.UserPlantInfo.Clone(),
                         Effect = new pbCOMDT_CONTESTANT_EFFECT_LIST(),
                         PokemonEffect = new pbCOMDT_CONTESTANT_POKEMON_EFFECT_INFO { Position = new pbCOMDT_TRAINER_IMAGE_POSITION() },
@@ -1372,11 +1374,12 @@ public sealed class DeskManager
         }
 
         var cfgNow = UTCTimeUtil.ServerTime2CfgTime(clock.GetUtcNow());
+        var pokemonIDForShare = PokemonAvatarManager.GetPokemonIDForShare(hero);
         int[] pasterIDs =
         [
             PokemonManager.NoPaster,
             .. gameData.PokemonAvatarBase.Rows
-                .Where(avatar => avatar.PokemonId == hero.PokemonId && avatar.OnTime <= cfgNow)
+                .Where(avatar => avatar.PokemonId == pokemonIDForShare && avatar.OnTime <= cfgNow)
                 .Select(avatar => avatar.PokemonAvatarId),
         ];
         return pasterIDs[Random.Shared.Next(pasterIDs.Length)];
@@ -1423,10 +1426,13 @@ public sealed class DeskManager
         }
     }
 
+    private static int NpcPlayerAILevelOf(MatchRoom room, pbScene_Map scene) =>
+        room.PveChallengeSelectNode is not null && scene.GameType == HeavenTrainerGameType ? NpcPlayerAILevel : NoNpcPlayerAILevel;
+
     private static bool IsCatchDesk(BattleDesk desk) => desk.DeskInfo.GameType == CatchGameType;
 
     private NpcHeldItemLoadout NpcHeldItemLoadoutOf(BattleDesk desk) =>
-        IsCatchDesk(desk)
+        (IsCatchDesk(desk) || desk.PveChallengeSelectNode is not null)
             && AiHelditemLevelByAILevel.TryGetValue(desk.DeskInfo.AILevel, out var aiHelditemLevel)
             ? new NpcHeldItemLoadout(gameData.GetGlobalIntData(aiHelditemLevel), MeanHumanHeldItemSlotUnlockNum(desk))
             : NpcHeldItemLoadout.None;
@@ -1613,7 +1619,7 @@ public sealed class DeskManager
         }
 
         npc.ChoiceHero = BuildNpcChoiceHero(heroID, npc.NpcConfig, NpcHeldItemLoadoutOf(desk), showsWayTip, now);
-        outcome.PushAll(NpcPickViewers(desk, npc), PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(npc, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroChooseHero));
+        outcome.PushAll(desk.HumanUids, PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(npc, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroChooseHero));
         return true;
     }
 
@@ -1628,17 +1634,15 @@ public sealed class DeskManager
 
         var showsWayTip = Random.Shared.Next(Percent) < WayTipShowPercent;
         npc.ChoiceHero = BuildNpcChoiceHero(heroID, npc.NpcConfig, NpcHeldItemLoadoutOf(desk), showsWayTip, now);
-        outcome.PushAll(NpcPickViewers(desk, npc), PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(npc, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroChooseHero));
+        outcome.PushAll(desk.HumanUids, PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(npc, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroChooseHero));
         return true;
     }
 
-    private static ulong[] NpcPickViewers(BattleDesk desk, DeskPlayer npc) =>
-        desk.BotsPickLive ? desk.HumanUids : desk.HumanUidsOf(npc.CampClient);
 
     private static void LockNpc(BattleDesk desk, DeskPlayer npc, RoomOutcome outcome)
     {
         npc.ChoiceHero.IsHeroLocked = DeskPlayer.HeroLocked;
-        outcome.PushAll(NpcPickViewers(desk, npc), PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(npc, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroLockHero));
+        outcome.PushAll(desk.HumanUids, PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(npc, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroLockHero));
     }
 
     private RoomOutcome? FindPickingHuman(ulong uid, out BattleDesk desk, out DeskPlayer player)

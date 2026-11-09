@@ -9,14 +9,14 @@ public sealed record BotMatchSucc(pbSCMatchRsp MatchRsp, IReadOnlyDictionary<ulo
 
 public static class PveMatch
 {
-    public const int MinAILevel = (int)PB_ENUM_RES_AI_DIFFICULTYLEVEL_TYPE.PbResAiDifficultylevelTypeWarmbattle;
-
     public const int ReadyConfirmUiType = 1;
     public const int GenericNpcType = (int)PB_ENUM_RES_NPC_TYPE.PbResNpcTypeNormal;
 
     private const int TrainerConfirmUiType = 2;
     private const int CatchGameType = (int)PB_ENUM_RES_MATCHGAMETYPE.PbMatchGameTypeCatch;
-    private const int CatchAILevel = (int)PB_ENUM_RES_AI_DIFFICULTYLEVEL_TYPE.PbResAiDifficultylevelTypeEasy;
+    private const int NormalNodeAILevel = (int)PB_ENUM_RES_AI_DIFFICULTYLEVEL_TYPE.PbResAiDifficultylevelTypeEasy;
+    private const int HardNodeAILevel = (int)PB_ENUM_RES_AI_DIFFICULTYLEVEL_TYPE.PbResAiDifficultylevelTypeNormal;
+    private const int HardNodeDifficultyLevel = (int)PB_ENUM_RES_PVESTAGE_DIFFICULTY_TYPE.PbResVestageDifficultyTypeHard;
     private const int NpcAcntLevel = 1;
     private const int NpcMember = (int)PB_ENUM_COM_ROOM_MEMBEM_TYPE.PbComRoomMemberTnpc;
     private const int TitleNpcType = (int)PB_ENUM_RES_NPC_TYPE.PbResNpcTypeAnonymousUser;
@@ -58,14 +58,13 @@ public static class PveMatch
         GameData gameData,
         MatchRoom room,
         IReadOnlyList<pbCOMDT_ROOMMEMBER_DT> members,
-        int masterTrainerLevel,
         long succTimeStamp,
         int confirmTimeoutMs)
     {
         var npcConfigs = new Dictionary<ulong, pbAiInfoConfig>();
         var npcUids = NpcUids.Besides(members);
         var isCatchMap = gameData.SceneMap.Find(room.MapId)?.GameType == CatchGameType;
-        var aiLevel = isCatchMap ? CatchAILevel : masterTrainerLevel;
+        var aiLevel = AILevelOf(room.PveChallengeSelectNode);
         var memInfo = isCatchMap
             ? BuildCatchMemInfo(gameData, room, members, aiLevel, npcConfigs, npcUids)
             : BuildHeavenTrainerMemInfo(gameData, room, members, aiLevel, npcConfigs, npcUids);
@@ -73,6 +72,9 @@ public static class PveMatch
         var matchRsp = BuildMatchSuccRsp(room.MapId, aiLevel, memInfo, succTimeStamp, isCatchMap ? ReadyConfirmUiType : TrainerConfirmUiType, confirmTimeoutMs);
         return new BotMatchSucc(matchRsp, npcConfigs);
     }
+
+    private static int AILevelOf(pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE? selectNode) =>
+        selectNode?.DifficultyLevel == HardNodeDifficultyLevel ? HardNodeAILevel : NormalNodeAILevel;
 
     public static pbSCMatchRsp BuildMatchSuccRsp(
         int mapId,

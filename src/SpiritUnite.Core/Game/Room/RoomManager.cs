@@ -1524,12 +1524,10 @@ public sealed class RoomManager(
     {
         var succTimeStamp = NextSecond();
         var outcome = BeginMatch(room, succTimeStamp);
-        var masterTrainerLevel = roles.Find(room.MasterUid) is { } master ? RoleProfile.GetLevel(gameData, master) : PveMatch.MinAILevel;
         var matchSucc = PveMatch.MatchSucc(
             gameData,
             room,
             BuildMatchMembers(room, PartyTeamFlag),
-            masterTrainerLevel,
             succTimeStamp,
             ConfirmTimeoutOf(room));
         return OpenConfirmWindow([room], [], matchSucc, npcsConfirm: false, outcome);

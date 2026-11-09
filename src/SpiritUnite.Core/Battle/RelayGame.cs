@@ -201,6 +201,7 @@ public sealed class RelayGame
     public List<ulong> GameoverOrder { get; } = [];
     public Dictionary<int, CampVote> Votes { get; } = [];
     public Dictionary<int, long> LastSurrenderTimes { get; } = [];
+    public HashSet<int> AISurrenderCamps { get; } = [];
     public Dictionary<int, long> LastCanopyShowTimestamps { get; } = [];
     public bool HangUpReported { get; set; }
     public bool EndedByJudge { get; set; }
@@ -222,6 +223,10 @@ public sealed class RelayGame
     public bool RunsFrameLoop => !IsSingleAcnt;
 
     public bool BroadcastsNpcProcess => Desk.DeskInfo.ManMachine != CpuMatch.ManMachine;
+
+    public bool ClientAISurrenders =>
+        Desk.DeskInfo.ManMachine != CpuMatch.ManMachine
+        && Desk.DeskInfo.RoomType != (int)PB_ENUM_COM_ROOM_TYPE.PbComRoomTypeNormal;
 
     public bool AllHumansAttached => Seats.Values.All(seat => seat.IsConnected);
 
