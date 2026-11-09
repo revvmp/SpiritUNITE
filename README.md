@@ -46,7 +46,7 @@ SpiritUNITE is a C# server emulator for the [Pokemon UNITE](https://en.wikipedia
    ```powershell
    dotnet run --project src/SpiritUnite.Core
    ```
-   
+
 ## Download the Game Resources
 
 Your server hands players the files the game downloads on first launch: one resource archive per platform and the shop, outfit and event images. Get them from the official servers while they are still up (until March 23, 2027). No APK is needed.
@@ -103,8 +103,15 @@ The directory server tells the client where to find the lobby server. By default
    }
    ```
 
-2. Set `TcpServer.BindAddress` to `0.0.0.0` so the directory, lobby, update and relay servers accept outside connections. Keep `127.0.0.1` for local testing.
-
+2. Set `TcpServer.BindAddress` to `0.0.0.0` so the directory, lobby, update and relay servers accept outside connections. Keep `127.0.0.1` for local development.
+    ```json
+    "TcpServer": {
+    "BindAddress": "127.0.0.1",
+    "MaxConnections": 100,
+    "IdleTimeoutSeconds": 120,
+    "RegistrationIdleTimeoutSeconds": 900
+    }
+    ```
 
 3. Set up HTTPS for your domain and open your ports. Follow the [nginx hosting guide](deploy/README.md).
 
@@ -114,8 +121,9 @@ The directory server tells the client where to find the lobby server. By default
    - For hosting, set it to your domain (or CDN). Serve `/resources/` over plain HTTP on port 80, not redirected to HTTPS:
    ```json
    "ResourceArchive": {
-     "BaseUrl": "https://play.example.com"
-   }
+    "Directory": "resources",
+    "BaseUrl": ""
+    }
    ```
 
 
