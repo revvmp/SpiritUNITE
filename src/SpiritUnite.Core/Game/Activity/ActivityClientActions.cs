@@ -10,7 +10,11 @@ public static class ActivityClientActions
 
     public static bool IsClientAction(pbFinishCondition condition) =>
         condition.ID is (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdClickTaskButton
-            or (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdShareContent;
+            or (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdShareContent
+            or (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdObserveFriend;
+
+    public static bool ObservedFriendBattle(pbFinishCondition condition) =>
+        condition.ID == (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdObserveFriend;
 
     public static bool IsValidButtonId(int buttonId) =>
         buttonId != (int)PB_ENUM_RES_TASK_BUTTON_ID.PbResTaskButtonIdNone

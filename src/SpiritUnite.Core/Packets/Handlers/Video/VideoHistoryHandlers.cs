@@ -4,11 +4,8 @@ using SpiritUnite.Packets.Messages;
 
 namespace SpiritUnite.Packets.Handlers.Video;
 
-public sealed class VideoHistoryHandlers(RoleInfoStore roles, VideoHistoryManager videoHistory)
+public sealed class VideoHistoryHandlers(RoleInfoStore roles, VideoHistoryManager videoHistory, VideoPlayback videoPlayback)
 {
-    private const int VideoPlaying = 1;
-    private const int VideoStopped = 0;
-
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidVideoHistoryReq)]
     public async Task<GamePacket[]> OnVideoHistoryReq(GamePacket request)
     {
@@ -64,7 +61,7 @@ public sealed class VideoHistoryHandlers(RoleInfoStore roles, VideoHistoryManage
     public GamePacket[] OnVideoPlayStatusReq(GamePacket request)
     {
         var status = pbCSVideoPlayStatusReq.Parser.ParseFrom(request.PkgData).VideoPlayStatus;
-        var result = status is VideoPlaying or VideoStopped ? PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc : PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
+        var result = videoPlayback.SetVideoPlayStatus(request.Uid, status) ? PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc : PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidVideoPlayStatusRsp, new pbSCVideoPlayStatusRsp { ResultInfo = new pbResultInfo { ResultId = (int)result } })];
     }
 

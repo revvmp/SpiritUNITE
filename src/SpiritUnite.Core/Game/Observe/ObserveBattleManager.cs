@@ -97,7 +97,7 @@ public sealed class ObserveBattleManager(
         var list = new List<pbCOMDT_GREAT_BATTLE_INFO>();
         foreach (var battle in battles)
         {
-            if (await FindGreatPlayerAsync(battle) is not ({ } player, var rankedDivision) || await roles.FindAsync(player.Uid) is not { } role)
+            if (await FindGreatPlayerAsync(battle) is not ({ } player, var position) || await roles.FindAsync(player.Uid) is not { } role)
             {
                 continue;
             }
@@ -112,7 +112,7 @@ public sealed class ObserveBattleManager(
                 BattleStartTime = battle.BattleStartTime,
                 MapId = battle.MapId,
                 Desk = battle.BuildOBDesk(),
-                SortValue = rankedDivision,
+                SortValue = position.MasterPoint,
                 UserPlantInfo = (await profiles.LoadAsync(player.Uid)).BuildUserPlantInfo(),
             });
         }
@@ -153,23 +153,26 @@ public sealed class ObserveBattleManager(
         return battles.SelectMany(battle => battle.Players.Where(player => !hidden.Contains(player.Uid)).Select(player => (battle, player)));
     }
 
-    private async Task<(ObservablePlayer? Player, int RankedDivision)> FindGreatPlayerAsync(ObservableBattle battle)
+    private async Task<(ObservablePlayer? Player, RankedPosition Position)> FindGreatPlayerAsync(ObservableBattle battle)
     {
         ObservablePlayer? best = null;
-        var bestDivision = 0;
+        var bestPosition = RankedLadder.UnplacedPosition;
         foreach (var (_, player) in ListedPlayers([battle]))
         {
             await ranked.LoadAsync(player.Uid);
-            var division = ranked.PositionOf(player.Uid).RankedDivision;
-            if (division >= greatBattleRankedDivision && division > bestDivision && await AllowsObserveAsync(player.Uid))
+            var position = ranked.Ladder.ToClientPosition(ranked.PositionOf(player.Uid));
+            if (ranked.Ladder.IsAtLeast(position.RankedDivision, greatBattleRankedDivision) && RanksAbove(position, bestPosition) && await AllowsObserveAsync(player.Uid))
             {
                 best = player;
-                bestDivision = division;
+                bestPosition = position;
             }
         }
 
-        return (best, bestDivision);
+        return (best, bestPosition);
     }
+
+    private bool RanksAbove(RankedPosition position, RankedPosition other) =>
+        (ranked.Ladder.IndexOf(position.RankedDivision), position.MasterPoint).CompareTo((ranked.Ladder.IndexOf(other.RankedDivision), other.MasterPoint)) > 0;
 
     private async Task<bool> AllowsObserveAsync(ulong uid)
     {

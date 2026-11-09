@@ -376,6 +376,7 @@ public static class Server
         builder.Services.AddSingleton<AppearanceGift>();
         builder.Services.AddSingleton<FightHistoryManager>();
         builder.Services.AddSingleton<VideoHistoryManager>();
+        builder.Services.AddSingleton<VideoPlayback>();
         builder.Services.AddSingleton<ProfileManager>();
         builder.Services.AddSingleton<SettingsManager>();
         builder.Services.AddSingleton<AccountManager>();

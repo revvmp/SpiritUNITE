@@ -3,12 +3,10 @@ using SpiritUnite.Packets.Messages;
 
 namespace SpiritUnite.Battle;
 
-public sealed record ObserveVideoStage(long Offset, long End);
+public sealed record ObserveVideoStage(long Offset, long End, bool EndsStream);
 
 public sealed class ObserveVideo(RelayGame game)
 {
-    public const int MaxStageBytes = 409600;
-
     private const long StreamStart = 0;
     private const int BeginLoadPacketIndex = 0;
     private const int MinFrameMilliseconds = 1;
@@ -79,7 +77,7 @@ public sealed class ObserveVideo(RelayGame game)
                 return null;
             }
 
-            return new ObserveVideoStage(offset, CutAtPacketEnd(offset, end));
+            return new ObserveVideoStage(offset, end, over && offset >= beginLoadEnd && end == packetEnds[^1]);
         }
     }
 
@@ -140,22 +138,5 @@ public sealed class ObserveVideo(RelayGame game)
         stream.Position = stream.Length;
         stream.Write(packet);
         packetEnds.Add(stream.Length);
-    }
-
-    private long CutAtPacketEnd(long offset, long end)
-    {
-        var limit = offset + MaxStageBytes;
-        if (end <= limit)
-        {
-            return end;
-        }
-
-        var index = packetEnds.BinarySearch(limit);
-        if (index < 0)
-        {
-            index = ~index - 1;
-        }
-
-        return index >= 0 && packetEnds[index] > offset ? packetEnds[index] : packetEnds[packetEnds.FindIndex(packetEnd => packetEnd > offset)];
     }
 }

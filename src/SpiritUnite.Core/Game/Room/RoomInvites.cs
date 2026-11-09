@@ -1,8 +1,10 @@
 using System.Collections.Concurrent;
+using SpiritUnite.Battle;
 using SpiritUnite.Databin;
 using SpiritUnite.Game.Friend;
 using SpiritUnite.Game.Ranked;
 using SpiritUnite.Game.Role;
+using SpiritUnite.Game.Video;
 using SpiritUnite.Packets;
 using SpiritUnite.Packets.Messages;
 
@@ -14,6 +16,8 @@ public sealed class RoomInvites(
     FriendPresence presence,
     RoleInfoStore roles,
     RankedManager ranked,
+    ObserveManager observes,
+    VideoPlayback videoPlayback,
     GameData gameData,
     TimeProvider clock)
 {
@@ -40,6 +44,16 @@ public sealed class RoomInvites(
         if (rooms.FindRoomOf(targetUid) is not null)
         {
             return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomAlreadyInRoom);
+        }
+
+        if (observes.ObserveStateOf(targetUid) != PB_ENUM_ENM_OBSERVE_STATE.PbEnmObserveNull)
+        {
+            return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrBattleInviteObserve);
+        }
+
+        if (videoPlayback.IsPlayingVideo(targetUid))
+        {
+            return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrBattleInvitePlayVideo);
         }
 
         if (room.IsMatching)

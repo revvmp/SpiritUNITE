@@ -18,6 +18,7 @@ public sealed class ObserveManager
     private const int RelayIsUDP = 1;
     private const int NewStage = 1;
     private const int AllOver = 1;
+    private const int NotAllOver = 0;
 
     private readonly DeskManager desks;
     private readonly LwipTickets relayTickets;
@@ -164,20 +165,29 @@ public sealed class ObserveManager
                 Buf = ByteString.CopyFrom(watcher.Video.Read(pieceOffset, pieceLength)),
                 TotalNum = totalNum,
                 ThisPos = watcher.NextPos,
+                AllOver = stage.EndsStream && watcher.NextPos == totalNum - 1 ? AllOver : NotAllOver,
             };
             watcher.NextPos++;
             return new pbSCGetVideoOfFrapsRsp { ResultInfo = new pbResultInfo(), VideoOfFraps = piece };
         }
     }
 
-    public void Quit(ulong uid)
+    public PB_ENUM_ENM_OBSERVE_STATE ObserveStateOf(ulong uid)
+    {
+        lock (gate)
+        {
+            return watchers.GetValueOrDefault(uid) is { } watcher ? StateOf(watcher) : PB_ENUM_ENM_OBSERVE_STATE.PbEnmObserveNull;
+        }
+    }
+
+    public PB_ENUM_ENM_OBSERVE_STATE Quit(ulong uid)
     {
         Watcher? watcher;
         lock (gate)
         {
             if (!watchers.Remove(uid, out watcher))
             {
-                return;
+                return PB_ENUM_ENM_OBSERVE_STATE.PbEnmObserveNull;
             }
 
             watcher.Video.ObserveNum--;
@@ -191,7 +201,11 @@ public sealed class ObserveManager
         }
 
         logger.LogInformation("Uid {Uid} stopped observing desk {DeskID}", uid, watcher.Video.Desk.DeskID);
+        return StateOf(watcher);
     }
+
+    private static PB_ENUM_ENM_OBSERVE_STATE StateOf(Watcher watcher) =>
+        watcher.Ticket is null ? PB_ENUM_ENM_OBSERVE_STATE.PbEnmObserveGreat : PB_ENUM_ENM_OBSERVE_STATE.PbEnmObserveFriend;
 
     private void Record(RelayGame game)
     {

@@ -1,11 +1,19 @@
+using Microsoft.Extensions.Logging;
 using SpiritUnite.Battle;
+using SpiritUnite.Game.Activity;
 using SpiritUnite.Game.Observe;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Packets.Messages;
 
 namespace SpiritUnite.Packets.Handlers.Observe;
 
-public sealed class ObserveHandlers(RoleInfoStore roles, ObserveBattleManager observeBattles, ObserveManager observe)
+public sealed class ObserveHandlers(
+    RoleInfoStore roles,
+    ObserveBattleManager observeBattles,
+    ObserveManager observe,
+    ActivityManager activityManager,
+    ActivityProgressPushes activityProgressPushes,
+    ILogger<ObserveHandlers> logger)
 {
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidFriendBattleListReq)]
     public async Task<GamePacket[]> OnFriendBattleListReq(GamePacket request)
@@ -80,11 +88,21 @@ public sealed class ObserveHandlers(RoleInfoStore roles, ObserveBattleManager ob
     public GamePacket[] OnRelayGetVideoOfFrapsReq(GamePacket request) => ReplyVideoOfFraps(request);
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidQuitObserveReq)]
-    public GamePacket[] OnQuitObserveReq(GamePacket request)
+    public async Task<GamePacket[]> OnQuitObserveReq(GamePacket request)
     {
-        pbCSQuitObserveReq.Parser.ParseFrom(request.PkgData);
-        observe.Quit(request.Uid);
-        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidQuitObserveRsp, new pbSCQuitObserveRsp { ResultInfo = new pbResultInfo() })];
+        var quit = pbCSQuitObserveReq.Parser.ParseFrom(request.PkgData);
+        var reply = new ReplyList(request);
+        reply.Add(PB_ENUM_CS_MSGID_DEF.PbScidQuitObserveRsp, new pbSCQuitObserveRsp { ResultInfo = new pbResultInfo() });
+        if (observe.Quit(request.Uid) != PB_ENUM_ENM_OBSERVE_STATE.PbEnmObserveFriend || roles.Find(request.Uid) is not { } role)
+        {
+            return reply.ToArray();
+        }
+
+        var progress = await activityManager.RecordClientActionAsync(role, ActivityClientActions.ObservedFriendBattle);
+        logger.LogInformation("Friend battle watch by uid {Uid} ended after {ObserveTime} s: {TaskCount} tasks progressed",
+            request.Uid, quit.ObserveTime, progress.UpdatedTasks.Length);
+        reply.AddRange(await activityProgressPushes.BuildAsync(role, progress));
+        return reply.ToArray();
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidSetObservePrivacyReq)]
