@@ -18,7 +18,7 @@ public sealed class ActivityHandlers(
         pbCSRefreshActivityTaskReq.Parser.ParseFrom(request.PkgData);
         var role = roles.Require(request.Uid);
         await activityManager.RecordLoginDayAsync(role.GameUlongUID);
-        return [];
+        return [.. ActivityManager.BuildRefreshRedDotClears().Select(clear => request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidRedDotClearNtf, clear))];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidClickTaskButtonReq)]

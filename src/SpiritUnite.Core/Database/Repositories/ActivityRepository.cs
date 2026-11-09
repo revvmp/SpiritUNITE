@@ -30,21 +30,23 @@ public sealed record ActivityRewardChange(
 
 public sealed class ActivityRepository(DataOptions options)
 {
-    public async Task RecordLoginDayAsync(ulong gameUlongUID, DateOnly loginDay)
+    public async Task<bool> RecordLoginDayAsync(ulong gameUlongUID, DateOnly loginDay)
     {
         await using var database = new DataConnection(options);
         if (await database.GetTable<RoleLoginDay>()
             .AnyAsync(day => day.GameUlongUID == gameUlongUID && day.LoginDay == loginDay))
         {
-            return;
+            return false;
         }
 
         try
         {
             await database.InsertAsync(new RoleLoginDay { GameUlongUID = gameUlongUID, LoginDay = loginDay });
+            return true;
         }
         catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
         {
+            return false;
         }
     }
 
@@ -111,6 +113,38 @@ public sealed class ActivityRepository(DataOptions options)
         var changedItems = await BagRepository.ReadItemsAsync(database, gameUlongUID, change.TouchedItems);
         var wallet = await WalletRepository.ReadAsync(database, gameUlongUID);
         return new ActivityRewardCommit(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, specialCoinsBefore, wallet, changedItems);
+    }
+
+    public async Task<bool> CommitUnclaimedTaskMailAsync(ulong gameUlongUID, IReadOnlyList<ActivityTaskReward> rewards, IReadOnlyList<RoleMail> mails)
+    {
+        await using var database = new DataConnection(options);
+        await using var transaction = await database.BeginTransactionAsync();
+        try
+        {
+            foreach (var reward in rewards)
+            {
+                await database.InsertAsync(new RoleActivityTaskReward
+                {
+                    GameUlongUID = gameUlongUID,
+                    TaskId = reward.TaskId,
+                    PeriodStart = reward.PeriodStart,
+                    RewardTime = reward.RewardTime,
+                });
+            }
+        }
+        catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
+        {
+            await transaction.RollbackAsync();
+            return false;
+        }
+
+        foreach (var mail in mails)
+        {
+            await MailRepository.InsertAsync(database, mail);
+        }
+
+        await transaction.CommitAsync();
+        return true;
     }
 
     public async Task<ActivityRewardCommit> CommitTaskRewardAsync(

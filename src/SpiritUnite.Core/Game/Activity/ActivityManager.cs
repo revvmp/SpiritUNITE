@@ -33,7 +33,19 @@ public sealed class ActivityManager(
     private const long NotCompletedTime = 0;
     private const int MaxChainRounds = 8;
 
-    public Task RecordLoginDayAsync(ulong uid) =>
+    private static readonly PB_ENUM_RES_RED_DOT_ID[] RecallRedDotsClearedOnRefresh =
+    [
+        PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdRecallLoginAward,
+        PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdRecallScoreAward,
+        PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdRecallBattleAward,
+        PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdRecallTaskAward,
+        PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdRecallRechargeAward,
+    ];
+
+    public static pbSCRedDotClearNtf[] BuildRefreshRedDotClears() =>
+        [.. RecallRedDotsClearedOnRefresh.Select(redDotID => new pbSCRedDotClearNtf { RedDotID = (int)redDotID })];
+
+    public Task<bool> RecordLoginDayAsync(ulong uid) =>
         repository.RecordLoginDayAsync(uid, DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime));
 
     public async Task<pbCOMDT_TASK_INFO[]> BuildTaskInfoListAsync(LMNRoleInfo role)
@@ -64,6 +76,16 @@ public sealed class ActivityManager(
             .ToArray();
         var progress = await LoadProgressAsync(role, tasks, now);
         return [.. tasks.Select(task => progress.Evaluate(task).ToTaskInfo())];
+    }
+
+    public async Task<pbSCUpdateTaskInfoNtf?> BuildDayLoginTaskUpdateAsync(LMNRoleInfo role)
+    {
+        var dayStart = new DateTimeOffset(clock.GetUtcNow().UtcDateTime.Date, TimeSpan.Zero).ToUnixTimeSeconds();
+        var changed = (await BuildTaskInfoListAsync(role, PB_ENUM_RES_CONDITION_ID.PbResConditionIdEverydayLogin))
+            .Where(task => task.Status == (int)PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusRecved
+                || (task.Status == (int)PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusComplete && task.CompleteTime >= dayStart))
+            .ToArray();
+        return changed.Length > 0 ? new pbSCUpdateTaskInfoNtf { TaskInfoList = { changed } } : null;
     }
 
     public async Task<int> CountCompleteTasksAsync(LMNRoleInfo role) =>
@@ -166,6 +188,22 @@ public sealed class ActivityManager(
         return conditions is [var condition] && ActivityClientActions.IsClientAction(condition) && isCountedAction(condition)
             ? [new TaskProcessIncrement(task.Task.TaskID, FindPeriodStart(task, now).ToUnixTimeSeconds(), ActivityClientActions.ActionCount, condition.TargetProcess)]
             : [];
+    }
+
+    public async Task<UnclaimedActivityTask[]> FindUnclaimedTasksAtEndAsync(LMNRoleInfo role, ScheduledActivity activity)
+    {
+        var endTime = activity.ValidEnd;
+        var tasks = (await FindRoleTasksAsync(role, endTime))
+            .Where(task => task.Activity.Row.ActivityID == activity.Row.ActivityID && HasConditions(task))
+            .ToArray();
+        var progress = await LoadProgressAsync(role, tasks, endTime);
+        return
+        [
+            .. tasks
+                .Select(progress.Evaluate)
+                .Where(state => state.Status == PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusComplete)
+                .Select(state => new UnclaimedActivityTask(state.Task.TaskID, state.PeriodStart, state.Task.SDropID)),
+        ];
     }
 
     public async Task<ActivityTaskClaim> ClaimAsync(LMNRoleInfo role, int taskId)
@@ -700,6 +738,8 @@ public sealed class ActivityManager(
 }
 
 public sealed record ActivityTaskReward(int TaskId, long PeriodStart, long RewardTime);
+
+public sealed record UnclaimedActivityTask(int TaskId, long PeriodStart, int SDropID);
 
 public sealed record ActivityTaskFinish(int TaskId, long PeriodStart, long FinishTime);
 

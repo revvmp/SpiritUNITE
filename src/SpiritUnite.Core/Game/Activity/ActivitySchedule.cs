@@ -33,6 +33,9 @@ public sealed class ActivitySchedule
     public ScheduledActivity? FindOpen(PB_ENUM_RES_ACTIVITY_TYPE activityType, DateTimeOffset now) =>
         FindActive(now).FirstOrDefault(activity => activity.Row.ActivityType == (int)activityType);
 
+    public ScheduledActivity[] FindEnded(PB_ENUM_RES_ACTIVITY_TYPE activityType, DateTimeOffset now) =>
+        [.. activities.Where(activity => activity.Row.ActivityType == (int)activityType && activity.ValidEnd < now)];
+
     public bool IsOpen(int activityID, PB_ENUM_RES_ACTIVITY_TYPE activityType, DateTimeOffset now) =>
         FindActive(now).Any(activity => activity.Row.ActivityID == activityID && activity.Row.ActivityType == (int)activityType);
 

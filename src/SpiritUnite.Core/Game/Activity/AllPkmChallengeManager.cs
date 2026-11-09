@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SpiritUnite.Database.Repositories;
+using SpiritUnite.Game.Mail;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Packets;
 using SpiritUnite.Packets.Messages;
@@ -10,6 +11,8 @@ public sealed class AllPkmChallengeManager(
     ActivitySchedule schedule,
     ActivityManager activityManager,
     AllPkmChallengeRepository repository,
+    ActivityRepository activityRepository,
+    MailManager mail,
     TimeProvider clock,
     ILogger<AllPkmChallengeManager> logger)
 {
@@ -17,6 +20,45 @@ public sealed class AllPkmChallengeManager(
     private const int NoPokemon = 0;
     private const int OneWin = 1;
     private const int MaxPkmCount = (int)PB_MACRO_COM_MAX_ALL_PKM_CHALLENGE_NUM.PbComMaxAllPkmChallengeNum;
+    private const int UnclaimedRewardMailID = (int)PB_ENUM_RES_MAILID_TYPE.PbResMailidTypeAllPkmChallengeAward;
+    private const string UnclaimedRewardMailSubject = "OpsEvents_Event_Email_Subject_10351_001";
+    private const string UnclaimedRewardMailContent = "OpsEvents_Event_Email_Content_10352_001";
+
+    public async Task MailUnclaimedRewardsAsync(LMNRoleInfo role)
+    {
+        var uid = role.GameUlongUID;
+        var now = clock.GetUtcNow();
+        foreach (var activity in schedule.FindEnded(PB_ENUM_RES_ACTIVITY_TYPE.PbResActivityTypeAllPkmChallenge, now))
+        {
+            if ((await repository.FindAsync(uid, activity.Row.ActivityID)).Length == 0)
+            {
+                continue;
+            }
+
+            var unclaimed = await activityManager.FindUnclaimedTasksAtEndAsync(role, activity);
+            if (unclaimed.Length == 0)
+            {
+                continue;
+            }
+
+            var rewardTime = now.ToUnixTimeSeconds();
+            var mails = mail.BuildDropAttachments(unclaimed.Select(task => task.SDropID))
+                .Chunk(MailBox.MaxMailAccess)
+                .Select(chunk => mail.CreateSystemMail(uid, new SystemMail(
+                    Subject: UnclaimedRewardMailSubject,
+                    Content: UnclaimedRewardMailContent,
+                    Attachments: chunk,
+                    MailID: UnclaimedRewardMailID)))
+                .ToArray();
+            ActivityTaskReward[] rewards = [.. unclaimed.Select(task => new ActivityTaskReward(task.TaskId, task.PeriodStart, rewardTime))];
+            if (await activityRepository.CommitUnclaimedTaskMailAsync(uid, rewards, mails))
+            {
+                logger.LogInformation(
+                    "Uid {Uid} was mailed {TaskCount} unclaimed All-Pokemon Challenge {ActivityID} task rewards",
+                    uid, unclaimed.Length, activity.Row.ActivityID);
+            }
+        }
+    }
 
     public async Task<pbSCAllPkmChallengeStatusRsp> BuildStatusRspAsync(ulong uid)
     {

@@ -132,6 +132,53 @@ public sealed class RallyChallengeRepository(DataOptions options)
         return commit;
     }
 
+    public async Task<int[]> FindClaimablePeriodsAsync(ulong gameUlongUID)
+    {
+        await using var database = new DataConnection(options);
+        return await database.GetTable<RoleUniteChallengeReward>()
+            .Where(row => row.GameUlongUID == gameUlongUID && row.RewardStatus == CanReceive)
+            .Select(row => row.PeriodId)
+            .Distinct()
+            .ToArrayAsync();
+    }
+
+    public async Task<int[]> FindClaimableRewardIndexesAsync(ulong gameUlongUID, int periodId)
+    {
+        await using var database = new DataConnection(options);
+        return await database.GetTable<RoleUniteChallengeReward>()
+            .Where(row => row.GameUlongUID == gameUlongUID && row.PeriodId == periodId && row.RewardStatus == CanReceive)
+            .OrderBy(row => row.RewardIndex)
+            .Select(row => row.RewardIndex)
+            .ToArrayAsync();
+    }
+
+    public async Task<bool> CommitUnclaimedRewardMailAsync(ulong gameUlongUID, int periodId, IReadOnlyCollection<int> rewardIndexes, IReadOnlyList<RoleMail> mails, long now)
+    {
+        await using var database = new DataConnection(options);
+        await using var transaction = await database.BeginTransactionAsync();
+        var mailed = await database.GetTable<RoleUniteChallengeReward>()
+            .Where(row => row.GameUlongUID == gameUlongUID
+                && row.PeriodId == periodId
+                && rewardIndexes.Contains(row.RewardIndex)
+                && row.RewardStatus == CanReceive)
+            .Set(row => row.RewardStatus, Received)
+            .Set(row => row.RewardTime, now)
+            .UpdateAsync();
+        if (mailed != rewardIndexes.Count)
+        {
+            await transaction.RollbackAsync();
+            return false;
+        }
+
+        foreach (var mail in mails)
+        {
+            await MailRepository.InsertAsync(database, mail);
+        }
+
+        await transaction.CommitAsync();
+        return true;
+    }
+
     private static async Task<UniteChallengeState> ReadAsync(DataConnection database, ulong gameUlongUID, int periodId)
     {
         var challenge = await database.GetTable<RoleUniteChallenge>()

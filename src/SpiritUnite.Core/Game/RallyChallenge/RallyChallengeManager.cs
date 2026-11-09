@@ -3,6 +3,7 @@ using SpiritUnite.Database.Repositories;
 using SpiritUnite.Databin;
 using SpiritUnite.Game.Activity;
 using SpiritUnite.Game.Bag;
+using SpiritUnite.Game.Mail;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Online;
 using SpiritUnite.Packets;
@@ -21,6 +22,7 @@ public sealed class RallyChallengeManager(
     RallyChallengeRepository repository,
     ActivityManager activityManager,
     ActivityRewardNotices rewardNotices,
+    MailManager mail,
     LobbyRoles lobbyRoles,
     TimeProvider clock,
     ILogger<RallyChallengeManager> logger)
@@ -33,6 +35,9 @@ public sealed class RallyChallengeManager(
     private const int MaxBattleCount = (int)PB_MACRO_COM_MAX_UNITE_CHALLENGE_BATTLE_COUNT.PbComMaxUniteChallengeBattleCount;
     private const int MaxRewardCount = (int)PB_MACRO_COM_MAX_UNITE_CHALLENGE_REWARD_COUNT.PbComMaxUniteChallengeRewardCount;
     private const PB_ENUM_ENM_RESOURCE_CHG_REASON RewardReason = PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonUniteChallenge;
+    private const int UnclaimedRewardMailID = (int)PB_ENUM_RES_MAILID_TYPE.PbResMailidTypeUniteChallengeAward;
+    private const string UnclaimedRewardMailSubject = "OpsEvents_Email_Subject_11443_001";
+    private const string UnclaimedRewardMailContent = "OpsEvents_Email_Content_11444_001";
 
     public static bool IsChallengeBattle(pbScene_Map? scene) =>
         scene is { MapMode: QuickBattleMapMode, MapSubMode: QuickBattleMapSubMode, GameType: QuickBattleGameType };
@@ -58,13 +63,53 @@ public sealed class RallyChallengeManager(
         foreach (var uid in onlineUids)
         {
             await lobbyRoles.PushAsync(uid, GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUniteChallengeCloseNtf, new pbSCUniteChallengeCloseNtf()));
+            await MailUnclaimedRewardsAsync(uid, pushMailNew: true);
         }
 
         logger.LogInformation("Unite Challenge close pushed to {OnlineCount} online roles", onlineUids.Count);
     }
 
+    public async Task MailUnclaimedRewardsAsync(ulong uid, bool pushMailNew)
+    {
+        var now = clock.GetUtcNow().ToUnixTimeSeconds();
+        foreach (var periodId in await repository.FindClaimablePeriodsAsync(uid))
+        {
+            if (FindLastConf(periodId) is not { } conf || FindPeriodEndTime(conf) > now)
+            {
+                continue;
+            }
+
+            var rewardIndexes = await repository.FindClaimableRewardIndexesAsync(uid, periodId);
+            var attachments = mail.BuildDropAttachments(rewardIndexes
+                .Where(rewardIndex => rewardIndex >= FirstRewardIndex && rewardIndex <= conf.WinReward.Length)
+                .Select(rewardIndex => conf.WinReward[rewardIndex - 1].DropId));
+            var mails = attachments.Chunk(MailBox.MaxMailAccess)
+                .Select(chunk => mail.CreateSystemMail(uid, new SystemMail(
+                    Subject: UnclaimedRewardMailSubject,
+                    Content: UnclaimedRewardMailContent,
+                    Attachments: chunk,
+                    MailID: UnclaimedRewardMailID)))
+                .ToArray();
+            if (!await repository.CommitUnclaimedRewardMailAsync(uid, periodId, rewardIndexes, mails, now))
+            {
+                continue;
+            }
+
+            logger.LogInformation("Uid {Uid} was mailed {RewardCount} unclaimed Unite Challenge rewards of period {PeriodID}",
+                uid, rewardIndexes.Length, periodId);
+            if (pushMailNew)
+            {
+                foreach (var saved in mails)
+                {
+                    await mail.PushMailNewAsync(saved);
+                }
+            }
+        }
+    }
+
     public async Task FillAcntLoginRspAsync(ulong uid, pbSCAcntLoginRsp rsp)
     {
+        await MailUnclaimedRewardsAsync(uid, pushMailNew: false);
         if (FindOpenConf() is not { } conf)
         {
             return;
@@ -226,6 +271,9 @@ public sealed class RallyChallengeManager(
                 }),
             ];
     }
+
+    private pbUniteChallenge? FindLastConf(int periodId) =>
+        gameData.UniteChallenge.Rows.Where(row => row.PeriodID == periodId).MaxBy(row => row.CloseTime);
 
     private long FindPeriodEndTime(pbUniteChallenge conf) =>
         UTCTimeUtil.CfgTime2ServerUnixTime(gameData.UniteChallenge.Rows

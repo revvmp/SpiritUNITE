@@ -48,11 +48,13 @@ public sealed class ActivityExchangeManager(
                     .SelectMany(activity => exchangesByGroup[activity.Row.ActivityParam])
                     .DistinctBy(exchange => exchange.ExchangeID)
                     .OrderBy(exchange => exchange.ExchangeID)
+                    .Where(exchange => states.GetValueOrDefault(exchange.ExchangeID) is { } state
+                        && (state.DoneCount > 0 || state.Notify != NotifyOff))
                     .Select(exchange => new pbCOMDT_ONE_EXCHANGEINFO
                     {
                         ExchangeID = exchange.ExchangeID,
-                        DoneCount = states.GetValueOrDefault(exchange.ExchangeID)?.DoneCount ?? 0,
-                        Notify = states.GetValueOrDefault(exchange.ExchangeID)?.Notify ?? NotifyOff,
+                        DoneCount = states[exchange.ExchangeID].DoneCount,
+                        Notify = states[exchange.ExchangeID].Notify,
                     }),
             },
         };
