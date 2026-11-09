@@ -18,9 +18,11 @@ public static class MailBox
     public const int MaxMailParamLen = (int)PB_MACRO_COM_MAX_MAILPARAM_LEN.PbComMaxMailparamLen;
     public const int MaxMailContentParamNum = (int)PB_MACRO_COM_MAX_MAIL_CONTENT_PARAM_NUM.PbComMaxMailContentParamNum;
     public const int TextParamType = 1;
+    public const int TimeParamType = 2;
     public const int ItemParamType = 3;
     public const int MailTypeCount = (int)PB_ENUM_RES_MAIL_TYPE.PbResMailTypeMax;
     public const int Sys = (int)PB_ENUM_RES_MAIL_TYPE.PbResMailTypeSys;
+    public const int NoMailType = (int)PB_ENUM_RES_MAIL_TYPE.PbResMailTypeInvalid;
     public const string SysFromName = "System";
     public const int UnreadAllMailRedDotID = (int)PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdUnreadAllMail;
 

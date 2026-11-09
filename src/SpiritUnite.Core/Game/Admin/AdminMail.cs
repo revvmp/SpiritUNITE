@@ -83,7 +83,7 @@ public sealed class AdminMail(MailManager mail, RoleRepository roles, LobbyRoles
 
         PB_ENUM_RES_RESOURCES_TYPE? resourceType = attachment.Kind switch
         {
-            "coin" when CoinID.IsGrantableCoin(attachment.Id) => PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesCoin,
+            "coin" when CoinID.IsGrantableCoin(attachment.Id) => CoinID.GetCoinResourceType(attachment.Id),
             "pokemon" when gameData.PokemonBase.Contains(attachment.Id) => PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesPokemon,
             "license" when UniteLicense.IsUniteLicense(gameData, attachment.Id) => PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem,
             "holowear" => PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesPaster,

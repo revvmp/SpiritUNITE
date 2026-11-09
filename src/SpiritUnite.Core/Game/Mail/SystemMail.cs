@@ -19,5 +19,7 @@ public sealed record MailContentParam(string Param, int Type)
 
     public static MailContentParam Number(long number) => new(number.ToString(System.Globalization.CultureInfo.InvariantCulture), MailBox.TextParamType);
 
+    public static MailContentParam Time(long unixSeconds) => new(unixSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture), MailBox.TimeParamType);
+
     public static MailContentParam Item(int resID) => new(resID.ToString(System.Globalization.CultureInfo.InvariantCulture), MailBox.ItemParamType);
 }

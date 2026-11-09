@@ -7,6 +7,7 @@ using SpiritUnite.Database.Repositories;
 using SpiritUnite.Databin;
 using SpiritUnite.Game.Bag;
 using SpiritUnite.Game.Pokemon;
+using SpiritUnite.Game.Profile;
 using SpiritUnite.Game.PokemonAvatar;
 using SpiritUnite.Game.Recharge;
 using SpiritUnite.Game.Role;
@@ -25,8 +26,12 @@ public record GrantOutcome(MailGrant Grant, RoleWallet Wallet, IReadOnlyDictiona
 public sealed record MailClaim(RoleMail Mail, MailGrant Grant, RoleWallet Wallet, IReadOnlyDictionary<int, long> BeforeCoinNums)
     : GrantOutcome(Grant, Wallet, BeforeCoinNums);
 
+public sealed record MailSender(LMNRoleInfo Role, ProfileStyle Style);
+
 public sealed class MailManager(
     MailRepository repository,
+    RoleInfoStore roles,
+    ProfileRepository profiles,
     LobbyRoles lobbyRoles,
     GameData gameData,
     BagManager bag,
@@ -37,6 +42,7 @@ public sealed class MailManager(
     private const int AwardedPokemonCount = 1;
     private const int ProbeItemCount = 1;
     private const int WelcomeMailID = 5;
+    private const ulong NoSender = 0;
 
     private static readonly SystemMail WelcomeMail = new(
         Subject: "Mail_TextTitle_5_001",
@@ -53,11 +59,60 @@ public sealed class MailManager(
         return saved;
     }
 
-    public Task<bool> PushMailNewAsync(RoleMail saved) =>
-        lobbyRoles.PushAsync(saved.GameUlongUID, GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidMailNewNtf, new pbSCMailNewNtf
+    public async Task<bool> SendSystemMailBatchAsync(ulong uid, int mailType, IReadOnlyList<SystemMail> mails)
+    {
+        if (mails.Any(mail => mail.MailType != mailType))
         {
-            MailList = new pbCOMDT_MAIL_LIST { MailType = saved.MailType, MailInfo = { BuildMailItem(saved) } },
+            throw new ArgumentException($"Every mail of one batch has mail type {mailType}", nameof(mails));
+        }
+
+        var unreadBefore = await repository.CountUnreadAsync(uid, clock.GetUtcNow().ToUnixTimeSeconds());
+        var items = new List<pbCOMDT_MAIL_ITEM>();
+        foreach (var mail in mails)
+        {
+            var saved = await InsertSystemMailAsync(uid, mail);
+            var item = BuildMailItem(saved);
+            if (await FindSenderAsync(saved.FromUid) is { } sender)
+            {
+                item.UserPlantInfo = sender.Style.BuildUserPlantInfo();
+            }
+
+            items.Add(item);
+        }
+
+        return await lobbyRoles.PushAsync(uid,
+        [
+            .. BuildOtherUnreadRedDotPackets(unreadBefore, mailType),
+            GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidMailNewNtf, new pbSCMailNewNtf
+            {
+                MailList = new pbCOMDT_MAIL_LIST { MailType = mailType, MailInfo = { items } },
+            }),
+            .. await BuildUnreadRedDotPacketsAsync(uid, mailType),
+        ]);
+    }
+
+    public async Task<bool> PushMailNewAsync(RoleMail saved)
+    {
+        var item = BuildMailItem(saved);
+        if (await FindSenderAsync(saved.FromUid) is { } sender)
+        {
+            item.UserPlantInfo = sender.Style.BuildUserPlantInfo();
+        }
+
+        return await lobbyRoles.PushAsync(saved.GameUlongUID, GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidMailNewNtf, new pbSCMailNewNtf
+        {
+            MailList = new pbCOMDT_MAIL_LIST { MailType = saved.MailType, MailInfo = { item } },
         }));
+    }
+
+    public async Task<GamePacket[]> BuildNewMailRedDotPacketsAsync(ulong uid, int mailType) =>
+        mailType == (int)PB_ENUM_RES_MAIL_TYPE.PbResMailTypePerson
+            ?
+            [
+                .. await BuildUnreadRedDotPacketsAsync(uid, mailType),
+                .. await BuildUnreadRedDotPacketsAsync(uid, (int)PB_ENUM_RES_MAIL_TYPE.PbResMailTypeAccusation),
+            ]
+            : await BuildUnreadRedDotPacketsAsync(uid, mailType);
 
     public Task<RoleMail> SendWelcomeMailAsync(ulong uid) => InsertSystemMailAsync(uid, WelcomeMail);
 
@@ -91,6 +146,13 @@ public sealed class MailManager(
         redDotID == MailBox.UnreadAllMailRedDotID
             ? unread.Sum()
             : Enumerable.Range(0, unread.Length).Where(mailType => MailBox.FindUnreadRedDotID(mailType) == redDotID).Sum(mailType => unread[mailType]);
+
+    private static IEnumerable<GamePacket> BuildOtherUnreadRedDotPackets(int[] unread, int mailType) =>
+        Enumerable.Range(0, unread.Length)
+            .Where(otherMailType => otherMailType != mailType && unread[otherMailType] > 0)
+            .SelectMany(otherMailType => (int?[])[MailBox.FindUnreadRedDotID(otherMailType), MailBox.UnreadAllMailRedDotID])
+            .OfType<int>()
+            .Select(redDotID => BuildUnreadRedDotPacket(redDotID, CountUnread(unread, redDotID)));
 
     private static GamePacket BuildUnreadRedDotPacket(int redDotID, int unreadCount) => unreadCount > 0
         ? GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidRedDotReplaceNtf, new pbSCRedDotReplaceNtf
@@ -151,8 +213,35 @@ public sealed class MailManager(
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
         await repository.DeleteExpiredAsync(uid, now);
         var mails = await repository.GetMailsAsync(uid, mailType, now, MailBox.MaxMailNum);
-        return new pbCOMDT_MAIL_LIST { MailType = mailType, MailInfo = { mails.Select(BuildMailItem) } };
+        var senders = new Dictionary<ulong, MailSender?>();
+        var list = new pbCOMDT_MAIL_LIST { MailType = mailType };
+        foreach (var mail in mails)
+        {
+            var item = BuildMailItem(mail);
+            if (!senders.TryGetValue(mail.FromUid, out var sender))
+            {
+                sender = await FindSenderAsync(mail.FromUid);
+                senders[mail.FromUid] = sender;
+            }
+
+            if (sender is not null)
+            {
+                item.FromGender = sender.Role.Gender;
+                item.FromHeadId = RoleImage.GetHeadID(gameData, sender.Role);
+                item.RoleAvatarInfo = sender.Role.RoleAvatarInfo.Clone();
+                item.UserPlantInfo = sender.Style.BuildUserPlantInfo();
+            }
+
+            list.MailInfo.Add(item);
+        }
+
+        return list;
     }
+
+    private async Task<MailSender?> FindSenderAsync(ulong fromUid) =>
+        fromUid != NoSender && await roles.FindAsync(fromUid) is { } role
+            ? new MailSender(role, await profiles.LoadAsync(fromUid))
+            : null;
 
     public async Task<pbCOMDT_MAIL_DETAIL?> ReadMailAsync(ulong uid, int mailType, int mailIndex)
     {
@@ -410,14 +499,14 @@ public sealed class MailManager(
                 continue;
             }
 
-            if ((PB_ENUM_RES_RESOURCES_TYPE)award.ResType == PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesHeadFrame)
+            if (IsCosmeticResourceType((PB_ENUM_RES_RESOURCES_TYPE)award.ResType))
             {
-                if (CosmeticGrant.Plan(gameData, bag, role, award.ResID, award.ResCnt, now, items) is not { } headFrame)
+                if (CosmeticGrant.Plan(gameData, bag, role, award.ResID, award.ResCnt, now, items) is not { } cosmetic)
                 {
                     return null;
                 }
 
-                headFrame.AddTo(items, bagGrants, coins, awards);
+                cosmetic.AddTo(items, bagGrants, coins, awards);
                 continue;
             }
 
@@ -425,16 +514,11 @@ public sealed class MailManager(
             switch ((PB_ENUM_RES_RESOURCES_TYPE)award.ResType)
             {
                 case PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesCoin:
+                case PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesResattr:
                     coins[award.ResID] = coins.GetValueOrDefault(award.ResID) + award.ResCnt;
-                    break;
-                case PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesAvatar:
-                    AddItemGrant(role, RoleItemType.AvatarItem, award.ResID, now, items);
                     break;
                 case PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesLobbyBackground:
                     AddItemGrant(role, RoleItemType.LobbyBg, award.ResID, now, items);
-                    break;
-                case PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesHeadicon:
-                    AddItemGrant(role, RoleItemType.HeadIcon, award.ResID, now, items);
                     break;
                 case PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesPokemon:
                     if (!role.OwnsPokemon(award.ResID) && !pokemonIds.Contains(award.ResID))
@@ -484,13 +568,45 @@ public sealed class MailManager(
         }
     }
 
+    public pbCOMDT_ONE_RESOURCE_AWARD_INFO[] BuildDropAttachments(IEnumerable<int> sDropIDs)
+    {
+        var attachments = new List<pbCOMDT_ONE_RESOURCE_AWARD_INFO>();
+        foreach (var sDropID in sDropIDs)
+        {
+            foreach (var drop in gameData.DropStatic.Rows.Where(drop => drop.SDropID == sDropID).OrderBy(drop => drop.SDropSeq))
+            {
+                var award = new pbCOMDT_ONE_RESOURCE_AWARD_INFO
+                {
+                    ResID = drop.ResID,
+                    ResCnt = drop.ResNum,
+                    ResType = (int)(CoinID.IsGrantableCoin(drop.ResID) ? CoinID.GetCoinResourceType(drop.ResID) : CoinID.GetResIDType(drop.ResID)),
+                };
+                if (!CanAttach(award))
+                {
+                    logger.LogWarning("Drop {SDropID} resource {ResID} x{ResNum} cannot be attached to a mail", sDropID, drop.ResID, drop.ResNum);
+                    continue;
+                }
+
+                if (attachments.FirstOrDefault(attachment => attachment.ResID == award.ResID && attachment.ResType == award.ResType) is { } same)
+                {
+                    same.ResCnt += award.ResCnt;
+                }
+                else
+                {
+                    attachments.Add(award);
+                }
+            }
+        }
+
+        return [.. attachments];
+    }
+
     public bool CanAttach(pbCOMDT_ONE_RESOURCE_AWARD_INFO award) =>
         award.ResCnt > 0 && (PB_ENUM_RES_RESOURCES_TYPE)award.ResType switch
         {
             PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesCoin => award.ResID > 0,
-            PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesAvatar => gameData.AvatarItem.Contains(award.ResID),
-            PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesHeadicon => gameData.HeadIconBase.Contains(award.ResID),
-            PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesHeadFrame => gameData.PersonStyleHeadFrame.Contains(award.ResID),
+            PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesResattr => CoinID.IsSpecialCoin(award.ResID),
+            var cosmeticType when IsCosmeticResourceType(cosmeticType) => CanAttachCosmetic(award),
             PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesPaster =>
                 gameData.PokemonAvatarBase.Contains(award.ResID) && award.ResCnt == AwardedPokemonCount,
             PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesLobbyBackground =>
@@ -501,6 +617,18 @@ public sealed class MailManager(
             PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesBadge => gameData.BadgeBase.Contains(award.ResID),
             _ => false,
         };
+
+    private static bool IsCosmeticResourceType(PB_ENUM_RES_RESOURCES_TYPE resType) => resType
+        is PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesAvatar
+        or PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesHeadicon
+        or PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesHeadFrame
+        or PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesContestantCardRecoration
+        or PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesSkilleffectsexpandpack;
+
+    private bool CanAttachCosmetic(pbCOMDT_ONE_RESOURCE_AWARD_INFO award) =>
+        (int)CoinID.GetResIDType(award.ResID) == award.ResType
+        && CosmeticGrant.FindItemType(gameData, award.ResID) is { } itemType
+        && (award.ResCnt == ProbeItemCount || CosmeticGrant.FindTransmute(gameData, itemType, award.ResID) is { TransmuteNum: > 0 });
 
     private bool IsBagOutSideItem(int outSideItemId) =>
         CoinID.GetResIDType(outSideItemId) == PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem

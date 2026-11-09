@@ -138,7 +138,7 @@ public sealed class MailHandlers(
         return
         [
             .. await BuildClaimUpdatesAsync(request, role, [claim]),
-            .. await BuildUnreadRedDotsAsync(request, getAccess.MailType),
+            .. await BuildAllMailRedDotAsync(request),
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidMailGetAccessRsp, response),
         ];
     }
@@ -161,7 +161,7 @@ public sealed class MailHandlers(
         return
         [
             .. await BuildClaimUpdatesAsync(request, role, claims),
-            .. claims.Length > 0 ? await BuildUnreadRedDotsAsync(request, mailType) : Array.Empty<GamePacket>(),
+            .. claims.Length > 0 ? await BuildAllMailRedDotAsync(request) : Array.Empty<GamePacket>(),
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidMailBatchGetAccessRsp, response),
         ];
     }
@@ -183,6 +183,12 @@ public sealed class MailHandlers(
     private async Task<GamePacket[]> BuildUnreadRedDotsAsync(GamePacket request, int mailType) =>
         [
             .. (await mails.BuildUnreadRedDotPacketsAsync(request.Uid, mailType))
+                .Select(packet => packet with { Uid = request.Uid, ClientSeq = request.ClientSeq }),
+        ];
+
+    private async Task<GamePacket[]> BuildAllMailRedDotAsync(GamePacket request) =>
+        [
+            .. (await mails.BuildUnreadRedDotPacketsAsync(request.Uid, MailBox.NoMailType))
                 .Select(packet => packet with { Uid = request.Uid, ClientSeq = request.ClientSeq }),
         ];
 
