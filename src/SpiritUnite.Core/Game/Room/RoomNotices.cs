@@ -191,6 +191,12 @@ public static class RoomNotices
             TrainerLevelChg = new pbCOMDT_ROOMCHG_TRAINER_LEVEL { TrainerLevel = room.TrainerDifficultyLevel },
         });
 
+    public static pbSCRoomChgNtf SelectIdcTagChg(MatchRoom room) =>
+        ChgNtf(room, PB_ENUM_COM_ROOMCHGTYPE.PbComRoomchgSelectIdctag, new pbCOMDT_ROOMCHG_DT
+        {
+            SelectIdcTagChg = new pbCOMDT_ROOMCHG_SELECT_IDCTAG { SelectIdcTag = room.SelectIdcTag },
+        });
+
     public static pbSCRoomChgNtf RoomTypeChg(MatchRoom room) =>
         ChgNtf(room, PB_ENUM_COM_ROOMCHGTYPE.PbComRoomchgRoomtypechg, new pbCOMDT_ROOMCHG_DT
         {

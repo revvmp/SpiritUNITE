@@ -3,12 +3,15 @@ using Microsoft.Extensions.Options;
 using SpiritUnite.Game.Activity;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Game.Room;
+using SpiritUnite.Online;
 using SpiritUnite.Packets.Messages;
 
 namespace SpiritUnite.Packets.Handlers.Room;
 
 public sealed class MatchRoomHandlers(
     RoleInfoStore roles,
+    RoomManager rooms,
+    LobbyRoles lobbyRoles,
     ActivitySchedule schedule,
     ActivityManager activityManager,
     IOptions<GVoiceOptions> gVoice,
@@ -19,16 +22,23 @@ public sealed class MatchRoomHandlers(
     private const int AutoIdc = 1;
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidSelectIdcReq)]
-    public GamePacket[] OnSelectIdcReq(GamePacket request)
+    public async Task<GamePacket[]> OnSelectIdcReq(GamePacket request)
     {
         var selection = pbCSSelectIdcReq.Parser.ParseFrom(request.PkgData);
         var accepted = selection.IdcTag == gVoice.Value.IdcTag && selection.IsAuto is ManualIdc or AutoIdc;
         logger.LogInformation("IDC selection by uid {Uid}: tag {IdcTag}, auto {IsAuto}, accepted {Accepted}",
             request.Uid, selection.IdcTag, selection.IsAuto, accepted);
-        var response = accepted
-            ? new pbSCSelectIdcRsp { ResultInfo = new pbResultInfo(), IdcTag = selection.IdcTag, IsAuto = selection.IsAuto }
-            : new pbSCSelectIdcRsp { ResultInfo = new pbResultInfo { ResultId = (int)PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid } };
-        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidSelectIdcRsp, response)];
+        if (!accepted)
+        {
+            return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidSelectIdcRsp, new pbSCSelectIdcRsp { ResultInfo = new pbResultInfo { ResultId = (int)PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid } })];
+        }
+
+        foreach (var push in rooms.SelectIdc(request.Uid, selection.IdcTag).Pushes)
+        {
+            await lobbyRoles.PushAsync(push.Uid, [GamePacket.Create(push.Message.MsgID, push.Message.Message)]);
+        }
+
+        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidSelectIdcRsp, new pbSCSelectIdcRsp { ResultInfo = new pbResultInfo(), IdcTag = selection.IdcTag, IsAuto = selection.IsAuto })];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidRoomDailyActivityRewardReq)]

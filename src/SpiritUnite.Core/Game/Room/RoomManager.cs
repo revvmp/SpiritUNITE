@@ -68,6 +68,7 @@ public sealed class RoomManager(
     private const int DefaultRankedTeamMemberNumType = ThreeRankedTeam;
     private const int NoEstimatedWaitTime = 0;
     private const int RoomChatEnter = (int)PB_ENUM_ENM_CHAT_ROOM_CHAT_TYPE.PbEnmChatRoomChatTypeEnter;
+    private const int RoomChatLevel = (int)PB_ENUM_ENM_CHAT_ROOM_CHAT_TYPE.PbEnmChatRoomChatTypeLevel;
     private const long MillisecondsPerSecond = 1000;
     private const int HeavenTrainerGameType = (int)PB_ENUM_RES_MATCHGAMETYPE.PbMatchGameTypeHeavenTrainer;
     private const int MatchTrainerOff = 0;
@@ -214,7 +215,7 @@ public sealed class RoomManager(
         {
             return roomsByShowId.TryGetValue(roomShowId, out var room)
                 ? Join(uid, room, usableMaps, profile)
-                : RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomNotFound);
+                : RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrShowidNotFound);
         }
     }
 
@@ -474,7 +475,7 @@ public sealed class RoomManager(
                 }
 
                 var before = BuildCanUseMap(room);
-                AbortConfirm(room, PB_ENUM_RES_ERROR_CODE.PbErrRoomTeamerUnconfirm, outcome, unconfirmedUids);
+                PushConfirmAbort(room, PB_ENUM_RES_ERROR_CODE.PbErrRoomOthesUnconfirm, outcome, unconfirmedUids);
                 foreach (var member in unconfirmed)
                 {
                     room.Remove(member);
@@ -482,6 +483,7 @@ public sealed class RoomManager(
                     PushDeparture(room, member, outcome);
                 }
 
+                ChangeState(room, room.ResetMatch, MemberUids(room), outcome);
                 PushCanUseMapChange(room, before, outcome, MemberUids(room));
             }
 
@@ -654,6 +656,21 @@ public sealed class RoomManager(
 
             room.MatchTrainer = matchTrainer;
             return new RoomOutcome();
+        }
+    }
+
+    public RoomOutcome SelectIdc(ulong uid, int idcTag)
+    {
+        lock (gate)
+        {
+            if (!roomsByUid.TryGetValue(uid, out var room) || room.SelectIdcTag == idcTag)
+            {
+                return new RoomOutcome();
+            }
+
+            room.SelectIdcTag = idcTag;
+            return new RoomOutcome()
+                .PushAll(MemberUids(room).Where(member => member != uid), PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf, RoomNotices.SelectIdcTagChg(room));
         }
     }
 
@@ -1252,24 +1269,39 @@ public sealed class RoomManager(
 
         if (confirmingMatch is not null)
         {
-            AbortConfirm(room, PB_ENUM_RES_ERROR_CODE.PbErrRoomTeamerLeave, outcome, [member.Uid]);
+            PushConfirmAbort(room, PB_ENUM_RES_ERROR_CODE.PbErrRoomTeamerLeave, outcome, [member.Uid]);
         }
 
         PushDeparture(room, member, outcome);
+        if (confirmingMatch is not null)
+        {
+            ChangeState(room, room.ResetMatch, MemberUids(room), outcome);
+        }
+
         return PushCanUseMapChange(room, before, outcome, MemberUids(room));
     }
 
     private void PushDeparture(MatchRoom room, RoomMember member, RoomOutcome outcome)
     {
-        outcome.PushAll(
-            MemberUids(room),
-            PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf,
-            RoomNotices.PlayerLeave(room, member.CampClient, member.PosOfCamp));
+        var others = MemberUids(room);
+        if (roles.Find(member.Uid) is { } role)
+        {
+            outcome.PushAll(others, PB_ENUM_CS_MSGID_DEF.PbScidChatMsgNtf, RoomNotices.RoomChat(BuildRoomChatSender(role, member), RoomChatLevel));
+        }
+
+        outcome.PushAll(others, PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf, RoomNotices.PlayerLeave(room, member.CampClient, member.PosOfCamp));
         if (room.MasterUid == member.Uid)
         {
             room.MasterUid = room.Members[0].Uid;
-            outcome.PushAll(MemberUids(room), PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf, RoomNotices.MasterChg(room));
+            outcome.PushAll(others, PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf, RoomNotices.MasterChg(room));
         }
+
+        foreach (var other in others)
+        {
+            outcome.Push(other, PB_ENUM_CS_MSGID_DEF.PbScidRoomRttNtf, RoomNotices.RoomRtt(gVoice, lobbyRoles.Rtt(other)));
+        }
+
+        outcome.PushAll(others, PB_ENUM_CS_MSGID_DEF.PbScidRoomChgNtf, RoomNotices.LegendPokemonChg(room));
     }
 
     private RoomOutcome StopMatching(MatchRoom room, ulong byUid, PB_ENUM_ENM_MATCHTEAM_DESTORY_REASON reason, RoomOutcome outcome)
@@ -1301,11 +1333,10 @@ public sealed class RoomManager(
             .SearchFor(new MatchSearch(entry.FillAt));
     }
 
-    private void AbortConfirm(MatchRoom room, PB_ENUM_RES_ERROR_CODE result, RoomOutcome outcome, IReadOnlyCollection<ulong> departingUids)
+    private static void PushConfirmAbort(MatchRoom room, PB_ENUM_RES_ERROR_CODE result, RoomOutcome outcome, IReadOnlyCollection<ulong> departingUids)
     {
         ulong[] staying = [.. MemberUids(room).Where(uid => !departingUids.Contains(uid))];
         outcome.PushAll(staying, PB_ENUM_CS_MSGID_DEF.PbScidMultGameAbortNtf, RoomNotices.MatchAbort(result));
-        ChangeState(room, room.ResetMatch, staying, outcome);
     }
 
     private static RoomOutcome BeginMatch(MatchRoom room, long startedAt)
@@ -1723,6 +1754,7 @@ public sealed class RoomManager(
                     MatchTrainer = room.MatchTrainer,
                     TrainerDifficultyLevel = room.TrainerDifficultyLevel,
                     HeavenDifficultyLevel = room.HeavenDifficultyLevel,
+                    SelectIdcTag = room.SelectIdcTag,
                     FriendRoomRule = room.FriendRoomRule.Build(),
                     LegendPokemonInfo = new pbCOMDT_LEGEND_POKEMON_INFO(),
                     PveChallengeSelectNode = room.PveChallengeSelectNode?.Clone() ?? new pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE(),

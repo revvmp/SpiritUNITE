@@ -41,8 +41,8 @@ public enum RoomMatchPhase
 
 public sealed class MatchRoom(int roomID, long roomSeq, int roomShowId, ulong masterUid)
 {
-    public const int RoomEntity = 1;
-    public const int MatchRoomEntity = 2;
+    public const int RoomEntity = 193986824;
+    public const int MatchRoomEntity = 199229704;
     public const int LeftCamp = (int)PB_ENUM_COM_CAMP_CLIENT.PbCampClientPlayer1;
     public const int RightCamp = (int)PB_ENUM_COM_CAMP_CLIENT.PbCampClientPlayer2;
     public const int JudgeCamp = (int)PB_ENUM_COM_CAMP_CLIENT.PbCampClientJudge1;
@@ -74,6 +74,7 @@ public sealed class MatchRoom(int roomID, long roomSeq, int roomShowId, ulong ma
     public int MatchTrainer { get; set; }
     public int TrainerDifficultyLevel { get; set; }
     public int HeavenDifficultyLevel { get; set; }
+    public int SelectIdcTag { get; set; }
     public int LastRankedTeamMemberNumType { get; init; }
     public RoomMatchPhase MatchPhase { get; private set; } = RoomMatchPhase.Waiting;
     public PB_ENUM_COM_ROOMSVR_ROOM_STATE State => MatchPhase switch

@@ -122,7 +122,7 @@ public sealed class MatchHandlers
             return null;
         }
 
-        var (mapId, mapSubMode, memberUids) = (room.MapId, room.MapSubMode, room.Members.Select(member => member.Uid).ToArray());
+        var (mapId, mapSubMode, memberUids) = (room.MapId, room.MapSubMode, room.Members.Select(member => member.Uid).OrderBy(memberUid => memberUid != uid).ToArray());
         var needCredit = credit.FindGameStartNeedCredit(mapId);
         foreach (var memberUid in memberUids)
         {
@@ -136,9 +136,14 @@ public sealed class MatchHandlers
                     memberUid,
                     creditPoint,
                     needCredit);
-                return mapSubMode == (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceRank
-                    ? PB_ENUM_RES_ERROR_CODE.PbErrChangeRankRoomCreditNotEnough
-                    : PB_ENUM_RES_ERROR_CODE.PbErrChangeRoomCreditNotEnough;
+                var isRanked = mapSubMode == (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceRank;
+                return (memberUid == uid, isRanked) switch
+                {
+                    (true, true) => PB_ENUM_RES_ERROR_CODE.PbErrBackToRankRoomCreditNotEnough,
+                    (true, false) => PB_ENUM_RES_ERROR_CODE.PbErrBackToRoomCreditNotEnough,
+                    (false, true) => PB_ENUM_RES_ERROR_CODE.PbErrChangeRankRoomCreditNotEnough,
+                    (false, false) => PB_ENUM_RES_ERROR_CODE.PbErrChangeRoomCreditNotEnough,
+                };
             }
         }
 
