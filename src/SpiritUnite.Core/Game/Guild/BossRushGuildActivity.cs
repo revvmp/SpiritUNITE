@@ -29,6 +29,11 @@ public sealed class BossRushGuildActivity(
         AwardInfo = new pbCOMDT_BOSS_RUSH_PASS_AWARD_INFO { PeriodID = FindPeriod()?.PeriodID ?? NoPeriodID },
     };
 
+    public async Task<pbSCQueryBossRushGuildActivityInfoRsp> BuildGuildActivityInfoRspAsync(ulong uid) =>
+        await repository.FindMemberAsync(uid) is null
+            ? new pbSCQueryBossRushGuildActivityInfoRsp { ResultInfo = new pbResultInfo { ResultId = (int)PB_ENUM_RES_ERROR_CODE.PbErrGuildMemberNotExist } }
+            : new pbSCQueryBossRushGuildActivityInfoRsp { ResultInfo = new pbResultInfo(), GuildActivityInfo = new pbCOMDT_BOSS_RUSH_GUILD_ACTIVITY_INFO() };
+
     public async Task<PB_ENUM_RES_ERROR_CODE> ClaimScoreRewardAsync(ulong uid, int rewardGear)
     {
         if (FindPeriod() is not { } period)

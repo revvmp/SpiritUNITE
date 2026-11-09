@@ -13,13 +13,10 @@ public sealed class BossRushHandlers(BossRushGuildActivity bossRush)
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidQueryBossRushGuildActivityInfoReq)]
-    public GamePacket[] OnQueryBossRushGuildActivityInfoReq(GamePacket request)
+    public async Task<GamePacket[]> OnQueryBossRushGuildActivityInfoReq(GamePacket request)
     {
         pbCSQueryBossRushGuildActivityInfoReq.Parser.ParseFrom(request.PkgData);
-        var response = new pbSCQueryBossRushGuildActivityInfoRsp
-        {
-            ResultInfo = new pbResultInfo { ResultId = (int)PB_ENUM_RES_ERROR_CODE.PbErrGuildMemberNotExist },
-        };
+        var response = await bossRush.BuildGuildActivityInfoRspAsync(request.Uid);
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidQueryBossRushGuildActivityInfoRsp, response)];
     }
 

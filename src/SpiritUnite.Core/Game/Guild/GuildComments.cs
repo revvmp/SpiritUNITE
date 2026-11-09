@@ -67,7 +67,7 @@ public sealed class GuildComments(
         var lastIndex = comments.Length == 0 ? NoCommentIndex : comments[^1].CommentIndex;
         var append = lastReceivedIndex > NoCommentIndex && lastReceivedIndex <= lastIndex;
         var sent = append ? comments.Where(comment => comment.CommentIndex > lastReceivedIndex).ToArray() : comments;
-        if (append && sent.Length == 0)
+        if (sent.Length == 0)
         {
             return null;
         }

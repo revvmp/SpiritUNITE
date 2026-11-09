@@ -24,6 +24,7 @@ public sealed class GuildInfoBuilder(
     private const int GuestAccount = 1;
     private const int RegisteredAccount = 0;
     private const int HasGuild = 1;
+    private const long FirstGuildCheckDelaySeconds = 3600;
 
     public static pbCOMDT_ACNT_GUILD_INFO BuildAcntGuildInfo(GuildEntity? guild, GuildMember? member) =>
         guild is null || member is null
@@ -47,14 +48,23 @@ public sealed class GuildInfoBuilder(
         LabelList = { GuildRules.LabelsOf(guild) },
     };
 
-    public static pbCOMDT_GUILD_INFO BuildGuildInfo(GuildEntity guild, LMNRoleInfo? master, pbCOMDT_GUILD_ACTIVITY_BRIEF_INFO activityInfo) =>
-        EmptyChildren.Fill(new pbCOMDT_GUILD_INFO
-        {
-            BriefInfo = BuildBriefInfo(guild, master),
-            BuildTime = guild.BuildTime,
-            Notice = guild.Notice,
-            ActivityInfo = activityInfo,
-        });
+    public static pbCOMDT_GUILD_INFO BuildCreatedGuildInfo(GuildEntity guild, LMNRoleInfo? master) => new()
+    {
+        BriefInfo = BuildBriefInfo(guild, master),
+        BuildTime = guild.BuildTime,
+        Notice = guild.Notice,
+        NextCheckTime = guild.BuildTime + FirstGuildCheckDelaySeconds,
+    };
+
+    public static pbCOMDT_GUILD_INFO BuildGuildInfo(GuildEntity guild, LMNRoleInfo? master, pbCOMDT_GUILD_ACTIVITY_BRIEF_INFO activityInfo)
+    {
+        var guildInfo = BuildCreatedGuildInfo(guild, master);
+        guildInfo.ActivityInfo = activityInfo;
+        guildInfo.RoomList = new pbCOMDT_GUILD_ROOM_LIST();
+        guildInfo.LastDumpTlogTime = guild.BuildTime;
+        guildInfo.BossRushActivityInfo = new pbCOMDT_BOSS_RUSH_GUILD_ACTIVITY_BRIEF_INFO();
+        return guildInfo;
+    }
 
     public async Task<pbCOMDT_HEAD_INFO> BuildHeadInfoAsync(LMNRoleInfo role)
     {

@@ -3,6 +3,7 @@ using SpiritUnite.Database.Models;
 using SpiritUnite.Database.Repositories;
 using SpiritUnite.Databin;
 using SpiritUnite.Game.Bag;
+using SpiritUnite.Game.Mail;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Online;
 using SpiritUnite.Packets;
@@ -17,6 +18,7 @@ public sealed class GuildActivityManager(
     GuildRepository repository,
     GameData gameData,
     BagManager bag,
+    MailManager mail,
     LobbyRoles lobbyRoles,
     TimeProvider clock,
     ILogger<GuildActivityManager> logger)
@@ -24,6 +26,9 @@ public sealed class GuildActivityManager(
     private const int NoRewardID = 0;
     private const int Rewarded = 1;
     private const int NoMemberScore = 0;
+    private const int UnclaimedGearMailID = (int)PB_ENUM_RES_MAILID_TYPE.PbResMailidTypeGuildActivity;
+    private const string UnclaimedGearMailSubject = "Guild_Notice_Email_Subject_6172_001";
+    private const string UnclaimedGearMailContent = "System_Email_Content_Reward_7346_001";
 
     private readonly SemaphoreSlim gate = new(1, 1);
 
@@ -204,6 +209,65 @@ public sealed class GuildActivityManager(
         logger.LogInformation("Uid {Uid} claimed guild activity gear {RewardGear} of period {PeriodID}: {GrantedCount} rewards granted",
             uid, rewardGear, period.PeriodID, grant.Awards.Count);
         return GuildRewardClaim.Granted(grant, commit);
+    }
+
+    public async Task MailUnclaimedGearsAsync(GuildMember member, bool pushMailNew)
+    {
+        var now = clock.GetUtcNow();
+        var svrCfgTime = UTCTimeUtil.ServerTime2CfgTime(now);
+        var endedPeriods = gameData.GuildActivityBase.Rows
+            .Where(row => row.EndTime < svrCfgTime && member.JoinTime <= UTCTimeUtil.CfgTime2ServerUnixTime(row.EndTime))
+            .Select(row => row.PeriodID)
+            .ToArray();
+        if (endedPeriods.Length == 0)
+        {
+            return;
+        }
+
+        foreach (var activity in await repository.GetScoredActivitiesAsync(member.GuildID, endedPeriods))
+        {
+            var claimed = await repository.GetActivityRewardGearsAsync(member.GameUlongUID, activity.PeriodID);
+            var gears = gameData.GuildActivityScoreGear.Rows
+                .Where(gear => gear.Score <= activity.GuildScore && !claimed.Contains(gear.GearID))
+                .Select(gear => (gear.GearID, Reward: gameData.GuildActivityScoreReward.Find(pbGuildActivity_ScoreReward.Key(activity.RewardID, gear.GearID))))
+                .Where(gear => gear.Reward is not null)
+                .OrderBy(gear => gear.GearID)
+                .ToArray();
+            if (gears.Length == 0)
+            {
+                continue;
+            }
+
+            var attachments = mail.BuildDropAttachments(gears.Select(gear => gear.Reward!.SDropID));
+            var mails = attachments.Chunk(MailBox.MaxMailAccess)
+                .Select(chunk => mail.CreateSystemMail(member.GameUlongUID, new SystemMail(
+                    Subject: UnclaimedGearMailSubject,
+                    Content: UnclaimedGearMailContent,
+                    Attachments: chunk,
+                    MailID: UnclaimedGearMailID)))
+                .ToArray();
+            var rewards = gears.Select(gear => new RoleGuildActivityReward
+            {
+                GameUlongUID = member.GameUlongUID,
+                PeriodID = activity.PeriodID,
+                RewardGear = gear.GearID,
+                RewardTime = now.ToUnixTimeSeconds(),
+            }).ToArray();
+            if (!await repository.CommitUnclaimedGearMailAsync(rewards, mails))
+            {
+                continue;
+            }
+
+            logger.LogInformation("Uid {Uid} was mailed {GearCount} unclaimed gears of guild {GuildID} activity period {PeriodID}",
+                member.GameUlongUID, gears.Length, member.GuildID, activity.PeriodID);
+            if (pushMailNew)
+            {
+                foreach (var saved in mails)
+                {
+                    await mail.PushMailNewAsync(saved);
+                }
+            }
+        }
     }
 
     public static void GrantItemsInMemory(LMNRoleInfo role, GuildRewardGrant grant)

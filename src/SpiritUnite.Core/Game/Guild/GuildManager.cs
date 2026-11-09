@@ -14,6 +14,8 @@ public sealed record GuildMembership(GuildEntity Guild, GuildMember Member);
 
 public sealed record GuildOutcome<TResponse>(TResponse Response, IReadOnlyList<GamePacket> Notices)
 {
+    public IReadOnlyList<GamePacket> Leading { get; init; } = [];
+
     public static implicit operator GuildOutcome<TResponse>(TResponse response) => new(response, []);
 }
 
@@ -37,6 +39,16 @@ public sealed class GuildManager(
     private const int NotInGuild = 0;
     private const int NewGuildJoinRequestRedDotID = (int)PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdNewGuildJoinRequest;
 
+    private static readonly PB_ENUM_RES_RED_DOT_ID[] RedDotsClearedOnQuit =
+    [
+        PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdNewGuildJoinRequest,
+        PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdGuildComment,
+        PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdGuildMasterSelectAward,
+        PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdGuildScoreRewardUnlock,
+        PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdGuildActivityDailyFresh,
+        PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdGuildActivityTeam,
+    ];
+
     private readonly SemaphoreSlim gate = new(1, 1);
 
     public async Task<GuildMembership?> FindMembershipAsync(ulong uid)
@@ -55,10 +67,16 @@ public sealed class GuildManager(
         return new GuildMembership(guild, member);
     }
 
-    public async Task<pbCOMDT_ACNT_GUILD_INFO> BuildAcntGuildInfoAsync(ulong uid) =>
-        await FindMembershipAsync(uid) is { } membership
-            ? GuildInfoBuilder.BuildAcntGuildInfo(membership.Guild, membership.Member)
-            : GuildInfoBuilder.BuildAcntGuildInfo(null, null);
+    public async Task<pbCOMDT_ACNT_GUILD_INFO> BuildAcntGuildInfoAsync(ulong uid)
+    {
+        if (await FindMembershipAsync(uid) is not { } membership)
+        {
+            return GuildInfoBuilder.BuildAcntGuildInfo(null, null);
+        }
+
+        await activities.MailUnclaimedGearsAsync(membership.Member, pushMailNew: false);
+        return GuildInfoBuilder.BuildAcntGuildInfo(membership.Guild, membership.Member);
+    }
 
     public async Task<(string GuildName, int GuildOffice)> FindProfileGuildAsync(ulong uid) =>
         await FindMembershipAsync(uid) is { } membership
@@ -125,7 +143,7 @@ public sealed class GuildManager(
             new pbSCGuildCreateRsp
             {
                 ResultInfo = new pbResultInfo(),
-                GuildInfo = GuildInfoBuilder.BuildGuildInfo(guild, role, await activities.BuildBriefInfoAsync(guild.GuildID)),
+                GuildInfo = GuildInfoBuilder.BuildCreatedGuildInfo(guild, role),
             },
             [BuildInfoChgNtf(guild, member)]);
     }
@@ -138,13 +156,16 @@ public sealed class GuildManager(
         }
 
         var guildID = membership.Guild.GuildID;
-        return EmptyChildren.Fill(new pbSCGuildQueryRsp
+        await activities.MailUnclaimedGearsAsync(membership.Member, pushMailNew: true);
+        var guildInfo = await BuildGuildInfoAsync(membership.Guild);
+        var response = EmptyChildren.Fill(new pbSCGuildQueryRsp
         {
             ResultInfo = new pbResultInfo(),
             HasGuild = HasGuild,
-            GuildInfo = await BuildGuildInfoAsync(membership.Guild),
             GuildActivityInfo = await activities.BuildActivityInfoAsync(uid, guildID),
         });
+        response.GuildInfo = guildInfo;
+        return response;
     }
 
     public async Task<pbSCGuildMemberListRsp?> MemberListAsync(ulong uid)
@@ -178,7 +199,7 @@ public sealed class GuildManager(
 
         if (guild is null)
         {
-            return new pbSCGuildSearchRsp { ResultInfo = Result(PB_ENUM_RES_ERROR_CODE.PbErrGuildNotExist) };
+            return new pbSCGuildSearchRsp { ResultInfo = new pbResultInfo() };
         }
 
         var members = await LoadMembersAsync(guild.GuildID);
@@ -278,15 +299,17 @@ public sealed class GuildManager(
 
         var members = await LoadMembersAsync(guild.GuildID);
         var master = await FindMasterRoleAsync(members);
-        return EmptyChildren.Fill(new pbSCGuildQuerySearchGuildInfoRsp
+        var guildInfo = await BuildGuildInfoAsync(guild, members);
+        var response = EmptyChildren.Fill(new pbSCGuildQuerySearchGuildInfoRsp
         {
             ResultInfo = new pbResultInfo(),
-            GuildInfo = await BuildGuildInfoAsync(guild, members),
             MasterHeadInfo = master is null ? null : await builder.BuildHeadInfoAsync(master),
             Notice = guild.Notice,
             MemberNum = members.Length,
             MasterHeadIconInfo = master is null ? null : await builder.BuildCurHeadIconInfoAsync(master),
         });
+        response.GuildInfo = guildInfo;
+        return response;
     }
 
     public async Task<GuildOutcome<pbSCGuildJoinRsp>> JoinAsync(LMNRoleInfo role, long requestedGuildID)
@@ -639,6 +662,7 @@ public sealed class GuildManager(
                 return response;
             }
 
+            await activities.MailUnclaimedGearsAsync(target, pushMailNew: true);
             await repository.RemoveMemberAsync(targetUid);
         }
         finally
@@ -682,6 +706,7 @@ public sealed class GuildManager(
                 return new pbSCGuildMemberQuitRsp { ResultInfo = Result(PB_ENUM_RES_ERROR_CODE.PbErrGuildHasMember) };
             }
 
+            await activities.MailUnclaimedGearsAsync(membership.Member, pushMailNew: true);
             if (members.Length > 1)
             {
                 await repository.RemoveMemberAsync(uid);
@@ -709,9 +734,12 @@ public sealed class GuildManager(
             await comments.AddEventAsync(guild.GuildID, GuildComments.MemberQuitCommentType, role);
         }
 
-        return new GuildOutcome<pbSCGuildMemberQuitRsp>(
-            new pbSCGuildMemberQuitRsp { ResultInfo = new pbResultInfo() },
-            [BuildInfoChgNtf(null, null)]);
+        return new GuildOutcome<pbSCGuildMemberQuitRsp>(new pbSCGuildMemberQuitRsp { ResultInfo = new pbResultInfo() }, [])
+        {
+            Leading = [.. RedDotsClearedOnQuit.Select(redDotID => GamePacket.Create(
+                PB_ENUM_CS_MSGID_DEF.PbScidRedDotClearNtf,
+                new pbSCRedDotClearNtf { RedDotID = (int)redDotID }))],
+        };
     }
 
     public static pbResultInfo Result(PB_ENUM_RES_ERROR_CODE result) => new() { ResultId = (int)result };

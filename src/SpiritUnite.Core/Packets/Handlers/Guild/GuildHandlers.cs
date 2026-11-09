@@ -168,8 +168,8 @@ public sealed class GuildHandlers(
         var post = await comments.LeaveCommentAsync(membership.Member, role, leave);
         return
         [
-            request.Reply(PbScidGuildLeaveCommentRsp, new pbSCGuildLeaveCommentRsp { ResultInfo = GuildManager.Result(post.Result) }),
             .. post.CommentNtf is { } commentNtf ? [commentNtf] : Array.Empty<GamePacket>(),
+            request.Reply(PbScidGuildLeaveCommentRsp, new pbSCGuildLeaveCommentRsp { ResultInfo = GuildManager.Result(post.Result) }),
         ];
     }
 
@@ -333,7 +333,7 @@ public sealed class GuildHandlers(
 
     private static GamePacket[] Send<TResponse>(GamePacket request, PB_ENUM_CS_MSGID_DEF responseID, GuildOutcome<TResponse> outcome)
         where TResponse : Google.Protobuf.IMessage =>
-        [request.Reply(responseID, outcome.Response), .. outcome.Notices];
+        [.. outcome.Leading, request.Reply(responseID, outcome.Response), .. outcome.Notices];
 
     private static void RequireFlag(int flag, string name)
     {

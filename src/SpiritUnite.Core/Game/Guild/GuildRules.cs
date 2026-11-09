@@ -1,6 +1,5 @@
 using System.Text;
 using SpiritUnite.Databin;
-using SpiritUnite.Game.Role;
 using SpiritUnite.Packets.Messages;
 using GuildEntity = SpiritUnite.Database.Models.Guild;
 
@@ -17,6 +16,14 @@ public static class GuildRules
     public const int MaxSearchResultNum = (int)PB_MACRO_MAX_GUILD_SEARCH_RESULT_NUM.PbMaxGuildSearchResultNum;
     public const int MaxDailyFreeQuitCnt = (int)PB_MACRO_COM_MAX_DAILY_FREE_QUIT_GUILD_CNT.PbComMaxDailyFreeQuitGuildCnt;
     public const int NoLabel = 0;
+
+    private const string ShortIdAlphabet = "0123456789ACEFGHKLMNPQRTXY";
+    private const int ShortIdLength = 8;
+    private const ulong ShortIdRadix = 26;
+    private const ulong ShortIdSpace = 208_827_064_576;
+    private const ulong ShortIdMultiplier = 137_438_953_481;
+    private const ulong ShortIdInverseMultiplier = 21_091_806_521;
+    private const ulong ShortIdOffset = 97_142_331_779;
 
     private const int MaxGuildNameBytes = (int)PB_MACRO_MAX_GUILD_NAME_LEN.PbMaxGuildNameLen;
     private const int MaxGuildNoticeBytes = (int)PB_MACRO_MAX_GUILD_NOTICE_LEN.PbMaxGuildNoticeLen;
@@ -60,13 +67,46 @@ public static class GuildRules
         && labels.Distinct().Count() == labels.Count
         && labels.All(label => gameData.GuildLabel.Contains(label));
 
-    public static string BuildShortId(ulong guildID) => ShortIdPrefix + RoleProfile.BuildShortId(guildID);
+    public static string BuildShortId(ulong guildID)
+    {
+        if (guildID >= ShortIdSpace)
+        {
+            throw new InvalidDataException($"Guild {guildID} has no short id");
+        }
+
+        var value = (ulong)((((UInt128)guildID * ShortIdMultiplier) + ShortIdOffset) % ShortIdSpace);
+        return ShortIdPrefix + string.Create(ShortIdLength, value, static (characters, remaining) =>
+        {
+            for (var index = characters.Length - 1; index >= 0; index--)
+            {
+                characters[index] = ShortIdAlphabet[(int)(remaining % ShortIdRadix)];
+                remaining /= ShortIdRadix;
+            }
+        });
+    }
 
     public static bool TryParseShortId(string shortId, out ulong guildID)
     {
         guildID = 0;
-        return shortId.StartsWith(ShortIdPrefix, StringComparison.Ordinal)
-            && RoleProfile.TryParseShortId(shortId[ShortIdPrefix.Length..], out guildID);
+        if (!shortId.StartsWith(ShortIdPrefix, StringComparison.Ordinal) || shortId.Length != ShortIdPrefix.Length + ShortIdLength)
+        {
+            return false;
+        }
+
+        ulong value = 0;
+        foreach (var character in shortId.AsSpan(ShortIdPrefix.Length))
+        {
+            var digit = ShortIdAlphabet.IndexOf(char.ToUpperInvariant(character), StringComparison.Ordinal);
+            if (digit < 0)
+            {
+                return false;
+            }
+
+            value = (value * ShortIdRadix) + (ulong)digit;
+        }
+
+        guildID = (ulong)((((UInt128)value + ShortIdSpace - ShortIdOffset) % ShortIdSpace * ShortIdInverseMultiplier) % ShortIdSpace);
+        return true;
     }
 
     public static int[] LabelsOf(GuildEntity guild) =>

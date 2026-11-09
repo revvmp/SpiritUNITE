@@ -258,6 +258,36 @@ public sealed class GuildRepository(DataOptions options)
             .ToArrayAsync();
     }
 
+    public async Task<GuildActivity[]> GetScoredActivitiesAsync(ulong guildID, IReadOnlyCollection<int> periodIDs)
+    {
+        await using var database = new DataConnection(options);
+        return await database.GetTable<GuildActivity>()
+            .Where(activity => activity.GuildID == guildID && periodIDs.Contains(activity.PeriodID) && activity.GuildScore > 0)
+            .ToArrayAsync();
+    }
+
+    public async Task<bool> CommitUnclaimedGearMailAsync(IReadOnlyList<RoleGuildActivityReward> rewards, IReadOnlyList<RoleMail> mails)
+    {
+        await using var database = new DataConnection(options);
+        await using var transaction = await database.BeginTransactionAsync();
+        foreach (var reward in rewards)
+        {
+            if (!await TryInsertAsync(database, reward))
+            {
+                await transaction.RollbackAsync();
+                return false;
+            }
+        }
+
+        foreach (var mail in mails)
+        {
+            await MailRepository.InsertAsync(database, mail);
+        }
+
+        await transaction.CommitAsync();
+        return true;
+    }
+
     public async Task<RoleGuildActivityTask[]> GetActivityTaskRewardsAsync(ulong gameUlongUID, long periodStartSince)
     {
         await using var database = new DataConnection(options);
