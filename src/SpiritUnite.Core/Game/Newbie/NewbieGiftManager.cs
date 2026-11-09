@@ -4,6 +4,7 @@ using SpiritUnite.Databin;
 using SpiritUnite.Game.Bag;
 using SpiritUnite.Game.Lobby;
 using SpiritUnite.Game.Pokemon;
+using SpiritUnite.Game.PokemonAvatar;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Game.StarRoad;
 using SpiritUnite.Game.Tasks;
@@ -17,12 +18,17 @@ public sealed record NewbieGiftGrant(
     int GiftID,
     IReadOnlyDictionary<int, long> Coins,
     IReadOnlyList<int> PokemonIds,
-    IReadOnlyList<pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO> Awards);
+    IReadOnlyList<pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO> Awards)
+{
+    public IReadOnlyList<BagGrant> BagGrants { get; init; } = [];
+    public IReadOnlyList<RoleItemInfo> Items { get; init; } = [];
+}
 
 public sealed class NewbieGiftManager(
     GameData gameData,
     LobbyNotices notices,
     NewbieGiftRepository repository,
+    BagManager bag,
     RoleRepository roleRepository,
     TaskUpdates taskUpdates,
     StarRoadManager starRoad,
@@ -56,6 +62,13 @@ public sealed class NewbieGiftManager(
         var currDayGiftID = await GetCurrDayGiftIDAsync(role);
         var fetched = await repository.LoadFetchedGiftIDsAsync(role.GameUlongUID);
         return BuildFourteenDayRedDotDetail(currDayGiftID, fetched);
+    }
+
+    public async Task<GamePacket> BuildFourteenDayRedDotAsync(LMNRoleInfo role)
+    {
+        var currDayGiftID = await GetCurrDayGiftIDAsync(role);
+        var fetched = await repository.LoadFetchedGiftIDsAsync(role.GameUlongUID);
+        return BuildFourteenDayRedDot(currDayGiftID, fetched);
     }
 
     public async Task<(PB_ENUM_RES_ERROR_CODE Result, GamePacket[] Grants, pbCSDT_NEWBIE_GIFT_INFO? GiftInfo)> FetchNewbieGiftAsync(
@@ -97,9 +110,19 @@ public sealed class NewbieGiftManager(
             role.GrantPokemon(pokemonId, now, NewbieGiftReason);
         }
 
+        foreach (var item in grant.Items)
+        {
+            role.GrantItem(item.ItemType, item.ItemId, item.GainTime, item.TimeLimited, item.NewTag);
+        }
+
         logger.LogInformation("Newbie gift {GiftID} fetched by uid {Uid}", giftID, role.GameUlongUID);
         var fetched = await repository.LoadFetchedGiftIDsAsync(role.GameUlongUID);
         var grants = new List<GamePacket>();
+        if (commit.ChangedItems.Count > 0)
+        {
+            grants.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidOutSideItemUpdateNotify, BagManager.BuildOutSideItemUpdateNotify(commit.ChangedItems)));
+        }
+
         foreach (var coinID in grant.Coins.Keys.Where(CoinID.IsSpecialCoin))
         {
             grants.Add(GamePacket.Create(
@@ -129,6 +152,16 @@ public sealed class NewbieGiftManager(
             grants.Add(NewbieManager.BuildAddPokemonRedDot(role));
         }
 
+        foreach (var avatar in grant.Items.Where(item => item.ItemType == RoleItemType.AvatarItem))
+        {
+            grants.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUpdateAvatarNtf, new pbSCUpdateAvatarNtf
+            {
+                UpdateType = (int)PB_ENUM_ENM_AVATAR_UPDATETYPE.PbEnmAvatarUpdatetypeGain,
+                AvatarInfo = avatar.ToAvatarInfo(),
+            }));
+        }
+
+        grants.AddRange(PokemonAvatarManager.BuildGainPushes(grant.Items));
         grants.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidResourcesAwardNotify, new pbSCResourcesAwardNotify
         {
             ResultInfo = new pbResultInfo(),
@@ -147,6 +180,9 @@ public sealed class NewbieGiftManager(
         var coins = new Dictionary<int, long>();
         var pokemonIds = new List<int>();
         var awards = new List<pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO>();
+        var bagGrants = new List<BagGrant>();
+        var items = new List<RoleItemInfo>();
+        var gainTime = clock.GetUtcNow().ToUnixTimeSeconds();
         foreach (var drop in dropsById[gift.SDropID])
         {
             if (CoinID.IsGrantableCoin(drop.ResID))
@@ -162,6 +198,24 @@ public sealed class NewbieGiftManager(
                 continue;
             }
 
+            if (CosmeticGrant.FindItemType(gameData, drop.ResID) is not null)
+            {
+                if (CosmeticGrant.Plan(gameData, bag, role, drop.ResID, drop.ResNum, gainTime, items) is not { } cosmetic)
+                {
+                    return null;
+                }
+
+                cosmetic.AddTo(items, bagGrants, coins, awards);
+                continue;
+            }
+
+            if (bag.CreateOutSideItemGrant(drop.ResID, drop.ResNum) is { } bagGrant)
+            {
+                bagGrants.Add(bagGrant);
+                awards.Add(BagManager.BuildAward(drop.ResID, drop.ResNum, PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem));
+                continue;
+            }
+
             logger.LogWarning(
                 "Newbie gift {GiftID} for uid {Uid} is refused: drop {SDropID} resource {ResID} x{ResNum} has no grant rule",
                 gift.GiftID,
@@ -172,7 +226,7 @@ public sealed class NewbieGiftManager(
             return null;
         }
 
-        return new NewbieGiftGrant(gift.GiftID, coins, pokemonIds, awards);
+        return new NewbieGiftGrant(gift.GiftID, coins, pokemonIds, awards) { BagGrants = bagGrants, Items = items };
     }
 
     private async Task<int> GetCurrDayGiftIDAsync(LMNRoleInfo role)

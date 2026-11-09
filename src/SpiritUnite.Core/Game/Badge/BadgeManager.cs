@@ -70,6 +70,17 @@ public sealed class BadgeManager(
         };
     }
 
+    public async Task<pbSCGetBadgePictureNtf> BuildGainedBadgePictureNtfAsync(ulong gameUlongUID)
+    {
+        var picture = await BuildGetBadgePictureRspAsync(gameUlongUID);
+        return new pbSCGetBadgePictureNtf
+        {
+            ResultInfo = new pbResultInfo(),
+            BadgePictureInfo = picture.BadgePictureInfo,
+            NewBadgePictureInfo = picture.BadgePictureInfo.Clone(),
+        };
+    }
+
     public async Task<PB_ENUM_RES_ERROR_CODE> ClearBadgeNewTagAsync(ulong gameUlongUID, int badgeID)
     {
         if (!gameData.BadgeBase.Contains(badgeID))
@@ -81,6 +92,13 @@ public sealed class BadgeManager(
             ? PB_ENUM_RES_ERROR_CODE.PbErrBadgeInlayNotEnoughInBag
             : PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
+
+    public async Task<PB_ENUM_RES_ERROR_CODE> ClearNewBadgeGridTagAsync(ulong gameUlongUID, long uniqueID, int badgeID) =>
+        uniqueID > 0 && await bagRepository.FindByGridAsync(gameUlongUID, RoleItemType.Badge, (ulong)uniqueID) is { } grid
+            ? grid.ItemId == badgeID
+                ? await ClearBadgeNewTagAsync(gameUlongUID, badgeID)
+                : PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid
+            : PB_ENUM_RES_ERROR_CODE.PbErrBadgeInlayNotEnoughInBag;
 
     public async Task<IReadOnlyList<BadgeSchedue>> GetSchedulesAsync(ulong gameUlongUID)
     {

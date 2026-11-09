@@ -16,6 +16,7 @@ public sealed record BagOutcome(PB_ENUM_RES_ERROR_CODE Result, IReadOnlyList<Bag
     public IReadOnlyList<int> GrantedPokemonIds { get; init; } = [];
     public IReadOnlyList<RoleItemInfo> GrantedItems { get; init; } = [];
     public IReadOnlyList<RoleItemInfo> TimeLimitedPasters { get; init; } = [];
+    public IReadOnlyList<RolePokemonInfo> TimeLimitedPokemon { get; init; } = [];
     public int AwardReason { get; init; } = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonOpenawardbox;
 
     public bool Succeeded => Result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
@@ -54,7 +55,6 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
     private const int OpenAwardBoxReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonOpenawardbox;
     private const int OptionalChestReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonOptionalchest;
     private const int ExchangeSpecifiedItemReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonUseExchangeSpecifiedItem;
-    private const ulong NoGridUniqueID = 0;
     private const int OptionalChestDropParamIndex = 0;
     private const int OptionalChestSingleSelectParamIndex = 1;
     private const int OptionalChestExtraDropParamIndex = 2;
@@ -68,6 +68,9 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
     private const int GainPasterReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonGainPaster;
     private const int PasterTimeLimitedReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonPastertimelimited;
     private const int PasterTimeLimitedExchangeReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonPastertimelimitedexchange;
+    private const int UseOutSideItemReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonUseoutsideitem;
+    private const int TrialPokemonParamIndex = 0;
+    private const int TrialSecondsParamIndex = 1;
 
     public async Task<BagItem[]> GetOwnedOutSideItemsAsync(ulong gameUlongUID) =>
         [.. (await repository.LoadAsync(gameUlongUID, RoleItemType.OutSideItem)).Where(item => item.IsOwned)];
@@ -121,7 +124,7 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
 
     public async Task<BagOutcome> SellOutSideItemAsync(ulong gameUlongUID, int resID, ulong gridUniqueID, int resCnt)
     {
-        var validation = ValidateGrid(resID, gridUniqueID, resCnt, out var config);
+        var (validation, config, owned) = await ValidateGridAsync(gameUlongUID, resID, gridUniqueID, resCnt);
         if (config is null)
         {
             return BagOutcome.Refused(validation);
@@ -143,7 +146,6 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
             return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrNotCoinCfgNotExist);
         }
 
-        var owned = await FindOwnedOutSideItemAsync(gameUlongUID, resID);
         if (owned is null || owned.Cnt < resCnt)
         {
             return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemDeleteNotEnough);
@@ -177,6 +179,7 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
             PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypePokemonavatarvoucher
                 or PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypePastertimelimited
                 or PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypePasterexpiretime => await UsePasterItemAsync(role, config, resCnt),
+            PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypePokemontimelimited => await UsePokemonTrialAsync(role, config, resCnt),
             _ => BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemUnKnownUseType),
         };
     }
@@ -242,6 +245,52 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
         return BagOutcome.From(await repository.CommitAsync(role.GameUlongUID, change, now)) with { AwardReason = PasterTimeLimitedReason };
     }
 
+    private async Task<BagOutcome> UsePokemonTrialAsync(LMNRoleInfo role, pbOutSideItem_Base config, int resCnt)
+    {
+        var pokemonId = config.ItemParam.ElementAtOrDefault(TrialPokemonParamIndex);
+        var trialSeconds = (long)config.ItemParam.ElementAtOrDefault(TrialSecondsParamIndex) * resCnt;
+        if (!gameData.PokemonBase.Contains(pokemonId) || trialSeconds <= 0)
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemIdnotExistInCfg);
+        }
+
+        var cost = new BagCost(RoleItemType.OutSideItem, config.OutSideItemId, resCnt);
+        if (role.OwnsPokemon(pokemonId))
+        {
+            return await ExchangeOwnedTrialAsync(role, config, cost);
+        }
+
+        var now = clock.GetUtcNow().ToUnixTimeSeconds();
+        var trialStart = role.GetTimeLimitedPokemon().FirstOrDefault(trial => trial.PokemonId == pokemonId && trial.TimeLimited > now)?.TimeLimited ?? now;
+        var trial = new RolePokemonInfo(pokemonId, now, UseOutSideItemReason, RolePokemonInfo.HasNewTag, trialStart + trialSeconds);
+        var change = new BagChange { Costs = [cost], TimeLimitedPokemon = [trial] };
+        var outcome = BagOutcome.From(await repository.CommitAsync(role.GameUlongUID, change, now));
+        if (!outcome.Succeeded)
+        {
+            return outcome;
+        }
+
+        role.GrantTimeLimitedPokemon(trial);
+        return outcome with { TimeLimitedPokemon = [trial], AwardReason = UseOutSideItemReason };
+    }
+
+    private async Task<BagOutcome> ExchangeOwnedTrialAsync(LMNRoleInfo role, pbOutSideItem_Base config, BagCost cost)
+    {
+        var transmuteNum = (long)config.TransmuteNum * cost.Cnt;
+        if (config.TransmuteNum <= 0 || transmuteNum > int.MaxValue || !CoinID.IsGrantableCoin(config.Transmuteid))
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemTransmuteNotCfg);
+        }
+
+        var plan = new ResourceGrantPlan(
+            [],
+            new Dictionary<int, long> { [config.Transmuteid] = transmuteNum },
+            [BuildCoinAward(config.Transmuteid, (int)transmuteNum)],
+            [],
+            []);
+        return await CommitGrantsAsync(role, cost, plan, UseOutSideItemReason);
+    }
+
     private async Task<BagOutcome> ExchangeOwnedPasterItemAsync(LMNRoleInfo role, pbOutSideItem_Base config, BagCost cost)
     {
         var transmuteNum = (long)config.TransmuteNum * cost.Cnt;
@@ -264,13 +313,12 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
 
     public async Task<(PB_ENUM_RES_ERROR_CODE Result, pbOutSideItem_Base? Config)> ValidateUseAsync(ulong gameUlongUID, int resID, ulong gridUniqueID, int resCnt)
     {
-        var validation = ValidateGrid(resID, gridUniqueID, resCnt, out var config);
+        var (validation, config, owned) = await ValidateGridAsync(gameUlongUID, resID, gridUniqueID, resCnt);
         if (config is null)
         {
             return (validation, null);
         }
 
-        var owned = await FindOwnedOutSideItemAsync(gameUlongUID, resID);
         return owned is null || owned.Cnt < resCnt
             ? (PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemDeleteNotEnough, null)
             : (PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, config);
@@ -278,13 +326,13 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
 
     public async Task<PB_ENUM_RES_ERROR_CODE> ClearOutSideItemRedDotAsync(ulong gameUlongUID, ulong gridUniqueID)
     {
-        if (!TryGetItemId(gridUniqueID, out var itemId)
-            || await FindOwnedOutSideItemAsync(gameUlongUID, itemId) is null)
+        if (gridUniqueID == GridUniqueID.None
+            || await repository.FindByGridAsync(gameUlongUID, RoleItemType.OutSideItem, gridUniqueID) is not { IsOwned: true } item)
         {
             return PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemNotFoundResInAcnt;
         }
 
-        await repository.ClearNewTagAsync(gameUlongUID, RoleItemType.OutSideItem, itemId);
+        await repository.ClearNewTagAsync(gameUlongUID, RoleItemType.OutSideItem, item.ItemId);
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
@@ -295,7 +343,7 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
 
     public async Task<BagOutcome> UseRenameCardAsync(LMNRoleInfo role, int resID, ulong gridUniqueID, string newUserName)
     {
-        var gridResult = ValidateGrid(resID, gridUniqueID, SingleItem, out var config);
+        var (gridResult, config, _) = await ValidateGridAsync(role.GameUlongUID, resID, gridUniqueID, SingleItem);
         if (gridResult != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
         {
             return BagOutcome.Refused(gridResult);
@@ -321,13 +369,6 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
         return outcome;
     }
 
-    public static bool TryGetItemId(ulong gridUniqueID, out int itemId)
-    {
-        var valid = gridUniqueID is > 0 and <= int.MaxValue;
-        itemId = valid ? (int)gridUniqueID : 0;
-        return valid;
-    }
-
     private async Task<BagOutcome> OpenChestAsync(LMNRoleInfo role, pbOutSideItem_Base chest, int openCnt)
     {
         var dropIDs = chest.ItemParam.Where(param => param != NoDropID).ToArray();
@@ -336,7 +377,8 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
             return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrDropSystemUnValidDropId);
         }
 
-        var dropPacks = dropIDs.Select(FindDropPackIDs).ToArray();
+        var staticDrops = dropIDs.SelectMany(FindStaticDrops).ToArray();
+        var dropPacks = dropIDs.Where(dropID => FindStaticDrops(dropID).Length == 0).Select(FindDropPackIDs).ToArray();
         if (dropPacks.Any(dropPackIDs => dropPackIDs.Count == 0))
         {
             return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrDropSystemUnValidDropId);
@@ -351,6 +393,11 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
         var rolledCnts = new Dictionary<int, long>();
         for (var opened = 0; opened < openCnt; opened++)
         {
+            foreach (var staticDrop in staticDrops)
+            {
+                rolledCnts[staticDrop.ResID] = rolledCnts.GetValueOrDefault(staticDrop.ResID) + staticDrop.ResNum;
+            }
+
             foreach (var dropPackID in dropPacks.SelectMany(dropPackIDs => dropPackIDs))
             {
                 var drop = RollDropPack(packEntries[dropPackID]);
@@ -396,7 +443,8 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
             return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemInvalidNum);
         }
 
-        if (gridUniqueID != NoGridUniqueID && (!TryGetItemId(gridUniqueID, out var gridItemId) || gridItemId != resID))
+        var grid = await repository.FindAsync(role.GameUlongUID, RoleItemType.OutSideItem, resID);
+        if (!MatchesGrid(grid, gridUniqueID))
         {
             return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemResIduniqueIdnotMatch);
         }
@@ -433,7 +481,7 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
             return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemHadResNotOptChest);
         }
 
-        if (await FindOwnedOutSideItemAsync(role.GameUlongUID, resID) is not { } owned || owned.Cnt < resCnt)
+        if (grid is not { IsOwned: true } || grid.Cnt < resCnt)
         {
             return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemDeleteNotEnough);
         }
@@ -725,22 +773,28 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
     public static pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO BuildCoinAward(int coinID, int coinCnt) =>
         BuildAward(coinID, coinCnt, CoinID.GetCoinResourceType(coinID));
 
-    private PB_ENUM_RES_ERROR_CODE ValidateGrid(int resID, ulong gridUniqueID, int resCnt, out pbOutSideItem_Base? config)
+    private async Task<(PB_ENUM_RES_ERROR_CODE Result, pbOutSideItem_Base? Config, BagItem? Owned)> ValidateGridAsync(
+        ulong gameUlongUID,
+        int resID,
+        ulong gridUniqueID,
+        int resCnt)
     {
-        config = null;
         if (resCnt <= 0)
         {
-            return PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemInvalidNum;
+            return (PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemInvalidNum, null, null);
         }
 
-        if (gridUniqueID != NoGridUniqueID && (!TryGetItemId(gridUniqueID, out var itemId) || itemId != resID))
+        var grid = await repository.FindAsync(gameUlongUID, RoleItemType.OutSideItem, resID);
+        if (!MatchesGrid(grid, gridUniqueID))
         {
-            return PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemResIduniqueIdnotMatch;
+            return (PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemResIduniqueIdnotMatch, null, null);
         }
 
-        config = gameData.OutSideItemBase.Find(resID);
-        return config is null
-            ? PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemIdnotExistInCfg
-            : PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
+        return gameData.OutSideItemBase.Find(resID) is { } config
+            ? (PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, config, grid is { IsOwned: true } ? grid : null)
+            : (PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemIdnotExistInCfg, null, null);
     }
+
+    private static bool MatchesGrid(BagItem? grid, ulong gridUniqueID) =>
+        gridUniqueID == GridUniqueID.None || grid?.GridUniqueID == gridUniqueID;
 }

@@ -151,7 +151,7 @@ public sealed class EeveeChallengeManager(
             }),
             GamePacket.Create(
                 PB_ENUM_CS_MSGID_DEF.PbScidOutSideItemUpdateNotify,
-                BagManager.BuildOutSideItemUpdateNotify([new BagItem(RoleItemType.OutSideItem, item.OutSideItemId, ConsumedItemCnt, 0, 0, RolePokemonInfo.NoNewTag)])),
+                BagManager.BuildOutSideItemUpdateNotify([new BagItem(RoleItemType.OutSideItem, item.OutSideItemId, GridUniqueID.Next(drawTime), ConsumedItemCnt, 0, 0, RolePokemonInfo.NoNewTag)])),
             ownership,
             .. timeLimitedPokemon is null
                 ? BuildTransmutePackets(item, commit, wallet)

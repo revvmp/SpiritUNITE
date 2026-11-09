@@ -113,8 +113,10 @@ CREATE TABLE IF NOT EXISTS `role_item` (
     new_tag INT NOT NULL DEFAULT 0,
     item_cnt INT NOT NULL DEFAULT 1,
     item_level INT NOT NULL DEFAULT 0,
+    grid_unique_id BIGINT UNSIGNED NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (game_ulong_uid, item_type, item_id),
+    UNIQUE KEY uk_role_item_grid_unique_id (grid_unique_id),
     CONSTRAINT ck_role_item_cnt CHECK (item_cnt >= 0),
     CONSTRAINT ck_role_item_level CHECK (item_level >= 0),
     CONSTRAINT fk_role_item_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE

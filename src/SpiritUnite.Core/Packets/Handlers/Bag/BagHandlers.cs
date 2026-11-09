@@ -14,6 +14,7 @@ namespace SpiritUnite.Packets.Handlers.Bag;
 public sealed class BagHandlers(
     RoleInfoStore roles,
     BagManager bag,
+    BadgeManager badges,
     RankedManager ranked,
     StarRoadManager starRoad,
     TaskUpdates taskUpdates,
@@ -78,7 +79,7 @@ public sealed class BagHandlers(
             GridUniqueID = use.GridUniqueID,
             ResCnt = use.ResCnt,
         });
-        return outcome.Succeeded ? [.. await BuildUseAwardPacketsAsync(request, role, outcome), reply] : [reply];
+        return outcome.Succeeded ? [.. await BuildUseAwardPacketsAsync(request, role, outcome, use.ResID), reply] : [reply];
     }
 
     private async Task<GamePacket[]> UseFreeTicketCardAsync(GamePacket request, LMNRoleInfo role, pbCSUseOutSideItemReq use)
@@ -113,14 +114,27 @@ public sealed class BagHandlers(
         return [.. packets];
     }
 
-    private async Task<GamePacket[]> BuildUseAwardPacketsAsync(GamePacket request, LMNRoleInfo role, BagOutcome outcome)
+    private async Task<GamePacket[]> BuildUseAwardPacketsAsync(GamePacket request, LMNRoleInfo role, BagOutcome outcome, int usedItemID)
     {
         var packets = new List<GamePacket>();
-        if (outcome.ChangedItems.Any(item => item.ItemType == RoleItemType.OutSideItem))
+        var usedItems = outcome.ChangedItems.Where(item => item.ItemType == RoleItemType.OutSideItem && item.ItemId == usedItemID).ToArray();
+        var grantedItems = outcome.ChangedItems.Where(item => item.ItemType == RoleItemType.OutSideItem && item.ItemId != usedItemID).ToArray();
+        if (usedItems.Length > 0)
         {
-            packets.Add(request.Reply(
-                PB_ENUM_CS_MSGID_DEF.PbScidOutSideItemUpdateNotify,
-                BagManager.BuildOutSideItemUpdateNotify(outcome.ChangedItems)));
+            packets.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidOutSideItemUpdateNotify, BagManager.BuildOutSideItemUpdateNotify(usedItems)));
+        }
+
+        packets.Add(request.Reply(
+            PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf,
+            await taskUpdates.BuildOwnershipUpdateTaskInfoNtfAsync(role)));
+        if (outcome is { GrantedWalletCoins: true, Wallet: { } wallet })
+        {
+            packets.AddRange(wallet.BuildCoinValPushes(outcome.BeforeCoinNums.Keys));
+        }
+
+        if (grantedItems.Length > 0)
+        {
+            packets.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidOutSideItemUpdateNotify, BagManager.BuildOutSideItemUpdateNotify(grantedItems)));
         }
 
         if (outcome.ChangedItems.Any(item => item.ItemType == RoleItemType.Badge))
@@ -128,11 +142,11 @@ public sealed class BagHandlers(
             packets.Add(request.Reply(
                 PB_ENUM_CS_MSGID_DEF.PbScidUpdateBadgeNotify,
                 BadgeManager.BuildUpdateBadgeNotify(outcome.ChangedItems.Where(item => item.ItemType == RoleItemType.Badge))));
+            packets.Add(request.Reply(
+                PB_ENUM_CS_MSGID_DEF.PbScidGetBadgePictureNtf,
+                await badges.BuildGainedBadgePictureNtfAsync(role.GameUlongUID)));
         }
 
-        packets.Add(request.Reply(
-            PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf,
-            await taskUpdates.BuildOwnershipUpdateTaskInfoNtfAsync(role)));
         if (outcome.Wallet is { } specialCoinWallet)
         {
             foreach (var specialCoinID in outcome.GrantedSpecialCoinIDs)
@@ -150,6 +164,20 @@ public sealed class BagHandlers(
             {
                 packets.AddRange(await starRoad.BuildSpecialCoinChangePacketsAsync(role, licensePointsBefore));
             }
+        }
+
+        foreach (var trial in outcome.TimeLimitedPokemon)
+        {
+            packets.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGainTimeLimitedPokemonNtf, new pbSCGainTimeLimitedPokemonNtf
+            {
+                PokemonInfo = trial.ToPokemonInfo(),
+            }));
+            packets.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdatePokemonNtf, new pbSCUpdatePokemonNtf
+            {
+                UpdateType = (int)PB_ENUM_ENM_POKEMON_UPDATETYPE.PbEnmPokemonUpdatetypeGain,
+                PokemonInfo = trial.ToPokemonInfo(),
+            }));
+            packets.Add(StarRoadManager.BuildAddPokemonRedDot(role));
         }
 
         foreach (var pokemonId in outcome.GrantedPokemonIds)
@@ -177,13 +205,6 @@ public sealed class BagHandlers(
         }
 
         packets.AddRange(PokemonAvatarManager.BuildGainPushes(outcome.GrantedItems.Concat(outcome.TimeLimitedPasters)));
-        if (outcome is { GrantedWalletCoins: true, Wallet: { } wallet })
-        {
-            packets.Add(request.Reply(
-                PB_ENUM_CS_MSGID_DEF.PbScidGetCoinValNtf,
-                new pbSCGetCoinValNtf { CoinInfo = wallet.BuildCoinInfo() }));
-            packets.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAcntCouponsRsp, wallet.BuildAcntCouponsRsp()));
-        }
 
         if (outcome.Awards.Count > 0)
         {
@@ -211,7 +232,7 @@ public sealed class BagHandlers(
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetOptionalChestInfoRsp, new pbSCGetOptionalChestInfoRsp
             {
                 ResultInfo = new pbResultInfo { ResultId = (int)result },
-                OptionalChestInfo = info,
+                OptionalChestInfo = info.ResAlreadyHaveList.Count > 0 ? info : null,
             }),
         ];
     }
@@ -233,7 +254,7 @@ public sealed class BagHandlers(
         {
             ResultInfo = new pbResultInfo { ResultId = (int)outcome.Result },
         });
-        return outcome.Succeeded ? [.. await BuildUseAwardPacketsAsync(request, role, outcome), reply] : [reply];
+        return outcome.Succeeded ? [.. await BuildUseAwardPacketsAsync(request, role, outcome, use.ResID), reply] : [reply];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidExchangeSpecifiedItemReq)]
@@ -254,7 +275,7 @@ public sealed class BagHandlers(
             ResID = exchange.ResID,
             ExchangeNum = exchange.ExchangeNum,
         });
-        return outcome.Succeeded ? [.. await BuildUseAwardPacketsAsync(request, role, outcome), reply] : [reply];
+        return outcome.Succeeded ? [.. await BuildUseAwardPacketsAsync(request, role, outcome, exchange.ResID), reply] : [reply];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidClearOutSideItemRedDotReq)]

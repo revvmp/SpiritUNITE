@@ -20,6 +20,7 @@ public sealed record BagChange
     public IReadOnlyList<RolePokemonInfo> PokemonGrants { get; init; } = [];
     public IReadOnlyList<RoleItemInfo> ItemGrants { get; init; } = [];
     public IReadOnlyList<PasterTimeLimit> PasterTimeLimits { get; init; } = [];
+    public IReadOnlyList<RolePokemonInfo> TimeLimitedPokemon { get; init; } = [];
 
     public bool ChangesCoins => CoinCosts.Count > 0 || CoinGrants.Count > 0;
 

@@ -51,7 +51,7 @@ public sealed class AppearanceGift(
 
             pushes.Add((PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf, await taskUpdates.BuildBadgeGroupUpdateTaskInfoNtfAsync(role)));
             pushes.Add((PB_ENUM_CS_MSGID_DEF.PbScidUpdateBadgeNotify, BadgeManager.BuildUpdateBadgeNotify(commit.ChangedItems)));
-            pushes.Add((PB_ENUM_CS_MSGID_DEF.PbScidGetBadgePictureNtf, await BuildGainedBadgePictureNtfAsync(role)));
+            pushes.Add((PB_ENUM_CS_MSGID_DEF.PbScidGetBadgePictureNtf, await badges.BuildGainedBadgePictureNtfAsync(role.GameUlongUID)));
             pushes.Add(await BuildOwnershipTasksAsync(role));
         }
 
@@ -78,15 +78,4 @@ public sealed class AppearanceGift(
 
     private async Task<(PB_ENUM_CS_MSGID_DEF MsgID, IMessage Body)> BuildOwnershipTasksAsync(LMNRoleInfo role) =>
         (PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf, await taskUpdates.BuildOwnershipUpdateTaskInfoNtfAsync(role));
-
-    private async Task<pbSCGetBadgePictureNtf> BuildGainedBadgePictureNtfAsync(LMNRoleInfo role)
-    {
-        var picture = await badges.BuildGetBadgePictureRspAsync(role.GameUlongUID);
-        return new pbSCGetBadgePictureNtf
-        {
-            ResultInfo = new pbResultInfo(),
-            BadgePictureInfo = picture.BadgePictureInfo,
-            NewBadgePictureInfo = picture.BadgePictureInfo.Clone(),
-        };
-    }
 }

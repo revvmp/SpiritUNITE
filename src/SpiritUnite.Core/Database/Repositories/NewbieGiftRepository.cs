@@ -3,6 +3,7 @@ using LinqToDB.Async;
 using LinqToDB.Data;
 using MySqlConnector;
 using SpiritUnite.Database.Models;
+using SpiritUnite.Game.Bag;
 using SpiritUnite.Game.Newbie;
 using SpiritUnite.Game.Pokemon;
 using SpiritUnite.Game.Role;
@@ -14,7 +15,10 @@ namespace SpiritUnite.Database.Repositories;
 public sealed record NewbieGiftCommit(
     PB_ENUM_RES_ERROR_CODE Result,
     RoleWallet? Wallet,
-    IReadOnlyDictionary<int, long> BeforeCoinNums);
+    IReadOnlyDictionary<int, long> BeforeCoinNums)
+{
+    public IReadOnlyList<BagItem> ChangedItems { get; init; } = [];
+}
 
 public sealed class NewbieGiftRepository(DataOptions options)
 {
@@ -35,11 +39,23 @@ public sealed class NewbieGiftRepository(DataOptions options)
         try
         {
             await database.InsertAsync(new RoleNewbieGift { GameUlongUID = gameUlongUID, GiftID = grant.GiftID, FetchTime = now });
+            var granted = await BagRepository.ApplyGrantsAsync(database, gameUlongUID, grant.BagGrants, now);
+            if (granted != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+            {
+                await transaction.RollbackAsync();
+                return new NewbieGiftCommit(granted, null, new Dictionary<int, long>());
+            }
+
             var beforeCoinNums = new Dictionary<int, long>();
             foreach (var (coinID, amount) in grant.Coins)
             {
                 beforeCoinNums[coinID] = await WalletRepository.ReadCoinValAsync(database, gameUlongUID, coinID);
                 await WalletRepository.CreditAsync(database, gameUlongUID, coinID, amount);
+            }
+
+            foreach (var item in grant.Items)
+            {
+                await database.InsertAsync(RoleRepository.ToEntity(gameUlongUID, item));
             }
 
             foreach (var pokemonId in grant.PokemonIds)
@@ -52,8 +68,12 @@ public sealed class NewbieGiftRepository(DataOptions options)
             }
 
             var wallet = await WalletRepository.ReadAsync(database, gameUlongUID);
+            var changedItems = await BagRepository.ReadItemsAsync(
+                database,
+                gameUlongUID,
+                grant.BagGrants.Select(bagGrant => (bagGrant.ItemType, bagGrant.ItemId)).Distinct());
             await transaction.CommitAsync();
-            return new NewbieGiftCommit(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, wallet, beforeCoinNums);
+            return new NewbieGiftCommit(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, wallet, beforeCoinNums) { ChangedItems = changedItems };
         }
         catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
         {

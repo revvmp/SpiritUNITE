@@ -87,9 +87,7 @@ public sealed class BadgeHandlers(
     {
         var role = roles.Require(request.Uid);
         var badgeInfo = pbCSClearNewBadgeRedReq.Parser.ParseFrom(request.PkgData).BadgeInfo ?? new pbCOMDT_ONE_BADGE_UNIQUEID_INFO();
-        var result = badgeInfo.UniqueID == badgeInfo.BadgeID
-            ? await badges.ClearBadgeNewTagAsync(role.GameUlongUID, badgeInfo.BadgeID)
-            : PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
+        var result = await badges.ClearNewBadgeGridTagAsync(role.GameUlongUID, badgeInfo.UniqueID, badgeInfo.BadgeID);
         return
         [
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidClearNewBadgeRedRsp, new pbSCClearNewBadgeRedRsp

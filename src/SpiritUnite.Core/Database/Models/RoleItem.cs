@@ -31,4 +31,7 @@ public sealed class RoleItem
 
     [Column("item_level")]
     public int ItemLevel { get; set; }
+
+    [Column("grid_unique_id")]
+    public ulong? GridUniqueID { get; set; }
 }

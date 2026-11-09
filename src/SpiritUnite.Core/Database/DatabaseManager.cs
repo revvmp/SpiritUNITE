@@ -4,6 +4,7 @@ using LinqToDB.Data;
 using LinqToDB.DataProvider.MySql;
 using MySqlConnector;
 using SpiritUnite.Database.Models;
+using SpiritUnite.Game.Bag;
 
 namespace SpiritUnite.Database;
 
@@ -35,6 +36,7 @@ public static class DatabaseManager
             await database.GetTable<RoleSkillEffectsExpandPack>().AnyAsync();
             await database.GetTable<RoleEeveeChallenge>().AnyAsync();
             await database.GetTable<RoleItem>().FirstOrDefaultAsync();
+            GridUniqueID.ContinueAfter(await database.GetTable<RoleItem>().MaxAsync(item => item.GridUniqueID) ?? GridUniqueID.None);
             await database.GetTable<RoleCoin>().FirstOrDefaultAsync();
             await database.GetTable<RoleShopBuy>().FirstOrDefaultAsync();
             await database.GetTable<Account>().FirstOrDefaultAsync();

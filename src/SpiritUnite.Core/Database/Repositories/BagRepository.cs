@@ -30,7 +30,7 @@ public sealed class BagRepository(DataOptions options)
         await using var database = new DataConnection(options);
         var rows = await database.GetTable<RoleItem>()
             .Where(item => item.GameUlongUID == gameUlongUID && item.ItemType == (int)itemType)
-            .OrderBy(item => item.ItemId)
+            .OrderBy(item => item.GridUniqueID)
             .ToArrayAsync();
         return [.. rows.Select(ToBagItem)];
     }
@@ -39,6 +39,14 @@ public sealed class BagRepository(DataOptions options)
     {
         await using var database = new DataConnection(options);
         var row = await FindRowAsync(database, gameUlongUID, itemType, itemId);
+        return row is null ? null : ToBagItem(row);
+    }
+
+    public async Task<BagItem?> FindByGridAsync(ulong gameUlongUID, RoleItemType itemType, ulong gridUniqueID)
+    {
+        await using var database = new DataConnection(options);
+        var row = await database.GetTable<RoleItem>().FirstOrDefaultAsync(item =>
+            item.GameUlongUID == gameUlongUID && item.ItemType == (int)itemType && item.GridUniqueID == gridUniqueID);
         return row is null ? null : ToBagItem(row);
     }
 
@@ -197,6 +205,14 @@ public sealed class BagRepository(DataOptions options)
         }
 
         await PasterRepository.ApplyTimeLimitedAsync(database, gameUlongUID, change.PasterTimeLimits, now);
+        foreach (var timeLimited in change.TimeLimitedPokemon)
+        {
+            await database.GetTable<RolePokemonTimeLimited>()
+                .Where(row => row.GameUlongUID == gameUlongUID && row.PokemonId == timeLimited.PokemonId)
+                .DeleteAsync();
+            await database.InsertAsync(RoleRepository.ToTimeLimitedEntity(gameUlongUID, timeLimited));
+        }
+
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
@@ -248,6 +264,7 @@ public sealed class BagRepository(DataOptions options)
                     NewTag = grant.NewTag,
                     ItemCnt = grant.Cnt,
                     ItemLevel = grant.InitialLevel,
+                    GridUniqueID = GridUniqueID.Next(now),
                 });
             }
             catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
@@ -283,6 +300,8 @@ public sealed class BagRepository(DataOptions options)
     private static BagItem ToBagItem(RoleItem row) => new(
         (RoleItemType)row.ItemType,
         row.ItemId,
+        row.GridUniqueID ?? throw new InvalidDataException(
+            $"role_item {row.GameUlongUID}/{row.ItemType}/{row.ItemId} has no grid_unique_id"),
         row.ItemCnt,
         row.ItemLevel,
         row.GainTime,
