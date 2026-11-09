@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Logging;
 using SpiritUnite.Game.Friend;
-using SpiritUnite.Game.Login;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Game.Settings;
 using SpiritUnite.Packets.Messages;
@@ -10,7 +9,6 @@ namespace SpiritUnite.Packets.Handlers.Settings;
 public sealed class SettingsHandlers(
     RoleInfoStore roles,
     SettingsManager settings,
-    LoginManager login,
     FriendPresence presence,
     TimeProvider clock,
     ILogger<SettingsHandlers> logger)
@@ -81,17 +79,15 @@ public sealed class SettingsHandlers(
         var gameSettingInfo = pbCSClientGameSettingReq.Parser.ParseFrom(request.PkgData).GameSettingInfo
             ?? new pbCOMDT_CLT_GAME_SETTING_INFO();
         var role = roles.Require(request.Uid);
-        var (result, firstGameSetting) = await settings.SetGameSettingAsync(role.GameUlongUID, gameSettingInfo.GameSettingValue);
+        var result = await settings.SetGameSettingAsync(role.GameUlongUID, gameSettingInfo.GameSettingValue);
         if (result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
         {
             logger.LogInformation("Client game setting with {Count} values refused for uid {Uid}: {Result}",
                 gameSettingInfo.GameSettingValue.Count, request.Uid, result);
         }
 
-        var firstGameSettingPackets = firstGameSetting ? await login.BuildFirstClientGameSettingPacketsAsync(role) : [];
         return
         [
-            .. firstGameSettingPackets.Select(packet => packet with { Uid = request.Uid, ClientSeq = request.ClientSeq }),
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidClientGameSettingRsp, new pbSCClientGameSettingRsp
             {
                 ResultInfo = new pbResultInfo { ResultId = (int)result },

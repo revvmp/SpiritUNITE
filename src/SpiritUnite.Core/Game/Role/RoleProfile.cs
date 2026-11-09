@@ -4,13 +4,13 @@ namespace SpiritUnite.Game.Role;
 
 public static class RoleProfile
 {
-    private const string ShortIdAlphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    private const int ShortIdLength = 7;
-    private const ulong ShortIdRadix = 36;
-    private const ulong ShortIdSpace = 78_364_164_096;
-    private const ulong ShortIdMultiplier = 48_431_716_907;
-    private const ulong ShortIdInverseMultiplier = 37_428_827_267;
-    private const ulong ShortIdOffset = 31_415_926_535;
+    private const string ShortIdAlphabet = "0123456789ACEFGHKLMNPQRTXY";
+    private const int MaxShortIdLength = 7;
+    private const ulong ShortIdRadix = 26;
+    private const ulong ShortIdSpace = 8_031_810_176;
+    private const ulong ShortIdMultiplier = 4_919_457_521;
+    private const ulong ShortIdInverseMultiplier = 4_125_944_209;
+    private const ulong ShortIdOffset = 2_718_281_828;
 
     public static int GetLevel(GameData gameData, LMNRoleInfo role) => gameData.TrainerLevel.Rows
         .Where(row => row.UpgradeExp <= role.RoleTotalExp)
@@ -37,7 +37,7 @@ public static class RoleProfile
         }
 
         var value = (ulong)((((UInt128)uid * ShortIdMultiplier) + ShortIdOffset) % ShortIdSpace);
-        return string.Create(ShortIdLength, value, static (characters, remaining) =>
+        return string.Create(CountShortIdDigits(value), value, static (characters, remaining) =>
         {
             for (var index = characters.Length - 1; index >= 0; index--)
             {
@@ -47,10 +47,22 @@ public static class RoleProfile
         });
     }
 
+    private static int CountShortIdDigits(ulong value)
+    {
+        var digits = 1;
+        while (value >= ShortIdRadix)
+        {
+            value /= ShortIdRadix;
+            digits++;
+        }
+
+        return digits;
+    }
+
     public static bool TryParseShortId(string text, out ulong uid)
     {
         uid = 0;
-        if (text.Length != ShortIdLength)
+        if (text.Length is 0 or > MaxShortIdLength || (text.Length > 1 && text[0] == ShortIdAlphabet[0]))
         {
             return false;
         }

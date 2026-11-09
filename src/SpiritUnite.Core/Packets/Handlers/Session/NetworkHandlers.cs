@@ -5,10 +5,11 @@ namespace SpiritUnite.Packets.Handlers.Session;
 public sealed class NetworkHandlers
 {
     private const int NearestAccessOff = 0;
-    private const int PingIntervalSeconds = 3600;
-    private const int PingPacketsPerRound = 1;
+    private const int PingIntervalSeconds = 300;
+    private const int PingPacketsPerRound = 10;
     private const int PingTimeoutSeconds = 1;
-    private const int NoLoginPings = 0;
+    private const int LoginPingIntervalSeconds = 60;
+    private const int LoginPingRounds = 5;
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidNetworkPingIdcInfoReq)]
     public GamePacket[] OnNetworkPingIdcInfoReq(GamePacket request)
@@ -21,8 +22,8 @@ public sealed class NetworkHandlers
             PingInterval = PingIntervalSeconds,
             PingPkgNum = PingPacketsPerRound,
             PingTimeout = PingTimeoutSeconds,
-            LoginPingInterval = PingIntervalSeconds,
-            LoginPingCount = NoLoginPings,
+            LoginPingInterval = LoginPingIntervalSeconds,
+            LoginPingCount = LoginPingRounds,
             NearestAccessSwitch = NearestAccessOff,
         };
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidNetworkPingIdcInfoRsp, response)];

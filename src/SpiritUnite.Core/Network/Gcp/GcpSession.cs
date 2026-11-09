@@ -22,6 +22,7 @@ public sealed class GcpSession(
     private const int MaxLoggedBytes = 64;
     private const int NoClientSeq = 0;
     private const int NoStopExCode = 0;
+    private const string SessionRouteAlphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     private static readonly FrozenSet<int> PacketsWithoutIsPkgMem = new[]
     {
@@ -39,7 +40,7 @@ public sealed class GcpSession(
     private readonly SemaphoreSlim sendLock = new(1, 1);
     private readonly SemaphoreSlim requestLock = new(1, 1);
     private readonly LoginSession login = new();
-    private readonly byte sessionRoute = (byte)RandomNumberGenerator.GetInt32(byte.MaxValue + 1);
+    private readonly byte sessionRoute = (byte)SessionRouteAlphabet[RandomNumberGenerator.GetInt32(SessionRouteAlphabet.Length)];
     private GcpCipher? cipher;
     private GcpHead? lastHead;
     private bool loginCompletedNotified;

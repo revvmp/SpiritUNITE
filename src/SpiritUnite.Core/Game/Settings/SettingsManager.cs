@@ -164,22 +164,19 @@ public sealed class SettingsManager(SettingsRepository repository, GameData game
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
-    public async Task<(PB_ENUM_RES_ERROR_CODE Result, bool FirstGameSetting)> SetGameSettingAsync(
-        ulong gameUlongUID,
-        IReadOnlyList<int> gameSettingValues)
+    public async Task<PB_ENUM_RES_ERROR_CODE> SetGameSettingAsync(ulong gameUlongUID, IReadOnlyList<int> gameSettingValues)
     {
         if (gameSettingValues.Count > MaxGameSettingValues)
         {
-            return (PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid, false);
+            return PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
         }
 
-        var firstGameSetting = await WithSettingsAsync(gameUlongUID, settings =>
+        await ChangeAsync(gameUlongUID, settings =>
         {
-            var first = settings.GameSettingInfo.GameSettingValue.Count == 0 && gameSettingValues.Count > 0;
             settings.GameSettingInfo = new pbCOMDT_CLT_GAME_SETTING_INFO { GameSettingValue = { gameSettingValues } };
-            return (true, first);
+            return true;
         });
-        return (PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, firstGameSetting);
+        return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
     public async Task<PB_ENUM_RES_ERROR_CODE> SetIntimacyShowAsync(ulong gameUlongUID, int isIntimacyShow)

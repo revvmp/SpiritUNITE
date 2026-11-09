@@ -18,6 +18,7 @@ using SpiritUnite.Game.Match;
 using SpiritUnite.Game.Newbie;
 using SpiritUnite.Game.Pokemon;
 using SpiritUnite.Game.Profile;
+using SpiritUnite.Game.PveChallenge;
 using SpiritUnite.Game.RallyChallenge;
 using SpiritUnite.Game.Ranked;
 using SpiritUnite.Game.Role;
@@ -28,8 +29,10 @@ using SpiritUnite.Game.Tasks;
 using SpiritUnite.Game.TenGames;
 using SpiritUnite.Game.TrainerExpGift;
 using SpiritUnite.Game.Wallet;
+using SpiritUnite.Online;
 using SpiritUnite.Packets;
 using SpiritUnite.Packets.Messages;
+using SpiritUnite.Tools;
 using static SpiritUnite.Packets.Messages.PB_ENUM_CS_MSGID_DEF;
 
 namespace SpiritUnite.Game.Login;
@@ -40,6 +43,7 @@ public sealed class LoginManager(
     ActivityManager activityManager,
     EeveeChallengeManager eeveeChallengeManager,
     RallyChallengeManager rallyChallenge,
+    AllPkmChallengeManager allPkmChallenges,
     MegaEvolutionManager megaEvolution,
     BagManager bag,
     BadgeManager badges,
@@ -53,6 +57,7 @@ public sealed class LoginManager(
     GuildManager guilds,
     NewbieManager newbies,
     NewbieChallengeManager newbieChallenges,
+    NewbieChallengeTaskManager newbieChallengeTasks,
     NewbieGiftManager newbieGifts,
     LobbyNotices notices,
     StarRoadManager starRoad,
@@ -63,11 +68,16 @@ public sealed class LoginManager(
     MailManager mail,
     EnergyManager energies,
     CreditManager credit,
+    CreditPointTaskManager creditPointTasks,
     RankedManager ranked,
     BattlePassManager battlePass,
     WarmBattleManager warmBattles,
     InviteFriendManager inviteFriends,
     TenGamesManager tenGames,
+    PveChallengeProgress pveChallenge,
+    PveChallengeManager pveChallengeManager,
+    LobbyRoles lobbyRoles,
+    BackgroundOperations operations,
     TimeProvider clock,
     ILogger<LoginManager> logger)
 {
@@ -78,6 +88,40 @@ public sealed class LoginManager(
     private const int ShippedDatabinABTestID = 1;
     private const int NoRankedDivision = 0;
     private const int FirstpayTotalCoupons = 60;
+    private const int FirstLoginInToday = 1;
+    private const int NotFirstLoginInToday = 0;
+    private const int NewRolePveChallengePrivilegeBadgeNum = 1;
+    private const int NewRoleSubscriptionPasterBadgeNum = 1;
+    private const int NewRoleScoreFinMapNoticeBadgeNum = 1;
+    private const int NewRoleTenGamesApplyBadgeNum = 1;
+    private const int NewRoleTenGamesTeamBadgeNum = 1;
+    private const int NewRoleLocalLangugageBadgeNum = 1;
+    private const int NewRoleBackDownloadBadgeNum = 1;
+
+    private static readonly TimeSpan DailyRefreshMaxDelay = TimeSpan.FromSeconds(60);
+
+    private static readonly PB_ENUM_RES_RED_DOT_ID[] DailyRefreshRecallClears =
+    [
+        PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdRecallLoginAward,
+        PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdRecallScoreAward,
+        PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdRecallBattleAward,
+        PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdRecallTaskAward,
+        PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdRecallRechargeAward,
+    ];
+
+    private static readonly PB_ENUM_RES_RED_DOT_ID[] DailyRefreshEventClears =
+    [
+        PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdPayForWeekLoginAward,
+        PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdSnowTurntableDraw,
+    ];
+
+    private static readonly PB_ENUM_RES_RED_DOT_ID[] DailyRefreshLateClears =
+    [
+        PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdWcsMatchPrediction,
+        PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdNewHead,
+        PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdPuzzleActivity,
+        PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdSubscriptionCoupons,
+    ];
 
     private readonly ConcurrentDictionary<ulong, ulong> relayMD5ByUid = new();
 
@@ -87,13 +131,13 @@ public sealed class LoginManager(
 
     public ulong FindRelayMD5(ulong uid) => relayMD5ByUid.GetValueOrDefault(uid);
 
-    public async Task RecordAcntLoginAsync(ulong uid, int loginCountryCode)
+    public async Task<bool> RecordAcntLoginAsync(ulong uid, int loginCountryCode)
     {
         await settings.AdoptLoginCountryCodeAsync(uid, loginCountryCode);
-        await activityManager.RecordLoginDayAsync(uid);
+        return await activityManager.RecordLoginDayAsync(uid);
     }
 
-    public async Task CompleteRegistrationAsync(ulong uid, int? loginCountryCode)
+    public async Task<bool> CompleteRegistrationAsync(ulong uid, int? loginCountryCode)
     {
         if (loginCountryCode is { } countryCode)
         {
@@ -103,12 +147,12 @@ public sealed class LoginManager(
         await pokemon.CreateRegistUsedPokemonAsync(uid);
         logger.LogInformation("Trainer registration completed for uid {Uid}", uid);
         await mail.SendWelcomeMailAsync(uid);
-        await activityManager.RecordLoginDayAsync(uid);
+        return await activityManager.RecordLoginDayAsync(uid);
     }
 
-    public Task RecordLoginDayAsync(ulong uid) => activityManager.RecordLoginDayAsync(uid);
+    public Task<bool> RecordLoginDayAsync(ulong uid) => activityManager.RecordLoginDayAsync(uid);
 
-    public async Task<pbSCAcntLoginRsp> BuildAcntLoginRspAsync(LMNRoleInfo role)
+    public async Task<pbSCAcntLoginRsp> BuildAcntLoginRspAsync(LMNRoleInfo role, bool isFirstLoginInToday)
     {
         logger.LogInformation("Login from uid {Uid} as {Name}", role.GameUlongUID, role.InGameUsrName);
 
@@ -139,8 +183,11 @@ public sealed class LoginManager(
             RoleAvatarInfo = role.RoleAvatarInfo,
             NewbieState = role.BuildNewbieState(),
             RegisterTime = registerTime,
+            IsFirstLoginInToday = isFirstLoginInToday ? FirstLoginInToday : NotFirstLoginInToday,
             FriendShortId = await inviteFriends.FindFriendShortIdAsync(role.GameUlongUID),
-            MonthUseCouponsInfo = LobbyNotices.BuildMonthUseCouponsInfo(registerTime),
+            MonthUseCouponsInfo = AwaitsRegistGive(role)
+                ? new pbCOMDT_MONTH_USE_COUPONS_INFO()
+                : LobbyNotices.BuildMonthUseCouponsInfo(registerTime),
             FirstPokemonId = role.FirstPokemonId,
             ServerGameTimeStamp = now,
             ServerRealTimeStamp = now,
@@ -189,28 +236,71 @@ public sealed class LoginManager(
             PersonaliseButtonInfo = new pbCOMDT_PERSONALISE_BUTTON_LIST(),
         };
         await rallyChallenge.FillAcntLoginRspAsync(role.GameUlongUID, acntLoginRsp);
+        await allPkmChallenges.MailUnclaimedRewardsAsync(role);
         return acntLoginRsp;
     }
 
-    public async Task<GamePacket[]> BuildLoginFinishAsync(GamePacket request, LMNRoleInfo role, bool offingRestart)
+    public async Task<GamePacket[]> BuildLoginFinishAsync(
+        GamePacket request,
+        LMNRoleInfo role,
+        bool offingRestart,
+        bool isFirstLoginInToday)
     {
         var registGains = profiles.GrantRegistGive(role);
         var isFirstLogin = registGains.Length > 0;
-        if (!isFirstLogin)
+        GamePacket[] replies;
+        if (isFirstLogin)
         {
-            return await BuildReturningLoginAsync(request, role, offingRestart);
+            await roles.SaveAsync(role);
+            replies = await BuildFirstLoginAsync(request, role, registGains);
+        }
+        else if (offingRestart)
+        {
+            replies = await BuildReturningLoginAsync(request, role, offingRestart);
+        }
+        else
+        {
+            replies = await BuildColdLoginAsync(request, role, isFirstLoginInToday);
         }
 
-        await roles.SaveAsync(role);
-        return await BuildFirstLoginAsync(request, role, registGains);
+        if (isFirstLoginInToday)
+        {
+            ScheduleDailyRefresh(role);
+        }
+
+        return replies;
     }
 
-    public async Task<GamePacket[]> BuildFirstClientGameSettingPacketsAsync(LMNRoleInfo role) =>
+    private void ScheduleDailyRefresh(LMNRoleInfo role)
+    {
+        var delay = DailyRefreshMaxDelay * Random.Shared.NextDouble();
+        operations.Run("daily refresh push", async token =>
+        {
+            await Task.Delay(delay, clock, token);
+            if (lobbyRoles.IsOnline(role.GameUlongUID))
+            {
+                await lobbyRoles.PushAsync(role.GameUlongUID, await BuildDailyRefreshPacketsAsync(role));
+            }
+        });
+    }
+
+    private async Task<GamePacket[]> BuildDailyRefreshPacketsAsync(LMNRoleInfo role) =>
     [
+        .. DailyRefreshRecallClears.Select(BuildRedDotClear),
+        await newbieGifts.BuildFourteenDayRedDotAsync(role),
         GamePacket.Create(PbScidNewbieGiftInfoNtf, await newbieGifts.BuildNewbieGiftInfoNtfAsync(role)),
+        .. DailyRefreshEventClears.Select(BuildRedDotClear),
         GamePacket.Create(PbScidGetCanopyListNtf, await BuildCanopyListNtfAsync(role)),
+        .. DailyRefreshLateClears.Select(BuildRedDotClear),
         GamePacket.Create(PbScidPrivilePlatInfoNtf, new pbSCPrivilePlatInfoNtf { PrivilePlatInfo = new pbCOMDT_PRIVILE_PLAT_INFO() }),
     ];
+
+    private static GamePacket BuildRedDotClear(PB_ENUM_RES_RED_DOT_ID redDotID) =>
+        GamePacket.Create(PbScidRedDotClearNtf, LobbyNotices.BuildRedDotClearNtf(redDotID));
+
+    private bool AwaitsRegistGive(LMNRoleInfo role) =>
+        !ContestantCard.FindRegistGiveDecorationIDs(gameData)
+            .Any(decorationID => role.OwnsItem(RoleItemType.ContestantCardDecoration, decorationID));
 
     private async Task<GamePacket[]> BuildReturningLoginAsync(GamePacket request, LMNRoleInfo role, bool offingRestart)
     {
@@ -250,6 +340,70 @@ public sealed class LoginManager(
         return replies.ToArray();
     }
 
+    public async Task<GamePacket[]> BuildColdLoginPreludeAsync(LMNRoleInfo role) =>
+        SettingsManager.BuildClientGameSettingNtf(await settings.LoadAsync(role.GameUlongUID)) is { } clientGameSettingNtf
+            ? [GamePacket.Create(PbScidClientGameSettingNtf, clientGameSettingNtf)]
+            : [];
+
+    private async Task<GamePacket[]> BuildColdLoginAsync(GamePacket request, LMNRoleInfo role, bool isFirstLoginInToday)
+    {
+        var uid = role.GameUlongUID;
+        await StoreFourteenDayRedDotAsync(role);
+        await StoreEeveeChallengeRedDotAsync(role);
+        var creditPointTaskInfo = isFirstLoginInToday
+            ? await creditPointTasks.ReissueDailyAsync(uid, clock.GetUtcNow().ToUnixTimeSeconds())
+            : null;
+        var clientSettings = await settings.LoadAsync(uid);
+        var route = await SyncStarRoadAsync(role);
+        var canopyList = await BuildCanopyListNtfAsync(role);
+
+        var replies = new ReplyList(request);
+        replies.Add(PbScidLoginFinishNtf, new pbSCLoginFinishNtf());
+        replies.Add(PbScidBattlePassNtf, await battlePass.BuildBattlePassNtfAsync(role));
+        replies.AddRange(await friends.BuildFriendDataPacketsAsync(role));
+        if (isFirstLoginInToday)
+        {
+            replies.Add(PbScidActivityInfoNtf, notices.BuildActivityInfoNtf(clientSettings.CountryCode));
+            replies.Add(PbScidTaskDeleteNtf, notices.BuildCreditPointTaskDeleteNtf());
+            replies.Add(PbScidUpdateTaskInfoNtf, creditPointTaskInfo!);
+            replies.AddRange(await newbieChallengeTasks.BuildDayUnlockPushesAsync(role));
+            replies.Add(PbScidNewbieStateInfoNtf, NewbieManager.BuildNewbieStateInfoNtf(role));
+            replies.Add(PbScidEnergyInfoNtf, EnergyCenter.BuildEnergyInfoNtf(await energies.LoadAsync(uid)));
+            if (await activityManager.BuildDayLoginTaskUpdateAsync(role) is { } dayLoginTasks)
+            {
+                replies.Add(PbScidUpdateTaskInfoNtf, dayLoginTasks);
+            }
+        }
+
+        replies.Add(PbScidNewbieGiftInfoNtf, await newbieGifts.BuildNewbieGiftInfoNtfAsync(role));
+        replies.Add(PbScidGetCanopyListNtf, canopyList);
+        replies.Add(PbScidActivityInfoNtf, notices.BuildActivityInfoNtf(clientSettings.CountryCode));
+        replies.Add(PbScidSubscriptionStatusNtf, notices.BuildSubscriptionStatusNtf());
+        replies.Add(PbScidQueryTowerDefenseNtf, notices.BuildQueryTowerDefenseNtf());
+        var starRoadInfo = await starRoad.BuildStarRoadInfoNtfAsync(role, route, isLoginNtf: false);
+        replies.Add(starRoadInfo);
+        if (isFirstLoginInToday)
+        {
+            replies.Add(starRoadInfo);
+        }
+
+        replies.Add(PbScidQuickSpeakCfgNtf, new pbSCQuickSpeakCfgNtf { QuickSpeakInfo = settings.BuildQuickSpeakInfo(clientSettings) });
+        await AddLobbyStateAsync(replies, role, canopyList);
+        if (ConnRelayRecover?.Invoke(uid) is { } connRelayRecover)
+        {
+            replies.Add(connRelayRecover);
+        }
+
+        replies.Add(PbScidWeeklySettleCookieNtf, LobbyNotices.BuildWeeklySettleCookieNtf());
+        replies.Add(PbScidActivityLoginShowNtf, new pbSCActivityLoginShowNtf());
+        replies.AddRange(await megaEvolution.BuildLoginNtfsAsync(uid));
+        AddRedDots(replies, clientSettings);
+        replies.AddRange(notices.BuildCouponsRefreshPackets((await wallets.LoadAsync(uid)).BuildAcntCouponsRsp(), grantSubscriptionOpen: false));
+        replies.Add(PbScidGetBindChannelRsp, BuildGetBindChannelRsp(await accounts.FindBoundChannelsAsync(uid)));
+        replies.Add(await tenGames.BuildInviteRedDotAsync(uid));
+        return replies.ToArray();
+    }
+
     private async Task<GamePacket[]> BuildFirstLoginAsync(GamePacket request, LMNRoleInfo role, pbSCProfileGainResNtf[] registGains)
     {
         var uid = role.GameUlongUID;
@@ -269,7 +423,7 @@ public sealed class LoginManager(
         replies.Add(PbScidBattlePassNtf, await battlePass.BuildBattlePassNtfAsync(role));
         replies.AddRange(await friends.BuildFriendDataPacketsAsync(role));
         replies.Add(PbScidActivityInfoNtf, notices.BuildActivityInfoNtf(clientSettings.CountryCode));
-        replies.Add(PbScidUpdateTaskInfoNtf, notices.BuildCreditPointTaskInfoNtf(registerTime));
+        replies.Add(PbScidUpdateTaskInfoNtf, await creditPointTasks.IssueAsync(uid, registerTime));
         replies.Add(PbScidNewbieStateInfoNtf, NewbieManager.BuildNewbieStateInfoNtf(role));
         replies.Add(PbScidEnergyInfoNtf, energyInfo);
         replies.Add(PbScidNewbieGiftInfoNtf, await newbieGifts.BuildNewbieGiftInfoNtfAsync(role));
@@ -339,15 +493,35 @@ public sealed class LoginManager(
         var uid = role.GameUlongUID;
         var fourteenDay = await newbieGifts.FindFourteenDayRedDotAsync(role);
         var eeveeChallengeRedDot = await eeveeChallengeManager.FindRedDotAsync(role);
+        var completeActivityTasks = (await activityManager.BuildTaskInfoListAsync(role))
+            .Count(task => task.Status == (int)PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusComplete);
+        var countryCode = (await settings.LoadAsync(uid)).CountryCode;
+        var pvePrivilegeOpen = pveChallengeManager.FindPrivilegeActivity(clock.GetUtcNow()) is not null;
         await settings.ReplaceRedDotsAsync(uid,
         [
+            .. BuildRedDot(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdPveChallengeNormal, pveChallenge.CountOpenNormalNodes(role)),
+            .. BuildRedDot(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdLobbyBackground, role.CountNewTags(RoleItemType.LobbyBg)),
             .. await mail.BuildUnreadRedDotDetailsAsync(uid),
-            .. notices.BuildRegistRedDots(CountNewTags(lastRegistGain)),
-            .. fourteenDay is null ? [] : new[] { fourteenDay },
+            .. notices.BuildStartActivityShowRedDots(countryCode),
+            .. BuildRedDot(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdActivityReward, completeActivityTasks),
+            .. pvePrivilegeOpen ? BuildRedDot(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdPveChallengePrivilege, NewRolePveChallengePrivilegeBadgeNum) : [],
             .. eeveeChallengeRedDot is null ? [] : new[] { eeveeChallengeRedDot },
+            .. notices.BuildRegistCreditPointRewardRedDots(),
+            .. fourteenDay is null ? [] : new[] { fourteenDay },
+            .. BuildRedDot(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdNewEntrycardEditItem, CountNewTags(lastRegistGain)),
+            .. BuildRedDot(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdSubscriptionPaster, NewRoleSubscriptionPasterBadgeNum),
+            .. BuildRedDot(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdScoreFinMapNotice, NewRoleScoreFinMapNoticeBadgeNum),
+            .. notices.BuildRegistShopRedDots(),
+            .. BuildRedDot(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdTenGamesApply, NewRoleTenGamesApplyBadgeNum),
+            .. BuildRedDot(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdTenGamesTeam, NewRoleTenGamesTeamBadgeNum),
+            .. BuildRedDot(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdLocalLangugage, NewRoleLocalLangugageBadgeNum),
+            .. BuildRedDot(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdBackDownload, NewRoleBackDownloadBadgeNum),
         ]);
         await settings.ReplaceBubTipsAsync(uid, LobbyNotices.BuildRegistBubTips());
     }
+
+    private static pbCOMDT_RED_DOT_DETAIL[] BuildRedDot(PB_ENUM_RES_RED_DOT_ID redDotID, int redDotBadgeNum) =>
+        redDotBadgeNum > 0 ? [new pbCOMDT_RED_DOT_DETAIL { RedDotID = (int)redDotID, RedDotBadgeNum = redDotBadgeNum }] : [];
 
     private async Task StoreFourteenDayRedDotAsync(LMNRoleInfo role)
     {

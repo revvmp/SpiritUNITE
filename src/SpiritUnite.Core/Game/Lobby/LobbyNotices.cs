@@ -28,9 +28,9 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
     private const int TowerDefenseClosed = 2;
     private const int TowerDefenseEnded = 3;
     private const int NoSubscriptionPeriod = 0;
-    private const int TaskCompletedOnce = 1;
-    private const int TaskNewTag = 1;
     private const int RedDotBadgeOne = 1;
+    private const int NoStartActivityShowRedDot = 0;
+    private const int CreditPointRewardBadgesPerCompletion = 2;
     private const int OfficialAcntSysPlat = 1;
     private const int RegistBubTipID = 10;
     private const int RegistBubTipBadgeNum = 1;
@@ -161,29 +161,46 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
 
     public static pbCOMDT_MONTH_USE_COUPONS_INFO BuildMonthUseCouponsInfo(long firstPayTime) => new() { FirstPayTime = firstPayTime };
 
-    public pbSCUpdateTaskInfoNtf BuildCreditPointTaskInfoNtf(long recvTime) => new()
+    public pbSCTaskDeleteNtf BuildCreditPointTaskDeleteNtf() => new()
     {
-        TaskInfoList =
-        {
-            gameData.TaskBase.Rows
-                .Select(task => (Task: task, Condition: task.FinishCondition.FirstOrDefault(condition =>
-                    condition.ID == (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdCreditpoint)))
-                .Where(credit => credit.Condition is not null)
-                .Select(credit => BuildCreditPointTaskInfo(credit.Task.TaskID, credit.Condition!.TargetProcess, recvTime)),
-        },
+        ModuleType = (int)PB_ENUM_ENM_CLIENT_TASKMODULE.PbEnmClientTaskmoduleCreditpoint,
+        DelTaskIDList = { FindCreditPointTasks().Select(credit => credit.Task.TaskID) },
     };
+
+    private IEnumerable<(pbTask_Base Task, pbFinishCondition Condition)> FindCreditPointTasks() =>
+        gameData.TaskBase.Rows
+            .Select(task => (Task: task, Condition: task.FinishCondition.FirstOrDefault(condition =>
+                condition.ID == (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdCreditpoint)))
+            .Where(credit => credit.Condition is not null)
+            .Select(credit => (credit.Task, credit.Condition!));
 
     public static pbCOMDT_BUB_TIP_DETAIL[] BuildRegistBubTips() =>
     [
         new pbCOMDT_BUB_TIP_DETAIL { BubTipID = RegistBubTipID, BubTipBadgeNum = RegistBubTipBadgeNum },
     ];
 
-    public pbCOMDT_RED_DOT_DETAIL[] BuildRegistRedDots(int newEntrycardEditItemCount)
+    public pbCOMDT_RED_DOT_DETAIL[] BuildStartActivityShowRedDots(int countryCode) =>
+    [
+        .. schedule.FindActive(clock.GetUtcNow())
+            .Where(activity => IsOpenInNation(activity.Row, countryCode))
+            .OrderBy(activity => activity.Row.ActivityType)
+            .Select(activity => activity.Row.StartActivityShowRedDotID)
+            .Where(redDotID => redDotID != NoStartActivityShowRedDot)
+            .Distinct()
+            .Select(redDotID => new pbCOMDT_RED_DOT_DETAIL { RedDotID = redDotID, RedDotBadgeNum = RedDotBadgeOne }),
+    ];
+
+    public pbCOMDT_RED_DOT_DETAIL[] BuildRegistCreditPointRewardRedDots() =>
+        BuildRedDot(
+            PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdCreditPointReward,
+            FindCreditPointTasks().Count(credit => CreditManager.StartingCreditPoint >= credit.Condition.TargetProcess)
+                * CreditPointRewardBadgesPerCompletion);
+
+    public pbCOMDT_RED_DOT_DETAIL[] BuildRegistShopRedDots()
     {
         var newSaleCount = BuildShopNewSaleInfo().NewSaleList.Count;
         return
         [
-            .. BuildRedDot(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdNewEntrycardEditItem, newEntrycardEditItemCount),
             .. BuildRedDot(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdShop, newSaleCount),
             .. BuildRedDot(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdShopAvatar, newSaleCount),
         ];
@@ -319,27 +336,6 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
         return gameData.SubScriptionPeriod.Rows
             .Where(period => period.StartTime <= now && now < period.EndTime)
             .MaxBy(period => period.StartTime)?.ID ?? NoSubscriptionPeriod;
-    }
-
-    private pbCOMDT_TASK_INFO BuildCreditPointTaskInfo(int taskID, int targetProcess, long recvTime)
-    {
-        var completed = CreditManager.StartingCreditPoint >= targetProcess;
-        var taskInfo = new pbCOMDT_TASK_INFO
-        {
-            TaskId = taskID,
-            TaskSystem = (int)PB_ENUM_ENM_TASKSYSTEM.PbEnmTasksystemCreditpoint,
-            TaskProcess = { Math.Min(CreditManager.StartingCreditPoint, targetProcess) },
-            Status = (int)(completed ? PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusComplete : PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusRecved),
-            RecvTime = recvTime,
-            NewTag = TaskNewTag,
-        };
-        if (completed)
-        {
-            taskInfo.CompleteNum = TaskCompletedOnce;
-            taskInfo.CompleteTime = recvTime;
-        }
-
-        return taskInfo;
     }
 
     private static pbCOMDT_RED_DOT_DETAIL[] BuildRedDot(PB_ENUM_RES_RED_DOT_ID redDotID, int redDotBadgeNum) =>

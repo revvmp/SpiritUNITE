@@ -10,6 +10,7 @@ namespace SpiritUnite.Packets.Handlers.Session;
 public sealed class LoginHandlers(
     RoleInfoStore roles,
     LoginManager login,
+    AccountManager accounts,
     OffingRestartSessions offingRestarts,
     TimeProvider clock,
     ILogger<LoginHandlers> logger)
@@ -19,9 +20,14 @@ public sealed class LoginHandlers(
     {
         var acntLogin = pbCSAcntLoginReq.Parser.ParseFrom(request.PkgData);
         var uid = RequireAuthenticatedUid(request.Uid);
+        var session = request with { Uid = uid };
+        if (await FindLoginBanResultAsync(uid) is { } banResult)
+        {
+            return [session.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAcntLoginRsp, new pbSCAcntLoginRsp { ResultInfo = banResult })];
+        }
+
         login.RememberRelayMD5(uid, acntLogin.RelayMD5);
         var role = await roles.FindAsync(uid);
-        var session = request with { Uid = uid };
         if (role is null)
         {
             SessionOf(request).RequireRegistration(acntLogin.CountryCode);
@@ -35,14 +41,23 @@ public sealed class LoginHandlers(
             ];
         }
 
-        await login.RecordAcntLoginAsync(uid, acntLogin.CountryCode);
-        return [await BeginLoginAsync(session, role, offingRestart: false)];
+        var isFirstLoginInToday = await login.RecordAcntLoginAsync(uid, acntLogin.CountryCode);
+        return
+        [
+            .. (await login.BuildColdLoginPreludeAsync(role)).Select(packet => packet with { Uid = uid, ClientSeq = request.ClientSeq }),
+            await BeginLoginAsync(session, role, offingRestart: false, isFirstLoginInToday),
+        ];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidAcntRegisterReq)]
     public async Task<GamePacket[]> OnAcntRegisterReq(GamePacket request)
     {
         var registration = pbCSAcntRegisterReq.Parser.ParseFrom(request.PkgData);
+        if (await FindLoginBanResultAsync(request.Uid) is { } banResult)
+        {
+            return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAcntRegisterRsp, new pbSCAcntRegisterRsp { ResultInfo = banResult })];
+        }
+
         var result = await roles.RegisterAsync(request.Uid, registration.UserName);
         var response = request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAcntRegisterRsp, new pbSCAcntRegisterRsp
         {
@@ -56,8 +71,8 @@ public sealed class LoginHandlers(
 
         var role = await roles.FindAsync(request.Uid)
             ?? throw new InvalidOperationException("Registered role could not be loaded");
-        await login.CompleteRegistrationAsync(request.Uid, SessionOf(request).RegistrationCountryCode);
-        return [response, await BeginLoginAsync(request, role, offingRestart: false)];
+        var isFirstLoginInToday = await login.CompleteRegistrationAsync(request.Uid, SessionOf(request).RegistrationCountryCode);
+        return [response, await BeginLoginAsync(request, role, offingRestart: false, isFirstLoginInToday)];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidOffingRestartReq)]
@@ -65,6 +80,11 @@ public sealed class LoginHandlers(
     {
         var restart = pbCSOffingRestartReq.Parser.ParseFrom(request.PkgData);
         var uid = RequireAuthenticatedUid(request.Uid);
+        if (await FindLoginBanResultAsync(uid) is { } banResult)
+        {
+            return [(request with { Uid = 0 }).Reply(PB_ENUM_CS_MSGID_DEF.PbScidOffingRestartRsp, new pbSCOffingRestartRsp { ResultInfo = banResult })];
+        }
+
         var role = offingRestarts.CanResume(uid) ? await roles.FindAsync(uid) : null;
         if (role is null)
         {
@@ -87,12 +107,39 @@ public sealed class LoginHandlers(
             return [OffingRestartSucceeded(session)];
         }
 
-        await login.RecordLoginDayAsync(uid);
+        var isFirstLoginInToday = await login.RecordLoginDayAsync(uid);
         return
         [
             session.Reply(PB_ENUM_CS_MSGID_DEF.PbScidActivityLoginShowNtf, new pbSCActivityLoginShowNtf()),
-            await BeginLoginAsync(session, role, offingRestart: true),
+            await BeginLoginAsync(session, role, offingRestart: true, isFirstLoginInToday),
         ];
+    }
+
+    private async Task<pbResultInfo?> FindLoginBanResultAsync(ulong uid)
+    {
+        if (await accounts.FindActiveBanAsync(uid, clock.GetUtcNow().ToUnixTimeSeconds()) is not { } ban)
+        {
+            return null;
+        }
+
+        logger.LogInformation("Lobby login refused for banned uid {Uid}", uid);
+        return ban.BanEndTime == AccountBanState.Permanent
+            ? new pbResultInfo { ResultId = (int)PB_ENUM_RES_ERROR_CODE.PbErrKickOffBan }
+            : new pbResultInfo
+            {
+                ResultId = (int)PB_ENUM_RES_ERROR_CODE.PbErrLoginForbidden3,
+                Args = new pbArgList
+                {
+                    Args =
+                    {
+                        new pbArgData
+                        {
+                            Type = (int)PB_ENUM_ARGDATATYPE.PbAdtTimestamp,
+                            Value = new pbArgDataValue { TimestampValue = new pbArgTimestampValue { TimestampValue = ban.BanEndTime } },
+                        },
+                    },
+                },
+            };
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidCliBattleVersionReq)]
@@ -100,14 +147,14 @@ public sealed class LoginHandlers(
     {
         pbCSCliBattleVersionReq.Parser.ParseFrom(request.PkgData);
         var session = SessionOf(request);
-        if (!session.TryBeginCompletion(out var offingRestart))
+        if (!session.TryBeginCompletion(out var offingRestart, out var isFirstLoginInToday))
         {
             return [];
         }
 
         try
         {
-            var replies = await login.BuildLoginFinishAsync(request, roles.Require(request.Uid), offingRestart);
+            var replies = await login.BuildLoginFinishAsync(request, roles.Require(request.Uid), offingRestart, isFirstLoginInToday);
             session.Complete();
             return replies;
         }
@@ -118,10 +165,10 @@ public sealed class LoginHandlers(
         }
     }
 
-    private async Task<GamePacket> BeginLoginAsync(GamePacket request, LMNRoleInfo role, bool offingRestart)
+    private async Task<GamePacket> BeginLoginAsync(GamePacket request, LMNRoleInfo role, bool offingRestart, bool isFirstLoginInToday)
     {
-        var response = await login.BuildAcntLoginRspAsync(role);
-        SessionOf(request).AwaitClientVersion(offingRestart);
+        var response = await login.BuildAcntLoginRspAsync(role, isFirstLoginInToday);
+        SessionOf(request).AwaitClientVersion(offingRestart, isFirstLoginInToday);
         return request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAcntLoginRsp, response);
     }
 

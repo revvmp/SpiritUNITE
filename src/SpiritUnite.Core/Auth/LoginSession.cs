@@ -13,6 +13,7 @@ public enum LoginPhase
 public sealed class LoginSession
 {
     private bool offingRestart;
+    private bool firstLoginInToday;
 
     public LoginPhase Phase { get; private set; } = LoginPhase.AwaitingLogin;
     public int? RegistrationCountryCode { get; private set; }
@@ -24,16 +25,18 @@ public sealed class LoginSession
         Phase = LoginPhase.RegistrationRequired;
     }
 
-    public void AwaitClientVersion(bool resumesSession)
+    public void AwaitClientVersion(bool resumesSession, bool isFirstLoginInToday)
     {
         offingRestart = resumesSession;
+        firstLoginInToday = isFirstLoginInToday;
         RegistrationCountryCode = null;
         Phase = LoginPhase.AwaitingClientVersion;
     }
 
-    public bool TryBeginCompletion(out bool resumesSession)
+    public bool TryBeginCompletion(out bool resumesSession, out bool isFirstLoginInToday)
     {
         resumesSession = offingRestart;
+        isFirstLoginInToday = firstLoginInToday;
         if (Phase != LoginPhase.AwaitingClientVersion)
         {
             return false;
