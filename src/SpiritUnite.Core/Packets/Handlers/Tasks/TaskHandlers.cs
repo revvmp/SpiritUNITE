@@ -2,6 +2,7 @@ using SpiritUnite.Game.Achievement;
 using SpiritUnite.Game.Activity;
 using SpiritUnite.Game.Bag;
 using SpiritUnite.Game.BattlePass;
+using SpiritUnite.Game.Credit;
 using SpiritUnite.Game.Guild;
 using SpiritUnite.Game.Newbie;
 using SpiritUnite.Game.Role;
@@ -21,7 +22,8 @@ public sealed class TaskHandlers(
     ActivityRewardNotices rewardNotices,
     BattlePassTasks battlePassTasks,
     BattlePassManager battlePass,
-    GuildActivityTasks guildActivityTasks)
+    GuildActivityTasks guildActivityTasks,
+    CreditPointTaskManager creditPointTasks)
 {
     private const int SingleTask = 0;
 
@@ -35,8 +37,14 @@ public sealed class TaskHandlers(
             ModuleType = query.ModuleType,
         };
         var moduleType = (PB_ENUM_ENM_CLIENT_TASKMODULE)query.ModuleType;
+        GamePacket[] modulePushes = [];
         switch (moduleType)
         {
+            case PB_ENUM_ENM_CLIENT_TASKMODULE.PbEnmClientTaskmoduleCreditpoint:
+                var (creditPointTaskInfoList, creditPointPushes) = await creditPointTasks.BuildTaskInfoListAsync(roles.Require(request.Uid).GameUlongUID);
+                response.TaskInfoList.Add(creditPointTaskInfoList);
+                modulePushes = creditPointPushes;
+                break;
             case PB_ENUM_ENM_CLIENT_TASKMODULE.PbEnmClientTaskmoduleActivity:
                 var role = roles.Require(request.Uid);
                 await activityManager.RecordLoginDayAsync(role.GameUlongUID);
@@ -62,6 +70,7 @@ public sealed class TaskHandlers(
 
         return
         [
+            .. modulePushes.Select(push => push with { Uid = request.Uid, ClientSeq = request.ClientSeq }),
             .. TaskRedDots.BuildTaskInfoRedDots(moduleType, response.TaskInfoList)
                 .Select(redDot => redDot with { Uid = request.Uid, ClientSeq = request.ClientSeq }),
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetTaskInfoRsp, response),
@@ -86,6 +95,18 @@ public sealed class TaskHandlers(
         if (BattlePassTasks.IsBattlePassModule(claimRequest.ModuleType))
         {
             return await ClaimBattlePassAsync(request, claimRequest, role);
+        }
+
+        if (claimRequest.ModuleType == (int)PB_ENUM_ENM_TASKSYSTEM.PbEnmTasksystemCreditpoint
+            && claimRequest.IsBatch == SingleTask
+            && creditPointTasks.IsCreditPointTask(claimRequest.TaskId))
+        {
+            var creditPointClaim = await creditPointTasks.ClaimAsync(role, claimRequest.TaskId);
+            return
+            [
+                .. creditPointClaim.Pushes.Select(push => push with { Uid = request.Uid, ClientSeq = request.ClientSeq }),
+                BuildRewardResponse(request, claimRequest, creditPointClaim.Result),
+            ];
         }
 
         if (claimRequest.ModuleType == (int)PB_ENUM_ENM_CLIENT_TASKMODULE.PbEnmClientTaskmoduleGuildActivity)

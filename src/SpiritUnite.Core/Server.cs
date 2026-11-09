@@ -329,6 +329,7 @@ public static class Server
         builder.Services.AddSingleton<MailManager>();
         builder.Services.AddSingleton<GrantUpdates>();
         builder.Services.AddSingleton<CreditManager>();
+        builder.Services.AddSingleton<CreditPointTaskManager>();
         builder.Services.AddSingleton<AccusationManager>();
         builder.Services.AddSingleton<BattleVoiceManager>();
         builder.Services.AddSingleton<GVoiceRoomManager>();

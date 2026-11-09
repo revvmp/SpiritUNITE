@@ -2,6 +2,8 @@ using LinqToDB;
 using LinqToDB.Async;
 using LinqToDB.Data;
 using SpiritUnite.Database.Models;
+using SpiritUnite.Game.Wallet;
+using SpiritUnite.Packets.Messages;
 
 namespace SpiritUnite.Database.Repositories;
 
@@ -16,8 +18,85 @@ public sealed record CreditReduceRecord(
     int HeroID,
     string DeskUniqId);
 
+public sealed record CreditPointTaskRecord(
+    int TaskId,
+    int Status,
+    int TaskProcess,
+    int CompleteNum,
+    long RecvTime,
+    long CompleteTime,
+    long RewardTime);
+
 public sealed class CreditRepository(DataOptions options)
 {
+    private const int TaskstatusComplete = (int)PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusComplete;
+    private const int TaskstatusRewarded = (int)PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusRewarded;
+
+    public async Task<CreditPointTaskRecord[]> ListTasksAsync(ulong gameUlongUID)
+    {
+        await using var database = new DataConnection(options);
+        return await database.GetTable<RoleCreditTask>()
+            .Where(task => task.GameUlongUID == gameUlongUID)
+            .Select(task => new CreditPointTaskRecord(
+                task.TaskId,
+                task.Status,
+                task.TaskProcess,
+                task.CompleteNum,
+                task.RecvTime,
+                task.CompleteTime,
+                task.RewardTime))
+            .ToArrayAsync();
+    }
+
+    public async Task SaveTasksAsync(ulong gameUlongUID, IReadOnlyList<CreditPointTaskRecord> tasks)
+    {
+        await using var database = new DataConnection(options);
+        await using var transaction = await database.BeginTransactionAsync();
+        foreach (var task in tasks)
+        {
+            await database.InsertOrReplaceAsync(ToEntity(gameUlongUID, task));
+        }
+
+        await transaction.CommitAsync();
+    }
+
+    public async Task<RoleWallet?> CommitTaskRewardAsync(ulong gameUlongUID, int taskId, long rewardTime, IReadOnlyDictionary<int, long> coins)
+    {
+        await using var database = new DataConnection(options);
+        await using var transaction = await database.BeginTransactionAsync();
+        var claimed = await database.GetTable<RoleCreditTask>()
+            .Where(task => task.GameUlongUID == gameUlongUID && task.TaskId == taskId && task.Status == TaskstatusComplete)
+            .Set(task => task.Status, TaskstatusRewarded)
+            .Set(task => task.RewardTime, rewardTime)
+            .UpdateAsync();
+        if (claimed == 0)
+        {
+            await transaction.RollbackAsync();
+            return null;
+        }
+
+        foreach (var (coinID, amount) in coins)
+        {
+            await WalletRepository.CreditAsync(database, gameUlongUID, coinID, amount);
+        }
+
+        var wallet = await WalletRepository.ReadAsync(database, gameUlongUID);
+        await transaction.CommitAsync();
+        return wallet;
+    }
+
+    private static RoleCreditTask ToEntity(ulong gameUlongUID, CreditPointTaskRecord task) => new()
+    {
+        GameUlongUID = gameUlongUID,
+        TaskId = task.TaskId,
+        Status = task.Status,
+        TaskProcess = task.TaskProcess,
+        CompleteNum = task.CompleteNum,
+        RecvTime = task.RecvTime,
+        CompleteTime = task.CompleteTime,
+        RewardTime = task.RewardTime,
+    };
+
     public async Task<CreditRecord?> FindAsync(ulong gameUlongUID)
     {
         await using var database = new DataConnection(options);

@@ -30,6 +30,8 @@ public static class TaskRedDots
                 [BuildCount(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdNewbieChallengeReward, CountComplete(tasks))],
             PB_ENUM_ENM_CLIENT_TASKMODULE.PbEnmClientTaskmoduleAchievement =>
                 [BuildCount(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdAchievement, CountComplete(tasks))],
+            PB_ENUM_ENM_CLIENT_TASKMODULE.PbEnmClientTaskmoduleCreditpoint =>
+                [BuildCount(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdCreditPointReward, CountComplete(tasks))],
             _ => [],
         };
 

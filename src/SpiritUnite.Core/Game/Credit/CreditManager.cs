@@ -6,10 +6,22 @@ using SpiritUnite.Game.Mail;
 using SpiritUnite.Online;
 using SpiritUnite.Packets;
 using SpiritUnite.Packets.Messages;
+using SpiritUnite.Tools;
 
 namespace SpiritUnite.Game.Credit;
 
 public sealed record CreditPenalty(bool IsPenalized, int CreditPoint, long BanEndTime);
+
+public sealed record HangupPenalty(int ReducePoint, int CreditPoint, pbSCCreditPointNtf? CreditPointNtf);
+
+public sealed record HangupPunishNotice(
+    Guid SettlementID,
+    ulong Uid,
+    string InGameUsrName,
+    PB_ENUM_ENM_HANGUP_TYPE HangupType,
+    long GameStartTime,
+    HangupPenalty Penalty,
+    IReadOnlyList<ulong> TeammateUids);
 
 public sealed record CreditReduceBattle(int MapId, long GameStartTime, int HeroID, string DeskUniqId)
 {
@@ -21,12 +33,15 @@ public sealed class CreditManager(
     GameData gameData,
     MailManager mail,
     LobbyRoles lobbyRoles,
+    BackgroundOperations background,
     TimeProvider clock,
     ILogger<CreditManager> logger)
 {
     public const int StartingCreditPoint = (int)PB_MACRO_COM_CREDIT_POINT_INIT_VALUE.PbComCreditPointInitValue;
 
     public static readonly TimeSpan UnconfirmedMatchMailDelay = TimeSpan.FromSeconds(3);
+
+    public static readonly TimeSpan HangupPunishMailDelay = TimeSpan.FromSeconds(3);
 
     private const long SecondsPerDay = 86400;
     private const long MillisecondsPerSecond = 1000;
@@ -35,6 +50,12 @@ public sealed class CreditManager(
     private const int NoBanSec = 0;
     private const long NoBanEndTime = 0;
     private const int UnconfirmedMatchMailID = (int)PB_ENUM_RES_MAILID_TYPE.PbResMailidTypeHangupPunish;
+    private const int MildHangupPunishMailID = (int)PB_ENUM_RES_MAILID_TYPE.PbResMailidTypeMildHangupPunish;
+    private const int SevereMaliciousHangupPunishMailID = (int)PB_ENUM_RES_MAILID_TYPE.PbResMailidTypeSevereMaliciousHangupPunish;
+    private const int SysAutoPunishMailID = (int)PB_ENUM_RES_MAILID_TYPE.PbResMailidTypeSysAutoPunish;
+    private const string PunishMailSubject = "Mail_TextTitle_12_001";
+    private const string HangupPunishMailContent = "System_Behaviour_Notice_Email_12030_003";
+    private const string SysAutoPunishMailContent = "System_Behaviour_Notice_23924_001";
     private const int AccusationMailType = (int)PB_ENUM_RES_MAIL_TYPE.PbResMailTypeAccusation;
     private const int GameStartUnconfirmKey = (int)PB_ENUM_RES_RESGLOBAL.PbResglobalGameStartUnconfirm;
     private const int FirstMatchUnconfirmKey = (int)PB_ENUM_RES_RESGLOBAL.PbResglobalMatchUnconfirm1;
@@ -51,16 +72,19 @@ public sealed class CreditManager(
     private const int HangupIncomeRatioBase = 100;
     private const int MaxDeduceCreditPointRecordNum = (int)PB_MACRO_COM_MAX_DEDUCE_CREDIT_POINT_RECORD_NUM.PbComMaxDeduceCreditPointRecordNum;
     private const int NoHeroID = 0;
+    private const int NoMapMode = 0;
+    private const int NoMapSubMode = 0;
     private const string NoDeskUniqId = "";
 
     private static readonly SystemMail UnconfirmedMatchMail = new(
-        Subject: "Mail_TextTitle_12_001",
+        Subject: PunishMailSubject,
         Content: "Mail_TextContent_12_001",
         Attachments: [],
         MailType: AccusationMailType,
         MailID: UnconfirmedMatchMailID);
 
     private readonly ConcurrentDictionary<ulong, SemaphoreSlim> gates = new();
+    private readonly ConcurrentDictionary<Guid, List<HangupPunishNotice>> hangupPunishBatches = new();
 
     public async Task<int> GetCreditPointAsync(ulong uid) => (await LoadAsync(uid)).CreditPoint;
 
@@ -113,7 +137,7 @@ public sealed class CreditManager(
                 ? Math.Max(MinCreditPoint, record.CreditPoint - SchemeValueOf(hangupSchemeID, GameStartUnconfirmKey))
                 : record.CreditPoint;
             var banEndTime = isPenalized
-                ? (now.ToUnixTimeMilliseconds() + (banSec * MillisecondsPerSecond) + MillisecondsPerSecond - 1) / MillisecondsPerSecond
+                ? CeilingUnixSeconds(now.AddSeconds(banSec))
                 : record.BanEndTime;
             logger.LogInformation(
                 "Uid {Uid} left match {UnconfirmedCount} of the day unconfirmed on hang-up scheme {HangupSchemeID}: credit {CreditPoint}, battle ban until {BanEndTime}",
@@ -124,16 +148,12 @@ public sealed class CreditManager(
                 banEndTime);
             var reduceRecord = creditPoint == record.CreditPoint
                 ? null
-                : BuildReduceRecord(mapId, now.ToUnixTimeSeconds(), PB_ENUM_ENM_CREDIT_DEDUCE_REASON.PbEnmCreditDeduceReasonNotConfirmMatch, record.CreditPoint - creditPoint, NoHeroID, NoDeskUniqId);
+                : BuildUnconfirmedMatchReduceRecord(CeilingUnixSeconds(now), record.CreditPoint - creditPoint);
             return (record with { CreditPoint = creditPoint, UnconfirmedDay = today, UnconfirmedCount = unconfirmedCount, BanEndTime = banEndTime }, reduceRecord, new CreditPenalty(isPenalized, creditPoint, banEndTime));
         });
     }
 
-    public async Task SendUnconfirmedMatchMailAsync(ulong uid)
-    {
-        await mail.SendSystemMailAsync(uid, UnconfirmedMatchMail);
-        await lobbyRoles.PushAsync(uid, await mail.BuildUnreadRedDotPacketsAsync(uid, AccusationMailType));
-    }
+    public Task SendUnconfirmedMatchMailAsync(ulong uid) => SendPunishMailAsync(uid, UnconfirmedMatchMail);
 
     public int FindGameStartNeedCredit(int mapId) =>
         SchemeValueOf(gameData.SceneMap.Find(mapId)?.HangupSchemeID ?? 0, GameStartNeedCreditKey);
@@ -147,19 +167,50 @@ public sealed class CreditManager(
             : PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeNone;
     }
 
-    public int ReduceHangupIncome(int income, PB_ENUM_ENM_HANGUP_TYPE hangupType)
-    {
-        var reduceRatio = hangupType switch
+    public int ReduceHangupIncome(int income, PB_ENUM_ENM_HANGUP_TYPE hangupType) =>
+        income - (income * HangupIncomeReduceRatioOf(hangupType) / HangupIncomeRatioBase);
+
+    public int HangupIncomeReduceRatioOf(PB_ENUM_ENM_HANGUP_TYPE hangupType) => Math.Clamp(
+        hangupType switch
         {
             PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeMild => gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalMildHangupIncomeReduceRatio),
             PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeSevere => gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalSevereHangupIncomeReduceRatio),
             PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeMalicious => gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalMaliciousHangupReduceRatio),
             _ => 0,
-        };
-        return income - (income * Math.Clamp(reduceRatio, 0, HangupIncomeRatioBase) / HangupIncomeRatioBase);
+        },
+        0,
+        HangupIncomeRatioBase);
+
+    public void ScheduleHangupPunishMails(HangupPunishNotice notice)
+    {
+        var isFirstOfBattle = false;
+        var batch = hangupPunishBatches.GetOrAdd(notice.SettlementID, _ =>
+        {
+            isFirstOfBattle = true;
+            return [];
+        });
+        lock (batch)
+        {
+            batch.Add(notice);
+        }
+
+        if (!isFirstOfBattle)
+        {
+            return;
+        }
+
+        if (!background.Run($"hang-up punish mails of settlement {notice.SettlementID:N}", async token =>
+            {
+                await Task.Delay(HangupPunishMailDelay, clock, token);
+                await SendHangupPunishMailsAsync(notice.SettlementID);
+            }))
+        {
+            hangupPunishBatches.TryRemove(notice.SettlementID, out _);
+            logger.LogWarning("Uid {Uid} gets no hang-up punish mails: the server is stopping", notice.Uid);
+        }
     }
 
-    public async Task<pbSCCreditPointNtf?> PenalizeHangupAsync(ulong uid, CreditReduceBattle battle, PB_ENUM_ENM_HANGUP_TYPE hangupType)
+    public async Task<HangupPenalty> PenalizeHangupAsync(ulong uid, CreditReduceBattle battle, PB_ENUM_ENM_HANGUP_TYPE hangupType)
     {
         var hangupSchemeID = HangupSchemeIDOf(battle.MapId);
         var deduction = hangupType switch
@@ -179,13 +230,110 @@ public sealed class CreditManager(
                 hangupSchemeID,
                 record.CreditPoint,
                 creditPoint);
-            return creditPoint == record.CreditPoint
-                ? (record, (CreditReduceRecord?)null, (pbSCCreditPointNtf?)null)
+            var reducePoint = record.CreditPoint - creditPoint;
+            return reducePoint == 0
+                ? (record, (CreditReduceRecord?)null, new HangupPenalty(reducePoint, creditPoint, null))
                 : (record with { CreditPoint = creditPoint },
-                    BuildReduceRecord(battle, PB_ENUM_ENM_CREDIT_DEDUCE_REASON.PbEnmCreditDeduceReasonHangup, record.CreditPoint - creditPoint),
-                    new pbSCCreditPointNtf { CurrentCreditPoint = creditPoint });
+                    BuildReduceRecord(battle, PB_ENUM_ENM_CREDIT_DEDUCE_REASON.PbEnmCreditDeduceReasonHangup, reducePoint),
+                    new HangupPenalty(reducePoint, creditPoint, new pbSCCreditPointNtf { CurrentCreditPoint = creditPoint }));
         });
     }
+
+    private async Task SendHangupPunishMailsAsync(Guid settlementID)
+    {
+        if (!hangupPunishBatches.TryRemove(settlementID, out var batch))
+        {
+            return;
+        }
+
+        HangupPunishNotice[] notices;
+        lock (batch)
+        {
+            notices = [.. batch];
+        }
+
+        var mailsByReceiver = new Dictionary<ulong, List<SystemMail>>();
+        foreach (var notice in notices)
+        {
+            AddPunishMail(mailsByReceiver, notice.Uid, BuildHangupPunishMail(notice));
+        }
+
+        foreach (var notice in notices)
+        {
+            foreach (var teammateUid in notice.TeammateUids)
+            {
+                AddPunishMail(mailsByReceiver, teammateUid, BuildSysAutoPunishMail(notice));
+            }
+
+            logger.LogInformation(
+                "Uid {Uid} gets the {HangupType} hang-up punish mail; teammates {TeammateUids} get the notice",
+                notice.Uid,
+                notice.HangupType,
+                notice.TeammateUids);
+        }
+
+        foreach (var (receiverUid, mails) in mailsByReceiver)
+        {
+            await mail.SendSystemMailBatchAsync(receiverUid, AccusationMailType, mails);
+        }
+    }
+
+    private static void AddPunishMail(Dictionary<ulong, List<SystemMail>> mailsByReceiver, ulong receiverUid, SystemMail punishMail)
+    {
+        if (!mailsByReceiver.TryGetValue(receiverUid, out var mails))
+        {
+            mailsByReceiver[receiverUid] = mails = [];
+        }
+
+        mails.Add(punishMail);
+    }
+
+    private SystemMail BuildHangupPunishMail(HangupPunishNotice notice) =>
+        new(
+            Subject: PunishMailSubject,
+            Content: HangupPunishMailContent,
+            Attachments: [],
+            MailType: AccusationMailType,
+            MailID: notice.HangupType == PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeMild ? MildHangupPunishMailID : SevereMaliciousHangupPunishMailID,
+            ContentParams:
+            [
+                MailContentParam.Time(notice.GameStartTime),
+                MailContentParam.Text(HangupTypeNameOf(notice.HangupType)),
+                MailContentParam.Number(notice.Penalty.ReducePoint),
+                MailContentParam.Number(notice.Penalty.CreditPoint),
+                MailContentParam.Number(HangupIncomeReduceRatioOf(notice.HangupType)),
+            ]);
+
+    private static SystemMail BuildSysAutoPunishMail(HangupPunishNotice notice) =>
+        new(
+            Subject: PunishMailSubject,
+            Content: SysAutoPunishMailContent,
+            Attachments: [],
+            MailType: AccusationMailType,
+            MailID: SysAutoPunishMailID,
+            FromUid: notice.Uid,
+            ContentParams:
+            [
+                MailContentParam.Time(notice.GameStartTime),
+                MailContentParam.Text(notice.InGameUsrName),
+                MailContentParam.Text(HangupTypeNameOf(notice.HangupType)),
+                MailContentParam.Text(notice.InGameUsrName),
+                MailContentParam.Number(notice.Penalty.ReducePoint),
+            ]);
+
+    private async Task SendPunishMailAsync(ulong uid, SystemMail punishMail)
+    {
+        await mail.SendSystemMailAsync(uid, punishMail);
+        await lobbyRoles.PushAsync(uid, await mail.BuildUnreadRedDotPacketsAsync(uid, AccusationMailType));
+    }
+
+    private static string HangupTypeNameOf(PB_ENUM_ENM_HANGUP_TYPE hangupType) => hangupType switch
+    {
+        PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeMild => "ENM_HANGUP_TYPE_MILD",
+        PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeSevere => "ENM_HANGUP_TYPE_SEVERE",
+        PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeMalicious => "ENM_HANGUP_TYPE_MALICIOUS",
+        _ => throw new ArgumentOutOfRangeException(nameof(hangupType), hangupType, "Only an idle hang-up type has a punish mail"),
+    };
 
     public async Task<pbSCCreditPointNtf?> RecoverAfterBattleAsync(ulong uid, int mapId, bool isManMachine)
     {
@@ -305,6 +453,12 @@ public sealed class CreditManager(
         var sceneMap = gameData.SceneMap.Find(mapId);
         return new CreditReduceRecord(gameStartTime, sceneMap?.MapMode ?? 0, sceneMap?.MapSubMode ?? 0, (int)reason, reducePoint, heroID, deskUniqId);
     }
+
+    private static CreditReduceRecord BuildUnconfirmedMatchReduceRecord(long gameStartTime, int reducePoint) =>
+        new(gameStartTime, NoMapMode, NoMapSubMode, (int)PB_ENUM_ENM_CREDIT_DEDUCE_REASON.PbEnmCreditDeduceReasonNotConfirmMatch, reducePoint, NoHeroID, NoDeskUniqId);
+
+    private static long CeilingUnixSeconds(DateTimeOffset time) =>
+        (time.ToUnixTimeMilliseconds() + MillisecondsPerSecond - 1) / MillisecondsPerSecond;
 
     private int HangupSchemeIDOf(int mapId) => gameData.SceneMap.Find(mapId)?.HangupSchemeID ?? 0;
 

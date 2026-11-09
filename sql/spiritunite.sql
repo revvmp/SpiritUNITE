@@ -638,6 +638,19 @@ CREATE TABLE IF NOT EXISTS `role_credit` (
     CONSTRAINT fk_role_credit_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `role_credit_task` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    task_id INT NOT NULL,
+    task_status INT NOT NULL,
+    task_process INT NOT NULL,
+    complete_num INT NOT NULL DEFAULT 0,
+    recv_time BIGINT NOT NULL,
+    complete_time BIGINT NOT NULL DEFAULT 0,
+    reward_time BIGINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid, task_id),
+    CONSTRAINT fk_role_credit_task_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `role_credit_reduce_record` (
     credit_reduce_record_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     game_ulong_uid BIGINT UNSIGNED NOT NULL,

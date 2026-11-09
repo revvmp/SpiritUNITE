@@ -139,7 +139,7 @@ public sealed class BattleSettlementRepository(DataOptions options)
         await FightHistoryRepository.AddAsync(database, change.FightHistory, change.MaxFightHistoryNumPerMapSubMode);
         if (change.Intimacy is { } intimacy)
         {
-            await FriendRepository.AddIntimacyAsync(database, gameUlongUID, intimacy.FriendUids, intimacy.IntimacyValue);
+            await FriendRepository.AddTogetherBattleAsync(database, gameUlongUID, intimacy.FriendUids, intimacy.IntimacyValue);
         }
 
         var changedItems = await BagRepository.ReadItemsAsync(

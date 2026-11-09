@@ -15,6 +15,7 @@ public sealed class MatchScheduler(
     LobbyRoles lobbyRoles,
     FriendPresence presence,
     CreditManager credit,
+    CreditPointTaskManager creditPointTasks,
     BackgroundOperations operations,
     TimeProvider clock,
     ILogger<MatchScheduler> logger) : BackgroundService
@@ -145,6 +146,11 @@ public sealed class MatchScheduler(
             }
 
             await PushAllAsync(await WithCreditNoticesAsync(outcome.Pushes, penalizedUids));
+            foreach (var uid in penalizedUids)
+            {
+                await lobbyRoles.PushAsync(uid, await creditPointTasks.SyncAsync(uid));
+            }
+
             Follow(outcome);
             foreach (var uid in removedUids)
             {

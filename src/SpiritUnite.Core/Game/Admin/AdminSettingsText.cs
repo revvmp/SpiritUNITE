@@ -58,6 +58,7 @@ public static class AdminSettingsText
         [(typeof(RankedOptions), nameof(RankedOptions.FakePlayerWinPointMax))] = new("Bot points max", "Highest points shown for bots in ranked"),
         [(typeof(BattleSettlementOptions), nameof(BattleSettlementOptions.PveChallengeWinBaseExp))] = new("PvE challenge win exp", "Trainer exp for winning a PvE challenge"),
         [(typeof(BattleSettlementOptions), nameof(BattleSettlementOptions.PveChallengeLoseBaseExp))] = new("PvE challenge loss exp", "Trainer exp for losing a PvE challenge"),
+        [(typeof(BattleSettlementOptions), nameof(BattleSettlementOptions.PveChallengeWinEnergy))] = new("PvE challenge win energy", "Energy for winning a PvE challenge"),
         [(typeof(BattleSettlementOptions), nameof(BattleSettlementOptions.MatchWinExpPerMinute))] = new("Win exp per minute", "Trainer exp per minute of map time for a win"),
         [(typeof(BattleSettlementOptions), nameof(BattleSettlementOptions.MatchLoseExpPerMinute))] = new("Loss exp per minute", "Trainer exp per minute of map time for a loss"),
         [(typeof(BattleSettlementOptions), nameof(BattleSettlementOptions.MatchWinEnergy))] = new("Win energy", "Energy for a win"),

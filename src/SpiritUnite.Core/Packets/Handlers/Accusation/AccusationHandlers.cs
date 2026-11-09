@@ -1,10 +1,12 @@
 using SpiritUnite.Game.Accusation;
+using SpiritUnite.Game.Credit;
+using SpiritUnite.Online;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Packets.Messages;
 
 namespace SpiritUnite.Packets.Handlers.Accusation;
 
-public sealed class AccusationHandlers(RoleInfoStore roles, AccusationManager accusations)
+public sealed class AccusationHandlers(RoleInfoStore roles, AccusationManager accusations, CreditPointTaskManager creditPointTasks, LobbyRoles lobbyRoles)
 {
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidAccusationReq)]
     public async Task<GamePacket[]> OnAccusationReq(GamePacket request)
@@ -20,6 +22,11 @@ public sealed class AccusationHandlers(RoleInfoStore roles, AccusationManager ac
             RoleName = outcome.RoleName,
             CreditPunish = outcome.CreditPunish,
         };
+        if (outcome.CreditPunish > 0)
+        {
+            await lobbyRoles.PushAsync(outcome.Uid, await creditPointTasks.SyncAsync(outcome.Uid));
+        }
+
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidAccusationRsp, response)];
     }
 

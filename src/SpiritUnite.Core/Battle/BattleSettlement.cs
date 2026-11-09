@@ -38,6 +38,10 @@ public sealed record BattleResult(BattleDesk Desk, DeskPlayer Human, pbCSMultgam
 
     public bool QuitByExitButton => Gameover.IsExitButtonGameOver != 0;
 
+    public int AdditionHangUpTime => Gameover.AcntInfo.FirstOrDefault(info => info.AcntUid == Human.Uid)?.CommonData?.AcntClientInfo?.AdditionHangUpTime ?? 0;
+
+    public int TotalHangupSeconds => Math.Min(Math.Max(0, GameTime), HangupSeconds + Math.Max(0, AdditionHangUpTime));
+
     public bool IsDraw => !QuitByExitButton && IsDrawReport(Gameover.BattleParam);
 
     public bool Won => !QuitByExitButton && Gameover.BattleParam.WinCampClient == Human.CampClient;
@@ -87,7 +91,6 @@ public sealed class BattleSettlement
     private const long IsAITypeOneBattleFlag = 1L << IsAITypeOneBattleFlagBit;
     private const int RankedMatchLimitTimeRedDotBadgeNum = 1;
     private const int EnergyGainRedDotBadgeNum = 2;
-    private const int TodaySetNoReminded = 1;
     private const int DaysPerWeek = 7;
     private const int GameTimeoutEnded = 1;
 
@@ -112,6 +115,7 @@ public sealed class BattleSettlement
     private readonly ActivityManager activityManager;
     private readonly MvpScore mvpScore;
     private readonly RoleRepository roleRepository;
+    private readonly CreditPointTaskManager creditPointTasks;
     private readonly LobbyRoles lobbyRoles;
     private readonly CreditManager credit;
     private readonly RankedManager ranked;
@@ -157,6 +161,7 @@ public sealed class BattleSettlement
         ActivityManager activityManager,
         MvpScore mvpScore,
         RoleRepository roleRepository,
+        CreditPointTaskManager creditPointTasks,
         LobbyRoles lobbyRoles,
         CreditManager credit,
         RankedManager ranked,
@@ -196,6 +201,7 @@ public sealed class BattleSettlement
         this.activityManager = activityManager;
         this.mvpScore = mvpScore;
         this.roleRepository = roleRepository;
+        this.creditPointTasks = creditPointTasks;
         this.lobbyRoles = lobbyRoles;
         this.credit = credit;
         this.ranked = ranked;
@@ -256,6 +262,7 @@ public sealed class BattleSettlement
         var challengeUnlockedBefore = newbieChallenges.IsUnlocked(role);
         var newbieBenefitActive = await IsNewbieBenefitActiveAsync(uid, utcNow);
         var hangupType = FindHangupType(result);
+        var energyUnlocked = IsEnergyUnlocked(role);
         var mvp = ComputeMvp(result);
         var fightRecordNtf = BuildFightRecordNtf(result, mvp);
         var fightHistory = FightHistoryManager.CreateRecord(
@@ -269,7 +276,7 @@ public sealed class BattleSettlement
         IReadOnlyList<BagGrant> heldItemGrants = [];
         var commit = await repository.CommitAsync(uid, journalEntry, node, async storedStarNum =>
         {
-            plan = Plan(role, result, route, Math.Max(storedStarNum, knownStarNum), newbieBenefitActive, hangupType, weekReward);
+            plan = Plan(role, result, route, Math.Max(storedStarNum, knownStarNum), newbieBenefitActive, hangupType, weekReward, energyUnlocked);
             heldItemGrants = await heldItems.CreateHeldItemUnlockGrantsAsync(role, role.RoleTotalExp + plan.ChgExp);
             return new BattleSettlementChange(
                 plan.ChgExp,
@@ -282,7 +289,7 @@ public sealed class BattleSettlement
                 plan.Coins,
                 fightHistory,
                 FightHistoryManager.MaxRecordNumPerMapSubMode,
-                plan.IsMatch && !IsCustomBattle(result)
+                plan.IsMatch && !IsCustomBattle(result) && energyUnlocked || plan.EnergyGains.Count > 0
                     ? new BattleEnergyGrant(plan.EnergyGains.Sum(gain => gain.EnergyGain), EnergyCenter.WeeklyEnergyFreeCapacity(gameData))
                     : null,
                 plan.IsMatch && !IsCustomBattle(result) && result.Desk.DeskInfo.ManMachine != CpuMatch.ManMachine
@@ -343,7 +350,8 @@ public sealed class BattleSettlement
         var rankedSettlement = IsRankedMatch(result)
             ? await ranked.SettleAsync(uid, new RankedBattle(result.Won, result.IsDraw, rankPointMedals.Award(BuildRankMedalPlayers(result), result.Human.ObjId)))
             : null;
-        var isTodaySetNoReminded = !plan.IsMatch ? 0 : rankedSettlement is null ? TodaySetNoReminded : await ranked.TakeIsTodaySetNoRemindedAsync(uid);
+        var isTodaySetNoReminded = await ranked.TakeIsTodaySetNoRemindedAsync(uid);
+        logger.LogDebug("Desk {DeskID}: uid {Uid} settlement IsTodaySetNoReminded {IsTodaySetNoReminded}", result.Desk.DeskID, uid, isTodaySetNoReminded);
         var gain = BuildSettleGainRsp(role, result, plan, commit, levelBefore, mvp, rankedSettlement, isTodaySetNoReminded, now);
         if (await tenGamesBattles.RecordBattleAsync(BuildTenGamesBattle(result), uid) is { } tenGamesScore)
         {
@@ -358,24 +366,42 @@ public sealed class BattleSettlement
             fabulous.Open(result.Desk, uid);
         }
 
-        var battleTasks = IsCustomBattle(result) ? NoBattleTasks : await RecordBattleTasksAsync(role, result, plan, now);
-        if (!IsCustomBattle(result))
+        var countsBattle = !IsCustomBattle(result) && !result.QuitByExitButton;
+        var battleTasks = countsBattle ? await RecordBattleTasksAsync(role, result, plan, now) : NoBattleTasks;
+        if (countsBattle)
         {
             await guildActivityTasks.RecordBattleAsync(uid, BuildGuildBattle(result, mvp));
         }
 
-        var eventBattlePushes = IsCustomBattle(result)
+        var eventBattlePushes = !countsBattle
             ? []
             : await eventBattles.RecordAsync(role, plan.Won, result.Desk.DeskInfo.MapId, pokemonIdByHeroID.GetValueOrDefault(plan.HeroID));
 
+        var hangupPenalty = !result.QuitByExitButton && hangupType != PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeNone
+            ? await credit.PenalizeHangupAsync(uid, BuildCreditReduceBattle(result), hangupType)
+            : null;
         var creditPointNtf = result.QuitByExitButton ? null
-            : hangupType != PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeNone ? await credit.PenalizeHangupAsync(uid, BuildCreditReduceBattle(result), hangupType)
+            : hangupPenalty is not null ? hangupPenalty.CreditPointNtf
             : await credit.RecoverAfterBattleAsync(uid, result.Desk.DeskInfo.MapId, result.Desk.DeskInfo.ManMachine == CpuMatch.ManMachine);
+        if (hangupPenalty is not null)
+        {
+            credit.ScheduleHangupPunishMails(new HangupPunishNotice(
+                result.Desk.SettlementID,
+                uid,
+                role.InGameUsrName,
+                hangupType,
+                result.GameStartTime,
+                hangupPenalty,
+                [.. result.Desk.CampOf(result.Human.CampClient).Where(player => !player.IsNpc && player.Uid != uid).Select(player => player.Uid)]));
+        }
+
         if (delivery == SettlementDelivery.Recovered || !lobbyRoles.IsOnline(uid))
         {
             logger.LogInformation("Settlement of uid {Uid} was stored without live delivery ({Delivery})", uid, delivery);
             return;
         }
+
+        var creditPointTaskPushes = creditPointNtf is null ? [] : await creditPointTasks.SyncAsync(uid);
 
         var packets = await BuildPushesAsync(
             role,
@@ -387,6 +413,8 @@ public sealed class BattleSettlement
             challengeUnlockedBefore,
             battleTasks,
             creditPointNtf,
+            creditPointTaskPushes,
+            hangupPenalty is not null,
             rankedSettlement,
             gain,
             fightRecordNtf);
@@ -598,11 +626,15 @@ public sealed class BattleSettlement
             return PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeNone;
         }
 
-        var hangupType = credit.FindHangupType(result.Desk.DeskInfo.MapId, result.HangupSeconds);
-        if (hangupType != PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeNone)
-        {
-            logger.LogInformation("Desk {DeskID}: uid {Uid} idled {HangupSeconds} s ({HangupType})", result.Desk.DeskID, result.Human.Uid, result.HangupSeconds, hangupType);
-        }
+        var hangupType = credit.FindHangupType(result.Desk.DeskInfo.MapId, result.TotalHangupSeconds);
+        logger.LogInformation(
+            "Desk {DeskID}: uid {Uid} idled {TotalHangupSeconds} s ({HangupType}): {HangupSeconds} s without commands and {AdditionHangUpTime} s reported by the client",
+            result.Desk.DeskID,
+            result.Human.Uid,
+            result.TotalHangupSeconds,
+            hangupType,
+            result.HangupSeconds,
+            result.AdditionHangUpTime);
 
         return hangupType;
     }
@@ -614,7 +646,8 @@ public sealed class BattleSettlement
         int previousStarNum,
         bool newbieBenefitActive,
         PB_ENUM_ENM_HANGUP_TYPE hangupType,
-        PveChallengeWeekReward? weekReward)
+        PveChallengeWeekReward? weekReward,
+        bool energyUnlocked)
     {
         var won = result.Won;
         var isMatch = IsMatch(result);
@@ -688,7 +721,7 @@ public sealed class BattleSettlement
         return new SettlementPlan(
             won,
             heroID,
-            role.OwnsPokemon(pokemonId) ? pokemonId : NoPokemon,
+            role.OwnsPokemon(pokemonId) && !result.QuitByExitButton ? pokemonId : NoPokemon,
             baseExp,
             extraExpOfNewbie,
             incExp,
@@ -704,7 +737,9 @@ public sealed class BattleSettlement
             itemGrants,
             coins,
             isMatch,
-            isMatch && !isCustomBattle ? BuildEnergyGains(won, IsRankedMatch(result), matchMinutes, newbieBenefitActive, hangupType) : [])
+            !energyUnlocked ? []
+                : isMatch && !isCustomBattle ? BuildEnergyGains(won, IsRankedMatch(result), matchMinutes, newbieBenefitActive, hangupType)
+                : route is not null && won ? BuildPveChallengeEnergyGains(newbieBenefitActive) : [])
         {
             WeekReward = weekReward,
             NewWeek = getsRefreshReward
@@ -801,6 +836,26 @@ public sealed class BattleSettlement
             : [resultGain];
     }
 
+    private bool IsEnergyUnlocked(LMNRoleInfo role) =>
+        gameData.SystemUnlock.Find(pbSystemUnlock.Key(
+            (int)PB_ENUM_RES_SYSTEM_UNLOCK_TYPE.PbResSystemUnlockTypeEnergy,
+            notices.GetBusinessSchemeId(PB_ENUM_RES_USER_SCHEME_BUSINESS_TYPE.PbResUserSchemeBusinessTypeSystemUnlock))) is { } unlock
+        && role.RoleTotalExp >= unlock.TrainerExp;
+
+    private pbCOMDT_SETTLE_GAIN_ENERGY_DETAIL[] BuildPveChallengeEnergyGains(bool newbieBenefitActive)
+    {
+        var energyGain = options.CurrentValue.PveChallengeWinEnergy;
+        if (energyGain <= 0)
+        {
+            return [];
+        }
+
+        var resultGain = new pbCOMDT_SETTLE_GAIN_ENERGY_DETAIL { MedalType = WinMedalType, EnergyGain = energyGain };
+        return newbieBenefitActive
+            ? [resultGain, new pbCOMDT_SETTLE_GAIN_ENERGY_DETAIL { MedalType = NewbieBenefitMedalType, EnergyGain = NewbiePrivilegeShareOf(energyGain, PB_ENUM_RES_RESGLOBAL.PbResglobalNewbiePrivilegeEnergy) }]
+            : [resultGain];
+    }
+
     private int NewbiePrivilegeShareOf(int amount, PB_ENUM_RES_RESGLOBAL privilegeGlobalId) =>
         amount * gameData.GetGlobalIntData(privilegeGlobalId) / NewbiePrivilegeRatioBase;
 
@@ -837,6 +892,10 @@ public sealed class BattleSettlement
             IsEeveelution = eeveelutionPokemonIDs.Contains(pokemonId),
             CampPokemonIDs = [.. result.Desk.CampOf(result.Human.CampClient).Select(player => PokemonIdOf(player.ChosenHeroID))],
             PlayedWithFriend = await PlayedWithFriendAsync(result),
+            ReportConditions =
+            [
+                .. statistic?.ReportConditionList.Select(report => new BattleReportCondition(report.ConditionType, report.Value)) ?? [],
+            ],
         };
     }
 
@@ -857,7 +916,9 @@ public sealed class BattleSettlement
 
     private async Task<BattleIntimacyGain?> FindBattleIntimacyGainAsync(BattleResult result)
     {
-        if (!IsMatch(result) || FriendIntimacy.FindRuleValue(gameData, PB_ENUM_RES_INTIMACY_RULE_ID.PbResIntimacyRuleFightId) is not { } fightIntimacy)
+        if (!IsMatch(result)
+            || result.Desk.DeskInfo.ManMachine == CpuMatch.ManMachine
+            || FriendIntimacy.FindRuleValue(gameData, PB_ENUM_RES_INTIMACY_RULE_ID.PbResIntimacyRuleFightId) is not { } fightIntimacy)
         {
             return null;
         }
@@ -911,12 +972,23 @@ public sealed class BattleSettlement
         bool challengeUnlockedBefore,
         BattleTaskUpdate battleTasks,
         pbSCCreditPointNtf? creditPointNtf,
+        GamePacket[] creditPointTaskPushes,
+        bool idledOut,
         RankedSettlement? rankedSettlement,
         pbSCMultiGameSettleGainRsp gain,
         pbSCFightRecordNtf fightRecordNtf)
     {
+        if (result.QuitByExitButton)
+        {
+            return
+            [
+                GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidMultiGameSettleGainRsp, gain),
+                GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidFightRecordNtf, fightRecordNtf),
+            ];
+        }
+
         var packets = new List<GamePacket>();
-        if (commit.UsedPokemon is { } used)
+        if (!idledOut && commit.UsedPokemon is { } used)
         {
             packets.Add(GamePacket.Create(
                 PB_ENUM_CS_MSGID_DEF.PbScidUpdateUsedPokemonNtf,
@@ -978,21 +1050,25 @@ public sealed class BattleSettlement
             packets.AddRange(challengeUnlock.DayTaskProgress);
         }
 
-        packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUpdateTrainerExpNtf, new pbSCUpdateTrainerExpNtf
+        if (!idledOut)
         {
-            Level = RoleProfile.GetLevel(gameData, role),
-            ChgExp = plan.ChgExp,
-            CurToTalExp = role.RoleTotalExp,
-            ReachMaxLevel = RoleProfile.HasReachedMaxLevel(gameData, role) ? 1 : 0,
-            NextLevelToTalExp = RoleProfile.GetNextLevelTotalExp(gameData, role),
-            SeasonPoint = TrainerExpGiftManager.GetSeasonPoint(role),
-            ReachMaxSeasonGift = trainerExpGiftManager.GetReachMaxSeasonGift(role),
-        }));
-        packets.Add(BuildRedDotReplaceNtf(
-            PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdTrainerLavelGift,
-            trainerExpGiftManager.CountAbleToGet(role) > 0 ? HasTrainerLevelGift : 0));
-        packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidTrainerExpNextGiftInfoNtf, trainerExpGiftManager.BuildTrainerExpNextGiftInfoNtf(role)));
-        packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf, await taskUpdates.BuildOwnershipUpdateTaskInfoNtfAsync(role)));
+            packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUpdateTrainerExpNtf, new pbSCUpdateTrainerExpNtf
+            {
+                Level = RoleProfile.GetLevel(gameData, role),
+                ChgExp = plan.ChgExp,
+                CurToTalExp = role.RoleTotalExp,
+                ReachMaxLevel = RoleProfile.HasReachedMaxLevel(gameData, role) ? 1 : 0,
+                NextLevelToTalExp = RoleProfile.GetNextLevelTotalExp(gameData, role),
+                SeasonPoint = TrainerExpGiftManager.GetSeasonPoint(role),
+                ReachMaxSeasonGift = trainerExpGiftManager.GetReachMaxSeasonGift(role),
+            }));
+            packets.Add(BuildRedDotReplaceNtf(
+                PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdTrainerLavelGift,
+                trainerExpGiftManager.CountAbleToGet(role) > 0 ? HasTrainerLevelGift : 0));
+            packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidTrainerExpNextGiftInfoNtf, trainerExpGiftManager.BuildTrainerExpNextGiftInfoNtf(role)));
+            packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf, await taskUpdates.BuildOwnershipUpdateTaskInfoNtfAsync(role)));
+        }
+
         if (rankedSettlement is not null)
         {
             packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidRankedMatchInfoNtf, rankedSettlement.InfoNtf));
@@ -1027,6 +1103,7 @@ public sealed class BattleSettlement
         if (creditPointNtf is not null)
         {
             packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidCreditPointNtf, creditPointNtf));
+            packets.AddRange(creditPointTaskPushes);
         }
 
         if (HasSettleRoom(result))
@@ -1249,6 +1326,16 @@ public sealed class BattleSettlement
             };
         }
 
+        if (result.QuitByExitButton)
+        {
+            detail.AcntInfo = null;
+            detail.SettleReward = null;
+            if (detail.SettleResultByGameType?.PveChallengeResult is { } leftChallenge)
+            {
+                leftChallenge.RewardInfo = null;
+            }
+        }
+
         if (rankedSettlement is not null)
         {
             detail.SettleResultByGameType = new pbCOMDT_SETTLE_RESULT_BY_GAME_TYPE_UNION
@@ -1286,7 +1373,7 @@ public sealed class BattleSettlement
             GameTime = result.GameTime,
             WinMvpObjID = mvp.WinMvpObjID,
             LoseMvpObjID = mvp.LoseMvpObjID,
-            BattleMaskDetail = BuildBattleMaskDetail(result.Desk, mvp),
+            BattleMaskDetail = BuildBattleMaskDetail(result, mvp),
         };
     }
 
@@ -1336,19 +1423,31 @@ public sealed class BattleSettlement
     private static long BattleFlagOf(DeskPlayer player, MvpResult mvp) =>
         (player.IsNpc ? IsAITypeOneBattleFlag : 0) | mvp.BattleFlagOf(player.ObjId);
 
-    private static pbCOMDT_BATTLE_MASK_DETAIL BuildBattleMaskDetail(BattleDesk desk, MvpResult mvp) => desk.DeskInfo.ManMachine == CpuMatch.ManMachine
-        ? new pbCOMDT_BATTLE_MASK_DETAIL()
-        : new pbCOMDT_BATTLE_MASK_DETAIL
+    private pbCOMDT_BATTLE_MASK_DETAIL BuildBattleMaskDetail(BattleResult result, MvpResult mvp)
+    {
+        if (result.Desk.DeskInfo.ManMachine == CpuMatch.ManMachine)
+        {
+            return new pbCOMDT_BATTLE_MASK_DETAIL();
+        }
+
+        var medalTable = BattleSettlementMedals.TableFor(FindMatchMinutes(result));
+        var mvpPlayerByObjID = BuildMvpPlayers(result).ToDictionary(player => player.ObjID);
+        return new pbCOMDT_BATTLE_MASK_DETAIL
         {
             BattleMaskDetail =
             {
-                desk.Players.Select(player => new pbCOMDT_BATTLE_MASK_INFO
+                result.Desk.Players.Select(player => new pbCOMDT_BATTLE_MASK_INFO
                 {
                     Uid = player.Uid,
-                    BattleMask = BattleFlagOf(player, mvp),
+                    BattleMask = BattleFlagOf(player, mvp)
+                        | BattleSettlementMedals.BattleFlagOf(
+                            mvpPlayerByObjID[player.ObjId],
+                            mvp.MvpScoreTTHByObjID.GetValueOrDefault(player.ObjId),
+                            medalTable),
                 }),
             },
         };
+    }
 
     private static pbCOMDT_SETTLE_ENERGY_DETAIL BuildDrawEnergy(SettlementPlan plan, BattleEnergyChange energy)
     {
