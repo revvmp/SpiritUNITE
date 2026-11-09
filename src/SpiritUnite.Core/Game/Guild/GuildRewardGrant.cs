@@ -2,7 +2,6 @@ using SpiritUnite.Database.Repositories;
 using SpiritUnite.Databin;
 using SpiritUnite.Game.Activity;
 using SpiritUnite.Game.Bag;
-using SpiritUnite.Game.PokemonAvatar;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Game.Wallet;
 using SpiritUnite.Packets.Messages;
@@ -34,7 +33,6 @@ public sealed record GuildRewardGrant(
     IReadOnlyList<pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO> Awards)
 {
     public const int GuildScoreResID = (int)PB_ENUM_ENM_RESOURCES_ID.PbEnmResourcesIdGuildScore;
-    private const int SingleDecoration = 1;
 
     public static GuildRewardGrant Empty { get; } = new(0, [], new BagChange(), []);
 
@@ -64,23 +62,14 @@ public sealed record GuildRewardGrant(
                 coins[drop.ResID] = coins.GetValueOrDefault(drop.ResID) + drop.ResNum;
                 awards.Add(BagManager.BuildCoinAward(drop.ResID, drop.ResNum));
             }
-            else if (PasterGrant.IsPaster(gameData, drop.ResID))
+            else if (CosmeticGrant.FindItemType(gameData, drop.ResID) is not null)
             {
-                if (PasterGrant.Plan(gameData, bag, role, drop.ResID, drop.ResNum, rewardTime, items) is not { } paster)
+                if (CosmeticGrant.Plan(gameData, bag, role, drop.ResID, drop.ResNum, rewardTime, items) is not { } cosmetic)
                 {
                     return null;
                 }
 
-                paster.AddTo(items, bagGrants, coins, awards);
-            }
-            else if (drop.ResNum == SingleDecoration && gameData.ContestantCardDecoration.Contains(drop.ResID))
-            {
-                if (!role.OwnsItem(RoleItemType.ContestantCardDecoration, drop.ResID)
-                    && items.All(item => item.ItemId != drop.ResID))
-                {
-                    items.Add(new RoleItemInfo(RoleItemType.ContestantCardDecoration, drop.ResID, rewardTime, RoleItemInfo.Permanent, RoleItemInfo.ShowNewTag));
-                    awards.Add(BagManager.BuildAward(drop.ResID, drop.ResNum, CoinID.GetResIDType(drop.ResID)));
-                }
+                cosmetic.AddTo(items, bagGrants, coins, awards);
             }
             else if (bag.CreateOutSideItemGrant(drop.ResID, drop.ResNum) is { } bagGrant)
             {

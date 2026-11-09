@@ -1,7 +1,6 @@
 using SpiritUnite.Databin;
 using SpiritUnite.Game.Bag;
 using SpiritUnite.Game.Pokemon;
-using SpiritUnite.Game.PokemonAvatar;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Game.Wallet;
 using SpiritUnite.Packets.Messages;
@@ -72,14 +71,14 @@ public sealed class BattlePassRewards(GameData gameData, BagManager bag)
 
                 license.AddTo(pokemonIds, coins, awards);
             }
-            else if (PasterGrant.IsPaster(gameData, resource.ResID))
+            else if (CosmeticGrant.FindItemType(gameData, resource.ResID) is not null)
             {
-                if (PasterGrant.Plan(gameData, bag, role, resource.ResID, resource.ResNum, gainTime, items) is not { } paster)
+                if (CosmeticGrant.Plan(gameData, bag, role, resource.ResID, resource.ResNum, gainTime, items) is not { } cosmetic)
                 {
                     return null;
                 }
 
-                paster.AddTo(items, bagGrants, coins, awards);
+                cosmetic.AddTo(items, bagGrants, coins, awards);
             }
             else if (resource.ResNum == SinglePermanentItem && FindPermanentItems(resource.ResID) is { } permanentItems)
             {
@@ -115,11 +114,6 @@ public sealed class BattlePassRewards(GameData gameData, BagManager bag)
 
     private (RoleItemType ItemType, int ItemId)[]? FindPermanentItems(int resID)
     {
-        if (gameData.AvatarItem.Contains(resID))
-        {
-            return [(RoleItemType.AvatarItem, resID)];
-        }
-
         if (gameData.AvatarSuit.Find(resID) is { } avatarSuit)
         {
             return
@@ -129,16 +123,6 @@ public sealed class BattlePassRewards(GameData gameData, BagManager bag)
                     .Distinct()
                     .Select(avatarID => (RoleItemType.AvatarItem, avatarID)),
             ];
-        }
-
-        if (gameData.HeadIconBase.Contains(resID))
-        {
-            return [(RoleItemType.HeadIcon, resID)];
-        }
-
-        if (gameData.ContestantCardDecoration.Contains(resID))
-        {
-            return [(RoleItemType.ContestantCardDecoration, resID)];
         }
 
         return gameData.LobbyBg.Contains(resID) && resID != gameData.DefaultLobbyBgId

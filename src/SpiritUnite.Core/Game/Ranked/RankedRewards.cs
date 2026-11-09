@@ -1,6 +1,5 @@
 using SpiritUnite.Databin;
 using SpiritUnite.Game.Bag;
-using SpiritUnite.Game.PokemonAvatar;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Game.Wallet;
 using SpiritUnite.Packets.Messages;
@@ -45,14 +44,14 @@ public sealed class RankedRewards(GameData gameData, BagManager bag)
                 coins[drop.ResID] = coins.GetValueOrDefault(drop.ResID) + drop.ResNum;
                 awards.Add(BagManager.BuildCoinAward(drop.ResID, drop.ResNum));
             }
-            else if (PasterGrant.IsPaster(gameData, drop.ResID))
+            else if (CosmeticGrant.FindItemType(gameData, drop.ResID) is not null)
             {
-                if (PasterGrant.Plan(gameData, bag, role, drop.ResID, drop.ResNum, gainTime, items) is not { } paster)
+                if (CosmeticGrant.Plan(gameData, bag, role, drop.ResID, drop.ResNum, gainTime, items) is not { } cosmetic)
                 {
                     return null;
                 }
 
-                paster.AddTo(items, bagGrants, coins, awards);
+                cosmetic.AddTo(items, bagGrants, coins, awards);
             }
             else if (drop.ResNum == SinglePermanentItem && FindPermanentItems(drop.ResID) is { } owned)
             {
@@ -88,11 +87,6 @@ public sealed class RankedRewards(GameData gameData, BagManager bag)
 
     private (RoleItemType ItemType, int ItemId)[]? FindPermanentItems(int resID)
     {
-        if (gameData.AvatarItem.Contains(resID))
-        {
-            return [(RoleItemType.AvatarItem, resID)];
-        }
-
         if (gameData.AvatarSuit.Find(resID) is { } avatarSuit)
         {
             return
@@ -102,11 +96,6 @@ public sealed class RankedRewards(GameData gameData, BagManager bag)
                     .Distinct()
                     .Select(avatarID => (RoleItemType.AvatarItem, avatarID)),
             ];
-        }
-
-        if (gameData.HeadIconBase.Contains(resID))
-        {
-            return [(RoleItemType.HeadIcon, resID)];
         }
 
         return gameData.LobbyBg.Contains(resID) && resID != gameData.DefaultLobbyBgId
