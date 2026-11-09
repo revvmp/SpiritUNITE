@@ -7,7 +7,7 @@ internal sealed class SessionOwnership
     private readonly Lock gate = new();
     private readonly Dictionary<ulong, GcpSession> owners = [];
 
-    public async Task<bool> ClaimAsync(ulong uid, GcpSession session)
+    public async Task<bool> ClaimAsync(ulong uid, GcpSession session, Func<GcpSession, Task>? superseding = null)
     {
         GcpSession? previous;
         lock (gate)
@@ -20,6 +20,11 @@ internal sealed class SessionOwnership
         if (previous is null || previous == session)
         {
             return false;
+        }
+
+        if (superseding is not null)
+        {
+            await superseding(previous);
         }
 
         await previous.DisposeAsync();

@@ -2,12 +2,15 @@ using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using SpiritUnite.Network.Gcp;
 using SpiritUnite.Packets;
+using SpiritUnite.Packets.Messages;
 
 namespace SpiritUnite.Online;
 
 public sealed class LobbyRoles(ILogger<LobbyRoles> logger)
 {
     private const int KickExCode = 0;
+
+    private static readonly TimeSpan KickOffPushTimeout = TimeSpan.FromSeconds(2);
 
     private readonly ConcurrentDictionary<ulong, GcpSession> sessions = new();
     private readonly SessionOwnership ownership = new();
@@ -45,7 +48,7 @@ public sealed class LobbyRoles(ILogger<LobbyRoles> logger)
         }
     }
 
-    public async Task<bool> KickAsync(ulong uid)
+    public async Task<bool> KickAsync(ulong uid, PB_ENUM_RES_ERROR_CODE? kickOffResult = null)
     {
         if (!sessions.TryGetValue(uid, out var session))
         {
@@ -53,6 +56,11 @@ public sealed class LobbyRoles(ILogger<LobbyRoles> logger)
         }
 
         logger.LogInformation("Uid {Uid} kicked from the lobby", uid);
+        if (kickOffResult is { } result)
+        {
+            await PushKickOffAsync(uid, session, result);
+        }
+
         try
         {
             await session.StopAsync(GcpStopReason.GameServerClose, KickExCode);
@@ -80,9 +88,26 @@ public sealed class LobbyRoles(ILogger<LobbyRoles> logger)
 
     internal async Task ClaimAsync(ulong uid, GcpSession session)
     {
-        if (await ownership.ClaimAsync(uid, session))
+        if (await ownership.ClaimAsync(uid, session, previous => PushKickOffAsync(uid, previous, PB_ENUM_RES_ERROR_CODE.PbErrDuplicateLogin)))
         {
             logger.LogInformation("Uid {Uid} replaced its earlier lobby session", uid);
+        }
+    }
+
+    private async Task PushKickOffAsync(ulong uid, GcpSession session, PB_ENUM_RES_ERROR_CODE result)
+    {
+        var kickOff = GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbCsidKickOffPlayerNtf, new pbCSKickOffPlayerNtf
+        {
+            ResultInfo = new pbResultInfo { ResultId = (int)result },
+        });
+        try
+        {
+            await session.PushAsync([kickOff with { Uid = uid }]).WaitAsync(KickOffPushTimeout);
+            logger.LogInformation("Uid {Uid} sent KickOffPlayerNtf {Result}", uid, result);
+        }
+        catch (Exception exception) when (exception is IOException or ObjectDisposedException or InvalidOperationException or TimeoutException)
+        {
+            logger.LogInformation("KickOffPlayerNtf to uid {Uid} could not be sent: {Reason}", uid, exception.Message);
         }
     }
 

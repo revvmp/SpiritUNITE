@@ -41,7 +41,7 @@ public sealed class LobbyServer(
     protected override async Task<ulong> AuthenticateAsync(GcpAuthReq request)
     {
         var accountId = GcpMessages.TryReadChannelAccessToken(request.Token.Span) is { } accessToken
-            ? await sessions.FindAccountIdAsync(accessToken)
+            ? await sessions.FindTokenAccountIdAsync(accessToken)
             : null;
         if (accountId is null)
         {

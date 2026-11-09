@@ -45,6 +45,7 @@ public sealed class AdminPlayers(
     RoleInfoStore roleStore,
     WalletManager wallets,
     CreditManager credit,
+    CreditPointTaskManager creditPointTasks,
     LobbyRoles lobbyRoles,
     RelayRoles relayRoles,
     GameData gameData,
@@ -171,11 +172,13 @@ public sealed class AdminPlayers(
             role is null ? [] : [.. role.GetOwnedPokemonIds().Order()]);
     }
 
-    public async Task<bool> KickAsync(ulong uid)
+    public Task<bool> KickAsync(ulong uid) => KickAsync(uid, kickOffResult: null);
+
+    private async Task<bool> KickAsync(ulong uid, PB_ENUM_RES_ERROR_CODE? kickOffResult)
     {
         var inBattle = relayRoles.IsOnline(uid);
         relayRoles.Close(uid);
-        return await lobbyRoles.KickAsync(uid) || inBattle;
+        return await lobbyRoles.KickAsync(uid, kickOffResult) || inBattle;
     }
 
     public static bool IsBanDays(int days) => days is >= 0 and <= MaximumBanDays;
@@ -193,7 +196,7 @@ public sealed class AdminPlayers(
             return false;
         }
 
-        await KickAsync(uid);
+        await KickAsync(uid, PB_ENUM_RES_ERROR_CODE.PbErrKickOffBan);
         return true;
     }
 
@@ -215,7 +218,16 @@ public sealed class AdminPlayers(
         };
     }
 
-    public Task<bool> SetCreditPointAsync(ulong uid, int creditPoint) => credit.SetCreditPointAsync(uid, creditPoint);
+    public async Task<bool> SetCreditPointAsync(ulong uid, int creditPoint)
+    {
+        if (!await credit.SetCreditPointAsync(uid, creditPoint))
+        {
+            return false;
+        }
+
+        await lobbyRoles.PushAsync(uid, await creditPointTasks.SyncAsync(uid));
+        return true;
+    }
 
     public Task<bool> ClearBattleBanAsync(ulong uid) => credit.ClearBattleBanAsync(uid);
 

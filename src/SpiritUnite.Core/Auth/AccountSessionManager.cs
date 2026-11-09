@@ -63,16 +63,16 @@ public sealed class AccountSessionManager(
 
     public async Task<ulong?> FindAccountIdAsync(string token)
     {
-        if (!IsValidTokenLength(token))
-        {
-            return null;
-        }
-
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
-        return await tokens.FindAccountIdAsync(HashToken(token), now) is { } accountId && !await IsBannedAsync(accountId, now)
+        return await FindTokenAccountIdAsync(token) is { } accountId && !await IsBannedAsync(accountId, now)
             ? accountId
             : null;
     }
+
+    public async Task<ulong?> FindTokenAccountIdAsync(string token) =>
+        IsValidTokenLength(token)
+            ? await tokens.FindAccountIdAsync(HashToken(token), clock.GetUtcNow().ToUnixTimeSeconds())
+            : null;
 
     private async Task<bool> IsBannedAsync(ulong accountId, long now) =>
         await accounts.FindBanAsync(accountId) is { } ban && ban.IsActive(now);
