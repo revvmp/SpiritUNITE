@@ -12,7 +12,12 @@ public enum RelayGamePhase
     Loading,
     Fighting,
     Over,
-    Finished,
+}
+
+public enum RelayGameLifecycle
+{
+    Running,
+    Stopped,
 }
 
 public enum RelaySeatTakeover
@@ -175,6 +180,7 @@ public sealed class RelayGame
     public Lock Gate { get; } = new();
     public CancellationToken StoppingToken { get; }
     public RelayGamePhase Phase { get; private set; } = RelayGamePhase.Waiting;
+    public RelayGameLifecycle Lifecycle { get; private set; } = RelayGameLifecycle.Running;
     public long LoadStartTime { get; private set; }
     public long LoadStartedAt { get; private set; }
     public long GameStartTime { get; private set; }
@@ -184,7 +190,7 @@ public sealed class RelayGame
     public bool StragglersNoticed { get; set; }
     public int LoadTick { get; set; } = NoLoadTick;
     public int KFrapsNo { get; private set; }
-    public bool Finished => Phase == RelayGamePhase.Finished;
+    public bool Finished => Lifecycle == RelayGameLifecycle.Stopped;
     public bool FrameStoreFull { get; private set; }
     public long StoredFrameBytes { get; private set; }
     public int? SurrenderWinCampClient { get; set; }
@@ -244,6 +250,7 @@ public sealed class RelayGame
 
     public PB_ENUM_RECONN_RELAY_STATE_TYPE ReconnStateOf(RelaySeat seat) => Phase switch
     {
+        _ when Finished => PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateGameover,
         RelayGamePhase.Waiting => PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateWait,
         RelayGamePhase.Loading when !seat.HasBeginLoad => PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateWait,
         RelayGamePhase.Loading => PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateLoading,
@@ -307,7 +314,7 @@ public sealed class RelayGame
                 return false;
             }
 
-            Phase = RelayGamePhase.Finished;
+            Lifecycle = RelayGameLifecycle.Stopped;
         }
 
         try
@@ -324,9 +331,9 @@ public sealed class RelayGame
 
     private void Transition(RelayGamePhase expected, RelayGamePhase next)
     {
-        if (Phase != expected)
+        if (Finished || Phase != expected)
         {
-            throw new InvalidOperationException($"Cannot change relay game from {Phase} to {next}");
+            throw new InvalidOperationException($"Cannot change {Lifecycle} relay game from {Phase} to {next}");
         }
 
         Phase = next;

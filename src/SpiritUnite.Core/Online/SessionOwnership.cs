@@ -7,7 +7,7 @@ internal sealed class SessionOwnership
     private readonly Lock gate = new();
     private readonly Dictionary<ulong, GcpSession> owners = [];
 
-    public async Task ClaimAsync(ulong uid, GcpSession session)
+    public async Task<bool> ClaimAsync(ulong uid, GcpSession session)
     {
         GcpSession? previous;
         lock (gate)
@@ -17,22 +17,26 @@ internal sealed class SessionOwnership
             owners[uid] = session;
         }
 
-        if (previous is not null && previous != session)
+        if (previous is null || previous == session)
         {
-            await previous.DisposeAsync();
+            return false;
         }
+
+        await previous.DisposeAsync();
+        return true;
     }
 
-    public void Use(ulong uid, GcpSession session, Action action)
+    public bool TryUse(ulong uid, GcpSession session, Action action)
     {
         lock (gate)
         {
             if (!session.IsOpen || owners.GetValueOrDefault(uid) != session)
             {
-                throw new InvalidOperationException("The session has been superseded");
+                return false;
             }
 
             action();
+            return true;
         }
     }
 

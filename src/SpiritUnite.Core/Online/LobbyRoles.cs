@@ -68,12 +68,23 @@ public sealed class LobbyRoles(ILogger<LobbyRoles> logger)
 
     internal async Task AttachAsync(ulong uid, GcpSession session)
     {
-        ownership.Use(uid, session, () => sessions[uid] = session);
+        if (!ownership.TryUse(uid, session, () => sessions[uid] = session))
+        {
+            logger.LogInformation("Uid {Uid} finished login on a superseded lobby session; it stays offline", uid);
+            return;
+        }
+
         logger.LogInformation("Uid {Uid} is online", uid);
         await RaiseAsync(RoleOnline, uid);
     }
 
-    internal Task ClaimAsync(ulong uid, GcpSession session) => ownership.ClaimAsync(uid, session);
+    internal async Task ClaimAsync(ulong uid, GcpSession session)
+    {
+        if (await ownership.ClaimAsync(uid, session))
+        {
+            logger.LogInformation("Uid {Uid} replaced its earlier lobby session", uid);
+        }
+    }
 
     internal async Task ReleaseAsync(ulong uid, GcpSession session)
     {

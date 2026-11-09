@@ -63,12 +63,23 @@ public sealed class RelayRoles(ILogger<RelayRoles> logger)
 
     internal async Task AttachAsync(ulong uid, GcpSession session)
     {
-        ownership.Use(uid, session, () => sessions[uid] = session);
+        if (!ownership.TryUse(uid, session, () => sessions[uid] = session))
+        {
+            logger.LogInformation("Uid {Uid} authenticated on a superseded relay session; it stays off the relay", uid);
+            return;
+        }
+
         logger.LogInformation("Uid {Uid} is on the relay", uid);
         await RaiseAsync(RelayOnline, uid);
     }
 
-    internal Task ClaimAsync(ulong uid, GcpSession session) => ownership.ClaimAsync(uid, session);
+    internal async Task ClaimAsync(ulong uid, GcpSession session)
+    {
+        if (await ownership.ClaimAsync(uid, session))
+        {
+            logger.LogInformation("Uid {Uid} replaced its earlier relay session", uid);
+        }
+    }
 
     internal async Task DetachAsync(ulong uid, GcpSession session)
     {

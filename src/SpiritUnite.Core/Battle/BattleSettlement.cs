@@ -238,7 +238,7 @@ public sealed class BattleSettlement
             delivered ? "was sent" : "is offline and was not sent");
     }
 
-    public async Task SettleAsync(BattleResult result, SettlementDelivery delivery = SettlementDelivery.Live)
+    public async Task SettleAsync(BattleResult result, SettlementDelivery delivery, SettlementKey? journalEntry)
     {
         var uid = result.Human.Uid;
         var role = roles.Find(uid) ?? await roles.FindAsync(uid);
@@ -267,7 +267,7 @@ public sealed class BattleSettlement
         var intimacy = await FindBattleIntimacyGainAsync(result);
         SettlementPlan? plan = null;
         IReadOnlyList<BagGrant> heldItemGrants = [];
-        var commit = await repository.CommitAsync(uid, node, async storedStarNum =>
+        var commit = await repository.CommitAsync(uid, journalEntry, node, async storedStarNum =>
         {
             plan = Plan(role, result, route, Math.Max(storedStarNum, knownStarNum), newbieBenefitActive, hangupType, weekReward);
             heldItemGrants = await heldItems.CreateHeldItemUnlockGrantsAsync(role, role.RoleTotalExp + plan.ChgExp);
@@ -412,7 +412,7 @@ public sealed class BattleSettlement
         }
     }
 
-    public async Task SettleJudgeAsync(BattleResult result, SettlementDelivery delivery = SettlementDelivery.Live)
+    public async Task SettleJudgeAsync(BattleResult result, SettlementDelivery delivery)
     {
         if (delivery == SettlementDelivery.Recovered)
         {

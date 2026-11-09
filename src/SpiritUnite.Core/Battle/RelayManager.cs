@@ -83,6 +83,7 @@ public sealed class RelayManager
     private static readonly TimeSpan SecondGameoverRspDelay = TimeSpan.FromMilliseconds(520);
     private static readonly TimeSpan SettlementDelay = TimeSpan.FromMilliseconds(200);
     private static readonly TimeSpan FinishDelay = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan SettlementWaitBeforeFinish = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan AbandonDelay = TimeSpan.FromSeconds(60);
     private static readonly TimeSpan AttachTimeout = LoadTimeout;
     private static readonly TimeSpan StragglerNoticeDelay = TimeSpan.FromSeconds(2);
@@ -416,7 +417,7 @@ public sealed class RelayManager
     {
         lock (game.Gate)
         {
-            var state = ObserverReconnState(game.Phase);
+            var state = ObserverReconnState(game);
             return new pbSCReConnGameRsp
             {
                 State = (int)state,
@@ -433,11 +434,12 @@ public sealed class RelayManager
         }
     }
 
-    private static PB_ENUM_RECONN_RELAY_STATE_TYPE ObserverReconnState(RelayGamePhase phase) => phase switch
+    private static PB_ENUM_RECONN_RELAY_STATE_TYPE ObserverReconnState(RelayGame game) => (game.Finished, game.Phase) switch
     {
-        RelayGamePhase.Waiting => PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateWait,
-        RelayGamePhase.Loading => PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateLoading,
-        RelayGamePhase.Fighting => PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateGameing,
+        (true, _) => PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateGameover,
+        (_, RelayGamePhase.Waiting) => PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateWait,
+        (_, RelayGamePhase.Loading) => PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateLoading,
+        (_, RelayGamePhase.Fighting) => PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateGameing,
         _ => PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateGameover,
     };
 
@@ -1084,7 +1086,7 @@ public sealed class RelayManager
             Heard(seat);
             if (seat.Gameover is not null)
             {
-                return new pbSCMultgameGameoverRsp { ResultInfo = new pbResultInfo(), IsCltNeedWait = game.Phase is RelayGamePhase.Over or RelayGamePhase.Finished ? 0 : CltNeedWait };
+                return new pbSCMultgameGameoverRsp { ResultInfo = new pbResultInfo(), IsCltNeedWait = game.Phase is RelayGamePhase.Over || game.Finished ? 0 : CltNeedWait };
             }
 
             if (game.Phase is RelayGamePhase.Over)
@@ -1503,11 +1505,7 @@ public sealed class RelayManager
     {
         try
         {
-            foreach (var completion in completions)
-            {
-                await settlementProcessor.EnqueueAsync(completion.Result);
-            }
-
+            var journaling = Task.WhenAll(completions.Select(completion => settlementProcessor.EnqueueAsync(completion.Result)));
             await Task.Delay(SecondGameoverRspDelay, clock);
             var finalRsp = GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidMultgameGameoverRsp, new pbSCMultgameGameoverRsp()) with
             {
@@ -1526,11 +1524,28 @@ public sealed class RelayManager
             }
 
             await Task.Delay(SettlementDelay, clock);
-            foreach (var completion in completions)
+            var settling = SettleAllAsync(journaling);
+            if (finishesDesk)
+            {
+                await Task.WhenAny(settling, Task.Delay(SettlementWaitBeforeFinish, clock));
+                await Task.Delay(FinishDelay, clock);
+                await FinishAsync(game);
+            }
+
+            await settling;
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Game over on desk {DeskID} failed", game.Desk.DeskID);
+        }
+
+        async Task SettleAllAsync(Task<bool[]> journaling)
+        {
+            foreach (var (completion, isJournaled) in completions.Zip(await journaling))
             {
                 try
                 {
-                    var state = await settlementProcessor.ProcessAsync(completion.Result);
+                    var state = await settlementProcessor.ProcessAsync(completion.Result, isJournaled);
                     lock (game.Gate)
                     {
                         game.FindViewer(completion.Result.Human.Uid)!.RecordSettlement(state);
@@ -1541,18 +1556,6 @@ public sealed class RelayManager
                     logger.LogError(exception, "Settlement of uid {Uid} on desk {DeskID} failed", completion.Result.Human.Uid, game.Desk.DeskID);
                 }
             }
-
-            if (!finishesDesk)
-            {
-                return;
-            }
-
-            await Task.Delay(FinishDelay, clock);
-            await FinishAsync(game);
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(exception, "Game over on desk {DeskID} failed", game.Desk.DeskID);
         }
     }
 

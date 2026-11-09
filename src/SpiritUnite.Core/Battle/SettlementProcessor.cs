@@ -1,5 +1,7 @@
+using System.Collections.Concurrent;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using SpiritUnite.Database;
 using SpiritUnite.Database.Models;
 using SpiritUnite.Database.Repositories;
 
@@ -18,43 +20,67 @@ public sealed class SettlementProcessor(
     TimeProvider clock,
     ILogger<SettlementProcessor> logger) : BackgroundService
 {
+    private const int MaxSettleAttempts = 10;
+    private const int ShutdownJournalAttempts = 2;
     private static readonly TimeSpan RecoveryInterval = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan RecoveryAge = TimeSpan.FromMinutes(1);
     private static readonly TimeSpan PersistenceRetryDelay = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan CompletedRetention = TimeSpan.FromDays(7);
+    private static readonly TimeSpan PurgeInterval = TimeSpan.FromHours(1);
 
-    public async Task EnqueueAsync(BattleResult result)
+    private readonly ConcurrentDictionary<SettlementKey, SettlementDelivery> settling = new();
+
+    public async Task<bool> EnqueueAsync(BattleResult result)
     {
+        var key = SettlementKey.Of(result);
+        var shutdownAttempts = 0;
         while (true)
         {
             try
             {
                 await journal.EnqueueAsync(result);
-                return;
+                return true;
             }
-            catch (Exception exception) when (!lifetime.ApplicationStopping.IsCancellationRequested)
+            catch (Exception exception) when (DatabaseFaults.IsTransient(exception))
             {
-                logger.LogError(exception, "Could not persist settlement {SettlementID} for uid {Uid}; retrying before granting rewards",
-                    result.Desk.SettlementID, result.Human.Uid);
+                if (lifetime.ApplicationStopping.IsCancellationRequested && ++shutdownAttempts >= ShutdownJournalAttempts)
+                {
+                    logger.LogError(exception, "Settlement {SettlementID} for uid {Uid} was not journaled before shutdown; settling it once without crash recovery",
+                        key.SettlementID, key.GameUlongUID);
+                    return false;
+                }
+
+                logger.LogWarning(exception, "Could not journal settlement {SettlementID} for uid {Uid}; retrying in {Delay} before granting rewards",
+                    key.SettlementID, key.GameUlongUID, PersistenceRetryDelay);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Settlement {SettlementID} for uid {Uid} cannot be journaled; settling it once without crash recovery",
+                    key.SettlementID, key.GameUlongUID);
+                return false;
             }
 
-            await Task.Delay(PersistenceRetryDelay, clock, lifetime.ApplicationStopping);
+            await Task.Delay(PersistenceRetryDelay, clock);
         }
     }
 
-    public async Task<SettlementState> ProcessAsync(BattleResult result) =>
-        await ProcessAsync(await journal.FindAsync(result.Desk.SettlementID.ToString("N"), result.Human.Uid), result);
+    public async Task<SettlementState> ProcessAsync(BattleResult result, bool journaled) =>
+        journaled
+            ? await ProcessAsync(SettlementKey.Of(result), result)
+            : await SettleUnjournaledAsync(result);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        var nextPurge = clock.GetUtcNow();
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                var before = (clock.GetUtcNow() - RecoveryAge).ToUnixTimeSeconds();
-                foreach (var record in await journal.FindPendingAsync(before, stoppingToken))
+                await RecoverAsync(stoppingToken);
+                if (clock.GetUtcNow() >= nextPurge)
                 {
-                    stoppingToken.ThrowIfCancellationRequested();
-                    await ProcessAsync(record, null);
+                    await PurgeCompletedAsync();
+                    nextPurge = clock.GetUtcNow() + PurgeInterval;
                 }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -77,32 +103,147 @@ public sealed class SettlementProcessor(
         }
     }
 
-    private async Task<SettlementState> ProcessAsync(BattleSettlementRecord record, BattleResult? liveResult)
+    private async Task RecoverAsync(CancellationToken stoppingToken)
     {
-        if (!await journal.TryBeginAsync(record.SettlementID, record.GameUlongUID))
+        var updatedNoLaterThan = (clock.GetUtcNow() - RecoveryAge).ToUnixTimeSeconds();
+        foreach (var record in await journal.FindRecoverableAsync(updatedNoLaterThan, stoppingToken))
         {
-            return (SettlementState)(await journal.FindAsync(record.SettlementID, record.GameUlongUID)).State;
+            stoppingToken.ThrowIfCancellationRequested();
+            var key = SettlementKey.Of(record);
+            if (settling.TryGetValue(key, out var owner))
+            {
+                logger.LogInformation("Settlement {SettlementID} for uid {Uid} is {State} since {UpdatedAt} but still being settled here ({Delivery}); recovery leaves it",
+                    key.SettlementID, key.GameUlongUID, (SettlementState)record.State, record.UpdatedAt, owner);
+                continue;
+            }
+
+            logger.LogInformation("Recovering settlement {SettlementID} for uid {Uid} from state {State} after {Attempts} attempts",
+                key.SettlementID, key.GameUlongUID, (SettlementState)record.State, record.Attempts);
+            await ProcessAsync(key, null);
+        }
+    }
+
+    private async Task PurgeCompletedAsync()
+    {
+        var purged = await journal.PurgeCompletedAsync((clock.GetUtcNow() - CompletedRetention).ToUnixTimeSeconds());
+        if (purged > 0)
+        {
+            logger.LogInformation("Purged {Count} settlement journal rows completed more than {Retention} ago", purged, CompletedRetention);
+        }
+    }
+
+    private async Task<SettlementState> ProcessAsync(SettlementKey key, BattleResult? liveResult)
+    {
+        var delivery = liveResult is null ? SettlementDelivery.Recovered : SettlementDelivery.Live;
+        if (!settling.TryAdd(key, delivery))
+        {
+            logger.LogWarning("Settlement {SettlementID} for uid {Uid} is already being settled ({Delivery}); skipping this {SkippedDelivery} run",
+                key.SettlementID, key.GameUlongUID, settling.GetValueOrDefault(key), delivery);
+            return SettlementState.Processing;
         }
 
         try
         {
-            var result = liveResult ?? BattleSettlementSnapshot.Deserialize(record.Payload);
-            if (result.Desk.SettlementID.ToString("N") != record.SettlementID || result.Human.Uid != record.GameUlongUID)
+            return await ClaimAndSettleAsync(key, liveResult, delivery);
+        }
+        finally
+        {
+            settling.TryRemove(key, out _);
+        }
+    }
+
+    private async Task<SettlementState> ClaimAndSettleAsync(SettlementKey key, BattleResult? liveResult, SettlementDelivery delivery)
+    {
+        if (await journal.TryClaimAsync(key) is not { } claimed)
+        {
+            return await CurrentStateAsync(key);
+        }
+
+        if (claimed.Attempts > MaxSettleAttempts)
+        {
+            logger.LogError("Settlement {SettlementID} for uid {Uid} needs review: it was claimed {Attempts} times without completing",
+                key.SettlementID, key.GameUlongUID, claimed.Attempts);
+            await journal.FlagForReviewAsync(key, $"Gave up after {MaxSettleAttempts} attempts");
+            return await CurrentStateAsync(key);
+        }
+
+        try
+        {
+            var result = liveResult ?? BattleSettlementSnapshot.Deserialize(claimed.Payload);
+            if (SettlementKey.Of(result) != key)
             {
                 throw new InvalidDataException("Settlement identity does not match its snapshot");
             }
 
-            var delivery = liveResult is null ? SettlementDelivery.Recovered : SettlementDelivery.Live;
-            await (result.Human.IsJudge ? settlement.SettleJudgeAsync(result, delivery) : settlement.SettleAsync(result, delivery));
-            await journal.FinishAsync(record.SettlementID, record.GameUlongUID, SettlementState.Completed);
+            if (result.Human.IsJudge)
+            {
+                await settlement.SettleJudgeAsync(result, delivery);
+                await journal.CompleteAsync(key);
+            }
+            else
+            {
+                await settlement.SettleAsync(result, delivery, key);
+            }
+
+            return SettlementState.Completed;
+        }
+        catch (SettlementClaimLostException)
+        {
+            logger.LogWarning("Settlement {SettlementID} for uid {Uid} was completed or released by another runner; this run granted nothing",
+                key.SettlementID, key.GameUlongUID);
+            return await CurrentStateAsync(key);
+        }
+        catch (Exception exception) when (DatabaseFaults.IsTransient(exception) && claimed.Attempts < MaxSettleAttempts)
+        {
+            if (await journal.ReleaseForRetryAsync(key, exception.Message))
+            {
+                logger.LogWarning(exception, "Settlement {SettlementID} for uid {Uid} hit a transient database fault on attempt {Attempts}; it will be retried",
+                    key.SettlementID, key.GameUlongUID, claimed.Attempts);
+            }
+            else
+            {
+                LogFailureAfterCommit(exception, key);
+            }
+
+            return await CurrentStateAsync(key);
+        }
+        catch (Exception exception)
+        {
+            if (await journal.FlagForReviewAsync(key, exception.Message))
+            {
+                logger.LogError(exception, "Settlement {SettlementID} for uid {Uid} needs review after attempt {Attempts}; it will not be replayed automatically",
+                    key.SettlementID, key.GameUlongUID, claimed.Attempts);
+            }
+            else
+            {
+                LogFailureAfterCommit(exception, key);
+            }
+
+            return await CurrentStateAsync(key);
+        }
+    }
+
+    private void LogFailureAfterCommit(Exception exception, SettlementKey key) =>
+        logger.LogError(exception, "Settlement {SettlementID} for uid {Uid} failed after its rewards were committed; the steps after the commit did not run",
+            key.SettlementID, key.GameUlongUID);
+
+    private async Task<SettlementState> SettleUnjournaledAsync(BattleResult result)
+    {
+        try
+        {
+            await (result.Human.IsJudge
+                ? settlement.SettleJudgeAsync(result, SettlementDelivery.Live)
+                : settlement.SettleAsync(result, SettlementDelivery.Live, null));
             return SettlementState.Completed;
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Settlement {SettlementID} for uid {Uid} needs review; it will not be replayed automatically",
-                record.SettlementID, record.GameUlongUID);
-            await journal.FinishAsync(record.SettlementID, record.GameUlongUID, SettlementState.NeedsReview, exception.Message);
-            return (SettlementState)(await journal.FindAsync(record.SettlementID, record.GameUlongUID)).State;
+            logger.LogError(exception, "Unjournaled settlement {SettlementID} for uid {Uid} failed; its rewards are lost",
+                result.Desk.SettlementID.ToString("N"), result.Human.Uid);
+            return SettlementState.NeedsReview;
         }
     }
+
+    private async Task<SettlementState> CurrentStateAsync(SettlementKey key) =>
+        await journal.FindStateAsync(key) ?? SettlementState.NeedsReview;
 }

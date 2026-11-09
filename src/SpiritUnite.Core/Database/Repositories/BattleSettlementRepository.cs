@@ -66,12 +66,19 @@ public sealed class BattleSettlementRepository(DataOptions options)
 
     public async Task<BattleSettlementCommit?> CommitAsync(
         ulong gameUlongUID,
+        SettlementKey? journalEntry,
         PveChallengeNodeKey? node,
         Func<int, Task<BattleSettlementChange>> changeAfterStoredStarNum,
         long now)
     {
         await using var database = new DataConnection(options);
         await using var transaction = await database.BeginTransactionAsync();
+        if (journalEntry is not null && !await SettlementJournal.CompleteAsync(database, journalEntry, now))
+        {
+            await transaction.RollbackAsync();
+            throw new SettlementClaimLostException(journalEntry);
+        }
+
         if (!await LockRoleAsync(database, gameUlongUID))
         {
             await transaction.RollbackAsync();

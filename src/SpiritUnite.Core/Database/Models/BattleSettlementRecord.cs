@@ -14,6 +14,9 @@ public sealed class BattleSettlementRecord
     [Column("state")]
     public int State { get; set; }
 
+    [Column("attempts")]
+    public int Attempts { get; set; }
+
     [Column("payload"), NotNull]
     public byte[] Payload { get; set; } = [];
 
