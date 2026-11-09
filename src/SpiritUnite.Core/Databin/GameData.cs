@@ -71,6 +71,7 @@ public sealed class GameData
         MvpConf = LoadRecords<pbMvp_Conf>(row => pbMvp_Conf.Key(row.GameType, row.ParamType));
         MatchTrainer = LoadRecords<pbMatchTrainer>(row => pbMatchTrainer.Key(row.MapId, row.DifficultyLevel));
         Achievement = LoadRecords<pbAchievement>(row => row.AchievementID);
+        AchievementBattleCondition = LoadMessages<pbAchievementBattleCondition>(row => row.AchievementId);
         BattlePassSeason = LoadMessages<pbBattlePassSeason>(row => row.SeasonID);
         BattlePassLevel = LoadMessages<pbBattlePassLevel>(row => pbBattlePassLevel.Key(row.SeasonID, row.Level));
         BattlePassLevelReward = LoadMessages<pbBattlePassLevelReward>(row => pbBattlePassLevelReward.Key(row.SeasonID, row.Level));
@@ -207,6 +208,7 @@ public sealed class GameData
     public DatabinTable<pbMvp_Conf> MvpConf { get; }
     public DatabinTable<pbMatchTrainer> MatchTrainer { get; }
     public DatabinTable<pbAchievement> Achievement { get; }
+    public DatabinTable<pbAchievementBattleCondition> AchievementBattleCondition { get; }
     public DatabinTable<pbBattlePassSeason> BattlePassSeason { get; }
     public DatabinTable<pbBattlePassLevel> BattlePassLevel { get; }
     public DatabinTable<pbBattlePassLevelReward> BattlePassLevelReward { get; }

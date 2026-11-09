@@ -4,6 +4,8 @@ namespace SpiritUnite.Game.Tasks;
 
 public sealed record BattleMonsterKill(int MonsterID, int MonsterClassType, int KillCnt);
 
+public sealed record BattleReportCondition(int ConditionType, int Value);
+
 public sealed record BattleTaskEvent(
     bool Won,
     int MapID,
@@ -19,6 +21,7 @@ public sealed record BattleTaskEvent(
     public bool IsEeveelution { get; init; }
     public IReadOnlyList<int> CampPokemonIDs { get; init; } = [];
     public bool PlayedWithFriend { get; init; }
+    public IReadOnlyList<BattleReportCondition> ReportConditions { get; init; } = [];
 }
 
 public sealed record StoredTaskProcess(int TaskId, long PeriodStart, int TaskProcess, long CompleteTime)
@@ -42,6 +45,7 @@ public sealed record TaskProcessIncrement(
 public static class BattleTasks
 {
     private const int OccupationParamIndex = 0;
+    private const int SingleBattleThresholdIndex = 0;
     private const int OneBattle = 1;
     private const int NoCondition = 0;
 
@@ -135,6 +139,21 @@ public static class BattleTasks
                 !battle.IsManMachine && IsCampOfDistinctListedPokemon(condition, battle) ? OneBattle : null,
             _ => null,
         };
+
+    public static int? MeasureReportedCondition(pbFinishCondition condition, int reportedConditionType, BattleTaskEvent battle)
+    {
+        var reportedValue = battle.ReportConditions
+            .Where(report => report.ConditionType == reportedConditionType)
+            .Aggregate(0, (total, report) => AddCounts(total, report.Value));
+        if (reportedValue <= 0)
+        {
+            return null;
+        }
+
+        return condition.ParamB.Count > SingleBattleThresholdIndex
+            ? reportedValue >= condition.ParamB[SingleBattleThresholdIndex] ? OneBattle : null
+            : reportedValue;
+    }
 
     public static IEnumerable<TaskProcessIncrement> FindBattleIncrements(pbTask_Base task, long periodStart, BattleTaskEvent battle) =>
         task.FinishCondition

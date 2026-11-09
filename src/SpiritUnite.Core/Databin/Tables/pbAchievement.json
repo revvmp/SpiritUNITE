@@ -324,522 +324,609 @@
     "AchievementID": 78
   },
   {
+    "PokmonID": 37,
     "Score": 5,
     "AchievementTaskID": 25045001,
     "AchievementType": 2,
     "AchievementID": 88
   },
   {
+    "PokmonID": 37,
     "Score": 5,
     "AchievementTaskID": 25045002,
     "AchievementType": 2,
     "AchievementID": 89
   },
   {
+    "PokmonID": 37,
     "Score": 10,
     "AchievementTaskID": 25045003,
     "AchievementType": 2,
     "AchievementID": 90
   },
   {
+    "PokmonID": 79,
     "Score": 5,
     "AchievementTaskID": 25045004,
     "AchievementType": 2,
     "AchievementID": 91
   },
   {
+    "PokmonID": 79,
     "Score": 5,
     "AchievementTaskID": 25045005,
     "AchievementType": 2,
     "AchievementID": 92
   },
   {
+    "PokmonID": 79,
     "Score": 10,
     "AchievementTaskID": 25045006,
     "AchievementType": 2,
     "AchievementID": 93
   },
   {
+    "PokmonID": 443,
     "Score": 5,
     "AchievementTaskID": 25045007,
     "AchievementType": 2,
     "AchievementID": 94
   },
   {
+    "PokmonID": 443,
     "Score": 5,
     "AchievementTaskID": 25045008,
     "AchievementType": 2,
     "AchievementID": 95
   },
   {
+    "PokmonID": 443,
     "Score": 10,
     "AchievementTaskID": 25045009,
     "AchievementType": 2,
     "AchievementID": 96
   },
   {
+    "PokmonID": 4,
     "Score": 5,
     "AchievementTaskID": 25045010,
     "AchievementType": 2,
     "AchievementID": 97
   },
   {
+    "PokmonID": 4,
     "Score": 5,
     "AchievementTaskID": 25045011,
     "AchievementType": 2,
     "AchievementID": 98
   },
   {
+    "PokmonID": 4,
     "Score": 10,
     "AchievementTaskID": 25045012,
     "AchievementType": 2,
     "AchievementID": 99
   },
   {
+    "PokmonID": 813,
     "Score": 5,
     "AchievementTaskID": 25045013,
     "AchievementType": 2,
     "AchievementID": 100
   },
   {
+    "PokmonID": 813,
     "Score": 5,
     "AchievementTaskID": 25045014,
     "AchievementType": 2,
     "AchievementID": 101
   },
   {
+    "PokmonID": 813,
     "Score": 10,
     "AchievementTaskID": 25045015,
     "AchievementType": 2,
     "AchievementID": 102
   },
   {
+    "PokmonID": 359,
     "Score": 5,
     "AchievementTaskID": 25045016,
     "AchievementType": 2,
     "AchievementID": 103
   },
   {
+    "PokmonID": 359,
     "Score": 5,
     "AchievementTaskID": 25045017,
     "AchievementType": 2,
     "AchievementID": 104
   },
   {
+    "PokmonID": 359,
     "Score": 10,
     "AchievementTaskID": 25045018,
     "AchievementType": 2,
     "AchievementID": 105
   },
   {
+    "PokmonID": 829,
     "Score": 5,
     "AchievementTaskID": 25045019,
     "AchievementType": 2,
     "AchievementID": 106
   },
   {
+    "PokmonID": 829,
     "Score": 5,
     "AchievementTaskID": 25045020,
     "AchievementType": 2,
     "AchievementID": 107
   },
   {
+    "PokmonID": 829,
     "Score": 10,
     "AchievementTaskID": 25045021,
     "AchievementType": 2,
     "AchievementID": 108
   },
   {
+    "PokmonID": 820,
     "Score": 5,
     "AchievementTaskID": 25045022,
     "AchievementType": 2,
     "AchievementID": 109
   },
   {
+    "PokmonID": 820,
     "Score": 5,
     "AchievementTaskID": 25045023,
     "AchievementType": 2,
     "AchievementID": 110
   },
   {
+    "PokmonID": 820,
     "Score": 10,
     "AchievementTaskID": 25045024,
     "AchievementType": 2,
     "AchievementID": 111
   },
   {
+    "PokmonID": 92,
     "Score": 5,
     "AchievementTaskID": 25045025,
     "AchievementType": 2,
     "AchievementID": 112
   },
   {
+    "PokmonID": 92,
     "Score": 5,
     "AchievementTaskID": 25045026,
     "AchievementType": 2,
     "AchievementID": 113
   },
   {
+    "PokmonID": 92,
     "Score": 10,
     "AchievementTaskID": 25045027,
     "AchievementType": 2,
     "AchievementID": 114
   },
   {
+    "PokmonID": 724,
     "Score": 5,
     "AchievementTaskID": 25045028,
     "AchievementType": 2,
     "AchievementID": 115
   },
   {
+    "PokmonID": 724,
     "Score": 5,
     "AchievementTaskID": 25045029,
     "AchievementType": 2,
     "AchievementID": 116
   },
   {
+    "PokmonID": 724,
     "Score": 10,
     "AchievementTaskID": 25045030,
     "AchievementType": 2,
     "AchievementID": 117
   },
   {
+    "PokmonID": 147,
     "Score": 5,
     "AchievementTaskID": 25045031,
     "AchievementType": 2,
     "AchievementID": 118
   },
   {
+    "PokmonID": 147,
     "Score": 5,
     "AchievementTaskID": 25045032,
     "AchievementType": 2,
     "AchievementID": 119
   },
   {
+    "PokmonID": 147,
     "Score": 10,
     "AchievementTaskID": 25045033,
     "AchievementType": 2,
     "AchievementID": 120
   },
   {
+    "PokmonID": 1,
     "Score": 5,
     "AchievementTaskID": 25045034,
     "AchievementType": 2,
     "AchievementID": 121
   },
   {
+    "PokmonID": 1,
     "Score": 5,
     "AchievementTaskID": 25045035,
     "AchievementType": 2,
     "AchievementID": 122
   },
   {
+    "PokmonID": 1,
     "Score": 10,
     "AchievementTaskID": 25045036,
     "AchievementType": 2,
     "AchievementID": 123
   },
   {
+    "PokmonID": 122,
     "Score": 5,
     "AchievementTaskID": 25045037,
     "AchievementType": 2,
     "AchievementID": 124
   },
   {
+    "PokmonID": 122,
     "Score": 5,
     "AchievementTaskID": 25045038,
     "AchievementType": 2,
     "AchievementID": 125
   },
   {
+    "PokmonID": 122,
     "Score": 10,
     "AchievementTaskID": 25045039,
     "AchievementType": 2,
     "AchievementID": 126
   },
   {
+    "PokmonID": 39,
     "Score": 5,
     "AchievementTaskID": 25045040,
     "AchievementType": 2,
     "AchievementID": 127
   },
   {
+    "PokmonID": 39,
     "Score": 5,
     "AchievementTaskID": 25045041,
     "AchievementType": 2,
     "AchievementID": 128
   },
   {
+    "PokmonID": 39,
     "Score": 10,
     "AchievementTaskID": 25045042,
     "AchievementType": 2,
     "AchievementID": 129
   },
   {
+    "PokmonID": 280,
     "Score": 5,
     "AchievementTaskID": 25045043,
     "AchievementType": 2,
     "AchievementID": 130
   },
   {
+    "PokmonID": 280,
     "Score": 5,
     "AchievementTaskID": 25045044,
     "AchievementType": 2,
     "AchievementID": 131
   },
   {
+    "PokmonID": 280,
     "Score": 10,
     "AchievementTaskID": 25045045,
     "AchievementType": 2,
     "AchievementID": 132
   },
   {
+    "PokmonID": 7,
     "Score": 5,
     "AchievementTaskID": 25045046,
     "AchievementType": 2,
     "AchievementID": 133
   },
   {
+    "PokmonID": 7,
     "Score": 5,
     "AchievementTaskID": 25045047,
     "AchievementType": 2,
     "AchievementID": 134
   },
   {
+    "PokmonID": 7,
     "Score": 10,
     "AchievementTaskID": 25045048,
     "AchievementType": 2,
     "AchievementID": 135
   },
   {
+    "PokmonID": 557,
     "Score": 5,
     "AchievementTaskID": 25045049,
     "AchievementType": 2,
     "AchievementID": 136
   },
   {
+    "PokmonID": 557,
     "Score": 5,
     "AchievementTaskID": 25045050,
     "AchievementType": 2,
     "AchievementID": 137
   },
   {
+    "PokmonID": 557,
     "Score": 10,
     "AchievementTaskID": 25045051,
     "AchievementType": 2,
     "AchievementID": 138
   },
   {
+    "PokmonID": 656,
     "Score": 5,
     "AchievementTaskID": 25045052,
     "AchievementType": 2,
     "AchievementID": 139
   },
   {
+    "PokmonID": 656,
     "Score": 5,
     "AchievementTaskID": 25045053,
     "AchievementType": 2,
     "AchievementID": 140
   },
   {
+    "PokmonID": 656,
     "Score": 10,
     "AchievementTaskID": 25045054,
     "AchievementType": 2,
     "AchievementID": 141
   },
   {
+    "PokmonID": 700,
     "Score": 5,
     "AchievementTaskID": 25045055,
     "AchievementType": 2,
     "AchievementID": 142
   },
   {
+    "PokmonID": 700,
     "Score": 5,
     "AchievementTaskID": 25045056,
     "AchievementType": 2,
     "AchievementID": 143
   },
   {
+    "PokmonID": 700,
     "Score": 10,
     "AchievementTaskID": 25045057,
     "AchievementType": 2,
     "AchievementID": 144
   },
   {
+    "PokmonID": 66,
     "Score": 5,
     "AchievementTaskID": 25045058,
     "AchievementType": 2,
     "AchievementID": 145
   },
   {
+    "PokmonID": 66,
     "Score": 5,
     "AchievementTaskID": 25045059,
     "AchievementType": 2,
     "AchievementID": 146
   },
   {
+    "PokmonID": 66,
     "Score": 10,
     "AchievementTaskID": 25045060,
     "AchievementType": 2,
     "AchievementID": 147
   },
   {
+    "PokmonID": 807,
     "Score": 5,
     "AchievementTaskID": 25045061,
     "AchievementType": 2,
     "AchievementID": 148
   },
   {
+    "PokmonID": 807,
     "Score": 5,
     "AchievementTaskID": 25045062,
     "AchievementType": 2,
     "AchievementID": 149
   },
   {
+    "PokmonID": 807,
     "Score": 10,
     "AchievementTaskID": 25045063,
     "AchievementType": 2,
     "AchievementID": 150
   },
   {
+    "PokmonID": 143,
     "Score": 5,
     "AchievementTaskID": 25045064,
     "AchievementType": 2,
     "AchievementID": 151
   },
   {
+    "PokmonID": 143,
     "Score": 5,
     "AchievementTaskID": 25045065,
     "AchievementType": 2,
     "AchievementID": 152
   },
   {
+    "PokmonID": 143,
     "Score": 10,
     "AchievementTaskID": 25045066,
     "AchievementType": 2,
     "AchievementID": 153
   },
   {
+    "PokmonID": 661,
     "Score": 5,
     "AchievementTaskID": 25045067,
     "AchievementType": 2,
     "AchievementID": 154
   },
   {
+    "PokmonID": 661,
     "Score": 5,
     "AchievementTaskID": 25045068,
     "AchievementType": 2,
     "AchievementID": 155
   },
   {
+    "PokmonID": 661,
     "Score": 10,
     "AchievementTaskID": 25045069,
     "AchievementType": 2,
     "AchievementID": 156
   },
   {
+    "PokmonID": 448,
     "Score": 5,
     "AchievementTaskID": 25045070,
     "AchievementType": 2,
     "AchievementID": 157
   },
   {
+    "PokmonID": 448,
     "Score": 5,
     "AchievementTaskID": 25045071,
     "AchievementType": 2,
     "AchievementID": 158
   },
   {
+    "PokmonID": 448,
     "Score": 10,
     "AchievementTaskID": 25045072,
     "AchievementType": 2,
     "AchievementID": 159
   },
   {
+    "PokmonID": 25,
     "Score": 5,
     "AchievementTaskID": 25045073,
     "AchievementType": 2,
     "AchievementID": 160
   },
   {
+    "PokmonID": 25,
     "Score": 5,
     "AchievementTaskID": 25045074,
     "AchievementType": 2,
     "AchievementID": 161
   },
   {
+    "PokmonID": 25,
     "Score": 10,
     "AchievementTaskID": 25045075,
     "AchievementType": 2,
     "AchievementID": 162
   },
   {
+    "PokmonID": 763,
     "Score": 5,
     "AchievementTaskID": 25045076,
     "AchievementType": 2,
     "AchievementID": 163
   },
   {
+    "PokmonID": 763,
     "Score": 5,
     "AchievementTaskID": 25045077,
     "AchievementType": 2,
     "AchievementID": 164
   },
   {
+    "PokmonID": 763,
     "Score": 10,
     "AchievementTaskID": 25045078,
     "AchievementType": 2,
     "AchievementID": 165
   },
   {
+    "PokmonID": 113,
     "Score": 5,
     "AchievementTaskID": 25045079,
     "AchievementType": 2,
     "AchievementID": 166
   },
   {
+    "PokmonID": 113,
     "Score": 5,
     "AchievementTaskID": 25045080,
     "AchievementType": 2,
     "AchievementID": 167
   },
   {
+    "PokmonID": 113,
     "Score": 10,
     "AchievementTaskID": 25045081,
     "AchievementType": 2,
     "AchievementID": 168
   },
   {
+    "PokmonID": 220,
     "Score": 5,
     "AchievementTaskID": 25045082,
     "AchievementType": 2,
     "AchievementID": 169
   },
   {
+    "PokmonID": 220,
     "Score": 5,
     "AchievementTaskID": 25045083,
     "AchievementType": 2,
     "AchievementID": 170
   },
   {
+    "PokmonID": 220,
     "Score": 10,
     "AchievementTaskID": 25045084,
     "AchievementType": 2,
     "AchievementID": 171
   },
   {
+    "PokmonID": 845,
     "Score": 5,
     "AchievementTaskID": 25045085,
     "AchievementType": 2,
     "AchievementID": 172
   },
   {
+    "PokmonID": 845,
     "Score": 5,
     "AchievementTaskID": 25045086,
     "AchievementType": 2,
     "AchievementID": 173
   },
   {
+    "PokmonID": 845,
     "Score": 10,
     "AchievementTaskID": 25045087,
     "AchievementType": 2,
@@ -864,180 +951,210 @@
     "AchievementID": 177
   },
   {
+    "PokmonID": 679,
     "Score": 5,
     "AchievementTaskID": 25045088,
     "AchievementType": 2,
     "AchievementID": 178
   },
   {
+    "PokmonID": 679,
     "Score": 5,
     "AchievementTaskID": 25045089,
     "AchievementType": 2,
     "AchievementID": 179
   },
   {
+    "PokmonID": 679,
     "Score": 10,
     "AchievementTaskID": 25045090,
     "AchievementType": 2,
     "AchievementID": 180
   },
   {
+    "PokmonID": 884,
     "Score": 5,
     "AchievementTaskID": 25045091,
     "AchievementType": 2,
     "AchievementID": 181
   },
   {
+    "PokmonID": 884,
     "Score": 5,
     "AchievementTaskID": 25045092,
     "AchievementType": 2,
     "AchievementID": 182
   },
   {
+    "PokmonID": 884,
     "Score": 10,
     "AchievementTaskID": 25045093,
     "AchievementType": 2,
     "AchievementID": 183
   },
   {
+    "PokmonID": 720,
     "Score": 5,
     "AchievementTaskID": 25045094,
     "AchievementType": 2,
     "AchievementID": 184
   },
   {
+    "PokmonID": 720,
     "Score": 5,
     "AchievementTaskID": 25045095,
     "AchievementType": 2,
     "AchievementID": 185
   },
   {
+    "PokmonID": 720,
     "Score": 10,
     "AchievementTaskID": 25045096,
     "AchievementType": 2,
     "AchievementID": 186
   },
   {
+    "PokmonID": 708,
     "Score": 5,
     "AchievementTaskID": 25045097,
     "AchievementType": 2,
     "AchievementID": 187
   },
   {
+    "PokmonID": 708,
     "Score": 5,
     "AchievementTaskID": 25045098,
     "AchievementType": 2,
     "AchievementID": 188
   },
   {
+    "PokmonID": 708,
     "Score": 10,
     "AchievementTaskID": 25045099,
     "AchievementType": 2,
     "AchievementID": 189
   },
   {
+    "PokmonID": 183,
     "Score": 5,
     "AchievementTaskID": 25045100,
     "AchievementType": 2,
     "AchievementID": 190
   },
   {
+    "PokmonID": 183,
     "Score": 5,
     "AchievementTaskID": 25045101,
     "AchievementType": 2,
     "AchievementID": 191
   },
   {
+    "PokmonID": 183,
     "Score": 10,
     "AchievementTaskID": 25045102,
     "AchievementType": 2,
     "AchievementID": 192
   },
   {
+    "PokmonID": 653,
     "Score": 5,
     "AchievementTaskID": 25045103,
     "AchievementType": 2,
     "AchievementID": 193
   },
   {
+    "PokmonID": 653,
     "Score": 5,
     "AchievementTaskID": 25045104,
     "AchievementType": 2,
     "AchievementID": 194
   },
   {
+    "PokmonID": 653,
     "Score": 10,
     "AchievementTaskID": 25045105,
     "AchievementType": 2,
     "AchievementID": 195
   },
   {
+    "PokmonID": 196,
     "Score": 5,
     "AchievementTaskID": 25045106,
     "AchievementType": 2,
     "AchievementID": 196
   },
   {
+    "PokmonID": 196,
     "Score": 5,
     "AchievementTaskID": 25045107,
     "AchievementType": 2,
     "AchievementID": 197
   },
   {
+    "PokmonID": 196,
     "Score": 10,
     "AchievementTaskID": 25045108,
     "AchievementType": 2,
     "AchievementID": 198
   },
   {
+    "PokmonID": 794,
     "Score": 5,
     "AchievementTaskID": 25045109,
     "AchievementType": 2,
     "AchievementID": 199
   },
   {
+    "PokmonID": 794,
     "Score": 5,
     "AchievementTaskID": 25045110,
     "AchievementType": 2,
     "AchievementID": 200
   },
   {
+    "PokmonID": 794,
     "Score": 10,
     "AchievementTaskID": 25045111,
     "AchievementType": 2,
     "AchievementID": 201
   },
   {
+    "PokmonID": 471,
     "Score": 5,
     "AchievementTaskID": 25045112,
     "AchievementType": 2,
     "AchievementID": 202
   },
   {
+    "PokmonID": 471,
     "Score": 5,
     "AchievementTaskID": 25045113,
     "AchievementType": 2,
     "AchievementID": 203
   },
   {
+    "PokmonID": 471,
     "Score": 10,
     "AchievementTaskID": 25045114,
     "AchievementType": 2,
     "AchievementID": 204
   },
   {
+    "PokmonID": 246,
     "Score": 5,
     "AchievementTaskID": 25045115,
     "AchievementType": 2,
     "AchievementID": 205
   },
   {
+    "PokmonID": 246,
     "Score": 5,
     "AchievementTaskID": 25045116,
     "AchievementType": 2,
     "AchievementID": 206
   },
   {
+    "PokmonID": 246,
     "Score": 10,
     "AchievementTaskID": 25045117,
     "AchievementType": 2,
@@ -1080,108 +1197,126 @@
     "AchievementID": 213
   },
   {
+    "PokmonID": 151,
     "Score": 5,
     "AchievementTaskID": 25045118,
     "AchievementType": 2,
     "AchievementID": 214
   },
   {
+    "PokmonID": 151,
     "Score": 5,
     "AchievementTaskID": 25045119,
     "AchievementType": 2,
     "AchievementID": 215
   },
   {
+    "PokmonID": 151,
     "Score": 10,
     "AchievementTaskID": 25045120,
     "AchievementType": 2,
     "AchievementID": 216
   },
   {
+    "PokmonID": 84,
     "Score": 5,
     "AchievementTaskID": 25045121,
     "AchievementType": 2,
     "AchievementID": 217
   },
   {
+    "PokmonID": 84,
     "Score": 5,
     "AchievementTaskID": 25045122,
     "AchievementType": 2,
     "AchievementID": 218
   },
   {
+    "PokmonID": 84,
     "Score": 10,
     "AchievementTaskID": 25045123,
     "AchievementType": 2,
     "AchievementID": 219
   },
   {
+    "PokmonID": 123,
     "Score": 5,
     "AchievementTaskID": 25045124,
     "AchievementType": 2,
     "AchievementID": 220
   },
   {
+    "PokmonID": 123,
     "Score": 5,
     "AchievementTaskID": 25045125,
     "AchievementType": 2,
     "AchievementID": 221
   },
   {
+    "PokmonID": 123,
     "Score": 10,
     "AchievementTaskID": 25045126,
     "AchievementType": 2,
     "AchievementID": 222
   },
   {
+    "PokmonID": 35,
     "Score": 5,
     "AchievementTaskID": 25045127,
     "AchievementType": 2,
     "AchievementID": 223
   },
   {
+    "PokmonID": 35,
     "Score": 5,
     "AchievementTaskID": 25045128,
     "AchievementType": 2,
     "AchievementID": 224
   },
   {
+    "PokmonID": 35,
     "Score": 10,
     "AchievementTaskID": 25045129,
     "AchievementType": 2,
     "AchievementID": 225
   },
   {
+    "PokmonID": 570,
     "Score": 5,
     "AchievementTaskID": 25045130,
     "AchievementType": 2,
     "AchievementID": 226
   },
   {
+    "PokmonID": 570,
     "Score": 5,
     "AchievementTaskID": 25045131,
     "AchievementType": 2,
     "AchievementID": 227
   },
   {
+    "PokmonID": 570,
     "Score": 10,
     "AchievementTaskID": 25045132,
     "AchievementType": 2,
     "AchievementID": 228
   },
   {
+    "PokmonID": 302,
     "Score": 5,
     "AchievementTaskID": 25045133,
     "AchievementType": 2,
     "AchievementID": 229
   },
   {
+    "PokmonID": 302,
     "Score": 5,
     "AchievementTaskID": 25045134,
     "AchievementType": 2,
     "AchievementID": 230
   },
   {
+    "PokmonID": 302,
     "Score": 10,
     "AchievementTaskID": 25045135,
     "AchievementType": 2,
@@ -1422,954 +1557,1113 @@
     "AchievementID": 270
   },
   {
+    "PokmonID": 892,
     "Score": 5,
     "AchievementTaskID": 25045136,
     "AchievementType": 2,
     "AchievementID": 271
   },
   {
+    "PokmonID": 892,
     "Score": 5,
     "AchievementTaskID": 25045137,
     "AchievementType": 2,
     "AchievementID": 272
   },
   {
+    "PokmonID": 892,
     "Score": 10,
     "AchievementTaskID": 25045138,
     "AchievementType": 2,
     "AchievementID": 273
   },
   {
+    "PokmonID": 764,
     "Score": 5,
     "AchievementTaskID": 25045139,
     "AchievementType": 2,
     "AchievementID": 274
   },
   {
+    "PokmonID": 764,
     "Score": 5,
     "AchievementTaskID": 25045140,
     "AchievementType": 2,
     "AchievementID": 275
   },
   {
+    "PokmonID": 764,
     "Score": 10,
     "AchievementTaskID": 25045141,
     "AchievementType": 2,
     "AchievementID": 276
   },
   {
+    "PokmonID": 885,
     "Score": 5,
     "AchievementTaskID": 25045142,
     "AchievementType": 2,
     "AchievementID": 277
   },
   {
+    "PokmonID": 885,
     "Score": 5,
     "AchievementTaskID": 25045143,
     "AchievementType": 2,
     "AchievementID": 278
   },
   {
+    "PokmonID": 885,
     "Score": 10,
     "AchievementTaskID": 25045144,
     "AchievementType": 2,
     "AchievementID": 279
   },
   {
+    "PokmonID": 888,
     "Score": 5,
     "AchievementTaskID": 25045145,
     "AchievementType": 2,
     "AchievementID": 280
   },
   {
+    "PokmonID": 888,
     "Score": 5,
     "AchievementTaskID": 25045146,
     "AchievementType": 2,
     "AchievementID": 281
   },
   {
+    "PokmonID": 888,
     "Score": 10,
     "AchievementTaskID": 25045147,
     "AchievementType": 2,
     "AchievementID": 282
   },
   {
+    "PokmonID": 706,
     "Score": 5,
     "AchievementTaskID": 25045148,
     "AchievementType": 2,
     "AchievementID": 283
   },
   {
+    "PokmonID": 706,
     "Score": 5,
     "AchievementTaskID": 25045149,
     "AchievementType": 2,
     "AchievementID": 284
   },
   {
+    "PokmonID": 706,
     "Score": 10,
     "AchievementTaskID": 25045150,
     "AchievementType": 2,
     "AchievementID": 285
   },
   {
+    "PokmonID": 131,
     "Score": 5,
     "AchievementTaskID": 25045151,
     "AchievementType": 2,
     "AchievementID": 286
   },
   {
+    "PokmonID": 131,
     "Score": 5,
     "AchievementTaskID": 25045152,
     "AchievementType": 2,
     "AchievementID": 287
   },
   {
+    "PokmonID": 131,
     "Score": 10,
     "AchievementTaskID": 25045153,
     "AchievementType": 2,
     "AchievementID": 288
   },
   {
+    "PokmonID": 609,
     "Score": 5,
     "AchievementTaskID": 25045154,
     "AchievementType": 2,
     "AchievementID": 289
   },
   {
+    "PokmonID": 609,
     "Score": 5,
     "AchievementTaskID": 25045155,
     "AchievementType": 2,
     "AchievementID": 290
   },
   {
+    "PokmonID": 609,
     "Score": 10,
     "AchievementTaskID": 25045156,
     "AchievementType": 2,
     "AchievementID": 291
   },
   {
+    "PokmonID": 197,
     "Score": 5,
     "AchievementTaskID": 25045157,
     "AchievementType": 2,
     "AchievementID": 292
   },
   {
+    "PokmonID": 197,
     "Score": 5,
     "AchievementTaskID": 25045158,
     "AchievementType": 2,
     "AchievementID": 293
   },
   {
+    "PokmonID": 197,
     "Score": 10,
     "AchievementTaskID": 25045159,
     "AchievementType": 2,
     "AchievementID": 294
   },
   {
+    "PokmonID": 470,
     "Score": 5,
     "AchievementTaskID": 25045160,
     "AchievementType": 2,
     "AchievementID": 295
   },
   {
+    "PokmonID": 470,
     "Score": 5,
     "AchievementTaskID": 25045161,
     "AchievementType": 2,
     "AchievementID": 296
   },
   {
+    "PokmonID": 470,
     "Score": 10,
     "AchievementTaskID": 25045162,
     "AchievementType": 2,
     "AchievementID": 297
   },
   {
+    "PokmonID": 816,
     "Score": 5,
     "AchievementTaskID": 25045163,
     "AchievementType": 2,
     "AchievementID": 298
   },
   {
+    "PokmonID": 816,
     "Score": 5,
     "AchievementTaskID": 25045164,
     "AchievementType": 2,
     "AchievementID": 299
   },
   {
+    "PokmonID": 816,
     "Score": 10,
     "AchievementTaskID": 25045165,
     "AchievementType": 2,
     "AchievementID": 300
   },
   {
+    "PokmonID": 255,
     "Score": 5,
     "AchievementTaskID": 25045166,
     "AchievementType": 2,
     "AchievementID": 301
   },
   {
+    "PokmonID": 255,
     "Score": 5,
     "AchievementTaskID": 25045167,
     "AchievementType": 2,
     "AchievementID": 302
   },
   {
+    "PokmonID": 255,
     "Score": 10,
     "AchievementTaskID": 25045168,
     "AchievementType": 2,
     "AchievementID": 303
   },
   {
+    "PokmonID": 150,
     "Score": 5,
     "AchievementTaskID": 25045169,
     "AchievementType": 2,
     "AchievementID": 304
   },
   {
+    "PokmonID": 150,
     "Score": 5,
     "AchievementTaskID": 25045170,
     "AchievementType": 2,
     "AchievementID": 305
   },
   {
+    "PokmonID": 150,
     "Score": 10,
     "AchievementTaskID": 25045171,
     "AchievementType": 2,
     "AchievementID": 306
   },
   {
+    "PokmonID": 9150,
     "Score": 5,
     "AchievementTaskID": 25045172,
     "AchievementType": 2,
     "AchievementID": 307
   },
   {
+    "PokmonID": 9150,
     "Score": 5,
     "AchievementTaskID": 25045173,
     "AchievementType": 2,
     "AchievementID": 308
   },
   {
+    "PokmonID": 9150,
     "Score": 10,
     "AchievementTaskID": 25045174,
     "AchievementType": 2,
     "AchievementID": 309
   },
   {
+    "PokmonID": 778,
     "Score": 5,
     "AchievementTaskID": 25045175,
     "AchievementType": 2,
     "AchievementID": 310
   },
   {
+    "PokmonID": 778,
     "Score": 5,
     "AchievementTaskID": 25045176,
     "AchievementType": 2,
     "AchievementID": 311
   },
   {
+    "PokmonID": 778,
     "Score": 10,
     "AchievementTaskID": 25045177,
     "AchievementType": 2,
     "AchievementID": 312
   },
   {
+    "PokmonID": 906,
     "Score": 5,
     "AchievementTaskID": 25045178,
     "AchievementType": 2,
     "AchievementID": 313
   },
   {
+    "PokmonID": 906,
     "Score": 5,
     "AchievementTaskID": 25045179,
     "AchievementType": 2,
     "AchievementID": 314
   },
   {
+    "PokmonID": 906,
     "Score": 10,
     "AchievementTaskID": 25045180,
     "AchievementType": 2,
     "AchievementID": 315
   },
   {
+    "PokmonID": 374,
     "Score": 5,
     "AchievementTaskID": 25045181,
     "AchievementType": 2,
     "AchievementID": 316
   },
   {
+    "PokmonID": 374,
     "Score": 5,
     "AchievementTaskID": 25045182,
     "AchievementType": 2,
     "AchievementID": 317
   },
   {
+    "PokmonID": 374,
     "Score": 10,
     "AchievementTaskID": 25045183,
     "AchievementType": 2,
     "AchievementID": 318
   },
   {
+    "PokmonID": 129,
     "Score": 5,
     "AchievementTaskID": 25045184,
     "AchievementType": 2,
     "AchievementID": 319
   },
   {
+    "PokmonID": 129,
     "Score": 5,
     "AchievementTaskID": 25045185,
     "AchievementType": 2,
     "AchievementID": 320
   },
   {
+    "PokmonID": 129,
     "Score": 10,
     "AchievementTaskID": 25045186,
     "AchievementType": 2,
     "AchievementID": 321
   },
   {
+    "PokmonID": 1008,
     "Score": 5,
     "AchievementTaskID": 25045187,
     "AchievementType": 2,
     "AchievementID": 322
   },
   {
+    "PokmonID": 1008,
     "Score": 5,
     "AchievementTaskID": 25045188,
     "AchievementType": 2,
     "AchievementID": 323
   },
   {
+    "PokmonID": 1008,
     "Score": 10,
     "AchievementTaskID": 25045189,
     "AchievementType": 2,
     "AchievementID": 324
   },
   {
+    "PokmonID": 870,
     "Score": 5,
     "AchievementTaskID": 25045190,
     "AchievementType": 2,
     "AchievementID": 325
   },
   {
+    "PokmonID": 870,
     "Score": 5,
     "AchievementTaskID": 25045191,
     "AchievementType": 2,
     "AchievementID": 326
   },
   {
+    "PokmonID": 870,
     "Score": 10,
     "AchievementTaskID": 25045192,
     "AchievementType": 2,
     "AchievementID": 327
   },
   {
+    "PokmonID": 937,
     "Score": 5,
     "AchievementTaskID": 25045193,
     "AchievementType": 2,
     "AchievementID": 328
   },
   {
+    "PokmonID": 937,
     "Score": 5,
     "AchievementTaskID": 25045194,
     "AchievementType": 2,
     "AchievementID": 329
   },
   {
+    "PokmonID": 937,
     "Score": 10,
     "AchievementTaskID": 25045195,
     "AchievementType": 2,
     "AchievementID": 330
   },
   {
+    "PokmonID": 250,
     "Score": 5,
     "AchievementTaskID": 25045196,
     "AchievementType": 2,
     "AchievementID": 331
   },
   {
+    "PokmonID": 250,
     "Score": 5,
     "AchievementTaskID": 25045197,
     "AchievementType": 2,
     "AchievementID": 332
   },
   {
+    "PokmonID": 250,
     "Score": 10,
     "AchievementTaskID": 25045198,
     "AchievementType": 2,
     "AchievementID": 333
   },
   {
+    "PokmonID": 936,
     "Score": 5,
     "AchievementTaskID": 25045199,
     "AchievementType": 2,
     "AchievementID": 334
   },
   {
+    "PokmonID": 936,
     "Score": 5,
     "AchievementTaskID": 25045200,
     "AchievementType": 2,
     "AchievementID": 335
   },
   {
+    "PokmonID": 936,
     "Score": 10,
     "AchievementTaskID": 25045201,
     "AchievementType": 2,
     "AchievementID": 336
   },
   {
+    "PokmonID": 491,
     "Score": 5,
     "AchievementTaskID": 25045202,
     "AchievementType": 2,
     "AchievementID": 337
   },
   {
+    "PokmonID": 491,
     "Score": 5,
     "AchievementTaskID": 25045203,
     "AchievementType": 2,
     "AchievementID": 338
   },
   {
+    "PokmonID": 491,
     "Score": 10,
     "AchievementTaskID": 25045204,
     "AchievementType": 2,
     "AchievementID": 339
   },
   {
+    "PokmonID": 54,
     "Score": 5,
     "AchievementTaskID": 25045205,
     "AchievementType": 2,
     "AchievementID": 340
   },
   {
+    "PokmonID": 54,
     "Score": 5,
     "AchievementTaskID": 25045206,
     "AchievementType": 2,
     "AchievementID": 341
   },
   {
+    "PokmonID": 54,
     "Score": 10,
     "AchievementTaskID": 25045207,
     "AchievementType": 2,
     "AchievementID": 342
   },
   {
+    "PokmonID": 957,
     "Score": 5,
     "AchievementTaskID": 25045208,
     "AchievementType": 2,
     "AchievementID": 343
   },
   {
+    "PokmonID": 957,
     "Score": 5,
     "AchievementTaskID": 25045209,
     "AchievementType": 2,
     "AchievementID": 344
   },
   {
+    "PokmonID": 957,
     "Score": 10,
     "AchievementTaskID": 25045210,
     "AchievementType": 2,
     "AchievementID": 345
   },
   {
+    "PokmonID": 77,
     "Score": 5,
     "AchievementTaskID": 25045211,
     "AchievementType": 2,
     "AchievementID": 346
   },
   {
+    "PokmonID": 77,
     "Score": 5,
     "AchievementTaskID": 25045212,
     "AchievementType": 2,
     "AchievementID": 347
   },
   {
+    "PokmonID": 77,
     "Score": 10,
     "AchievementTaskID": 25045213,
     "AchievementType": 2,
     "AchievementID": 348
   },
   {
+    "PokmonID": 245,
     "Score": 5,
     "AchievementTaskID": 25045214,
     "AchievementType": 2,
     "AchievementID": 349
   },
   {
+    "PokmonID": 245,
     "Score": 5,
     "AchievementTaskID": 25045215,
     "AchievementType": 2,
     "AchievementID": 350
   },
   {
+    "PokmonID": 245,
     "Score": 10,
     "AchievementTaskID": 25045216,
     "AchievementType": 2,
     "AchievementID": 351
   },
   {
+    "PokmonID": 26,
     "Score": 5,
     "AchievementTaskID": 25045217,
     "AchievementType": 2,
     "AchievementID": 352
   },
   {
+    "PokmonID": 26,
     "Score": 5,
     "AchievementTaskID": 25045218,
     "AchievementType": 2,
     "AchievementID": 353
   },
   {
+    "PokmonID": 26,
     "Score": 10,
     "AchievementTaskID": 25045219,
     "AchievementType": 2,
     "AchievementID": 354
   },
   {
+    "PokmonID": 380,
     "Score": 5,
     "AchievementTaskID": 25045220,
     "AchievementType": 2,
     "AchievementID": 361
   },
   {
+    "PokmonID": 380,
     "Score": 5,
     "AchievementTaskID": 25045221,
     "AchievementType": 2,
     "AchievementID": 362
   },
   {
+    "PokmonID": 380,
     "Score": 10,
     "AchievementTaskID": 25045222,
     "AchievementType": 2,
     "AchievementID": 363
   },
   {
+    "PokmonID": 381,
     "Score": 5,
     "AchievementTaskID": 25045223,
     "AchievementType": 2,
     "AchievementID": 358
   },
   {
+    "PokmonID": 381,
     "Score": 5,
     "AchievementTaskID": 25045224,
     "AchievementType": 2,
     "AchievementID": 359
   },
   {
+    "PokmonID": 381,
     "Score": 10,
     "AchievementTaskID": 25045225,
     "AchievementType": 2,
     "AchievementID": 360
   },
   {
+    "PokmonID": 868,
     "Score": 5,
     "AchievementTaskID": 25045226,
     "AchievementType": 2,
     "AchievementID": 355
   },
   {
+    "PokmonID": 868,
     "Score": 5,
     "AchievementTaskID": 25045227,
     "AchievementType": 2,
     "AchievementID": 356
   },
   {
+    "PokmonID": 868,
     "Score": 10,
     "AchievementTaskID": 25045228,
     "AchievementType": 2,
     "AchievementID": 357
   },
   {
+    "PokmonID": 923,
     "Score": 5,
     "AchievementTaskID": 25045230,
     "AchievementType": 2,
     "AchievementID": 364
   },
   {
+    "PokmonID": 923,
     "Score": 5,
     "AchievementTaskID": 25045231,
     "AchievementType": 2,
     "AchievementID": 365
   },
   {
+    "PokmonID": 923,
     "Score": 10,
     "AchievementTaskID": 25045232,
     "AchievementType": 2,
     "AchievementID": 366
   },
   {
+    "PokmonID": 395,
     "Score": 5,
     "AchievementTaskID": 25045233,
     "AchievementType": 2,
     "AchievementID": 367
   },
   {
+    "PokmonID": 395,
     "Score": 5,
     "AchievementTaskID": 25045234,
     "AchievementType": 2,
     "AchievementID": 368
   },
   {
+    "PokmonID": 395,
     "Score": 10,
     "AchievementTaskID": 25045235,
     "AchievementType": 2,
     "AchievementID": 369
   },
   {
+    "PokmonID": 781,
     "Score": 5,
     "AchievementTaskID": 25045236,
     "AchievementType": 2,
     "AchievementID": 370
   },
   {
+    "PokmonID": 781,
     "Score": 5,
     "AchievementTaskID": 25045237,
     "AchievementType": 2,
     "AchievementID": 371
   },
   {
+    "PokmonID": 781,
     "Score": 10,
     "AchievementTaskID": 25045238,
     "AchievementType": 2,
     "AchievementID": 372
   },
   {
+    "PokmonID": 134,
     "Score": 5,
     "AchievementTaskID": 25045239,
     "AchievementType": 2,
     "AchievementID": 373
   },
   {
+    "PokmonID": 134,
     "Score": 5,
     "AchievementTaskID": 25045240,
     "AchievementType": 2,
     "AchievementID": 374
   },
   {
+    "PokmonID": 134,
     "Score": 10,
     "AchievementTaskID": 25045241,
     "AchievementType": 2,
     "AchievementID": 375
   },
   {
+    "PokmonID": 865,
     "Score": 5,
     "AchievementTaskID": 25045242,
     "AchievementType": 2,
     "AchievementID": 379
   },
   {
+    "PokmonID": 865,
     "Score": 5,
     "AchievementTaskID": 25045243,
     "AchievementType": 2,
     "AchievementID": 380
   },
   {
+    "PokmonID": 865,
     "Score": 10,
     "AchievementTaskID": 25045244,
     "AchievementType": 2,
     "AchievementID": 381
   },
   {
+    "PokmonID": 52,
     "Score": 5,
     "AchievementTaskID": 25045245,
     "AchievementType": 2,
     "AchievementID": 376
   },
   {
+    "PokmonID": 52,
     "Score": 5,
     "AchievementTaskID": 25045246,
     "AchievementType": 2,
     "AchievementID": 377
   },
   {
+    "PokmonID": 52,
     "Score": 10,
     "AchievementTaskID": 25045247,
     "AchievementType": 2,
     "AchievementID": 378
   },
   {
+    "PokmonID": 145,
     "Score": 5,
     "AchievementTaskID": 25045248,
     "AchievementType": 2,
     "AchievementID": 382
   },
   {
+    "PokmonID": 145,
     "Score": 5,
     "AchievementTaskID": 25045249,
     "AchievementType": 2,
     "AchievementID": 383
   },
   {
+    "PokmonID": 145,
     "Score": 10,
     "AchievementTaskID": 25045250,
     "AchievementType": 2,
     "AchievementID": 384
   },
   {
+    "PokmonID": 146,
     "Score": 5,
     "AchievementTaskID": 25045254,
     "AchievementType": 2,
     "AchievementID": 385
   },
   {
+    "PokmonID": 146,
     "Score": 5,
     "AchievementTaskID": 25045255,
     "AchievementType": 2,
     "AchievementID": 386
   },
   {
+    "PokmonID": 146,
     "Score": 10,
     "AchievementTaskID": 25045256,
     "AchievementType": 2,
     "AchievementID": 387
   },
   {
+    "PokmonID": 144,
     "Score": 5,
     "AchievementTaskID": 25045251,
     "AchievementType": 2,
     "AchievementID": 388
   },
   {
+    "PokmonID": 144,
     "Score": 5,
     "AchievementTaskID": 25045252,
     "AchievementType": 2,
     "AchievementID": 389
   },
   {
+    "PokmonID": 144,
     "Score": 10,
     "AchievementTaskID": 25045253,
     "AchievementType": 2,
     "AchievementID": 390
   },
   {
+    "PokmonID": 157,
     "Score": 5,
     "AchievementTaskID": 25045260,
     "AchievementType": 2,
     "AchievementID": 391
   },
   {
+    "PokmonID": 157,
     "Score": 5,
     "AchievementTaskID": 25045261,
     "AchievementType": 2,
     "AchievementID": 392
   },
   {
+    "PokmonID": 157,
     "Score": 10,
     "AchievementTaskID": 25045262,
     "AchievementType": 2,
     "AchievementID": 393
   },
   {
+    "PokmonID": 158,
     "Score": 5,
     "AchievementTaskID": 25045263,
     "AchievementType": 2,
     "AchievementID": 394
   },
   {
+    "PokmonID": 158,
     "Score": 5,
     "AchievementTaskID": 25045264,
     "AchievementType": 2,
     "AchievementID": 395
   },
   {
+    "PokmonID": 158,
     "Score": 10,
     "AchievementTaskID": 25045265,
     "AchievementType": 2,
     "AchievementID": 396
   },
   {
+    "PokmonID": 154,
     "Score": 5,
     "AchievementTaskID": 25045257,
     "AchievementType": 2,
     "AchievementID": 397
   },
   {
+    "PokmonID": 154,
     "Score": 5,
     "AchievementTaskID": 25045258,
     "AchievementType": 2,
     "AchievementID": 398
   },
   {
+    "PokmonID": 154,
     "Score": 10,
     "AchievementTaskID": 25045259,
     "AchievementType": 2,
     "AchievementID": 399
   },
   {
+    "PokmonID": 911,
     "Score": 5,
     "AchievementTaskID": 25045266,
     "AchievementType": 2,
     "AchievementID": 400
   },
   {
+    "PokmonID": 911,
     "Score": 5,
     "AchievementTaskID": 25045267,
     "AchievementType": 2,
     "AchievementID": 401
   },
   {
+    "PokmonID": 911,
     "Score": 10,
     "AchievementTaskID": 25045268,
     "AchievementType": 2,
     "AchievementID": 402
   },
   {
+    "PokmonID": 914,
     "Score": 5,
     "AchievementTaskID": 25045269,
     "AchievementType": 2,
     "AchievementID": 403
   },
   {
+    "PokmonID": 914,
     "Score": 5,
     "AchievementTaskID": 25045270,
     "AchievementType": 2,
     "AchievementID": 404
   },
   {
+    "PokmonID": 914,
     "Score": 10,
     "AchievementTaskID": 25045271,
     "AchievementType": 2,
     "AchievementID": 405
   },
   {
+    "PokmonID": 717,
     "Score": 5,
     "AchievementTaskID": 25045272,
     "AchievementType": 2,
     "AchievementID": 406
   },
   {
+    "PokmonID": 717,
     "Score": 5,
     "AchievementTaskID": 25045273,
     "AchievementType": 2,
     "AchievementID": 407
   },
   {
+    "PokmonID": 717,
     "Score": 10,
     "AchievementTaskID": 25045274,
     "AchievementType": 2,
     "AchievementID": 408
   },
   {
+    "PokmonID": 484,
     "Score": 5,
     "AchievementTaskID": 25045275,
     "AchievementType": 2,
     "AchievementID": 409
   },
   {
+    "PokmonID": 484,
     "Score": 5,
     "AchievementTaskID": 25045276,
     "AchievementType": 2,
     "AchievementID": 410
   },
   {
+    "PokmonID": 484,
     "Score": 10,
     "AchievementTaskID": 25045277,
     "AchievementType": 2,
     "AchievementID": 411
   },
   {
+    "PokmonID": 643,
     "Score": 5,
     "AchievementTaskID": 25045278,
     "AchievementType": 2,
     "AchievementID": 412
   },
   {
+    "PokmonID": 643,
     "Score": 5,
     "AchievementTaskID": 25045279,
     "AchievementType": 2,
     "AchievementID": 413
   },
   {
+    "PokmonID": 643,
     "Score": 10,
     "AchievementTaskID": 25045280,
     "AchievementType": 2,
     "AchievementID": 414
   },
   {
+    "PokmonID": 791,
     "Score": 5,
     "AchievementTaskID": 25045281,
     "AchievementType": 2,
     "AchievementID": 415
   },
   {
+    "PokmonID": 791,
     "Score": 5,
     "AchievementTaskID": 25045282,
     "AchievementType": 2,
     "AchievementID": 416
   },
   {
+    "PokmonID": 791,
     "Score": 10,
     "AchievementTaskID": 25045283,
     "AchievementType": 2,
     "AchievementID": 417
   },
   {
+    "PokmonID": 877,
     "Score": 5,
     "AchievementTaskID": 25045284,
     "AchievementType": 2,
     "AchievementID": 418
   },
   {
+    "PokmonID": 877,
     "Score": 5,
     "AchievementTaskID": 25045285,
     "AchievementType": 2,
     "AchievementID": 419
   },
   {
+    "PokmonID": 877,
     "Score": 10,
     "AchievementTaskID": 25045286,
     "AchievementType": 2,
     "AchievementID": 420
   },
   {
+    "PokmonID": 849,
     "Score": 5,
     "AchievementTaskID": 25045287,
     "AchievementType": 2,
     "AchievementID": 421
   },
   {
+    "PokmonID": 849,
     "Score": 5,
     "AchievementTaskID": 25045288,
     "AchievementType": 2,
     "AchievementID": 422
   },
   {
+    "PokmonID": 849,
     "Score": 10,
     "AchievementTaskID": 25045289,
     "AchievementType": 2,
     "AchievementID": 423
   },
   {
+    "PokmonID": 135,
     "Score": 5,
     "AchievementTaskID": 25045290,
     "AchievementType": 2,
     "AchievementID": 424
   },
   {
+    "PokmonID": 135,
     "Score": 5,
     "AchievementTaskID": 25045291,
     "AchievementType": 2,
     "AchievementID": 425
   },
   {
+    "PokmonID": 135,
     "Score": 10,
     "AchievementTaskID": 25045292,
     "AchievementType": 2,
     "AchievementID": 426
   },
   {
+    "PokmonID": 136,
     "Score": 5,
     "AchievementTaskID": 25045293,
     "AchievementType": 2,
     "AchievementID": 427
   },
   {
+    "PokmonID": 136,
     "Score": 5,
     "AchievementTaskID": 25045294,
     "AchievementType": 2,
     "AchievementID": 428
   },
   {
+    "PokmonID": 136,
     "Score": 10,
     "AchievementTaskID": 25045295,
     "AchievementType": 2,

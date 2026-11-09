@@ -156,6 +156,7 @@ LUA_ONLY_FIELDS = {
         236844: Field("PokemonCoupons", "int32"),
     },
     "pbAchievement": {
+        220711: Field("PokmonID", "int32"),
         223098: Field("Score", "int32"),
         240759: Field("AchievementTaskID", "int32"),
         245693: Field("AchievementType", "int32"),
@@ -480,6 +481,7 @@ SERVER_FIELD_SUBSETS = {
         239066: Field("NationGroupList", "int32", repeated=True),
         244760: Field("ActivityID", "int32"),
         256887: Field("ActivityType", "int32"),
+        263901: Field("StartActivityShowRedDotID", "int32"),
         291705: Field("ValidStartTime", "int64"),
         291726: Field("ActivityParam", "int32"),
     },
@@ -812,6 +814,9 @@ TABLES = {
     "databin_NewbieChallengeTask": Table("pbNewbieChallengeTask", LUA_ONLY_FIELDS["pbNewbieChallengeTask"]),
     "databin_OridinaryTask": Table("pbTask_Base", SERVER_FIELD_SUBSETS["pbTask_Base"], key_field="TaskID"),
     "databin_Achievement": Table("pbAchievement", LUA_ONLY_FIELDS["pbAchievement"], key_field="AchievementID"),
+    "databin_AchievementBattleCondition": Table(
+        "pbAchievementBattleCondition", kept_fields=("PokemonId", "AchievementId")
+    ),
     "databin_BattlePassSeason": Table(
         "pbBattlePassSeason", LUA_ONLY_FIELDS["pbBattlePassSeason"], key_field="SeasonID"
     ),

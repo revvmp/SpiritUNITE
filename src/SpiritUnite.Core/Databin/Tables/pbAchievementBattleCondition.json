@@ -1,0 +1,418 @@
+[
+  {
+    "PokemonId": 37,
+    "AchievementId": 57
+  },
+  {
+    "PokemonId": 79,
+    "AchievementId": 58
+  },
+  {
+    "PokemonId": 443,
+    "AchievementId": 59
+  },
+  {
+    "PokemonId": 4,
+    "AchievementId": 60
+  },
+  {
+    "PokemonId": 813,
+    "AchievementId": 61
+  },
+  {
+    "PokemonId": 359,
+    "AchievementId": 62
+  },
+  {
+    "PokemonId": 829,
+    "AchievementId": 63
+  },
+  {
+    "PokemonId": 820,
+    "AchievementId": 64
+  },
+  {
+    "PokemonId": 92,
+    "AchievementId": 65
+  },
+  {
+    "PokemonId": 724,
+    "AchievementId": 66
+  },
+  {
+    "PokemonId": 147,
+    "AchievementId": 67
+  },
+  {
+    "PokemonId": 1,
+    "AchievementId": 68
+  },
+  {
+    "PokemonId": 122,
+    "AchievementId": 69
+  },
+  {
+    "PokemonId": 39,
+    "AchievementId": 70
+  },
+  {
+    "PokemonId": 280,
+    "AchievementId": 71
+  },
+  {
+    "PokemonId": 7,
+    "AchievementId": 72
+  },
+  {
+    "PokemonId": 557,
+    "AchievementId": 73
+  },
+  {
+    "PokemonId": 656,
+    "AchievementId": 74
+  },
+  {
+    "PokemonId": 700,
+    "AchievementId": 75
+  },
+  {
+    "PokemonId": 66,
+    "AchievementId": 76
+  },
+  {
+    "PokemonId": 807,
+    "AchievementId": 107
+  },
+  {
+    "PokemonId": 143,
+    "AchievementId": 78
+  },
+  {
+    "PokemonId": 448,
+    "AchievementId": 116
+  },
+  {
+    "PokemonId": 25,
+    "AchievementId": 80
+  },
+  {
+    "PokemonId": 763,
+    "AchievementId": 111
+  },
+  {
+    "PokemonId": 113,
+    "AchievementId": 82
+  },
+  {
+    "PokemonId": 220,
+    "AchievementId": 83
+  },
+  {
+    "PokemonId": 845,
+    "AchievementId": 84
+  },
+  {
+    "PokemonId": -1,
+    "AchievementId": 88
+  },
+  {
+    "PokemonId": -1,
+    "AchievementId": 89
+  },
+  {
+    "PokemonId": -1,
+    "AchievementId": 90
+  },
+  {
+    "PokemonId": -1,
+    "AchievementId": 85
+  },
+  {
+    "PokemonId": -1,
+    "AchievementId": 86
+  },
+  {
+    "PokemonId": -1,
+    "AchievementId": 87
+  },
+  {
+    "PokemonId": 661,
+    "AchievementId": 115
+  },
+  {
+    "PokemonId": 679,
+    "AchievementId": 130
+  },
+  {
+    "PokemonId": 884,
+    "AchievementId": 133
+  },
+  {
+    "PokemonId": 720,
+    "AchievementId": 134
+  },
+  {
+    "PokemonId": 708,
+    "AchievementId": 135
+  },
+  {
+    "PokemonId": 183,
+    "AchievementId": 138
+  },
+  {
+    "PokemonId": 653,
+    "AchievementId": 139
+  },
+  {
+    "PokemonId": 196,
+    "AchievementId": 140
+  },
+  {
+    "PokemonId": 794,
+    "AchievementId": 141
+  },
+  {
+    "PokemonId": 471,
+    "AchievementId": 142
+  },
+  {
+    "PokemonId": 246,
+    "AchievementId": 143
+  },
+  {
+    "PokemonId": 151,
+    "AchievementId": 147
+  },
+  {
+    "PokemonId": 84,
+    "AchievementId": 150
+  },
+  {
+    "PokemonId": 123,
+    "AchievementId": 156
+  },
+  {
+    "PokemonId": 35,
+    "AchievementId": 157
+  },
+  {
+    "PokemonId": 570,
+    "AchievementId": 153
+  },
+  {
+    "PokemonId": 302,
+    "AchievementId": 158
+  },
+  {
+    "PokemonId": 892,
+    "AchievementId": 163
+  },
+  {
+    "PokemonId": 764,
+    "AchievementId": 166
+  },
+  {
+    "PokemonId": 885,
+    "AchievementId": 167
+  },
+  {
+    "PokemonId": 888,
+    "AchievementId": 173
+  },
+  {
+    "PokemonId": 706,
+    "AchievementId": 174
+  },
+  {
+    "PokemonId": 131,
+    "AchievementId": 177
+  },
+  {
+    "PokemonId": 609,
+    "AchievementId": 178
+  },
+  {
+    "PokemonId": 197,
+    "AchievementId": 179
+  },
+  {
+    "PokemonId": 470,
+    "AchievementId": 180
+  },
+  {
+    "PokemonId": 816,
+    "AchievementId": 181
+  },
+  {
+    "PokemonId": 255,
+    "AchievementId": 186
+  },
+  {
+    "PokemonId": 150,
+    "AchievementId": 187
+  },
+  {
+    "PokemonId": 9150,
+    "AchievementId": 190
+  },
+  {
+    "PokemonId": 778,
+    "AchievementId": 193
+  },
+  {
+    "PokemonId": 906,
+    "AchievementId": 195
+  },
+  {
+    "PokemonId": 374,
+    "AchievementId": 196
+  },
+  {
+    "PokemonId": 129,
+    "AchievementId": 197
+  },
+  {
+    "PokemonId": 1008,
+    "AchievementId": 198
+  },
+  {
+    "PokemonId": 870,
+    "AchievementId": 199
+  },
+  {
+    "PokemonId": 937,
+    "AchievementId": 201
+  },
+  {
+    "PokemonId": 250,
+    "AchievementId": 202
+  },
+  {
+    "PokemonId": 936,
+    "AchievementId": 206
+  },
+  {
+    "PokemonId": 491,
+    "AchievementId": 207
+  },
+  {
+    "PokemonId": 54,
+    "AchievementId": 208
+  },
+  {
+    "PokemonId": 957,
+    "AchievementId": 209
+  },
+  {
+    "PokemonId": 77,
+    "AchievementId": 210
+  },
+  {
+    "PokemonId": 245,
+    "AchievementId": 211
+  },
+  {
+    "PokemonId": 26,
+    "AchievementId": 212
+  },
+  {
+    "PokemonId": 380,
+    "AchievementId": 214
+  },
+  {
+    "PokemonId": 381,
+    "AchievementId": 213
+  },
+  {
+    "PokemonId": 868,
+    "AchievementId": 215
+  },
+  {
+    "PokemonId": 923,
+    "AchievementId": 216
+  },
+  {
+    "PokemonId": 395,
+    "AchievementId": 217
+  },
+  {
+    "PokemonId": 781,
+    "AchievementId": 219
+  },
+  {
+    "PokemonId": 134,
+    "AchievementId": 218
+  },
+  {
+    "PokemonId": 865,
+    "AchievementId": 221
+  },
+  {
+    "PokemonId": 52,
+    "AchievementId": 220
+  },
+  {
+    "PokemonId": 145,
+    "AchievementId": 222
+  },
+  {
+    "PokemonId": 144,
+    "AchievementId": 223
+  },
+  {
+    "PokemonId": 146,
+    "AchievementId": 224
+  },
+  {
+    "PokemonId": 154,
+    "AchievementId": 225
+  },
+  {
+    "PokemonId": 157,
+    "AchievementId": 227
+  },
+  {
+    "PokemonId": 158,
+    "AchievementId": 226
+  },
+  {
+    "PokemonId": 911,
+    "AchievementId": 235
+  },
+  {
+    "PokemonId": 914,
+    "AchievementId": 236
+  },
+  {
+    "PokemonId": 717,
+    "AchievementId": 239
+  },
+  {
+    "PokemonId": 484,
+    "AchievementId": 238
+  },
+  {
+    "PokemonId": 643,
+    "AchievementId": 240
+  },
+  {
+    "PokemonId": 791,
+    "AchievementId": 237
+  },
+  {
+    "PokemonId": 877,
+    "AchievementId": 241
+  },
+  {
+    "PokemonId": 136,
+    "AchievementId": 242
+  },
+  {
+    "PokemonId": 849,
+    "AchievementId": 244
+  },
+  {
+    "PokemonId": 135,
+    "AchievementId": 243
+  }
+]

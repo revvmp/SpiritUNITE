@@ -33,6 +33,7 @@ public sealed class AchievementManager
     private readonly AchievementDefinition[] definitions;
     private readonly FrozenDictionary<int, AchievementDefinition> definitionsByTaskId;
     private readonly ILookup<int, pbDrop_Static> dropsById;
+    private readonly FrozenDictionary<int, int> battleAchievementIdByConditionId;
 
     public AchievementManager(
         GameData gameData,
@@ -53,6 +54,21 @@ public sealed class AchievementManager
         definitions = [.. gameData.Achievement.Rows.Select(ToDefinition).OrderBy(definition => definition.Task.TaskID)];
         definitionsByTaskId = definitions.ToFrozenDictionary(definition => definition.Task.TaskID);
         dropsById = gameData.DropStatic.Rows.OrderBy(drop => drop.SDropSeq).ToLookup(drop => drop.SDropID);
+        battleAchievementIdByConditionId = FindBattleAchievementIdByConditionId(gameData, definitions);
+    }
+
+    private static FrozenDictionary<int, int> FindBattleAchievementIdByConditionId(GameData gameData, IEnumerable<AchievementDefinition> definitions)
+    {
+        var battleAchievementIdByPokemonId = gameData.AchievementBattleCondition.Rows
+            .GroupBy(row => row.PokemonId)
+            .Where(group => group.Count() == 1)
+            .ToDictionary(group => group.Key, group => group.Single().AchievementId);
+        return definitions
+            .Where(definition => !BattleTasks.IsBattleCondition(definition.Condition)
+                && battleAchievementIdByPokemonId.ContainsKey(definition.Row.PokmonID))
+            .GroupBy(definition => definition.Condition.ID, definition => battleAchievementIdByPokemonId[definition.Row.PokmonID])
+            .Where(group => group.Distinct().Count() == 1)
+            .ToFrozenDictionary(group => group.Key, group => group.First());
     }
 
     public async Task<pbCOMDT_TASK_INFO[]> BuildTaskInfoListAsync(LMNRoleInfo role)
@@ -80,7 +96,7 @@ public sealed class AchievementManager
     public async Task<pbCOMDT_TASK_INFO[]> RecordBattleAsync(LMNRoleInfo role, BattleTaskEvent battle)
     {
         var increments = definitions
-            .Select(definition => BattleTasks.MeasureBattle(definition.Condition, battle) is { } delta
+            .Select(definition => MeasureBattle(definition.Condition, battle) is { } delta
                 ? new TaskProcessIncrement(definition.Task.TaskID, NoPeriod, delta, definition.Condition.TargetProcess)
                 : null)
             .OfType<TaskProcessIncrement>()
@@ -107,6 +123,11 @@ public sealed class AchievementManager
                 .Select(definition => Evaluate(role, definition, rewardTimes, measures).ToTaskInfo()),
         ];
     }
+
+    private int? MeasureBattle(pbFinishCondition condition, BattleTaskEvent battle) =>
+        battleAchievementIdByConditionId.TryGetValue(condition.ID, out var battleAchievementId)
+            ? BattleTasks.MeasureReportedCondition(condition, battleAchievementId, battle)
+            : BattleTasks.MeasureBattle(condition, battle);
 
     public async Task<int> GetScoreAsync(ulong gameUlongUID) =>
         SumScore(await repository.FindRewardTimesAsync(gameUlongUID));
@@ -272,7 +293,7 @@ public sealed class AchievementManager
             PB_ENUM_RES_CONDITION_ID.PbResConditionIdOwnResPokemon => role.GetOwnedPokemonIds().Length,
             PB_ENUM_RES_CONDITION_ID.PbResConditionIdOwnResAvatarAny => role.GetOwnedItems(RoleItemType.AvatarItem).Length,
             PB_ENUM_RES_CONDITION_ID.PbResConditionIdGetDiffGroupBadge => CountOwnedBadgeGroups(condition, measures),
-            _ when BattleTasks.IsBattleCondition(condition) =>
+            _ when BattleTasks.IsBattleCondition(condition) || battleAchievementIdByConditionId.ContainsKey(condition.ID) =>
                 BattleTasks.FindStoredProcess(measures.StoredProcesses, taskId, NoPeriod),
             _ => UntrackedProcess,
         };

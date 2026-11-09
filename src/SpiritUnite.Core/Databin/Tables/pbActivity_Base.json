@@ -5648,6 +5648,7 @@
     ],
     "ActivityID": 325,
     "ActivityType": 24,
+    "StartActivityShowRedDotID": 49,
     "ValidStartTime": "20210710000000",
     "ActivityParam": 3012
   },
@@ -12344,6 +12345,7 @@
     ],
     "ActivityID": 559,
     "ActivityType": 60,
+    "StartActivityShowRedDotID": 49,
     "ValidStartTime": "20220704000000",
     "ActivityParam": 5301
   },
@@ -12668,6 +12670,7 @@
     ],
     "ActivityID": 599,
     "ActivityType": 11,
+    "StartActivityShowRedDotID": 49,
     "ValidStartTime": "20220516000000",
     "ActivityParam": 99999
   },
@@ -12740,6 +12743,7 @@
     ],
     "ActivityID": 602,
     "ActivityType": 56,
+    "StartActivityShowRedDotID": 49,
     "ValidStartTime": "20220721000000",
     "ActivityParam": 99999
   },
@@ -12776,6 +12780,7 @@
     ],
     "ActivityID": 603,
     "ActivityType": 56,
+    "StartActivityShowRedDotID": 49,
     "ValidStartTime": "20220818000000",
     "ActivityParam": 99999
   },
@@ -12812,6 +12817,7 @@
     ],
     "ActivityID": 604,
     "ActivityType": 56,
+    "StartActivityShowRedDotID": 49,
     "ValidStartTime": "20221027000000",
     "ActivityParam": 99999
   },
@@ -18391,6 +18397,7 @@
     ],
     "ActivityID": 840,
     "ActivityType": 75,
+    "StartActivityShowRedDotID": 49,
     "ValidStartTime": "20321201000000",
     "ActivityParam": 8021
   },
@@ -20514,6 +20521,7 @@
     ],
     "ActivityID": 953,
     "ActivityType": 56,
+    "StartActivityShowRedDotID": 49,
     "ValidStartTime": "20221201000000",
     "ActivityParam": 99999
   },
@@ -20550,6 +20558,7 @@
     ],
     "ActivityID": 954,
     "ActivityType": 56,
+    "StartActivityShowRedDotID": 49,
     "ValidStartTime": "20221226000000",
     "ActivityParam": 99999
   },
@@ -21342,6 +21351,7 @@
     ],
     "ActivityID": 963,
     "ActivityType": 83,
+    "StartActivityShowRedDotID": 49,
     "ValidStartTime": "20220910000000",
     "ActivityParam": 99999
   },
@@ -21486,6 +21496,7 @@
     ],
     "ActivityID": 968,
     "ActivityType": 56,
+    "StartActivityShowRedDotID": 49,
     "ValidStartTime": "20230521000000",
     "ActivityParam": 99999
   },
@@ -21990,6 +22001,7 @@
     ],
     "ActivityID": 981,
     "ActivityType": 56,
+    "StartActivityShowRedDotID": 49,
     "ValidStartTime": "20230922000000",
     "ActivityParam": 99999
   },
@@ -27748,6 +27760,7 @@
     ],
     "ActivityID": 1103,
     "ActivityType": 60,
+    "StartActivityShowRedDotID": 49,
     "ValidStartTime": "20230911000000",
     "ActivityParam": 10357
   },
@@ -33831,6 +33844,7 @@
     ],
     "ActivityID": 1143,
     "ActivityType": 24,
+    "StartActivityShowRedDotID": 49,
     "ValidStartTime": "20210710000000",
     "ActivityParam": 11096
   },
@@ -45740,6 +45754,7 @@
     ],
     "ActivityID": 16012,
     "ActivityType": 108,
+    "StartActivityShowRedDotID": 110,
     "ValidStartTime": "20241121070000",
     "ActivityParam": 99999
   },
@@ -47612,6 +47627,7 @@
     ],
     "ActivityID": 15606,
     "ActivityType": 56,
+    "StartActivityShowRedDotID": 49,
     "ValidStartTime": "20240802000000",
     "ActivityParam": 99999
   },
@@ -53438,6 +53454,7 @@
     ],
     "ActivityID": 18002,
     "ActivityType": 60,
+    "StartActivityShowRedDotID": 49,
     "ValidStartTime": "20250401000000",
     "ActivityParam": 18000
   },
@@ -61676,6 +61693,7 @@
     ],
     "ActivityID": 19136,
     "ActivityType": 56,
+    "StartActivityShowRedDotID": 49,
     "ValidStartTime": "20250221000000",
     "ActivityParam": 99999
   },
@@ -67142,6 +67160,7 @@
     ],
     "ActivityID": 19371,
     "ActivityType": 60,
+    "StartActivityShowRedDotID": 49,
     "ValidStartTime": "20250619000000",
     "ActivityParam": 19360
   },
@@ -70448,6 +70467,7 @@
     ],
     "ActivityID": 19461,
     "ActivityType": 225,
+    "StartActivityShowRedDotID": 269,
     "ValidStartTime": "20250926000000",
     "ActivityParam": 20163
   },
