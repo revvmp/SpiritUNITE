@@ -60,6 +60,7 @@ public static class FriendIntimacy
             FriendUid = friend.FriendUid,
             BanChatFlag = friend.BanChatFlag,
             IntimacyInfo = BuildIntimacyInfo(gameData, friend.IntimacyValue),
+            TogetherBattleCnt = friend.TogetherBattleCnt,
         });
 
     public static GamePacket BuildFriendInteractionNtf(GameData gameData, IEnumerable<RoleFriend> friends) =>

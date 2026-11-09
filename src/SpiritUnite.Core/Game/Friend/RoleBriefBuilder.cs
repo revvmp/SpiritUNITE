@@ -25,13 +25,19 @@ public sealed class RoleBriefBuilder(
 {
     private const int GuestAccount = 1;
     private const int RegisteredAccount = 0;
-    private const int NoRankedDivision = 0;
     private const int NoRankedBattles = 0;
 
     public async Task<pbCOMDT_RANKED_DIVISION_INFO_IN_BRIEF> BuildRankedDivisionInfoAsync(ulong uid)
     {
         var season = (await ranked.LoadAsync(uid)).Season;
-        return RoleBrief.BuildRankedDivisionInfo(season.SeasonId, season.BattleCnt > NoRankedBattles ? season.Position.RankedDivision : NoRankedDivision);
+        return season.BattleCnt > NoRankedBattles
+            ? new pbCOMDT_RANKED_DIVISION_INFO_IN_BRIEF
+            {
+                RankedDivisionSeasonId = season.SeasonId,
+                RankedDivision = season.Position.RankedDivision,
+                WinPoint = season.Position.WinPoint,
+            }
+            : new pbCOMDT_RANKED_DIVISION_INFO_IN_BRIEF();
     }
 
     public async Task<pbCOMDT_ROLE_BRIEF_INFO> BuildRoleBriefInfoAsync(LMNRoleInfo role, long lastLogoutTime)

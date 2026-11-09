@@ -209,14 +209,14 @@ public sealed class FriendHandlers(
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidDailyGiftCoinReq)]
     public async Task<GamePacket[]> OnDailyGiftCoinReq(GamePacket request)
     {
-        roles.Require(request.Uid);
+        var role = roles.Require(request.Uid);
         var friendUid = pbCSDailyGiftCoinReq.Parser.ParseFrom(request.PkgData).Uid;
-        var outcome = await friendGifts.DailyGiftCoinAsync(request.Uid, friendUid);
+        var outcome = await friendGifts.DailyGiftCoinAsync(role, friendUid);
         var response = new pbSCDailyGiftCoinRsp { ResultInfo = new pbResultInfo { ResultId = (int)outcome.Result }, Uid = friendUid };
         return
         [
-            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidDailyGiftCoinRsp, response),
             .. outcome.SenderPushes.Select(packet => packet with { Uid = request.Uid, ClientSeq = request.ClientSeq }),
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidDailyGiftCoinRsp, response),
         ];
     }
 

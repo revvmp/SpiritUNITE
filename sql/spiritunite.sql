@@ -343,6 +343,7 @@ CREATE TABLE IF NOT EXISTS `role_friend` (
     add_friend_time BIGINT NOT NULL,
     ban_chat_flag INT NOT NULL DEFAULT 0,
     intimacy_value INT NOT NULL DEFAULT 0,
+    together_battle_cnt INT NOT NULL DEFAULT 0,
     PRIMARY KEY (game_ulong_uid, friend_uid),
     KEY ix_role_friend_friend (friend_uid),
     CONSTRAINT ck_role_friend_not_self CHECK (game_ulong_uid <> friend_uid),

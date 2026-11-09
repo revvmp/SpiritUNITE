@@ -86,6 +86,17 @@ public sealed class FriendRepository(DataOptions options)
             .Set(friend => friend.IntimacyValue, friend => friend.IntimacyValue + intimacyValue)
             .UpdateAsync();
 
+    public static Task<int> AddTogetherBattleAsync(
+        DataConnection database,
+        ulong gameUlongUID,
+        IReadOnlyCollection<ulong> friendUids,
+        int intimacyValue) =>
+        database.GetTable<RoleFriend>()
+            .Where(friend => friend.GameUlongUID == gameUlongUID && friendUids.Contains(friend.FriendUid))
+            .Set(friend => friend.IntimacyValue, friend => friend.IntimacyValue + intimacyValue)
+            .Set(friend => friend.TogetherBattleCnt, friend => friend.TogetherBattleCnt + 1)
+            .UpdateAsync();
+
     public async Task<RoleFriend?> FindFriendAsync(ulong gameUlongUID, ulong friendUid)
     {
         await using var database = new DataConnection(options);

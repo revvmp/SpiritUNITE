@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SpiritUnite.Database.Repositories;
 using SpiritUnite.Databin;
 using SpiritUnite.Game.Mail;
+using SpiritUnite.Game.Role;
 using SpiritUnite.Game.Wallet;
 using SpiritUnite.Online;
 using SpiritUnite.Packets;
@@ -22,8 +23,8 @@ public sealed class FriendGiftManager(
     private const long SecondsPerDay = 86400;
     private const long NeverGifted = 0;
     private const int FriendDailyGiftCoinMailID = (int)PB_ENUM_RES_MAILID_TYPE.PbResMailidTypeFriendDailyGiftCoin;
-    private const string FriendDailyGiftCoinMailSubject = "System_Friends_Email_Subject_9223_001";
-    private const string FriendDailyGiftCoinMailContent = "System_Friends_Email_Content_9223_001";
+    private const string FriendDailyGiftCoinMailText = "System_Friends_Email_Content_9223_001";
+    private const int FriendDailyGiftCoinMailValidDays = 30;
 
     public async Task<pbCOMDT_DAILY_GIFT_COIN> GetDailyGiftCoinInfoAsync(ulong uid)
     {
@@ -35,8 +36,9 @@ public sealed class FriendGiftManager(
         };
     }
 
-    public async Task<FriendGiftOutcome> DailyGiftCoinAsync(ulong uid, ulong friendUid)
+    public async Task<FriendGiftOutcome> DailyGiftCoinAsync(LMNRoleInfo sender, ulong friendUid)
     {
+        var uid = sender.GameUlongUID;
         if (FindGiftCoinAward() is not { } award || FindRules() is not { } rules)
         {
             logger.LogWarning("Uid {Uid} cannot give a present to uid {FriendUid}: pbIntimacySetting is incomplete", uid, friendUid);
@@ -45,10 +47,14 @@ public sealed class FriendGiftManager(
 
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
         var present = new SystemMail(
-            Subject: FriendDailyGiftCoinMailSubject,
-            Content: FriendDailyGiftCoinMailContent,
+            Subject: FriendDailyGiftCoinMailText,
+            Content: FriendDailyGiftCoinMailText,
             Attachments: [award],
-            MailID: FriendDailyGiftCoinMailID);
+            MailType: (int)PB_ENUM_RES_MAIL_TYPE.PbResMailTypePerson,
+            MailID: FriendDailyGiftCoinMailID,
+            FromName: sender.InGameUsrName,
+            FromUid: uid,
+            ValidDays: FriendDailyGiftCoinMailValidDays);
         var commit = uid == friendUid
             ? new FriendGiftCommit(PB_ENUM_RES_ERROR_CODE.PbErrFriendNotFriend)
             : await repository.DailyGiftCoinAsync(uid, friendUid, GiftDayOf(now), now, rules, mail.CreateSystemMail(friendUid, present));
@@ -82,12 +88,13 @@ public sealed class FriendGiftManager(
             return;
         }
 
-        await mail.PushMailNewAsync(saved);
-        await lobbyRoles.PushAsync(friendUid, await mail.BuildUnreadRedDotPacketsAsync(friendUid, saved.MailType));
         if (rules.GiftCoinIntimacyValue > 0 && commit.ReceiverFriend is { } receiverFriend)
         {
             await lobbyRoles.PushAsync(friendUid, FriendIntimacy.BuildFriendInteractionNtf(gameData, [receiverFriend]));
         }
+
+        await mail.PushMailNewAsync(saved);
+        await lobbyRoles.PushAsync(friendUid, await mail.BuildNewMailRedDotPacketsAsync(friendUid, saved.MailType));
     }
 
     private pbCOMDT_ONE_RESOURCE_AWARD_INFO? FindGiftCoinAward()
@@ -101,7 +108,7 @@ public sealed class FriendGiftManager(
 
         var award = new pbCOMDT_ONE_RESOURCE_AWARD_INFO
         {
-            ResType = (int)PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesCoin,
+            ResType = (int)CoinID.GetCoinResourceType(resID),
             ResID = resID,
             ResCnt = resNum,
         };

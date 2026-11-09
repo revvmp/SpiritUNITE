@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SpiritUnite.Database.Models;
 using SpiritUnite.Database.Repositories;
 using SpiritUnite.Databin;
+using SpiritUnite.Game.Mail;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Game.Settings;
 using SpiritUnite.Packets;
@@ -27,6 +28,11 @@ public sealed class FriendManager
     private const long LoggingInLastLogoutTime = 0;
     private const int MaxPlatformFriendNum = (int)PB_MACRO_MAX_PLATFORM_FRIEND_NUM.PbMaxPlatformFriendNum;
     private const int MaxNasIdLength = (int)PB_MACRO_COM_MAX_SWITCH_ANTIADDITION_NAS_ID_LEN.PbComMaxSwitchAntiadditionNasIdLen;
+    private const int NewFriendRequestRedDotID = (int)PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdNewFriendRequest;
+    private const int AcceptedFriendRequestMailID = (int)PB_ENUM_RES_MAILID_TYPE.PbResMailidTypeApplyfriend;
+    private const int AcceptedFriendRequestMailValidDays = 10;
+    private const string AcceptedFriendRequestMailSubject = "Mail_TextTitle_3_001";
+    private const string AcceptedFriendRequestMailContent = "Mail_TextContent_3_001";
 
     private readonly FriendRepository repository;
     private readonly RoleInfoStore roles;
@@ -34,6 +40,7 @@ public sealed class FriendManager
     private readonly FriendPresence presence;
     private readonly RoleBriefBuilder briefs;
     private readonly SettingsManager settings;
+    private readonly MailManager mail;
     private readonly GameData gameData;
     private readonly TimeProvider clock;
     private readonly ILogger<FriendManager> logger;
@@ -45,6 +52,7 @@ public sealed class FriendManager
         FriendPresence presence,
         RoleBriefBuilder briefs,
         SettingsManager settings,
+        MailManager mail,
         GameData gameData,
         TimeProvider clock,
         ILogger<FriendManager> logger)
@@ -55,6 +63,7 @@ public sealed class FriendManager
         this.presence = presence;
         this.briefs = briefs;
         this.settings = settings;
+        this.mail = mail;
         this.gameData = gameData;
         this.clock = clock;
         this.logger = logger;
@@ -179,6 +188,7 @@ public sealed class FriendManager
         };
         await repository.SaveRequestAsync(request, MaxFriendRequestNum);
         logger.LogInformation("Uid {Uid} sent a friend request to uid {TargetUid}", uid, targetUid);
+        await lobbyRoles.PushAsync(targetUid, await BuildFriendRequestRedDotAsync(targetUid));
         await lobbyRoles.PushAsync(targetUid, GamePacket.Create(
             PB_ENUM_CS_MSGID_DEF.PbScidNewFriendRequestNtf,
             new pbSCNewFriendRequestNtf { FriendRequest = await BuildFriendRequestAsync(request, role, 0) }));
@@ -396,8 +406,30 @@ public sealed class FriendManager
         await repository.DeleteBlackAsync(requestUid, uid);
         await PushNewFriendAsync(uid, requester);
         await PushNewFriendAsync(requestUid, role);
+        await lobbyRoles.PushAsync(uid, await BuildFriendRequestRedDotAsync(uid));
+        var accepted = await mail.SendSystemMailAsync(requestUid, new SystemMail(
+            Subject: AcceptedFriendRequestMailSubject,
+            Content: AcceptedFriendRequestMailContent,
+            Attachments: [],
+            MailType: (int)PB_ENUM_RES_MAIL_TYPE.PbResMailTypePerson,
+            MailID: AcceptedFriendRequestMailID,
+            FromName: role.InGameUsrName,
+            FromUid: uid,
+            ValidDays: AcceptedFriendRequestMailValidDays));
+        await lobbyRoles.PushAsync(requestUid, await mail.BuildNewMailRedDotPacketsAsync(requestUid, accepted.MailType));
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
+
+    private async Task<GamePacket> BuildFriendRequestRedDotAsync(ulong uid) =>
+        (await repository.GetRequestsAsync(uid)).Length is var pending and > 0
+            ? GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidRedDotReplaceNtf, new pbSCRedDotReplaceNtf
+            {
+                RedDotInfo = new pbCOMDT_RED_DOT_INFO
+                {
+                    RedDotDetail = { new pbCOMDT_RED_DOT_DETAIL { RedDotID = NewFriendRequestRedDotID, RedDotBadgeNum = pending } },
+                },
+            })
+            : GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidRedDotClearNtf, new pbSCRedDotClearNtf { RedDotID = NewFriendRequestRedDotID });
 
     private async Task PushNewFriendAsync(ulong uid, LMNRoleInfo friendRole)
     {

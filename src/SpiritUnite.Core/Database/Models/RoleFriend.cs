@@ -21,4 +21,7 @@ public sealed class RoleFriend
 
     [Column("intimacy_value")]
     public int IntimacyValue { get; set; }
+
+    [Column("together_battle_cnt")]
+    public int TogetherBattleCnt { get; set; }
 }
