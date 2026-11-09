@@ -2,6 +2,7 @@ using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using SpiritUnite.Databin;
 using SpiritUnite.Game.Login;
+using SpiritUnite.Game.Match;
 using SpiritUnite.Online;
 using SpiritUnite.Packets;
 using SpiritUnite.Packets.Messages;
@@ -330,17 +331,20 @@ public sealed class RelayManager
         ulong[] viewers;
         lock (game.Gate)
         {
-            if (game.Phase != RelayGamePhase.Loading || game.Finished || !game.CanopyShownCamps.Add(seat.Human.CampClient))
+            var camp = seat.Human.CampClient;
+            if (game.Phase != RelayGamePhase.Loading || game.Finished || IsCanopyShowInCooldown(game, camp))
             {
                 return PB_ENUM_RES_ERROR_CODE.PbErrDeskStateInvalid;
             }
+
+            game.LastCanopyShowTimestamps[camp] = clock.GetTimestamp();
 
             notice = GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidCanopyShowNtf, new pbSCCanopyShowNtf
             {
                 CanopyShowNode = new pbCOMDT_CANOPY_SHOW_NODE
                 {
                     CanopyID = canopyID,
-                    CampClient = seat.Human.CampClient,
+                    CampClient = camp,
                     ShowTm = clock.GetUtcNow().ToUnixTimeSeconds(),
                     ActiveType = PersonalCanopyActiveType,
                     ActiveUid = uid,
@@ -357,6 +361,10 @@ public sealed class RelayManager
 
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
+
+    private bool IsCanopyShowInCooldown(RelayGame game, int camp) =>
+        game.LastCanopyShowTimestamps.TryGetValue(camp, out var lastShown)
+        && clock.GetElapsedTime(lastShown) < TimeSpan.FromSeconds(gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalShowMyCanopyCd));
 
     public pbSCMultgameLoadfinRsp LoadFinished(ulong uid)
     {
@@ -540,6 +548,12 @@ public sealed class RelayManager
             }
 
             game.HangUpReported = true;
+            if (game.Desk.DeskInfo.ManMachine == CpuMatch.ManMachine)
+            {
+                logger.LogInformation("Desk {DeskID}: no hang-up vote in a CPU Match for objects {ObjIds}", game.Desk.DeskID, hungUp.Select(player => player.ObjId));
+                return;
+            }
+
             foreach (var camp in hungUp.Select(player => player.CampClient).Distinct().Order())
             {
                 sends.AddRange(StartHangUpVote(game, camp, hungUp));
@@ -552,7 +566,7 @@ public sealed class RelayManager
     private List<RelaySend> StartHangUpVote(RelayGame game, int camp, List<DeskPlayer> hungUp)
     {
         var voters = game.Desk.CampOf(camp).Where(player => !hungUp.Contains(player) && !VotesAutomatically(game, player)).ToList();
-        if (game.Limits.Surrender.InvalidSeconds <= 0 || game.Votes.ContainsKey(camp) || voters.Count == 0)
+        if (game.Votes.ContainsKey(camp) || voters.Count == 0)
         {
             logger.LogInformation("Desk {DeskID}: no hang-up vote for camp {Camp}: no trainer of the camp can vote", game.Desk.DeskID, camp);
             return [];
@@ -600,8 +614,7 @@ public sealed class RelayManager
     private List<RelaySend> ExpireVotes(RelayGame game)
     {
         var sends = new List<RelaySend>();
-        var invalidAfter = TimeSpan.FromSeconds(game.Limits.Surrender.InvalidSeconds);
-        foreach (var vote in game.Votes.Values.Where(vote => clock.GetElapsedTime(vote.StartedAt) >= invalidAfter).ToList())
+        foreach (var vote in game.Votes.Values.Where(vote => clock.GetElapsedTime(vote.StartedAt) >= VoteDuration(game, vote)).ToList())
         {
             game.Votes.Remove(vote.CampClient);
             logger.LogInformation("Desk {DeskID}: the {Kind} vote of camp {Camp} expired with {Agrees} of {ValidCnt}", game.Desk.DeskID, vote.Kind, vote.CampClient, vote.Agrees, vote.SurrenderValidCnt);
@@ -613,6 +626,10 @@ public sealed class RelayManager
 
         return sends;
     }
+
+    private TimeSpan VoteDuration(RelayGame game, CampVote vote) => TimeSpan.FromSeconds(vote.Kind == CampVoteKind.HangUp
+        ? gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalGameHangUpVoteLimitTime)
+        : game.Limits.Surrender.InvalidSeconds);
 
     public async Task HashCheckAsync(ulong uid, pbCSRelayHashcheckReq request)
     {
@@ -794,18 +811,24 @@ public sealed class RelayManager
         var sends = new List<RelaySend>();
         foreach (var vote in game.Votes.Values.Where(vote => vote.Kind == CampVoteKind.Surrender).ToList())
         {
+            var due = vote.TakeDueNpcVotes(clock.GetElapsedTime(vote.StartedAt));
             var npcAgrees = vote.ScoreBehind >= gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalServeraiAcceptSurrenderScoreDiff);
-            var cast = vote.TakeDueNpcVotes(clock.GetElapsedTime(vote.StartedAt)).Where(voter => vote.TryCast(voter, npcAgrees)).ToList();
+            if (due.Count > 0 && !npcAgrees)
+            {
+                logger.LogInformation("Desk {DeskID}: {NpcCount} NPCs abstain from the surrender of camp {Camp}, {ScoreBehind} points behind", game.Desk.DeskID, due.Count, vote.CampClient, vote.ScoreBehind);
+                continue;
+            }
+
+            var cast = due.Where(voter => vote.TryCast(voter, agrees: true)).ToList();
             if (cast.Count == 0)
             {
                 continue;
             }
 
             logger.LogInformation(
-                "Desk {DeskID}: {NpcCount} NPCs vote {Vote} on the surrender of camp {Camp}, {ScoreBehind} points behind; {Agrees} of {ValidCnt} agree",
+                "Desk {DeskID}: {NpcCount} NPCs vote yes on the surrender of camp {Camp}, {ScoreBehind} points behind; {Agrees} of {ValidCnt} agree",
                 game.Desk.DeskID,
                 cast.Count,
-                npcAgrees ? "yes" : "no",
                 vote.CampClient,
                 vote.ScoreBehind,
                 vote.Agrees,
