@@ -83,7 +83,8 @@ public static partial class IfsPatcher
     public static string PatchedVersionName(string bundleVersionName, int generation)
     {
         var parts = bundleVersionName.Split('.');
-        if (parts.Length != 4 || !ushort.TryParse(parts[3], NumberStyles.None, CultureInfo.InvariantCulture, out var last) || last + generation > ushort.MaxValue)
+        if (generation <= 0 || parts.Length != 4 || parts.Any(part => !ushort.TryParse(part, NumberStyles.None, CultureInfo.InvariantCulture, out _))
+            || !ushort.TryParse(parts[3], NumberStyles.None, CultureInfo.InvariantCulture, out var last) || (long)last + generation > ushort.MaxValue)
         {
             throw new InvalidDataException($"BundleVersionName {bundleVersionName} cannot take patch generation {generation}");
         }

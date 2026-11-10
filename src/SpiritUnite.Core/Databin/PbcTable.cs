@@ -109,7 +109,8 @@ public sealed class PbcTable
         var indexCount = ReadCount(span, ref offset);
         for (var index = 0; index < indexCount; index++)
         {
-            offset = checked(offset + (int)ReadCount(span, ref offset));
+            var nameLength = ReadCount(span, ref offset);
+            offset = checked(offset + (int)nameLength);
             var valueCount = ReadCount(span, ref offset);
             for (var value = 0; value < valueCount; value++)
             {

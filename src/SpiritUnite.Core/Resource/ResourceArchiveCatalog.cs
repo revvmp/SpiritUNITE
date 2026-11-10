@@ -72,7 +72,7 @@ public sealed class ResourceArchiveCatalog(
         }
 
         var file = candidates[0];
-        if (!ResourceArchiveFileName.TryParse(file.Name, out var productId, out var version))
+        if (!ResourceArchiveFileName.TryParse(file.Name, out var productId, out _))
         {
             logger.LogWarning("Resource archive {File} refused: the name does not match <gameid>_<productId>_<a.b.c.d>_<name>{Extension} with version parts 0-65535", file.FullName, ResourceArchiveFileName.Extension);
             return null;
@@ -95,15 +95,7 @@ public sealed class ResourceArchiveCatalog(
             return null;
         }
 
-        if (await PatchAsync(file, hash, productId, servedBase, tablePatches, cancellationToken) is { } patched)
-        {
-            return patched;
-        }
-
-        var (url, secureUrl) = ResourceArchiveOptions.ArchiveUrls(servedBase, productId, file.Name);
-        logger.LogInformation("Resource archive for product {ProductId}: {File}, {Length} bytes, version {Version}, md5 {Md5}, served unpatched at {Url}", productId, file.Name, hash.Length, version, hash.Md5, url);
-        var path = file.FullName;
-        return new ResourceArchive(productId, version, hash.Md5, url, secureUrl, file.Name, hash.Length, () => OpenOriginal(path));
+        return await PatchAsync(file, hash, productId, servedBase, tablePatches, cancellationToken);
     }
 
     private async Task<ResourceArchive?> PatchAsync(
@@ -116,23 +108,41 @@ public sealed class ResourceArchiveCatalog(
     {
         try
         {
+            var state = await ResourceArchivePatchState.ReadLatestAsync(file.FullName, productId, cancellationToken);
             using var archive = new IfsArchive(file.FullName);
             var prepared = IfsPatcher.Prepare(archive, tablePatches);
-            var state = await ResourceArchivePatchState.ReadAsync(file.FullName, cancellationToken);
-            var generation = state?.Generation ?? 1;
-            var (layout, digest, versionName) = Assemble(archive, prepared, generation);
-            var unchanged = state is not null && state.Describes(originalHash.Md5, digest) && state.Length == layout.Length;
-            if (state is not null && !unchanged)
+            if (VersionOf(file.Name) != VersionOf(ResourceArchiveFileName.WithVersion(file.Name, prepared.BundleVersionName)))
             {
-                generation = state.Generation + 1;
-                (layout, digest, versionName) = Assemble(archive, prepared, generation);
+                throw new InvalidDataException("The archive filename version does not match its BundleVersionName");
             }
 
+            var generation = state?.OriginalMd5 == originalHash.Md5 ? state.Generation : 1;
+            var (layout, digest, versionName) = Assemble(archive, prepared, generation);
+            var unchanged = state is not null && state.Describes(originalHash.Md5, digest) && state.Length == layout.Length;
             var servedName = ResourceArchiveFileName.WithVersion(file.Name, versionName);
-            if (!ResourceArchiveFileName.TryParse(servedName, out _, out var version))
+            var version = VersionOf(servedName);
+            if (state is not null)
             {
-                throw new InvalidDataException($"Patched archive name {servedName} does not parse");
+                var candidateVersion = unchecked((ulong)version);
+                if (unchanged && candidateVersion != state.Version)
+                {
+                    throw new InvalidDataException("The saved patch version does not match the archive");
+                }
+
+                if (!unchanged && candidateVersion <= state.Version)
+                {
+                    if (candidateVersion >> 16 != state.Version >> 16 || (state.Version & ushort.MaxValue) == ushort.MaxValue)
+                    {
+                        throw new InvalidDataException("The archive cannot advance past the previously served version without changing its release version");
+                    }
+
+                    generation = checked(generation + (int)(state.Version - candidateVersion) + 1);
+                    (layout, digest, versionName) = Assemble(archive, prepared, generation);
+                    servedName = ResourceArchiveFileName.WithVersion(file.Name, versionName);
+                }
             }
+
+            version = VersionOf(servedName);
 
             string md5;
             if (unchanged)
@@ -145,8 +155,9 @@ public sealed class ResourceArchiveCatalog(
                 var elapsed = Stopwatch.StartNew();
                 md5 = await HashAsync(layout, cancellationToken);
                 logger.LogInformation("Resource archive {File} patched md5 hashing finished in {Elapsed}", file.Name, elapsed.Elapsed);
-                await new ResourceArchivePatchState(originalHash.Md5, digest, generation, md5, layout.Length).WriteAsync(file.FullName, cancellationToken);
             }
+
+            await new ResourceArchivePatchState(originalHash.Md5, digest, generation, md5, layout.Length, unchecked((ulong)version)).WriteAsync(file.FullName, cancellationToken);
 
             var (url, secureUrl) = ResourceArchiveOptions.ArchiveUrls(servedBase, productId, servedName);
             logger.LogInformation(
@@ -156,7 +167,7 @@ public sealed class ResourceArchiveCatalog(
         }
         catch (Exception exception) when (exception is InvalidDataException or IOException or UnauthorizedAccessException or KeyNotFoundException)
         {
-            logger.LogWarning("Resource archive {File} could not be patched ({Reason}); it is served unchanged, so the in-game Gift Exchange and agreement links keep the official addresses", file.Name, exception.Message);
+            logger.LogWarning("Resource archive {File} refused: it could not be safely patched ({Reason}); no archive is served for product {ProductId}", file.Name, exception.Message, productId);
             return null;
         }
     }
@@ -168,8 +179,9 @@ public sealed class ResourceArchiveCatalog(
         return (layout, layout.Digest(), versionName);
     }
 
-    private static Stream OpenOriginal(string path) =>
-        new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 1, FileOptions.Asynchronous | FileOptions.RandomAccess);
+    private static long VersionOf(string fileName) => ResourceArchiveFileName.TryParse(fileName, out _, out var version)
+        ? version
+        : throw new InvalidDataException($"Patched archive name {fileName} does not parse");
 
     private static async Task<string> HashAsync(PatchedIfsLayout layout, CancellationToken cancellationToken)
     {
