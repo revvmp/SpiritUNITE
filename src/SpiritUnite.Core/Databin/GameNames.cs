@@ -14,6 +14,11 @@ public sealed class GameNames
     public const string LobbyBgGroup = "LobbyBg";
     public const string SceneMapGroup = "SceneMap";
     public const string BadgeGroup = "Badge";
+    public const string AvatarSuitGroup = "AvatarSuit";
+    public const string CardDecorationGroup = "CardDecoration";
+    public const string ActivityGroup = "Activity";
+    public const string RankedDivisionGroup = "RankedDivision";
+    public const string RankedClassGroup = "RankedClass";
 
     public static readonly string FilePath = Path.Combine("Databin", "Names", "en.json");
 

@@ -211,6 +211,7 @@ function signOut() {
   memoryToken = ""
   writeToken("")
   catalog = null
+  sharedNames.clear()
   showLogin()
 }
 
@@ -522,7 +523,7 @@ function rewardPicker(label) {
   const chips = h("div", { class: "chips" })
   const kindSelect = h("select", { "aria-label": "Type" }, KINDS.map(kind => h("option", { value: kind.key }, kind.label)))
   const count = h("input", { type: "number", min: "1", max: "999999", value: "1", "aria-label": "Amount", class: "amount" })
-  const picker = itemPicker(() => kindSelect.value)
+  const picker = itemPicker(() => kindEntries(kindSelect.value))
 
   const kindOf = key => KINDS.find(kind => kind.key === key)
   const syncCount = () => {
@@ -608,23 +609,36 @@ function composer({ onSend, sendLabel, withAudience }) {
   return form
 }
 
-function itemPicker(currentKind) {
+function kindEntries(kindKey) {
+  return listEntries(KINDS.find(item => item.key === kindKey).list)
+}
+
+function listEntries(listName) {
+  return (catalog[listName] || []).map(entry => ({ id: entry.id, label: entry.name, type: entry.type }))
+}
+
+function itemPicker(entries, onChoose, ariaLabel) {
   let chosen = null
   let matches = []
   let activeIndex = 0
-  const input = h("input", { placeholder: "Search name or id", autocomplete: "off", "aria-label": "Item" })
+  const input = h("input", { placeholder: "Search by name", autocomplete: "off", "aria-label": ariaLabel || "Item" })
   const list = h("div", { class: "picker-list", hidden: true })
   const element = h("div", { class: "picker" }, input, list)
 
-  const entries = () => {
-    const kind = KINDS.find(item => item.key === currentKind())
-    return (catalog[kind.list] || []).map(entry => ({ id: entry.id, label: entry.name, type: entry.type }))
+  const show = entry => {
+    chosen = entry
+    input.value = entry.label
   }
 
   const choose = entry => {
-    chosen = entry
-    input.value = entry.label + " " + entry.id
     list.hidden = true
+    if (onChoose) {
+      onChoose(entry)
+      chosen = null
+      input.value = ""
+      return
+    }
+    show(entry)
   }
 
   const draw = () => {
@@ -660,6 +674,7 @@ function itemPicker(currentKind) {
   return {
     element,
     selected: () => chosen,
+    show,
     clear: () => { chosen = null; input.value = ""; list.hidden = true },
   }
 }
@@ -683,6 +698,7 @@ async function mailView(page) {
 const ACTIVATION_CODES_SECTION = { name: "ActivationCodes", group: "Content", title: "Activation Codes", panel: activationCodesPanel }
 
 async function settingsView(page, argument) {
+  await loadCatalog()
   const loaded = await api("GET", "/settings")
   const contentCount = loaded.filter(section => section.group === ACTIVATION_CODES_SECTION.group).length
   const sections = [...loaded.slice(0, contentCount), ACTIVATION_CODES_SECTION, ...loaded.slice(contentCount)]
@@ -736,10 +752,14 @@ async function settingsView(page, argument) {
   fill(page, pageHead("Settings"), h("div", { class: "grid-side" }, side, body))
 }
 
+const SELECT_LIMIT = 40
+const COMPACT_FIELD_LIMIT = 3
+const OFFICIAL_NAMES_SHOWN = 4
+
 function objectEditor(fields, values) {
   const editors = fields.map(field => ({
     name: field.name,
-    editor: valueEditor(field.schema, values ? values[field.name] : undefined, field.label || humanize(field.name), fieldHint(field)),
+    editor: valueEditor(field.schema, values ? values[field.name] : undefined, field.label || humanize(field.name), fieldHint(field), field),
   }))
   return {
     element: h("div", null, editors.map(item => item.editor.element)),
@@ -747,8 +767,58 @@ function objectEditor(fields, values) {
   }
 }
 
-function officialText(official) {
+function entryName(listName, id) {
+  const entry = (catalog[listName] || []).find(item => item.id === id)
+  return entry ? entry.name : "Unknown (" + id + ")"
+}
+
+const sharedNames = new Map()
+
+function sharedKeys(listName) {
+  if (!sharedNames.has(listName)) {
+    const counts = new Map()
+    const count = key => counts.set(key, (counts.get(key) || 0) + 1)
+    for (const entry of catalog[listName] || []) {
+      count("name:" + entry.name)
+      count("type:" + entry.name + "|" + entry.type)
+    }
+    sharedNames.set(listName, new Set([...counts].filter(([, total]) => total > 1).map(([key]) => key)))
+  }
+  return sharedNames.get(listName)
+}
+
+function chipLabel(listName, id) {
+  const entry = (catalog[listName] || []).find(item => item.id === id)
+  if (!entry) return "Unknown (" + id + ")"
+  const shared = sharedKeys(listName)
+  if (!shared.has("name:" + entry.name)) return entry.name
+  const detail = shared.has("type:" + entry.name + "|" + entry.type) ? "No. " + entry.id : entry.type
+  return [entry.name, h("span", { class: "muted" }, " · " + detail)]
+}
+
+function choiceLabel(choices, value) {
+  const choice = choices.find(item => item.value === String(value))
+  return choice ? choice.label : String(value)
+}
+
+function namesText(listName, ids) {
+  const names = ids.map(id => entryName(listName, id))
+  const shown = names.slice(0, OFFICIAL_NAMES_SHOWN).join(", ")
+  return names.length > OFFICIAL_NAMES_SHOWN ? shown + " and " + (names.length - OFFICIAL_NAMES_SHOWN) + " more" : shown
+}
+
+function officialText(official, field) {
   if (official === null || official === undefined || official === "") return null
+  if (field && field.keyPick) return null
+  if (field && field.choices) return choiceLabel(field.choices, official)
+  if (field && field.pick) {
+    if (Array.isArray(official)) return official.length ? namesText(field.pick, official) : "None"
+    return entryName(field.pick, official)
+  }
+  if (field && field.slots && Array.isArray(official)) {
+    const slots = catalog[field.slots] || []
+    return official.map((value, index) => (slots[index] ? slots[index].name : "#" + (index + 1)) + " " + value).join(", ")
+  }
   if (typeof official === "boolean") return official ? "On" : "Off"
   if (Array.isArray(official)) {
     if (official.length === 0 || official.some(item => item !== null && typeof item === "object")) return null
@@ -762,32 +832,186 @@ function officialText(official) {
 }
 
 function fieldHint(field) {
-  const official = officialText(field.official)
+  const official = officialText(field.official, field)
   if (!field.help && !official) return null
   return h("span", { class: "hint" }, field.help || "", official ? h("span", { class: "official" }, "Official: " + official) : null)
 }
 
-function valueEditor(schema, value, label, hint) {
+function isEmptyValue(value) {
+  return value === null || value === undefined || value === "" || value === 0
+}
+
+function choiceSelect(choices, value, label) {
+  const known = choices.some(choice => choice.value === String(value))
+  const keepOther = !known && !isEmptyValue(value)
+  const select = h("select", { "aria-label": label },
+    choices.map(choice => h("option", { value: choice.value }, choice.label)),
+    keepOther ? h("option", { value: String(value) }, "Other (" + value + ")") : null)
+  select.value = known || keepOther ? String(value) : choices.length ? choices[0].value : ""
+  return select
+}
+
+function entrySelect(listName, value, label) {
+  const choices = listEntries(listName).map(entry => ({ value: String(entry.id), label: entry.label }))
+  return choiceSelect(choices, value, label)
+}
+
+function isShortList(listName) {
+  return (catalog[listName] || []).length <= SELECT_LIMIT
+}
+
+function numberInput(value, label) {
+  return h("input", { type: "number", step: "any", value: value === null || value === undefined ? "" : String(value), "aria-label": label })
+}
+
+function readNumber(input, label, nullable) {
+  if (input.value.trim() === "") {
+    if (nullable) return null
+    throw new Error(label + " needs a number")
+  }
+  const number = Number(input.value)
+  if (!Number.isFinite(number)) throw new Error(label + " needs a number")
+  return number
+}
+
+function singleEntryControl(listName, value, label) {
+  if (isShortList(listName)) {
+    const select = entrySelect(listName, value, label)
+    return { control: select, read: () => Number(select.value) }
+  }
+  const picker = itemPicker(() => listEntries(listName), null, label)
+  const current = listEntries(listName).find(entry => entry.id === value)
+  if (current) picker.show(current)
+  else if (!isEmptyValue(value)) picker.show({ id: value, label: "Unknown (" + value + ")", type: "" })
+  return {
+    control: picker.element,
+    read: () => {
+      const chosen = picker.selected()
+      if (!chosen) throw new Error("Pick a value for " + label)
+      return chosen.id
+    },
+  }
+}
+
+function entryListEditor(listName, values, label, hint) {
+  const ids = Array.isArray(values) ? [...values] : []
+  const chips = h("div", { class: "chips" })
+  const drawChips = () => fill(chips, ids.length === 0 ? h("span", { class: "muted" }, "None") : ids.map((id, index) => h("span", { class: "chip" },
+    chipLabel(listName, id),
+    h("button", { type: "button", "aria-label": "Remove " + entryName(listName, id), onclick: () => { ids.splice(index, 1); drawChips() } }, "×"))))
+  const add = entry => {
+    if (ids.includes(entry.id)) return toast(entry.label + " is already in the list", true)
+    ids.push(entry.id)
+    drawChips()
+  }
+  const picker = itemPicker(() => listEntries(listName).filter(entry => !ids.includes(entry.id)), add, label)
+  const clearAll = h("button", { class: "button small", type: "button", onclick: () => { ids.length = 0; drawChips() } }, "Clear all")
+  drawChips()
+  return {
+    element: h("div", { class: "field" }, h("span", null, label), hint,
+      h("div", { class: "row" }, h("div", { class: "grow" }, picker.element), clearAll),
+      h("div", { class: "entry-chips" }, chips)),
+    read: () => [...ids],
+  }
+}
+
+function slotsEditor(slotList, values, label, hint) {
+  const slots = catalog[slotList] || []
+  const count = Math.max(slots.length, Array.isArray(values) ? values.length : 0)
+  const inputs = Array.from({ length: count }, (_, index) => {
+    const slotLabel = slots[index] ? slots[index].name : "#" + (index + 1)
+    return { label: slotLabel, input: numberInput(Array.isArray(values) ? values[index] : undefined, label + " " + slotLabel) }
+  })
+  return {
+    element: h("div", { class: "field" }, h("span", null, label), hint,
+      h("div", { class: "slots" }, inputs.map(slot => h("label", { class: "slot" }, h("span", null, slot.label), slot.input)))),
+    read: () => inputs.map(slot => readNumber(slot.input, label + " " + slot.label, false)),
+  }
+}
+
+function mapValueControl(schema, field, value, label) {
+  if (field.pick) return singleEntryControl(field.pick, value, label)
+  if (schema.kind === "list" && field.valueLabels) {
+    const inputs = field.valueLabels.map((valueLabel, index) => ({ valueLabel, input: numberInput(Array.isArray(value) ? value[index] : undefined, valueLabel) }))
+    return {
+      control: h("div", { class: "row" }, inputs.map(item => h("label", { class: "slot" }, h("span", null, item.valueLabel), item.input))),
+      read: () => inputs.map(item => readNumber(item.input, label + " " + item.valueLabel, false)),
+    }
+  }
+  const input = numberInput(value, label)
+  return { control: input, read: () => readNumber(input, label, false) }
+}
+
+function mapEditor(schema, field, value, label, hint) {
+  const rows = []
+  const container = h("div", { class: "map-rows" })
+  const keyLabel = field.keyPick ? "From" : "Key"
+  const addRow = (key, rowValue) => {
+    const keyControl = field.keyPick ? singleEntryControl(field.keyPick, key, keyLabel) : (() => {
+      const input = numberInput(key, keyLabel)
+      return { control: input, read: () => readNumber(input, keyLabel, false) }
+    })()
+    const valueControl = mapValueControl(schema.value, field, rowValue, label)
+    const row = { keyControl, valueControl }
+    row.element = h("div", { class: "map-row" },
+      h("div", { class: "map-key" }, keyControl.control),
+      h("span", { class: "map-arrow", "aria-hidden": "true" }, "→"),
+      h("div", { class: "map-value" }, valueControl.control),
+      h("button", { class: "button small danger", type: "button", onclick: () => { rows.splice(rows.indexOf(row), 1); row.element.remove() } }, "Remove"))
+    rows.push(row)
+    container.append(row.element)
+  }
+  const keyOrder = field.keyPick ? listEntries(field.keyPick).map(entry => entry.id) : []
+  const rank = key => keyOrder.includes(key) ? keyOrder.indexOf(key) : keyOrder.length + key
+  Object.entries(value || {})
+    .map(([key, rowValue]) => [Number(key), rowValue])
+    .sort(([left], [right]) => rank(right) - rank(left))
+    .forEach(([key, rowValue]) => addRow(key, rowValue))
+  const firstKey = () => {
+    const entries = field.keyPick ? listEntries(field.keyPick) : []
+    const used = rows.map(row => { try { return row.keyControl.read() } catch { return null } })
+    const free = entries.find(entry => !used.includes(entry.id))
+    return free ? free.id : entries.length ? entries[0].id : null
+  }
+  return {
+    element: h("div", { class: "field" }, h("span", null, label), hint, container,
+      h("div", null, h("button", { class: "button small", type: "button", onclick: () => addRow(firstKey(), field.pick ? firstKey() : undefined) }, "Add"))),
+    read: () => {
+      const result = {}
+      for (const row of rows) {
+        const key = row.keyControl.read()
+        if (Object.hasOwn(result, String(key))) {
+          throw new Error(label + " lists " + (field.keyPick ? entryName(field.keyPick, key) : key) + " twice")
+        }
+        result[String(key)] = row.valueControl.read()
+      }
+      return result
+    },
+  }
+}
+
+function valueEditor(schema, value, label, hint, field) {
+  const meta = field || {}
   const wrap = control => h("label", { class: "field" }, h("span", null, label), control, hint)
+  if (meta.choices && (schema.kind === "number" || schema.kind === "text")) {
+    const select = choiceSelect(meta.choices, value, label)
+    return { element: wrap(select), read: () => schema.kind === "number" ? Number(select.value) : select.value }
+  }
+  if (meta.pick && schema.kind === "number") {
+    const entry = singleEntryControl(meta.pick, value, label)
+    return { element: wrap(entry.control), read: entry.read }
+  }
+  if (meta.pick && schema.kind === "list") return entryListEditor(meta.pick, value, label, hint)
+  if (meta.slots && schema.kind === "list") return slotsEditor(meta.slots, value, label, hint)
+  if (schema.kind === "map") return mapEditor(schema, meta, value, label, hint)
   switch (schema.kind) {
     case "bool": {
       const input = h("input", { type: "checkbox", checked: Boolean(value) })
       return { element: h("div", { class: "field" }, h("label", { class: "check" }, input, label), hint), read: () => input.checked }
     }
     case "number": {
-      const input = h("input", { type: "number", step: "any", value: value === null || value === undefined ? "" : String(value) })
-      return {
-        element: wrap(input),
-        read: () => {
-          if (input.value.trim() === "") {
-            if (schema.nullable) return null
-            throw new Error(label + " needs a number")
-          }
-          const number = Number(input.value)
-          if (!Number.isFinite(number)) throw new Error(label + " needs a number")
-          return number
-        },
-      }
+      const input = numberInput(value)
+      return { element: wrap(input), read: () => readNumber(input, label, schema.nullable) }
     }
     case "text":
     case "time": {
@@ -827,12 +1051,13 @@ function valueEditor(schema, value, label, hint) {
       return { element: h("div", { class: "form-object" }, h("div", { class: "form-object-head" }, label), hint, editor.element), read: editor.read }
     }
     case "objects": {
+      const compact = schema.fields.length <= COMPACT_FIELD_LIMIT && schema.fields.every(item => ["number", "text", "bool"].includes(item.schema.kind))
       const items = []
       const container = h("div")
       const addItem = itemValue => {
         const editor = objectEditor(schema.fields, itemValue)
         const entry = { editor }
-        entry.element = h("div", { class: "form-object" },
+        entry.element = h("div", { class: compact ? "form-object compact" : "form-object" },
           h("div", { class: "form-object-head" }, h("span", null, ""), h("button", {
             class: "button small danger", type: "button",
             onclick: () => { items.splice(items.indexOf(entry), 1); entry.element.remove(); renumber() },
@@ -970,7 +1195,7 @@ async function lookupView(page) {
   group.addEventListener("change", draw)
   fill(page,
     pageHead("Lookup"),
-    h("p", { class: "section-intro" }, "Find the id of any Pokemon, item, cosmetic or map to use in settings and gifts."),
+    h("p", { class: "section-intro" }, "Find any Pokemon, item, cosmetic or map by name or id."),
     h("div", { class: "row spaced" }, group, h("div", { class: "search grow" }, svg(SEARCH_ICON), input)),
     card("Results", results, count))
   input.focus()

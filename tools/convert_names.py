@@ -69,6 +69,11 @@ SOURCES = {
     ),
     "SceneMap": NameSource("databin_Scene_Map", "pbScene_Map", "SceneId", ("Remarks",)),
     "Badge": NameSource("databin_Badge_Base", "pbBadge_Base", "BadgeId", ("BadgeName",), extra_fields=("BadgeMat",), resolver="emblem"),
+    "AvatarSuit": NameSource("databin_AvatarSuit", "pbAvatarSuit", "AvatarSuitId", ("AvatarName",)),
+    "CardDecoration": NameSource("databin_Contestant_Card_Decoration", "pbContestant_Card_Decoration", "DecorationID", ("DecorationName",)),
+    "Activity": NameSource("databin_Activity_Base", "pbActivity_Base", "ActivityID", ("ActivitySubTitle", "ActivityBGTitle")),
+    "RankedDivision": NameSource("databin_RankedDivision", "pbRankedDivision", "RankedDivision", ("StageName", "Name")),
+    "RankedClass": NameSource("databin_RankedDivision", "pbRankedDivision", "BigRankedDivision", ("Name",)),
 }
 
 

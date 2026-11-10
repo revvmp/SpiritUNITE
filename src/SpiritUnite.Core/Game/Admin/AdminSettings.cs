@@ -344,7 +344,9 @@ public sealed class AdminSettings(
 
         if (typeof(IDictionary).IsAssignableFrom(type))
         {
-            return new JsonObject { ["kind"] = "json" };
+            return DictionaryValueTypeOf(type) is { } valueType
+                ? new JsonObject { ["kind"] = "map", ["value"] = SchemaOf(valueType) }
+                : new JsonObject { ["kind"] = "json" };
         }
 
         if (ElementTypeOf(type) is { } elementType)
@@ -367,13 +369,24 @@ public sealed class AdminSettings(
         var official = withOfficial ? ToNode(Activator.CreateInstance(type), type) as JsonObject : null;
         return
         [
-            .. BindableProperties(type).Select(property => (JsonNode)new JsonObject
+            .. BindableProperties(type).Select(property =>
             {
-                ["name"] = property.Name,
-                ["label"] = AdminSettingsText.Find(type, property.Name)?.Label,
-                ["help"] = AdminSettingsText.Find(type, property.Name)?.Help,
-                ["official"] = official?[property.Name]?.DeepClone(),
-                ["schema"] = SchemaOf(property.PropertyType, property.Name),
+                var text = AdminSettingsText.Find(type, property.Name);
+                return (JsonNode)new JsonObject
+                {
+                    ["name"] = property.Name,
+                    ["label"] = text?.Label,
+                    ["help"] = text?.Help,
+                    ["official"] = official?[property.Name]?.DeepClone(),
+                    ["schema"] = SchemaOf(property.PropertyType, property.Name),
+                    ["pick"] = text?.Pick,
+                    ["keyPick"] = text?.KeyPick,
+                    ["slots"] = text?.Slots,
+                    ["valueLabels"] = text?.ValueLabels is { } labels ? new JsonArray([.. labels.Select(label => JsonValue.Create(label))]) : null,
+                    ["choices"] = text?.Choices is { } choices
+                        ? new JsonArray([.. choices.Select(choice => new JsonObject { ["value"] = choice.Value, ["label"] = choice.Label })])
+                        : null,
+                };
             }),
         ];
     }
@@ -388,6 +401,11 @@ public sealed class AdminSettings(
     private static bool IsNumber(Type type) => Type.GetTypeCode(type) is
         TypeCode.Byte or TypeCode.SByte or TypeCode.Int16 or TypeCode.UInt16 or TypeCode.Int32 or TypeCode.UInt32
         or TypeCode.Int64 or TypeCode.UInt64 or TypeCode.Single or TypeCode.Double or TypeCode.Decimal;
+
+    private static Type? DictionaryValueTypeOf(Type type) =>
+        type.GetInterfaces().Append(type)
+            .FirstOrDefault(candidate => candidate.IsGenericType && candidate.GetGenericTypeDefinition() == typeof(IDictionary<,>))
+            ?.GetGenericArguments()[1];
 
     private static Type? ElementTypeOf(Type type) =>
         type == typeof(string) ? null

@@ -263,6 +263,20 @@ td.end { text-align: right; }
 .form-group-title + .hint { margin: -6px 0 10px; }
 .official { display: inline-block; margin-left: 8px; padding: 0 7px; border-radius: 10px; background: var(--surface); color: var(--muted); font-size: 12px; font-weight: 600; }
 .hint > .official:first-child { margin-left: 0; }
+.entry-chips { margin-top: 4px; }
+.form-object.compact { padding: 12px 16px; }
+.form-object.compact .form-object-head { margin-bottom: 8px; }
+.form-object.compact > div:last-child { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.form-object.compact .field { margin-bottom: 0; }
+.slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+.slot { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.slot > span { font-size: 12px; font-weight: 600; color: var(--muted); }
+.row > .slot { flex: 1; min-width: 110px; }
+.map-rows { display: flex; flex-direction: column; gap: 8px; }
+.map-rows:not(:empty) { margin-bottom: 4px; }
+.map-row { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
+.map-key, .map-value { flex: 1; min-width: 180px; }
+.map-arrow { align-self: center; color: var(--muted); }
 .section-intro { margin-bottom: 20px; color: var(--muted); }
 .form-footer { display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 16px 20px; border-top: 1px solid var(--border); }
 

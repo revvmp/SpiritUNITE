@@ -21,7 +21,14 @@ public sealed record AdminCatalogData(
     IReadOnlyList<AdminCatalogEntry> Frames,
     IReadOnlyList<AdminCatalogEntry> Backdrops,
     IReadOnlyList<AdminCatalogEntry> Emblems,
-    IReadOnlyList<AdminCatalogEntry> Maps);
+    IReadOnlyList<AdminCatalogEntry> Maps,
+    IReadOnlyList<AdminCatalogEntry> HeldItems,
+    IReadOnlyList<AdminCatalogEntry> ShopItems,
+    IReadOnlyList<AdminCatalogEntry> RankDivisions,
+    IReadOnlyList<AdminCatalogEntry> RankClasses,
+    IReadOnlyList<AdminCatalogEntry> MatchModes,
+    IReadOnlyList<AdminCatalogEntry> ReleaseOrders,
+    IReadOnlyList<AdminCatalogEntry> MegaEvolutionEvents);
 
 public sealed partial class AdminCatalog(GameData gameData, GameNames names)
 {
@@ -41,6 +48,45 @@ public sealed partial class AdminCatalog(GameData gameData, GameNames names)
     private const string BadgeQualityPrefix = "PbResBadgeQualityType";
     private const string PokemonType = "Pokemon";
     private const int PokemonParamIndex = 0;
+    private const string HeldItemType = "Held item";
+    private const string ShopTypePrefix = "PbResShopType";
+    private const string MatchModeType = "Match mode";
+    private const string RankDivisionType = "Rank";
+    private const string RankClassType = "Rank class";
+    private const string ReleaseType = "Release";
+    private const string EveryPokemonName = "Every Pokemon";
+    private const int EveryPokemonReleaseOrder = 0;
+    private const string MegaEvolutionEventName = "Mega Evolution event";
+    private const string ConfigTimeFormat = "yyyyMMddHHmmss";
+    private const string DateFormat = "yyyy-MM-dd";
+
+    private static readonly FrozenDictionary<string, string> ShopTypeNames = new Dictionary<string, string>
+    {
+        ["Avatar"] = "Outfit shop",
+        ["Candys"] = "Candy shop",
+        ["Paster"] = "Holowear shop",
+        ["Suit"] = "Outfit set shop",
+        ["FragmentAvatar"] = "Outfit fragment shop",
+        ["FragmentPaster"] = "Holowear fragment shop",
+        ["FragmentBadge"] = "Emblem fragment shop",
+        ["PackPokemon"] = "Pokemon pack",
+        ["PackPaster"] = "Holowear pack",
+        ["Helditem"] = "Held item shop",
+        ["LobbyBackground"] = "Backdrop shop",
+        ["BadgeboxShop"] = "Emblem box shop",
+    }.ToFrozenDictionary();
+
+    private static readonly FrozenDictionary<PB_ENUM_RES_MATCHMAPSUBMODE, string> MatchModeNames = new Dictionary<PB_ENUM_RES_MATCHMAPSUBMODE, string>
+    {
+        [PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceNormal] = "Standard battle",
+        [PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceRank] = "Ranked battle",
+        [PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRelaxNormal] = "Quick battle",
+        [PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeLegend] = "Legend",
+        [PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeFriendly] = "Custom battle",
+        [PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeCompetition] = "Competition",
+        [PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeOnlineCompetition] = "Online competition",
+        [PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModePveChallenge] = "PvE challenge",
+    }.ToFrozenDictionary();
 
     private static readonly FrozenDictionary<int, string> WalletCoinNames = new Dictionary<int, string>
     {
@@ -91,7 +137,7 @@ public sealed partial class AdminCatalog(GameData gameData, GameNames names)
                 license.PokemonId.Value))
             .ToArray();
         var licenseIds = licenses.Select(license => license.Id).ToHashSet();
-        return new AdminCatalogData(
+        var catalog = new AdminCatalogData(
             Coins: [.. Coins(gameData, names, PokemonName)],
             Pokemon: [.. gameData.PokemonBase.Rows.Select(row => new AdminCatalogEntry(row.PokemonId, PokemonName(row.PokemonId), PokemonType, row.PokemonId)).OrderBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase)],
             Licenses: [.. licenses.OrderBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase)],
@@ -125,7 +171,102 @@ public sealed partial class AdminCatalog(GameData gameData, GameNames names)
                     EmblemType))
                 .OrderBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase)
                 .ThenBy(entry => entry.Id)],
-            Maps: Named(gameData.SceneMap.Rows.Select(row => row.SceneId), names, GameNames.SceneMapGroup, MapType));
+            Maps: Named(gameData.SceneMap.Rows.Select(row => row.SceneId), names, GameNames.SceneMapGroup, MapType),
+            HeldItems: [],
+            ShopItems: [],
+            RankDivisions: [.. RankDivisions(gameData, names)],
+            RankClasses: [.. RankClasses(gameData, names)],
+            MatchModes: [.. MatchModeNames.OrderBy(mode => mode.Key).Select(mode => new AdminCatalogEntry((int)mode.Key, mode.Value, MatchModeType))],
+            ReleaseOrders: [.. ReleaseOrders(gameData, PokemonName)],
+            MegaEvolutionEvents: [.. MegaEvolutionEvents(gameData, names)]);
+        return catalog with
+        {
+            HeldItems = [.. catalog.Items.Where(entry => entry.Type == HeldItemType)],
+            ShopItems = [.. ShopItems(gameData, names, catalog)],
+        };
+    }
+
+    private static IEnumerable<AdminCatalogEntry> ShopItems(GameData gameData, GameNames names, AdminCatalogData catalog)
+    {
+        var resourceNames = new[]
+            {
+                catalog.Coins, catalog.Pokemon, catalog.Licenses, catalog.Holowear, catalog.Items, catalog.Outfits,
+                catalog.Icons, catalog.Frames, catalog.Backdrops, catalog.Emblems,
+            }
+            .SelectMany(list => list)
+            .DistinctBy(entry => entry.Id)
+            .ToDictionary(entry => entry.Id, entry => entry.Name);
+        string ResourceName(int resourceId) =>
+            resourceNames.GetValueOrDefault(resourceId)
+            ?? names.Find(GameNames.AvatarSuitGroup, resourceId)
+            ?? names.Find(GameNames.CardDecorationGroup, resourceId)
+            ?? string.Empty;
+
+        return gameData.Shop.Rows
+            .Select(row => (Row: row, ShopType: ShopTypeName(row.ShopType)))
+            .Select(shop => new AdminCatalogEntry(
+                shop.Row.ShopID,
+                ResourceName(shop.Row.ShopResID) is { Length: > 0 } name ? name : shop.ShopType,
+                DatedType(shop.ShopType, shop.Row.OnTime)))
+            .OrderBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(entry => entry.Id);
+    }
+
+    private static IEnumerable<AdminCatalogEntry> RankDivisions(GameData gameData, GameNames names) =>
+        gameData.RankedDivision.Rows
+            .OrderBy(row => row.Index)
+            .Select(row => new AdminCatalogEntry(row.RankedDivision, RankDivisionName(row, names), RankDivisionType));
+
+    private static string RankDivisionName(pbRankedDivision row, GameNames names)
+    {
+        var name = names.Find(GameNames.RankedDivisionGroup, row.RankedDivision) ?? $"{RankDivisionType} {row.Index.ToString(CultureInfo.InvariantCulture)}";
+        return row.MasterPointCeil > 0
+            ? $"{name} ({row.MasterPointFloor.ToString(CultureInfo.InvariantCulture)}+ points)"
+            : name;
+    }
+
+    private static IEnumerable<AdminCatalogEntry> RankClasses(GameData gameData, GameNames names) =>
+        gameData.RankedDivision.Rows
+            .Select(row => row.BigRankedDivision)
+            .Distinct()
+            .Order()
+            .Select(big => new AdminCatalogEntry(
+                big,
+                names.Find(GameNames.RankedClassGroup, big) ?? $"{RankClassType} {big.ToString(CultureInfo.InvariantCulture)}",
+                RankClassType));
+
+    private static IEnumerable<AdminCatalogEntry> ReleaseOrders(GameData gameData, Func<int, string> pokemonName) =>
+        gameData.PokemonRelease.Rows
+            .GroupBy(row => row.Order)
+            .OrderBy(group => group.Key)
+            .Select(group => new AdminCatalogEntry(
+                group.Key,
+                string.Join(" and ", group.Select(row => pokemonName(row.PokemonId))),
+                $"{ReleaseType} {group.Key.ToString(CultureInfo.InvariantCulture)}"))
+            .Prepend(new AdminCatalogEntry(EveryPokemonReleaseOrder, EveryPokemonName, ReleaseType));
+
+    private static IEnumerable<AdminCatalogEntry> MegaEvolutionEvents(GameData gameData, GameNames names) =>
+        gameData.MegaEvolutionOther.Rows
+            .Select(row => row.ActivityID)
+            .Distinct()
+            .Order()
+            .Select(activityId => new AdminCatalogEntry(
+                activityId,
+                names.Find(GameNames.ActivityGroup, activityId) ?? MegaEvolutionEventName,
+                DatedType(MegaEvolutionEventName, gameData.ActivityBase.Find(activityId)?.ValidStartTime)));
+
+    private static string DatedType(string type, long? configTime) =>
+        DateTime.TryParseExact(configTime?.ToString(CultureInfo.InvariantCulture), ConfigTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var time)
+            ? $"{type} from {time.ToString(DateFormat, CultureInfo.InvariantCulture)}"
+            : type;
+
+    private static string ShopTypeName(int shopType)
+    {
+        var value = (PB_ENUM_RES_SHOP_TYPE)shopType;
+        var enumName = value.ToString();
+        return enumName.StartsWith(ShopTypePrefix, StringComparison.Ordinal) && ShopTypeNames.TryGetValue(enumName[ShopTypePrefix.Length..], out var known)
+            ? known
+            : AdminNames.FromEnum(value, ShopTypePrefix);
     }
 
     private static IEnumerable<AdminCatalogEntry> Coins(GameData gameData, GameNames names, Func<int, string> pokemonName) =>
