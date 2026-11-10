@@ -83,7 +83,7 @@ Files go in the folder set by `ResourceArchive.Directory` in `appsettings.json` 
 ## Build the APK
 
 1. Put your own official `base.apk`, `split_ab.apk` and `split_config.arm64_v8a.apk` in one folder. Build `1192039` is currently supported.
-2. Battles and voice chat, set `RelayServer.Host` and `VoiceServer.Host` in `appsettings.json` to your PC's local network IP and `TcpServer.BindAddress` to `0.0.0.0`. `adb reverse` cannot forward UDP, so the device reaches these two servers directly.
+2. For local development, set `RelayServer.Host` and `VoiceServer.Host` in `appsettings.json` to your PC's local network IP and `TcpServer.BindAddress` to `0.0.0.0`. `adb reverse` cannot forward UDP, so the device reaches these two servers directly.
    ```json
    "RelayServer": {
      "Host": "change-to-ipv4",
