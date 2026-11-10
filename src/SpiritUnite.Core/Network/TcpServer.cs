@@ -51,7 +51,7 @@ public abstract class TcpServer(
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
-            logger.LogInformation("Stopped listening");
+            logger.LogInformation("{ServerType} stopped listening", serverType);
         }
     }
 

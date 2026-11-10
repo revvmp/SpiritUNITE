@@ -71,7 +71,7 @@ public sealed class VoiceServer(
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
-            logger.LogInformation("Stopped listening");
+            logger.LogInformation("VoiceServer stopped listening");
         }
     }
 

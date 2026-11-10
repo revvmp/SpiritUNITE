@@ -88,7 +88,7 @@ public abstract class LwipServer(
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
-            logger.LogInformation("Stopped listening");
+            logger.LogInformation("{ServerType} stopped listening", serverType);
         }
     }
 
