@@ -34,15 +34,37 @@ CENTAURI_CONFIG_ENTRY = "assets/centauri_oversea_singapore/centauri_oversea_cp.c
 RES_DATA_ENTRY = "assets/res.data"
 RESOURCES_ARCHIVE_ENTRY = "lib/arm64-v8a/libResources.so"
 METADATA_ARCHIVE_PATH = "Managed/Metadata/global-metadata.dat"
+IL2CPP_ARCHIVE_PATH = "arm64-v8a/libil2cpp.so"
+IL2CPP_LIBRARY_SHA256 = (
+    "d57a6e89e10563ee7557a39a35259ec29e64b68f01102d3da0cee39f887595c7"
+)
+INIT_TSS_MODULE = 0x431241C
+INIT_TSS_MODULE_PROLOGUE = bytes.fromhex("f44fbea9")
+ARM64_RETURN = bytes.fromhex("c0035fd6")
+GVOICE_CONFIG_ENTRY = "assets/GCloudVoice/config.json"
+TDM_ROUTE_HOST = "tdm.deltaverse-intl.com"
+CRASHSIGHT_HOST = "android.crashsight.wetest.net"
+GCLOUD_CONTROL_HOST = "gcloudctrl.iegcom.com"
 MANIFEST_ENTRY = "AndroidManifest.xml"
 SOURCE_STAMP_ENTRY = "stamp-cert-sha256"
 SPLIT_ONLY_ENTRIES = frozenset({MANIFEST_ENTRY, SOURCE_STAMP_ENTRY})
 RESOURCE_TABLE_ENTRY = "resources.arsc"
 SHELL_DEX_ENTRY = "classes2.dex"
 SHELL_DEX_SHA256 = "0424acd386cc14745c209ccae1662259777889b026c04f60e71953855095d7d7"
+SDK_DEX_ENTRY = "classes.dex"
+SDK_DEX_SHA256 = "f2309ccfcf822bded1ec9017b5778efc9d7e34bd34baffcb8039b7a8aca203dc"
+ACE_JAVA_LIBRARY_LOAD = 0x349F14
+ACE_JAVA_LIBRARY_LOAD_INSTRUCTION = bytes.fromhex("7110a1f90000")
+ACE_SHELL_LIBRARY_LOADS = (
+    (0x308150, bytes.fromhex("71109e6f0000")),
+    (0x30815A, bytes.fromhex("71109e6f0000")),
+    (0x3ACE2C, bytes.fromhex("711063230000")),
+)
 ATTACH_BASE_CONTEXT_SHELL_INSTRUCTIONS = 0x3081B8
 GCLOUD_LIBRARY_ENTRY = "lib/arm64-v8a/libgcloud.so"
-GCLOUD_LIBRARY_SHA256 = "f2932b84be1cbf5f59eb8126ad8427428c76990d21b76f8d927f78e2f87b3ce0"
+GCLOUD_LIBRARY_SHA256 = (
+    "f2932b84be1cbf5f59eb8126ad8427428c76990d21b76f8d927f78e2f87b3ce0"
+)
 IS_DOMAIN_NAME_RETURNS_DOMAIN = 0x208748
 MOV_W20_ONE = 0x52800034
 MOV_W20_ZERO = 0x52800014
@@ -93,6 +115,15 @@ SILENCED_MSDK_HOST_KEYS = (
     "BUGLY_REPORT_URL_IOS",
     "TWITTER_WEB_LOGIN_URL",
 )
+GVOICE_DEFAULT_URLS = {
+    "remoteConfigUrl": "https://hwconfig.gcloudcs.com:443",
+    "logReportUrl": "https://tglog-hw.gcloudsdk.com:443",
+    "voiceReportUrl": "https://harmony-global.voice.gcloudsdk.com:443",
+    "voiceTranslateUrl": "https://sg.api.translator.voice.gcloudsdk.com:443",
+    "voiceUrl": "udp://sg.voice.gcloudcs.com:8700",
+    "flqUrl": "udp://cdn.hw.gcloudcs.com:18301",
+    "dataReportUrl": "udp://qoshw.gcloudsdk.com:8011",
+}
 IMAGE_CDN_ROUTE = "/cdn"
 CENTAURI_RELEASE_MODE = "release"
 
@@ -169,6 +200,7 @@ class ClientBuild:
     image_cdn_address: MetadataLiteral
     gvoice_server_url: MetadataLiteral
     update_hosts: tuple[MetadataLiteral, ...]
+    telemetry_addresses: tuple[MetadataLiteral, ...]
 
 
 CLIENT_BUILDS_BY_METADATA_MD5 = {
@@ -185,15 +217,16 @@ CLIENT_BUILDS_BY_METADATA_MD5 = {
         gvoice_server_url=MetadataLiteral(0x11380, "udp://sg.voice.gcloudcs.com:8700"),
         update_hosts=(
             MetadataLiteral(0x3E8F8, "puffer.6.669535640.nishikigcloud.iegcom.com"),
-            MetadataLiteral(
-                0x3E8F0, "pre-puffer.5.669535640.nishikigcloud.iegcom.com"
-            ),
-            MetadataLiteral(
-                0x50A68, "download.2.669535640.nishikigcloud.iegcom.com"
-            ),
+            MetadataLiteral(0x3E8F0, "pre-puffer.5.669535640.nishikigcloud.iegcom.com"),
+            MetadataLiteral(0x50A68, "download.2.669535640.nishikigcloud.iegcom.com"),
             MetadataLiteral(
                 0x50A60, "pre-download.1.669535640.nishikigcloud.iegcom.com"
             ),
+        ),
+        telemetry_addresses=(
+            MetadataLiteral(0x53B0, "https://android.crashsight.wetest.net/pb/async"),
+            MetadataLiteral(0x187A0, "qqcollect.pgame.cn.qq.com:31010"),
+            MetadataLiteral(0x18840, "qqcollect.pgame.cn.qq.com"),
         ),
     ),
 }
@@ -201,8 +234,8 @@ CLIENT_BUILDS_BY_METADATA_MD5 = {
 CLIENT_ADDRESS_SERVICE_PORTS = (8085, 8080)
 
 PENDING_CLIENT_CHANGES = (
-    "TDM, qqcollect and pokemon-webapi telemetry hosts are compiled into native code and still contacted.",
-    "The client still resolves gcloudctrl.iegcom.com at startup; a resources.arsc string names it.",
+    "The country lookup at pokemon-webapi.appspot.com comes from downloaded client tables.",
+    "Firebase transport telemetry and cloud.vmp.onezapp.com still need separate changes.",
 )
 
 
@@ -866,26 +899,22 @@ def patch_centauri_config(content: bytes, target: HostTarget) -> bytes:
     return (json.dumps(config, indent=4) + "\n").encode("utf-8")
 
 
-def patch_res_data(
-    content: bytes, old_metadata_md5: str, new_metadata_md5: str
-) -> bytes:
-    text = content.decode("utf-8")
-    entries = json.loads(text)
-    metadata_entries = [
-        entry
-        for files in entries.values()
-        for entry in files
-        if entry.get("path") == f"/{METADATA_ARCHIVE_PATH}"
-    ]
-    if not metadata_entries or any(
-        entry.get("md5") != old_metadata_md5 for entry in metadata_entries
-    ):
-        raise BuildError(
-            f"{RES_DATA_ENTRY} does not list the expected global-metadata.dat md5 {old_metadata_md5}."
-        )
-    return text.replace(
-        f'"md5": "{old_metadata_md5}"', f'"md5": "{new_metadata_md5}"'
-    ).encode("utf-8")
+def patch_res_data(content: bytes, digests: dict[str, tuple[str, str]]) -> bytes:
+    entries = json.loads(content)
+    for path, (original_md5, patched_md5) in digests.items():
+        matching = [
+            entry
+            for files in entries.values()
+            for entry in files
+            if entry.get("path") == f"/{path}"
+        ]
+        if not matching or any(entry.get("md5") != original_md5 for entry in matching):
+            raise BuildError(
+                f"{RES_DATA_ENTRY} does not list the expected {path} md5 {original_md5}."
+            )
+        for entry in matching:
+            entry["md5"] = patched_md5
+    return (json.dumps(entries, indent=4) + "\n").encode("utf-8")
 
 
 def read_metadata_literal(
@@ -942,6 +971,17 @@ def patch_metadata(metadata: bytes, target: HostTarget) -> bytes:
     )
     for update_host in build.update_hosts:
         write_metadata_literal(patched, build, update_host, target.host)
+    for address in build.telemetry_addresses:
+        write_metadata_literal(
+            patched,
+            build,
+            address,
+            address.original.replace(CRASHSIGHT_HOST, CLOUD_CONTROL_REPLACEMENT_HOST)
+            if address.original.startswith("https://")
+            else address.original.replace(
+                "qqcollect.pgame.cn.qq.com", CLOUD_CONTROL_REPLACEMENT_HOST
+            ),
+        )
     return bytes(patched)
 
 
@@ -1319,38 +1359,45 @@ def write_seven_zip(archive: SevenZipArchive, packed_streams: list[bytes]) -> by
     return start_header + body + header
 
 
-def replace_seven_zip_file(
-    archive_bytes: bytes, file_name: str, transform: Callable[[bytes], bytes]
-) -> tuple[bytes, bytes, bytes]:
+def replace_seven_zip_files(
+    archive_bytes: bytes, transforms: dict[str, Callable[[bytes], bytes]]
+) -> tuple[bytes, dict[str, bytes], dict[str, bytes]]:
     archive = read_seven_zip(archive_bytes)
-    if file_name not in archive.stream_names:
-        raise BuildError(f"{RESOURCES_ARCHIVE_ENTRY} has no {file_name}.")
-    target_stream = archive.stream_names.index(file_name)
+    for file_name in transforms:
+        if file_name not in archive.stream_names:
+            raise BuildError(f"{RESOURCES_ARCHIVE_ENTRY} has no {file_name}.")
+    target_streams = {archive.stream_names.index(name): name for name in transforms}
     packed_streams = []
     pack_offset = SEVEN_ZIP_START_HEADER_SIZE + archive.pack_position
     first_stream = 0
-    original = patched = b""
+    originals = {}
+    replacements = {}
     for folder, pack_size in zip(archive.folders, archive.pack_sizes):
         packed = archive_bytes[pack_offset : pack_offset + pack_size]
         pack_offset += pack_size
         stream_range = range(first_stream, first_stream + len(folder.substream_sizes))
         first_stream = stream_range.stop
-        if target_stream not in stream_range:
+        targets = [stream for stream in target_streams if stream in stream_range]
+        if not targets:
             packed_streams.append(packed)
             continue
-        unpacked = unpack_folder(folder, packed)
-        index = target_stream - stream_range.start
-        start = sum(folder.substream_sizes[:index])
-        original = unpacked[start : start + folder.substream_sizes[index]]
-        if folder.substream_crcs[index] not in (None, zlib.crc32(original)):
-            raise BuildError(
-                f"{file_name} in {RESOURCES_ARCHIVE_ENTRY} fails its CRC check."
-            )
-        patched = transform(original)
-        if len(patched) != len(original):
-            raise BuildError(f"Patching {file_name} changed its size.")
-        unpacked = unpacked[:start] + patched + unpacked[start + len(patched) :]
-        folder.substream_crcs[index] = zlib.crc32(patched)
+        unpacked = bytearray(unpack_folder(folder, packed))
+        for target_stream in targets:
+            file_name = target_streams[target_stream]
+            index = target_stream - stream_range.start
+            start = sum(folder.substream_sizes[:index])
+            original = bytes(unpacked[start : start + folder.substream_sizes[index]])
+            if folder.substream_crcs[index] not in (None, zlib.crc32(original)):
+                raise BuildError(
+                    f"{file_name} in {RESOURCES_ARCHIVE_ENTRY} fails its CRC check."
+                )
+            patched = transforms[file_name](original)
+            if len(patched) != len(original):
+                raise BuildError(f"Patching {file_name} changed its size.")
+            unpacked[start : start + len(patched)] = patched
+            folder.substream_crcs[index] = zlib.crc32(patched)
+            originals[file_name] = original
+            replacements[file_name] = patched
         if folder.crc is not None:
             folder.crc = zlib.crc32(unpacked)
         log(
@@ -1360,7 +1407,9 @@ def replace_seven_zip_file(
         packed_streams.append(
             lzma.compress(unpacked, format=lzma.FORMAT_RAW, filters=filters)
         )
-    return write_seven_zip(archive, packed_streams), original, patched
+    if originals.keys() != transforms.keys():
+        raise BuildError(f"{RESOURCES_ARCHIVE_ENTRY} has missing file streams.")
+    return write_seven_zip(archive, packed_streams), originals, replacements
 
 
 def alignment_for(name: str, method: int) -> int:
@@ -1813,16 +1862,90 @@ def disable_signature_shell(content: bytes) -> bytes:
         )
     patched = bytearray(content)
     struct.pack_into("<H", patched, ATTACH_BASE_CONTEXT_SHELL_INSTRUCTIONS, 0x000E)
+    for offset, original in ACE_SHELL_LIBRARY_LOADS:
+        if content[offset : offset + len(original)] != original:
+            raise BuildError(
+                "classes2.dex does not hold the expected ACE library load."
+            )
+        patched[offset : offset + len(original)] = bytes(len(original))
+    patched = bytearray(silence_host(bytes(patched), CRASHSIGHT_HOST, 1))
+    return repair_dex_checksums(patched)
+
+
+def repair_dex_checksums(patched: bytearray) -> bytes:
     patched[12:32] = hashlib.sha1(patched[32:]).digest()
     struct.pack_into("<I", patched, 8, zlib.adler32(patched[12:]))
+    return bytes(patched)
+
+
+def patch_sdk_dex(content: bytes) -> bytes:
+    if hashlib.sha256(content).hexdigest() != SDK_DEX_SHA256:
+        raise BuildError(
+            "Unsupported classes.dex: cannot locate AnoSdk library load safely."
+        )
+    offset = ACE_JAVA_LIBRARY_LOAD
+    original = ACE_JAVA_LIBRARY_LOAD_INSTRUCTION
+    if content[offset : offset + len(original)] != original:
+        raise BuildError("classes.dex does not hold the expected AnoSdk library load.")
+    patched = bytearray(content)
+    patched[offset : offset + len(original)] = bytes(len(original))
+    for host, count in (
+        ("firebase-settings.crashlytics.com", 1),
+        ("reports.crashlytics.com", 2),
+        ("update.crashlytics.com", 2),
+    ):
+        patched = bytearray(silence_host(bytes(patched), host, count))
+    return repair_dex_checksums(patched)
+
+
+def silence_host(
+    content: bytes, host: str, expected_count: int, encoding: str = "utf-8"
+) -> bytes:
+    original = host.encode(encoding)
+    prefix_length = len(host) - len(".invalid")
+    if prefix_length < 1:
+        raise BuildError(f"Host {host} has no space for an .invalid address.")
+    replacement = (
+        host[:prefix_length].rstrip(".-").ljust(prefix_length, "x") + ".invalid"
+    ).encode(encoding)
+    if len(original) != len(replacement) or content.count(original) != expected_count:
+        raise BuildError(f"Expected {expected_count} copies of {host} in {encoding}.")
+    return content.replace(original, replacement)
+
+
+def patch_gvoice_config(content: bytes, target: HostTarget) -> bytes:
+    config = json.loads(content)
+    urls = config.get("cdnvister", {}).get("default_url")
+    if urls != GVOICE_DEFAULT_URLS:
+        raise BuildError(f"Unsupported {GVOICE_CONFIG_ENTRY} default URLs.")
+    for key, original in GVOICE_DEFAULT_URLS.items():
+        if key == "voiceUrl":
+            urls[key] = target.gvoice_server_url
+        else:
+            scheme, authority = original.split("://", 1)
+            port = authority.rsplit(":", 1)[1]
+            urls[key] = f"{scheme}://{CLOUD_CONTROL_REPLACEMENT_HOST}:{port}"
+    return (json.dumps(config, indent=4) + "\n").encode("utf-8")
+
+
+def disable_ace_startup(content: bytes) -> bytes:
+    if hashlib.sha256(content).hexdigest() != IL2CPP_LIBRARY_SHA256:
+        raise BuildError(
+            "Unsupported libil2cpp.so: cannot locate InitTssModule safely."
+        )
+    if content[INIT_TSS_MODULE : INIT_TSS_MODULE + 4] != INIT_TSS_MODULE_PROLOGUE:
+        raise BuildError(
+            "libil2cpp.so does not hold the expected InitTssModule prologue."
+        )
+    patched = bytearray(content)
+    patched[INIT_TSS_MODULE : INIT_TSS_MODULE + 4] = ARM64_RETURN
     return bytes(patched)
 
 
 def build_base_replacements(
     splits: dict[str, Path],
     target: HostTarget,
-    old_metadata_md5: str,
-    new_metadata_md5: str,
+    digests: dict[str, tuple[str, str]],
 ) -> dict[str, bytes]:
     with zipfile.ZipFile(splits[BASE_APK]) as base:
         replacements = {
@@ -1830,17 +1953,21 @@ def build_base_replacements(
             CENTAURI_CONFIG_ENTRY: patch_centauri_config(
                 base.read(CENTAURI_CONFIG_ENTRY), target
             ),
-            RES_DATA_ENTRY: patch_res_data(
-                base.read(RES_DATA_ENTRY), old_metadata_md5, new_metadata_md5
+            RES_DATA_ENTRY: patch_res_data(base.read(RES_DATA_ENTRY), digests),
+            GVOICE_CONFIG_ENTRY: patch_gvoice_config(
+                base.read(GVOICE_CONFIG_ENTRY), target
             ),
             SHELL_DEX_ENTRY: disable_signature_shell(base.read(SHELL_DEX_ENTRY)),
+            SDK_DEX_ENTRY: patch_sdk_dex(base.read(SDK_DEX_ENTRY)),
             RESOURCE_TABLE_ENTRY: rename_resource_table_package(
-                base.read(RESOURCE_TABLE_ENTRY),
+                silence_host(base.read(RESOURCE_TABLE_ENTRY), GCLOUD_CONTROL_HOST, 2),
                 OFFICIAL_PACKAGE_NAME,
                 target.package_name,
             ),
         }
-        manifest = drop_required_split_types(base.read(MANIFEST_ENTRY))
+        manifest = drop_required_split_types(
+            silence_host(base.read(MANIFEST_ENTRY), TDM_ROUTE_HOST, 1, "utf-16-le")
+        )
         if target.development:
             manifest = allow_cleartext_traffic(manifest)
         replacements[MANIFEST_ENTRY] = rename_manifest_package(
@@ -1854,8 +1981,13 @@ def address_any_update_host(content: bytes) -> bytes:
         raise BuildError(
             "Unsupported libgcloud.so: cannot locate the update address service's domain check safely."
         )
-    if struct.unpack_from("<I", content, IS_DOMAIN_NAME_RETURNS_DOMAIN)[0] != MOV_W20_ONE:
-        raise BuildError("libgcloud.so does not hold the expected domain check instruction.")
+    if (
+        struct.unpack_from("<I", content, IS_DOMAIN_NAME_RETURNS_DOMAIN)[0]
+        != MOV_W20_ONE
+    ):
+        raise BuildError(
+            "libgcloud.so does not hold the expected domain check instruction."
+        )
     patched = bytearray(content)
     struct.pack_into("<I", patched, IS_DOMAIN_NAME_RETURNS_DOMAIN, MOV_W20_ZERO)
     return bytes(patched)
@@ -1863,23 +1995,30 @@ def address_any_update_host(content: bytes) -> bytes:
 
 def build_native_replacements(
     splits: dict[str, Path], target: HostTarget
-) -> tuple[dict[str, bytes], str, str, ClientBuild]:
+) -> tuple[dict[str, bytes], dict[str, tuple[str, str]], ClientBuild]:
     with zipfile.ZipFile(splits[NATIVE_APK]) as native:
         resources = native.read(RESOURCES_ARCHIVE_ENTRY)
         gcloud_library = native.read(GCLOUD_LIBRARY_ENTRY)
-    patched_resources, original, patched = replace_seven_zip_file(
+    patched_resources, originals, replacements = replace_seven_zip_files(
         resources,
-        METADATA_ARCHIVE_PATH,
-        lambda metadata: patch_metadata(metadata, target),
+        {
+            METADATA_ARCHIVE_PATH: lambda metadata: patch_metadata(metadata, target),
+            IL2CPP_ARCHIVE_PATH: disable_ace_startup,
+        },
     )
     return (
         {
             RESOURCES_ARCHIVE_ENTRY: patched_resources,
             GCLOUD_LIBRARY_ENTRY: address_any_update_host(gcloud_library),
         },
-        hashlib.md5(original).hexdigest(),
-        hashlib.md5(patched).hexdigest(),
-        client_build_for(original),
+        {
+            path: (
+                hashlib.md5(original).hexdigest(),
+                hashlib.md5(replacements[path]).hexdigest(),
+            )
+            for path, original in originals.items()
+        },
+        client_build_for(originals[METADATA_ARCHIVE_PATH]),
     )
 
 
@@ -1901,12 +2040,15 @@ def build(arguments: argparse.Namespace) -> None:
     log(
         f"Patching the directory, update, image CDN ({target.image_cdn_address}) and voice server ({target.gvoice_server_url}) addresses in global-metadata.dat"
     )
-    native_replacements, old_md5, new_md5, client_build = build_native_replacements(
+    native_replacements, digests, client_build = build_native_replacements(
         splits, target
     )
     log(f"  Client build {client_build.version_code}")
     log("Patching MSDKConfig.ini, the Centauri pay config and res.data")
     log("Disabling AnoApplication signature-shell initialization")
+    log(
+        "Disabling ACE startup and redirecting analytics, crash and voice reporting hosts to .invalid"
+    )
     log("Letting libgcloud.so reach the update server by any host name")
     if target.development:
         log("Allowing cleartext HTTP in AndroidManifest.xml")
@@ -1916,11 +2058,9 @@ def build(arguments: argparse.Namespace) -> None:
     parts = [
         MergedApkPart(
             splits[BASE_APK],
-            build_base_replacements(splits, target, old_md5, new_md5),
+            build_base_replacements(splits, target, digests),
         ),
-        MergedApkPart(
-            splits[NATIVE_APK], native_replacements, SPLIT_ONLY_ENTRIES
-        ),
+        MergedApkPart(splits[NATIVE_APK], native_replacements, SPLIT_ONLY_ENTRIES),
         MergedApkPart(splits[ASSET_PACK_APK], {}, SPLIT_ONLY_ENTRIES),
     ]
     output_dir.mkdir(parents=True, exist_ok=True)

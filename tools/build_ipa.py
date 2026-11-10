@@ -73,11 +73,29 @@ DEFAULT_DIR_PORT = 10001
 DEFAULT_HTTPS_PORT = 443
 DEFAULT_HTTP_PORT = 80
 DEFAULT_DEV_WEB_PORT = 10081
+DEFAULT_VOICE_PORT = 8700
 CLIENT_ADDRESS_SERVICE_PORTS = (8085, 8080)
 DIR_NODE_NAME = "trunk_global_dist"
 CLOUD_CONTROL_REPLACEMENT_HOST = "spiritunite.invalid"
 GCLOUD_FRAMEWORK_EXECUTABLE = "Frameworks/GCloud.framework/GCloud"
-GCLOUD_FRAMEWORK_SHA256 = "3f946c4618cdf6e411cc4f0b83605751a00604e5cd3e1828dc613418afdb7978"
+GCLOUD_FRAMEWORK_SHA256 = (
+    "3f946c4618cdf6e411cc4f0b83605751a00604e5cd3e1828dc613418afdb7978"
+)
+UNITY_FRAMEWORK_EXECUTABLE = "Frameworks/UnityFramework.framework/UnityFramework"
+UNITY_FRAMEWORK_SHA256 = (
+    "546c615cf2f3738f46e9431e9b6c74b078c1f272c0992a103c50188ad7998a89"
+)
+ACE_FRAMEWORK_EXECUTABLE = "Frameworks/anogs.framework/anogs"
+ACE_FRAMEWORK_SHA256 = (
+    "476a26c43481094c3914f22f823193ac31443eab91e1aeee8733a90b6664e704"
+)
+METADATA_SHA256 = "ab3ab88e1ca85a73b06d88165dc8dc14e434383a4f440bf27b828ee8bb9e5a86"
+INIT_TSS_MODULE = 0x67AEC44
+INIT_TSS_MODULE_PROLOGUE = bytes.fromhex("f44fbea9")
+ACE_DID_FINISH_LAUNCHING = 0x3AD1C
+ACE_DID_FINISH_LAUNCHING_PROLOGUE = bytes.fromhex("f657bda9f44f01a9")
+ARM64_RETURN = bytes.fromhex("c0035fd6")
+ARM64_RETURN_TRUE = bytes.fromhex("20008052c0035fd6")
 IS_DOMAIN_NAME_STORES_DOMAIN = 0x327E20
 MOV_W9_ONE = 0x320003E9
 MOV_W9_ZERO = 0x52800009
@@ -105,6 +123,20 @@ MAX_APP_LABEL_LENGTH = 50
 OFFICIAL_DIR_ADDRESS = "trunk_global_dist|dirsvr.pokemon-unitepgame.com:10001"
 OFFICIAL_CLOUD_CONTROL_HOST = "gcloudctrl.iegcom.com"
 OFFICIAL_IMAGE_CDN_ADDRESS = "https://image.pokemon-unitepgame.com/Encrypt"
+OFFICIAL_GVOICE_SERVER_URL = "udp://sg.voice.gcloudcs.com:8700"
+TDM_ROUTE_HOST = "tdm.deltaverse-intl.com"
+TDM_ROUTE_URL = f"https://{TDM_ROUTE_HOST}/tdm/v1/route"
+CRASHSIGHT_HOST = "ios.crashsight.wetest.net"
+GVOICE_CONFIG_PATH = "GCloudVoice.bundle/files/config.json"
+GVOICE_DEFAULT_URLS = {
+    "remoteConfigUrl": "https://hwconfig.gcloudcs.com:443",
+    "logReportUrl": "https://tglog-hw.gcloudsdk.com:443",
+    "voiceReportUrl": "https://harmony-global.voice.gcloudsdk.com:443",
+    "voiceTranslateUrl": "https://sg.api.translator.voice.gcloudsdk.com:443",
+    "voiceUrl": OFFICIAL_GVOICE_SERVER_URL,
+    "flqUrl": "udp://cdn.hw.gcloudcs.com:18301",
+    "dataReportUrl": "udp://qoshw.gcloudsdk.com:8011",
+}
 OFFICIAL_UPDATE_HOSTS = (
     "puffer.6.669535640.nishikigcloud.iegcom.com",
     "pre-puffer.5.669535640.nishikigcloud.iegcom.com",
@@ -114,7 +146,8 @@ OFFICIAL_UPDATE_HOSTS = (
 
 PENDING_CLIENT_CHANGES = (
     "The IPA is unsigned for distribution; sign it with your own provisioning before installing.",
-    "Telemetry hosts compiled into native code (TDM and others seen on Android) are unchanged.",
+    "SDK startup and reporting patches need on-device validation after signing.",
+    "Country lookup, Firebase transport and other SDK traffic are not covered by these patches.",
     "The iOS resource archive (Puffer product 1170) must be in ResourceArchive.Directory for the update step.",
 )
 
@@ -131,6 +164,8 @@ class HostTarget:
     development: bool
     bundle_identifier: str
     app_label: str
+    voice_host: str
+    voice_port: int
 
     @property
     def web_origin(self) -> str:
@@ -155,6 +190,10 @@ class HostTarget:
     def dir_address(self) -> str:
         return f"{DIR_NODE_NAME}|{self.host}:{self.dir_port}"
 
+    @property
+    def gvoice_server_url(self) -> str:
+        return f"udp://{self.voice_host}:{self.voice_port}"
+
 
 @dataclass(frozen=True)
 class LiteralPatch:
@@ -168,6 +207,18 @@ LITERAL_PATCHES = (
         OFFICIAL_CLOUD_CONTROL_HOST, lambda target: CLOUD_CONTROL_REPLACEMENT_HOST
     ),
     LiteralPatch(OFFICIAL_IMAGE_CDN_ADDRESS, lambda target: target.image_cdn_address),
+    LiteralPatch(OFFICIAL_GVOICE_SERVER_URL, lambda target: target.gvoice_server_url),
+    LiteralPatch(
+        f"https://{CRASHSIGHT_HOST}/pb/async",
+        lambda target: f"{UNREACHABLE_ORIGIN}/pb/async",
+    ),
+    LiteralPatch(
+        "qqcollect.pgame.cn.qq.com:31010",
+        lambda target: f"{CLOUD_CONTROL_REPLACEMENT_HOST}:31010",
+    ),
+    LiteralPatch(
+        "qqcollect.pgame.cn.qq.com", lambda target: CLOUD_CONTROL_REPLACEMENT_HOST
+    ),
     *(
         LiteralPatch(update_host, lambda target: target.host)
         for update_host in OFFICIAL_UPDATE_HOSTS
@@ -290,7 +341,9 @@ def appsetting(settings: dict, section: str, key: str):
 def port_setting(
     argument: int | None, settings: dict, section: str, default: int, option: str
 ) -> int:
-    port = argument or appsetting(settings, section, "Port") or default
+    port = argument if argument is not None else appsetting(settings, section, "Port")
+    if port is None:
+        port = default
     if not isinstance(port, int) or isinstance(port, bool):
         raise BuildError(
             f"{section}.Port in appsettings.json must be a number, got {port!r}."
@@ -335,9 +388,34 @@ def resolve_target(arguments: argparse.Namespace) -> HostTarget:
         arguments.bundle_id or default_bundle_identifier(host, arguments.dev)
     )
     app_label = validate_app_label(arguments.label or DEFAULT_APP_LABEL)
-    return HostTarget(
-        host, dir_port, web_port, arguments.dev, bundle_identifier, app_label
+    voice_host = (
+        arguments.voice_host or appsetting(settings, "VoiceServer", "Host") or host
     )
+    if not isinstance(voice_host, str):
+        raise BuildError("VoiceServer.Host must be a domain name or IPv4 address.")
+    voice_host = validate_host(voice_host)
+    voice_port = port_setting(
+        arguments.voice_port,
+        settings,
+        "VoiceServer",
+        DEFAULT_VOICE_PORT,
+        "--voice-port",
+    )
+    target = HostTarget(
+        host,
+        dir_port,
+        web_port,
+        arguments.dev,
+        bundle_identifier,
+        app_label,
+        voice_host,
+        voice_port,
+    )
+    if len(target.gvoice_server_url) > len(OFFICIAL_GVOICE_SERVER_URL):
+        raise BuildError(
+            f"{target.gvoice_server_url} is too long for the client voice address. Pass --voice-host with a shorter domain or IPv4 address."
+        )
+    return target
 
 
 def replace_ini_value(text: str, key: str, value: str) -> str:
@@ -682,6 +760,10 @@ def write_literal(
 
 
 def patch_metadata(metadata: bytes, target: HostTarget) -> bytes:
+    if hashlib.sha256(metadata).hexdigest() != METADATA_SHA256:
+        raise BuildError(
+            "Unsupported global-metadata.dat: SDK defaults cannot be patched safely."
+        )
     originals = [patch.original for patch in LITERAL_PATCHES]
     table = locate_literal_table(metadata, originals)
     missing = [
@@ -697,7 +779,40 @@ def patch_metadata(metadata: bytes, target: HostTarget) -> bytes:
             write_literal(
                 patched, table, entry, patch.original, patch.replacement(target)
             )
-    return bytes(patched)
+    content = silence_host(bytes(patched), TDM_ROUTE_HOST, 1)
+    return silence_host(content, CRASHSIGHT_HOST, 1)
+
+
+def silence_host(content: bytes, host: str, expected_count: int) -> bytes:
+    prefix_length = len(host) - len(".invalid")
+    if prefix_length < 1:
+        raise BuildError(f"Host {host} has no space for an .invalid address.")
+    replacement = (
+        host[:prefix_length].rstrip(".-").ljust(prefix_length, "x") + ".invalid"
+    )
+    original = host.encode("ascii")
+    if content.count(original) != expected_count:
+        raise BuildError(f"Expected {expected_count} copies of {host}.")
+    return content.replace(original, replacement.encode("ascii"))
+
+
+def patch_gvoice_config(content: bytes, target: HostTarget) -> bytes:
+    try:
+        config = json.loads(content)
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise BuildError(f"Invalid {GVOICE_CONFIG_PATH}: {error}") from error
+    visitor = config.get("cdnvister") if isinstance(config, dict) else None
+    urls = visitor.get("default_url") if isinstance(visitor, dict) else None
+    if urls != GVOICE_DEFAULT_URLS:
+        raise BuildError(f"Unsupported {GVOICE_CONFIG_PATH} default URLs.")
+    for key, original in GVOICE_DEFAULT_URLS.items():
+        if key == "voiceUrl":
+            urls[key] = target.gvoice_server_url
+        else:
+            scheme, authority = original.split("://", 1)
+            port = authority.rsplit(":", 1)[1]
+            urls[key] = f"{scheme}://{CLOUD_CONTROL_REPLACEMENT_HOST}:{port}"
+    return (json.dumps(config, indent=4) + "\n").encode("utf-8")
 
 
 def allow_development_http(info_plist: dict) -> dict:
@@ -733,6 +848,16 @@ def rename_bundle(plist: dict, target: HostTarget) -> dict:
 
 def patch_info_plist(info_plist: dict, target: HostTarget) -> dict:
     plist = rename_bundle(dict(info_plist), target)
+    tdm_config = plist.get("TDM")
+    if (
+        not isinstance(tdm_config, dict)
+        or tdm_config.get("TGEMIT_ROUTER_ADDRESS_FORMAL") != TDM_ROUTE_URL
+    ):
+        raise BuildError("Info.plist TDM route is not the expected official URL.")
+    plist["TDM"] = {
+        **tdm_config,
+        "TGEMIT_ROUTER_ADDRESS_FORMAL": f"{UNREACHABLE_ORIGIN}/tdm/v1/route",
+    }
     cloud_config = plist.get("GCloudCore")
     if cloud_config is not None:
         if not isinstance(cloud_config, dict):
@@ -843,9 +968,35 @@ def address_any_update_host(content: bytes) -> bytes:
             "Unsupported GCloud framework: cannot locate the update address service's domain check safely."
         )
     if struct.unpack_from("<I", content, IS_DOMAIN_NAME_STORES_DOMAIN)[0] != MOV_W9_ONE:
-        raise BuildError("The GCloud framework does not hold the expected domain check instruction.")
+        raise BuildError(
+            "The GCloud framework does not hold the expected domain check instruction."
+        )
     patched = bytearray(content)
     struct.pack_into("<I", patched, IS_DOMAIN_NAME_STORES_DOMAIN, MOV_W9_ZERO)
+    return bytes(patched)
+
+
+def patch_framework_instruction(
+    content: bytes,
+    executable: str,
+    expected_sha256: str,
+    offset: int,
+    original: bytes,
+    replacement: bytes,
+) -> bytes:
+    if hashlib.sha256(content).hexdigest() != expected_sha256:
+        raise BuildError(
+            f"Unsupported {executable}: ACE startup cannot be patched safely."
+        )
+    if (
+        len(original) != len(replacement)
+        or content[offset : offset + len(original)] != original
+    ):
+        raise BuildError(
+            f"{executable} does not hold the expected ACE startup instructions."
+        )
+    patched = bytearray(content)
+    patched[offset : offset + len(original)] = replacement
     return bytes(patched)
 
 
@@ -908,6 +1059,36 @@ def build_replacements(
         raise BuildError(f"The IPA has no {GCLOUD_FRAMEWORK_EXECUTABLE}.")
     replacements[gcloud_name] = address_any_update_host(archive.read(gcloud_name))
     log(f"Patched {gcloud_name} so the update server is reached by any host name")
+
+    for executable, digest, offset, original, replacement in (
+        (
+            UNITY_FRAMEWORK_EXECUTABLE,
+            UNITY_FRAMEWORK_SHA256,
+            INIT_TSS_MODULE,
+            INIT_TSS_MODULE_PROLOGUE,
+            ARM64_RETURN,
+        ),
+        (
+            ACE_FRAMEWORK_EXECUTABLE,
+            ACE_FRAMEWORK_SHA256,
+            ACE_DID_FINISH_LAUNCHING,
+            ACE_DID_FINISH_LAUNCHING_PROLOGUE,
+            ARM64_RETURN_TRUE,
+        ),
+    ):
+        name = f"{bundle.root}{executable}"
+        if name not in archive.NameToInfo:
+            raise BuildError(f"The IPA has no {executable}.")
+        replacements[name] = patch_framework_instruction(
+            archive.read(name), executable, digest, offset, original, replacement
+        )
+        log(f"Patched {name} to skip ACE startup")
+
+    gvoice_name = f"{bundle.root}{GVOICE_CONFIG_PATH}"
+    if gvoice_name not in archive.NameToInfo:
+        raise BuildError(f"The IPA has no {GVOICE_CONFIG_PATH}.")
+    replacements[gvoice_name] = patch_gvoice_config(archive.read(gvoice_name), target)
+    log(f"Patched SDK reporting defaults and voice server {target.gvoice_server_url}")
 
     plist_name = f"{bundle.root}{INFO_PLIST_NAME}"
     replacements[plist_name] = plistlib.dumps(
@@ -1009,6 +1190,15 @@ def parse_arguments() -> argparse.Namespace:
         "--dev",
         action="store_true",
         help="build a development client that talks plain HTTP to a server on your LAN",
+    )
+    parser.add_argument(
+        "--voice-host",
+        help="voice server domain or IPv4 address (default: VoiceServer.Host, or --host)",
+    )
+    parser.add_argument(
+        "--voice-port",
+        type=int,
+        help="voice server UDP port (default: VoiceServer.Port, or 8700)",
     )
     parser.add_argument(
         "--bundle-id",
