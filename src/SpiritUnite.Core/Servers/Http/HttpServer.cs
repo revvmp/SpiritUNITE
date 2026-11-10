@@ -33,7 +33,7 @@ public static class HttpServer
     {
         services.AddOptions<HttpServerOptions>()
             .BindConfiguration(HttpServerOptions.SectionName)
-            .Validate(options => options.IsValid(), "HttpServer settings are invalid")
+            .Validate(options => options.IsValid(), "HttpServer settings are invalid: BindAddress must be an IP address, Port 1-65535, the redirect URIs https, TrustedProxies IP addresses or networks, and PublicOrigin empty or an http or https origin with no path")
             .ValidateOnStart();
 
         services.Configure<KestrelServerOptions>(kestrel => kestrel.Limits.MaxRequestBodySize = MaximumRequestBodyBytes);
@@ -70,6 +70,7 @@ public static class HttpServer
         ResourceEndpoints.Map(app);
         ImageCdnEndpoints.Map(app);
         GiftCodeEndpoints.Map(app);
+        AboutPage.Map(app);
         AdminEndpoints.Map(app);
     }
 

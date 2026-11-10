@@ -33,6 +33,20 @@ public static partial class ResourceArchiveFileName
         return true;
     }
 
+    public static string WithVersion(string fileName, string versionName)
+    {
+        var match = OfficialPattern().Match(fileName);
+        if (!match.Success)
+        {
+            throw new ArgumentException($"{fileName} is not an official archive name", nameof(fileName));
+        }
+
+        var parts = match.Groups["part"].Captures;
+        var start = parts[0].Index;
+        var end = parts[^1].Index + parts[^1].Length;
+        return string.Concat(fileName.AsSpan(0, start), versionName, fileName.AsSpan(end));
+    }
+
     public static bool TryParseProductFolder(string folderName, out int productId) =>
         int.TryParse(folderName, NumberStyles.None, CultureInfo.InvariantCulture, out productId) && productId > 0;
 

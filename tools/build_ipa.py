@@ -76,6 +76,11 @@ DEFAULT_DEV_WEB_PORT = 10081
 CLIENT_ADDRESS_SERVICE_PORTS = (8085, 8080)
 DIR_NODE_NAME = "trunk_global_dist"
 CLOUD_CONTROL_REPLACEMENT_HOST = "spiritunite.invalid"
+GCLOUD_FRAMEWORK_EXECUTABLE = "Frameworks/GCloud.framework/GCloud"
+GCLOUD_FRAMEWORK_SHA256 = "3f946c4618cdf6e411cc4f0b83605751a00604e5cd3e1828dc613418afdb7978"
+IS_DOMAIN_NAME_STORES_DOMAIN = 0x327E20
+MOV_W9_ONE = 0x320003E9
+MOV_W9_ZERO = 0x52800009
 UNREACHABLE_ORIGIN = "https://spiritunite.invalid"
 POKEMON_REDIRECT_URI = f"{UNREACHABLE_ORIGIN}/pokemon/loginSuccess"
 NINTENDO_REDIRECT_URI = f"{UNREACHABLE_ORIGIN}/nintendo/loginSuccess"
@@ -832,6 +837,18 @@ def inspect(ipa: Path) -> None:
                 log(f"  {info.filename}: {', '.join(markers)}")
 
 
+def address_any_update_host(content: bytes) -> bytes:
+    if hashlib.sha256(content).hexdigest() != GCLOUD_FRAMEWORK_SHA256:
+        raise BuildError(
+            "Unsupported GCloud framework: cannot locate the update address service's domain check safely."
+        )
+    if struct.unpack_from("<I", content, IS_DOMAIN_NAME_STORES_DOMAIN)[0] != MOV_W9_ONE:
+        raise BuildError("The GCloud framework does not hold the expected domain check instruction.")
+    patched = bytearray(content)
+    struct.pack_into("<I", patched, IS_DOMAIN_NAME_STORES_DOMAIN, MOV_W9_ZERO)
+    return bytes(patched)
+
+
 def build_replacements(
     archive: zipfile.ZipFile, bundle: AppBundle, target: HostTarget
 ) -> dict[str, bytes]:
@@ -885,6 +902,12 @@ def build_replacements(
     for info in entries_referencing(archive, bundle, old_md5):
         replacements[info.filename] = archive.read(info).replace(old_md5, new_md5)
         log(f"Updated the {METADATA_NAME} md5 in {info.filename}")
+
+    gcloud_name = f"{bundle.root}{GCLOUD_FRAMEWORK_EXECUTABLE}"
+    if gcloud_name not in archive.NameToInfo:
+        raise BuildError(f"The IPA has no {GCLOUD_FRAMEWORK_EXECUTABLE}.")
+    replacements[gcloud_name] = address_any_update_host(archive.read(gcloud_name))
+    log(f"Patched {gcloud_name} so the update server is reached by any host name")
 
     plist_name = f"{bundle.root}{INFO_PLIST_NAME}"
     replacements[plist_name] = plistlib.dumps(

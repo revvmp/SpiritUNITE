@@ -23,15 +23,15 @@ public static class ResourceEndpoints
         var logger = loggers.CreateLogger(typeof(ResourceEndpoints));
         var range = DescribeRange(request);
         var clientAddress = request.HttpContext.Connection.RemoteIpAddress;
-        if (!catalog.TryGet(productId, out var archive) || !string.Equals(Path.GetFileName(archive.FilePath), file, StringComparison.Ordinal))
+        if (!catalog.TryGet(productId, out var archive) || !string.Equals(archive.FileName, file, StringComparison.Ordinal))
         {
             logger.LogInformation("Resource archive request refused: product {ProductId}, file {File}, {Range}, from {Address}", productId, Uri.EscapeDataString(file), range, clientAddress);
             return Results.NotFound();
         }
 
         logger.LogInformation("Resource archive {Method} product {ProductId}, file {File}, {Range}, from {Address}", request.Method, productId, file, range, clientAddress);
-        return Results.File(
-            archive.FilePath,
+        return Results.Stream(
+            archive.OpenRead(),
             ArchiveContentType,
             entityTag: new EntityTagHeaderValue($"\"{archive.Md5}\""),
             enableRangeProcessing: true);

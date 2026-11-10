@@ -41,6 +41,11 @@ RESOURCE_TABLE_ENTRY = "resources.arsc"
 SHELL_DEX_ENTRY = "classes2.dex"
 SHELL_DEX_SHA256 = "0424acd386cc14745c209ccae1662259777889b026c04f60e71953855095d7d7"
 ATTACH_BASE_CONTEXT_SHELL_INSTRUCTIONS = 0x3081B8
+GCLOUD_LIBRARY_ENTRY = "lib/arm64-v8a/libgcloud.so"
+GCLOUD_LIBRARY_SHA256 = "f2932b84be1cbf5f59eb8126ad8427428c76990d21b76f8d927f78e2f87b3ce0"
+IS_DOMAIN_NAME_RETURNS_DOMAIN = 0x208748
+MOV_W20_ONE = 0x52800034
+MOV_W20_ZERO = 0x52800014
 
 AXML_STRING_POOL = 0x0001
 AXML_START_ELEMENT = 0x0102
@@ -1844,18 +1849,34 @@ def build_base_replacements(
         return replacements
 
 
+def address_any_update_host(content: bytes) -> bytes:
+    if hashlib.sha256(content).hexdigest() != GCLOUD_LIBRARY_SHA256:
+        raise BuildError(
+            "Unsupported libgcloud.so: cannot locate the update address service's domain check safely."
+        )
+    if struct.unpack_from("<I", content, IS_DOMAIN_NAME_RETURNS_DOMAIN)[0] != MOV_W20_ONE:
+        raise BuildError("libgcloud.so does not hold the expected domain check instruction.")
+    patched = bytearray(content)
+    struct.pack_into("<I", patched, IS_DOMAIN_NAME_RETURNS_DOMAIN, MOV_W20_ZERO)
+    return bytes(patched)
+
+
 def build_native_replacements(
     splits: dict[str, Path], target: HostTarget
 ) -> tuple[dict[str, bytes], str, str, ClientBuild]:
     with zipfile.ZipFile(splits[NATIVE_APK]) as native:
         resources = native.read(RESOURCES_ARCHIVE_ENTRY)
+        gcloud_library = native.read(GCLOUD_LIBRARY_ENTRY)
     patched_resources, original, patched = replace_seven_zip_file(
         resources,
         METADATA_ARCHIVE_PATH,
         lambda metadata: patch_metadata(metadata, target),
     )
     return (
-        {RESOURCES_ARCHIVE_ENTRY: patched_resources},
+        {
+            RESOURCES_ARCHIVE_ENTRY: patched_resources,
+            GCLOUD_LIBRARY_ENTRY: address_any_update_host(gcloud_library),
+        },
         hashlib.md5(original).hexdigest(),
         hashlib.md5(patched).hexdigest(),
         client_build_for(original),
@@ -1886,6 +1907,7 @@ def build(arguments: argparse.Namespace) -> None:
     log(f"  Client build {client_build.version_code}")
     log("Patching MSDKConfig.ini, the Centauri pay config and res.data")
     log("Disabling AnoApplication signature-shell initialization")
+    log("Letting libgcloud.so reach the update server by any host name")
     if target.development:
         log("Allowing cleartext HTTP in AndroidManifest.xml")
     log(

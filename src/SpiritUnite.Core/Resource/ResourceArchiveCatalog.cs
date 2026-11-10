@@ -1,9 +1,11 @@
 using System.Collections.Frozen;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Security.Cryptography;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SpiritUnite.Resource.Ifs;
 using SpiritUnite.Servers.Http;
 using SpiritUnite.Servers.Lobby;
 
@@ -15,6 +17,8 @@ public sealed class ResourceArchiveCatalog(
     IOptions<HttpServerOptions> httpServer,
     ILogger<ResourceArchiveCatalog> logger) : IHostedService
 {
+    private const int HashBufferBytes = 4 * 1024 * 1024;
+
     private volatile FrozenDictionary<int, ResourceArchive> archives = FrozenDictionary<int, ResourceArchive>.Empty;
 
     public bool TryGet(int productId, [NotNullWhen(true)] out ResourceArchive? archive) =>
@@ -31,13 +35,14 @@ public sealed class ResourceArchiveCatalog(
         }
 
         var servedBase = options.Value.ServedBase(lobbyAddress.Value, httpServer.Value);
+        var tablePatches = ClientTablePatches.For(httpServer.Value.WebOrigin(lobbyAddress.Value.Host));
         var found = new Dictionary<int, ResourceArchive>();
         var productFolders = new DirectoryInfo(root).EnumerateDirectories()
             .Where(folder => folder.Name != ImageCdnFolder.FolderName)
             .OrderBy(folder => folder.Name, StringComparer.Ordinal);
         foreach (var productFolder in productFolders)
         {
-            if (await LoadProductAsync(productFolder, servedBase, cancellationToken) is { } archive)
+            if (await LoadProductAsync(productFolder, servedBase, tablePatches, cancellationToken) is { } archive)
             {
                 found[archive.ProductId] = archive;
             }
@@ -49,7 +54,7 @@ public sealed class ResourceArchiveCatalog(
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-    private async Task<ResourceArchive?> LoadProductAsync(DirectoryInfo productFolder, Uri servedBase, CancellationToken cancellationToken)
+    private async Task<ResourceArchive?> LoadProductAsync(DirectoryInfo productFolder, Uri servedBase, IReadOnlyList<DatabinStringPatch> tablePatches, CancellationToken cancellationToken)
     {
         if (!ResourceArchiveFileName.TryParseProductFolder(productFolder.Name, out var folderProductId))
         {
@@ -90,9 +95,94 @@ public sealed class ResourceArchiveCatalog(
             return null;
         }
 
+        if (await PatchAsync(file, hash, productId, servedBase, tablePatches, cancellationToken) is { } patched)
+        {
+            return patched;
+        }
+
         var (url, secureUrl) = ResourceArchiveOptions.ArchiveUrls(servedBase, productId, file.Name);
-        logger.LogInformation("Resource archive for product {ProductId}: {File}, {Length} bytes, version {Version}, md5 {Md5}, served at {Url}", productId, file.Name, hash.Length, version, hash.Md5, url);
-        return new ResourceArchive(productId, version, hash.Md5, url, secureUrl, file.FullName, hash.Length);
+        logger.LogInformation("Resource archive for product {ProductId}: {File}, {Length} bytes, version {Version}, md5 {Md5}, served unpatched at {Url}", productId, file.Name, hash.Length, version, hash.Md5, url);
+        var path = file.FullName;
+        return new ResourceArchive(productId, version, hash.Md5, url, secureUrl, file.Name, hash.Length, () => OpenOriginal(path));
+    }
+
+    private async Task<ResourceArchive?> PatchAsync(
+        FileInfo file,
+        ResourceArchiveHash originalHash,
+        int productId,
+        Uri servedBase,
+        IReadOnlyList<DatabinStringPatch> tablePatches,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var archive = new IfsArchive(file.FullName);
+            var prepared = IfsPatcher.Prepare(archive, tablePatches);
+            var state = await ResourceArchivePatchState.ReadAsync(file.FullName, cancellationToken);
+            var generation = state?.Generation ?? 1;
+            var (layout, digest, versionName) = Assemble(archive, prepared, generation);
+            var unchanged = state is not null && state.Describes(originalHash.Md5, digest) && state.Length == layout.Length;
+            if (state is not null && !unchanged)
+            {
+                generation = state.Generation + 1;
+                (layout, digest, versionName) = Assemble(archive, prepared, generation);
+            }
+
+            var servedName = ResourceArchiveFileName.WithVersion(file.Name, versionName);
+            if (!ResourceArchiveFileName.TryParse(servedName, out _, out var version))
+            {
+                throw new InvalidDataException($"Patched archive name {servedName} does not parse");
+            }
+
+            string md5;
+            if (unchanged)
+            {
+                md5 = state!.Md5;
+            }
+            else
+            {
+                logger.LogInformation("Resource archive {File} patched to version {Version}; md5 hashing started ({Length} bytes)", file.Name, versionName, layout.Length);
+                var elapsed = Stopwatch.StartNew();
+                md5 = await HashAsync(layout, cancellationToken);
+                logger.LogInformation("Resource archive {File} patched md5 hashing finished in {Elapsed}", file.Name, elapsed.Elapsed);
+                await new ResourceArchivePatchState(originalHash.Md5, digest, generation, md5, layout.Length).WriteAsync(file.FullName, cancellationToken);
+            }
+
+            var (url, secureUrl) = ResourceArchiveOptions.ArchiveUrls(servedBase, productId, servedName);
+            logger.LogInformation(
+                "Resource archive for product {ProductId}: {File} patched as {ServedName} (generation {Generation}, {Tables} table values for the host web pages), {Length} bytes, md5 {Md5}, served at {Url}",
+                productId, file.Name, servedName, generation, tablePatches.Count, layout.Length, md5, url);
+            return new ResourceArchive(productId, version, md5, url, secureUrl, servedName, layout.Length, layout.OpenRead);
+        }
+        catch (Exception exception) when (exception is InvalidDataException or IOException or UnauthorizedAccessException or KeyNotFoundException)
+        {
+            logger.LogWarning("Resource archive {File} could not be patched ({Reason}); it is served unchanged, so the in-game Gift Exchange and agreement links keep the official addresses", file.Name, exception.Message);
+            return null;
+        }
+    }
+
+    private static (PatchedIfsLayout Layout, string Digest, string VersionName) Assemble(IfsArchive archive, PreparedIfsPatch prepared, int generation)
+    {
+        var versionName = IfsPatcher.PatchedVersionName(prepared.BundleVersionName, generation);
+        var layout = IfsPatcher.Assemble(archive, prepared, versionName);
+        return (layout, layout.Digest(), versionName);
+    }
+
+    private static Stream OpenOriginal(string path) =>
+        new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 1, FileOptions.Asynchronous | FileOptions.RandomAccess);
+
+    private static async Task<string> HashAsync(PatchedIfsLayout layout, CancellationToken cancellationToken)
+    {
+        await using var stream = layout.OpenRead();
+        using var md5 = IncrementalHash.CreateHash(HashAlgorithmName.MD5);
+        var buffer = new byte[HashBufferBytes];
+        int read;
+        while ((read = await stream.ReadAsync(buffer, cancellationToken)) > 0)
+        {
+            md5.AppendData(buffer, 0, read);
+        }
+
+        return Convert.ToHexStringLower(md5.GetHashAndReset());
     }
 
     private async Task<ResourceArchiveHash> LoadHashAsync(FileInfo file, CancellationToken cancellationToken)
