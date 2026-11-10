@@ -153,8 +153,10 @@ For friends to connect, use a domain pointing to your server and a publicly trus
    ```powershell
    # Windows
    python tools/build_apk.py --apks "path/to/splits" --host play.example.com
+   python tools/build_ipa.py --ipa "path/to/decrypted.ipa" --host play.example.com
    ```
    ```sh
    # Linux
    python3 tools/build_apk.py --apks "path/to/splits" --host play.example.com
+   python3 tools/build_ipa.py --ipa "path/to/decrypted.ipa" --host play.example.com
    ```

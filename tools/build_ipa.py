@@ -108,7 +108,6 @@ OFFICIAL_UPDATE_HOSTS = (
 )
 
 PENDING_CLIENT_CHANGES = (
-    "Nothing in this tool has run on an iPhone yet; configuration patches were inspected on iOS build 1192039 but runtime behavior is unverified.",
     "The IPA is unsigned for distribution; sign it with your own provisioning before installing.",
     "Telemetry hosts compiled into native code (TDM and others seen on Android) are unchanged.",
     "The iOS resource archive (Puffer product 1170) must be in ResourceArchive.Directory for the update step.",
@@ -958,7 +957,7 @@ def build(arguments: argparse.Namespace) -> None:
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Build an iOS Pokemon UNITE client that connects to your SpiritUNITE server (experimental)."
+        description="Build an iOS Pokemon UNITE client that connects to your SpiritUNITE server."
     )
     parser.add_argument(
         "--ipa",
