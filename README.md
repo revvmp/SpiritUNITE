@@ -83,7 +83,19 @@ Files go in the folder set by `ResourceArchive.Directory` in `appsettings.json` 
 ## Build the APK
 
 1. Put your own official `base.apk`, `split_ab.apk` and `split_config.arm64_v8a.apk` in one folder. Build `1192039` is currently supported.
-2. For local testing, run this from the root directory:
+2. Battles and voice chat, set `RelayServer.Host` and `VoiceServer.Host` in `appsettings.json` to your PC's local network IP and `TcpServer.BindAddress` to `0.0.0.0`. `adb reverse` cannot forward UDP, so the device reaches these two servers directly.
+   ```json
+   "RelayServer": {
+     "Host": "change-to-ipv4",
+     "Port": 10003
+   },
+   "VoiceServer": {
+     "Host": "change-to-ipv4",
+     "Port": 8700
+   }
+   ```
+
+3. For local testing, run this from the root directory:
    ```powershell
    # Windows
    python tools/build_apk.py --apks "path/to/splits" --dev
@@ -95,9 +107,10 @@ Files go in the folder set by `ResourceArchive.Directory` in `appsettings.json` 
    The script uses your server settings, creates a signing key and offers to download Android build tools if needed. Back up the signing key so future builds can update installed clients.
 
 
-3. Run the printed `adb install -g` command. The app shows up as **SpiritUNITE**; use `--label` to change the name.
-4. With the default local settings, run the printed `adb reverse` commands to connect your device to the server. Repeat these after restarting.
-5. Start the server and launch the game.
+4. Run the printed `adb install -g` command. The app shows up as **SpiritUNITE**; use `--label` to change the name.
+5. With the default local settings, run the printed `adb reverse` commands to connect your device to the server. Repeat these after restarting.
+6. Start the server and launch the game.
+
 
 ## Ports
 
@@ -117,7 +130,7 @@ All of these can be changed in `appsettings.json`, except the update server. The
 For friends to connect, use a domain pointing to your server and a publicly trusted HTTPS certificate.
 
 
-1. In `appsettings.json`, set `LobbyServer.Host` to your domain.
+1. In `appsettings.json`, set `LobbyServer.Host` to your domain. `RelayServer.Host` and `VoiceServer.Host` can be left as `""`.
    ```json
    "LobbyServer": {
      "Host": "play.example.com",
@@ -125,7 +138,7 @@ For friends to connect, use a domain pointing to your server and a publicly trus
    }
    ```
 
-2. Set `TcpServer.BindAddress` to `0.0.0.0` so the directory, lobby, update and relay servers accept outside connections. Keep `127.0.0.1` for local development.
+2. Set `TcpServer.BindAddress` to `0.0.0.0` so the directory, lobby, update and relay servers accept outside connections.
    ```json
    "TcpServer": {
      "BindAddress": "0.0.0.0",
@@ -144,7 +157,7 @@ For friends to connect, use a domain pointing to your server and a publicly trus
    ```json
    "ResourceArchive": {
      "Directory": "resources",
-     "BaseUrl": ""
+     "BaseUrl": "http://play.example.com"
    }
    ```
 
