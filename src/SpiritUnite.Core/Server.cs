@@ -76,6 +76,7 @@ public static class Server
 {
     private const string LogFileTemplate = "{Timestamp:HH:mm:ss.fff} [{Level:u5}] {Message:lj}{NewLine}{Exception}";
     private const int RetainedLogFiles = 7;
+    private const long LogFileSizeLimitBytes = 100L * 1024 * 1024;
     private const string GameSettingsFile = "gamesettings.json";
 
     private static readonly string[] MovedToDatabaseSettings =
@@ -120,18 +121,28 @@ public static class Server
         return builder;
     }
 
-    private static void AddLogging(IHostApplicationBuilder builder) =>
+    private static void AddLogging(IHostApplicationBuilder builder)
+    {
+        var minimumLevel = builder.Configuration.GetValue("Logging:MinimumLevel", LogEventLevel.Information);
+        if (!Enum.IsDefined(minimumLevel))
+        {
+            throw new InvalidOperationException("Logging:MinimumLevel must be Verbose, Debug, Information, Warning, Error or Fatal");
+        }
+
         builder.Services.AddSerilog(logger => logger
-            .MinimumLevel.Debug()
-            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .MinimumLevel.Is(minimumLevel)
+            .MinimumLevel.Override("Microsoft", minimumLevel < LogEventLevel.Information ? LogEventLevel.Information : minimumLevel)
             .Filter.ByExcluding(GiftCodeEndpoints.CarriesWebViewToken)
             .WriteTo.Async(sink => sink.Console(new SpiritConsoleFormatter()))
             .WriteTo.Async(sink => sink.File(
                 Path.Combine(AppContext.BaseDirectory, "logs", "spiritunite-.log"),
                 outputTemplate: LogFileTemplate,
                 rollingInterval: RollingInterval.Day,
+                fileSizeLimitBytes: LogFileSizeLimitBytes,
+                rollOnFileSizeLimit: true,
                 retainedFileCountLimit: RetainedLogFiles,
                 shared: true)));
+    }
 
     private static void AddSettings(IHostApplicationBuilder builder)
     {

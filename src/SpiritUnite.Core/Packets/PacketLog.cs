@@ -39,6 +39,11 @@ public sealed class PacketLog(ILogger logger)
 
     private void WriteGame(string direction, GamePacket packet)
     {
+        if (!logger.IsEnabled(LogLevel.Debug))
+        {
+            return;
+        }
+
         logger.LogDebug(
             "{Source}    |   {Direction}   | {Packet}, {Operation}/0x{Hex:X4}\t| {Size} bytes, uid {Uid}",
             GameSource, direction, NameOfMessage(packet.MsgID), packet.MsgID, packet.MsgID, packet.PkgData.Length, packet.Uid);
