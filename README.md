@@ -1,6 +1,6 @@
 # SpiritUNITE
 
-SpiritUNITE is a C# server emulator for the [Pokemon UNITE](https://en.wikipedia.org/wiki/Pok%C3%A9mon_Unite) client. The official service ends on **March 23, 2027**, and this project aims to keep the game playable after that.
+SpiritUNITE is a C# server emulator for the [Pokemon UNITE](https://en.wikipedia.org/wiki/Pok%C3%A9mon_Unite) client. The official service ends on **March 23, 2027**.
 
 ## Gallery
 
@@ -15,7 +15,7 @@ SpiritUNITE is a C# server emulator for the [Pokemon UNITE](https://en.wikipedia
 
 ## Prerequisites
 
-- You will need your own APK and decrypted IPA.
+- You will need your own APK or decrypted IPA.
 
 ## Environment Setup
 
@@ -31,12 +31,22 @@ SpiritUNITE is a C# server emulator for the [Pokemon UNITE](https://en.wikipedia
 
 1. Create the database and its tables.
    ```powershell
+   # Windows
+   cmd /c "mariadb -u root -p < sql/spiritunite.sql"
+   ```
+   ```sh
+   # Linux
    mariadb -u root -p < sql/spiritunite.sql
    ```
 
 2. Copy the example settings and put your database user and password in the connection string.
    ```powershell
+   # Windows
    copy src/SpiritUnite.Core/appsettings.example.json src/SpiritUnite.Core/appsettings.json
+   ```
+   ```sh
+   # Linux
+   cp src/SpiritUnite.Core/appsettings.example.json src/SpiritUnite.Core/appsettings.json
    ```
 
 3. Download the game resources (see [Download the Game Resources](#download-the-game-resources)). The game downloads about 7 GB from your server on first launch and checks it on every start, so players cannot get past "Checking update data" without it.
@@ -47,13 +57,21 @@ SpiritUNITE is a C# server emulator for the [Pokemon UNITE](https://en.wikipedia
    dotnet run --project src/SpiritUnite.Core
    ```
 
+5. Open the admin panel at the address printed at startup (`http://127.0.0.1:10081/admin` by default, `https://your.domain/admin` when hosting) and log in with the new token printed on every start.
+
 ## Download the Game Resources
 
 Your server hands players the files the game downloads on first launch: one resource archive per platform and the shop, outfit and event images. Get them from the official servers while they are still up (until March 23, 2027). No APK is needed.
 
 ```powershell
+# Windows
 python tools/fetch_resources.py archives
 python tools/fetch_resources.py images
+```
+```sh
+# Linux
+python3 tools/fetch_resources.py archives
+python3 tools/fetch_resources.py images
 ```
 
 - `archives` downloads the Android (about 7.8 GB) and iOS (about 7.7 GB) archives into `resources/1169/` and `resources/1170/`. Use `--platform android` or `--platform ios` for just one.
@@ -67,7 +85,12 @@ Files go in the folder set by `ResourceArchive.Directory` in `appsettings.json` 
 1. Put your own official `base.apk`, `split_ab.apk` and `split_config.arm64_v8a.apk` in one folder. Build `1192039` is currently supported.
 2. For local testing, run this from the root directory:
    ```powershell
+   # Windows
    python tools/build_apk.py --apks "path/to/splits" --dev
+   ```
+   ```sh
+   # Linux
+   python3 tools/build_apk.py --apks "path/to/splits" --dev
    ```
    The script uses your server settings, creates a signing key and offers to download Android build tools if needed. Back up the signing key so future builds can update installed clients.
 
@@ -93,7 +116,6 @@ All of these can be changed in `appsettings.json`, except the update server. The
 
 For friends to connect, use a domain pointing to your server and a publicly trusted HTTPS certificate.
 
-The directory server tells the client where to find the lobby server. By default it says `127.0.0.1`, which only works on your own machine. A remote client sent to `127.0.0.1` will never reach the lobby.
 
 1. In `appsettings.json`, set `LobbyServer.Host` to your domain.
    ```json
@@ -104,14 +126,14 @@ The directory server tells the client where to find the lobby server. By default
    ```
 
 2. Set `TcpServer.BindAddress` to `0.0.0.0` so the directory, lobby, update and relay servers accept outside connections. Keep `127.0.0.1` for local development.
-    ```json
-    "TcpServer": {
-    "BindAddress": "127.0.0.1",
-    "MaxConnections": 100,
-    "IdleTimeoutSeconds": 120,
-    "RegistrationIdleTimeoutSeconds": 900
-    }
-    ```
+   ```json
+   "TcpServer": {
+     "BindAddress": "0.0.0.0",
+     "MaxConnections": 100,
+     "IdleTimeoutSeconds": 120,
+     "RegistrationIdleTimeoutSeconds": 900
+   }
+   ```
 
 3. Set up HTTPS for your domain and open your ports. Follow the [nginx hosting guide](deploy/README.md).
 
@@ -121,13 +143,18 @@ The directory server tells the client where to find the lobby server. By default
    - For hosting, set it to your domain (or CDN). Serve `/resources/` over plain HTTP on port 80, not redirected to HTTPS:
    ```json
    "ResourceArchive": {
-    "Directory": "resources",
-    "BaseUrl": ""
-    }
+     "Directory": "resources",
+     "BaseUrl": ""
+   }
    ```
 
 
 5. Build the client for your domain:
    ```powershell
+   # Windows
    python tools/build_apk.py --apks "path/to/splits" --host play.example.com
+   ```
+   ```sh
+   # Linux
+   python3 tools/build_apk.py --apks "path/to/splits" --host play.example.com
    ```
