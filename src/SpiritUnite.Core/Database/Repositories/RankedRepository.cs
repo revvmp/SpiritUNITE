@@ -22,6 +22,10 @@ public sealed record RankedSeasonRecord(
     RankedEntry? Entry,
     bool UseFreeTicket = false);
 
+public sealed record RankedBattleOutcome(RankedSeasonRecord Season, RankedSettlement Settlement);
+
+public sealed record RankedReminderOutcome(int IsTodaySetNoReminded, long Day);
+
 public sealed record RankedSeasonRanking(ulong GameUlongUID, RankedPosition Position);
 
 public sealed record RankedSettlementCommit(bool Committed, IReadOnlyList<BagItem> ChangedItems);
@@ -226,6 +230,51 @@ public sealed class RankedRepository(DataOptions options)
         await database.InsertOrReplaceAsync(ToRow(gameUlongUID, record));
         await transaction.CommitAsync();
         return new RankedSettlementCommit(true, changedItems);
+    }
+
+    public async Task<SettlementEffectResult<RankedBattleOutcome>> CommitBattleAsync(SettlementKey key, RankedSeasonRecord before, RankedBattleOutcome outcome)
+    {
+        await using var database = new DataConnection(options);
+        await using var transaction = await database.BeginTransactionAsync();
+        var result = await SettlementEffects.RunAsync(database, key, "ranked.battle", async () =>
+        {
+            var current = await database.GetTable<RoleRankedSeason>().FirstOrDefaultAsync(row => row.GameUlongUID == key.GameUlongUID && row.SeasonId == before.SeasonId);
+            if (current is not null && ToRecord(current) != before || current is null && (before.BattleCnt != 0 || before.Entry is not null))
+            {
+                throw new InvalidOperationException("Ranked state changed after settlement was prepared");
+            }
+
+            await database.InsertOrReplaceAsync(ToRow(key.GameUlongUID, outcome.Season));
+            return outcome;
+        });
+        await transaction.CommitAsync();
+        return result;
+    }
+
+    public async Task<SettlementEffectResult<RankedReminderOutcome>> TakeSettlementReminderAsync(SettlementKey key, long day)
+    {
+        await using var database = new DataConnection(options);
+        await using var transaction = await database.BeginTransactionAsync();
+        var result = await SettlementEffects.RunAsync(database, key, "ranked.reminder", async () =>
+        {
+            var row = await database.GetTable<RoleRanked>().FirstOrDefaultAsync(ranked => ranked.GameUlongUID == key.GameUlongUID);
+            var before = row?.NoRemindedBuyProtectCardDay ?? 0;
+            if (row is null)
+            {
+                await database.InsertAsync(new RoleRanked { GameUlongUID = key.GameUlongUID, NoRemindedBuyProtectCardDay = day });
+            }
+            else if (before < day)
+            {
+                await database.GetTable<RoleRanked>()
+                    .Where(ranked => ranked.GameUlongUID == key.GameUlongUID)
+                    .Set(ranked => ranked.NoRemindedBuyProtectCardDay, day)
+                    .UpdateAsync();
+            }
+
+            return new RankedReminderOutcome(before == day ? 1 : 0, Math.Max(before, day));
+        });
+        await transaction.CommitAsync();
+        return result;
     }
 
     private static async Task<RankedGrantCommit> ApplyGrantAndCommitAsync(

@@ -31,6 +31,7 @@ public sealed class SettlementProcessor(
     private static readonly TimeSpan PurgeInterval = TimeSpan.FromHours(1);
 
     private readonly ConcurrentDictionary<SettlementKey, SettlementDelivery> settling = new();
+    private readonly SemaphoreSlim processingSlots = new(16);
 
     public async Task<bool> EnqueueAsync(BattleResult result)
     {
@@ -144,13 +145,45 @@ public sealed class SettlementProcessor(
             return SettlementState.Processing;
         }
 
+        await processingSlots.WaitAsync();
         try
         {
+            await using var ownership = await AcquireOwnershipAsync(key, delivery);
+            if (ownership is null)
+            {
+                logger.LogInformation("Settlement {SettlementID} for uid {Uid} waits for another settlement owner", key.SettlementID, key.GameUlongUID);
+                return await CurrentStateAsync(key);
+            }
+
+            using var execution = ownership.Enter();
             return await ClaimAndSettleAsync(key, liveResult, delivery);
         }
         finally
         {
+            processingSlots.Release();
             settling.TryRemove(key, out _);
+        }
+    }
+
+    private async Task<SettlementOwnership?> AcquireOwnershipAsync(SettlementKey key, SettlementDelivery delivery)
+    {
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                return await journal.TryAcquireOwnershipAsync(key.GameUlongUID);
+            }
+            catch (Exception exception) when (DatabaseFaults.IsTransient(exception))
+            {
+                if (attempt < MaxSettleAttempts && await WaitForLockRetryAsync(key, attempt, delivery))
+                {
+                    continue;
+                }
+
+                logger.LogWarning(exception, "Settlement {SettlementID} for uid {Uid} could not acquire ownership; the journal remains recoverable",
+                    key.SettlementID, key.GameUlongUID);
+                return null;
+            }
         }
     }
 
@@ -188,6 +221,7 @@ public sealed class SettlementProcessor(
                 else
                 {
                     await settlement.SettleAsync(result, delivery, key);
+                    await journal.CompleteAsync(key);
                 }
 
                 return SettlementState.Completed;

@@ -22,6 +22,12 @@ public sealed record NewbieChallengeDayReceipt(IReadOnlyDictionary<int, long> Re
 
 public sealed class NewbieChallengeRepository(DataOptions options)
 {
+    public async Task<(long? FirstDay, IReadOnlyDictionary<int, long> Days)> FindReceivedAsync(ulong uid)
+    {
+        await using var database = new DataConnection(options);
+        return (await FindRecvTimeAsync(database, uid), await FindDayRecvTimesAsync(database, uid));
+    }
+
     public async Task<NewbieChallengeDayReceipt> ReceiveDaysAsync(ulong gameUlongUID, IReadOnlyCollection<int> taskDays, long now)
     {
         await using var database = new DataConnection(options);

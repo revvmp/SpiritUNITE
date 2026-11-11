@@ -56,6 +56,14 @@ CREATE TABLE IF NOT EXISTS `role` (
     CONSTRAINT fk_role_account FOREIGN KEY (game_ulong_uid) REFERENCES `account` (account_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `role_statistic` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    statistic_info BLOB NOT NULL,
+    season_id INT NOT NULL,
+    season_statistic_info BLOB NOT NULL,
+    CONSTRAINT fk_role_statistic_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `role_pve_settlement` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     settlement_id CHAR(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
@@ -75,11 +83,31 @@ CREATE TABLE IF NOT EXISTS `battle_settlement` (
     attempts TINYINT UNSIGNED NOT NULL DEFAULT 0,
     payload LONGBLOB NOT NULL,
     updated_at BIGINT NOT NULL,
+    battle_started_at BIGINT NOT NULL DEFAULT 0,
     last_error VARCHAR(2000) NOT NULL DEFAULT '',
     PRIMARY KEY (settlement_id, game_ulong_uid),
     KEY ix_battle_settlement_pending (state, updated_at),
     KEY ix_battle_settlement_role (game_ulong_uid),
     CONSTRAINT fk_battle_settlement_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `battle_settlement_effect` (
+    settlement_id CHAR(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    effect VARCHAR(96) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    output LONGBLOB NOT NULL,
+    PRIMARY KEY (settlement_id, game_ulong_uid, effect),
+    KEY ix_battle_settlement_effect_kind (effect, settlement_id, game_ulong_uid),
+    CONSTRAINT fk_battle_settlement_effect FOREIGN KEY (settlement_id, game_ulong_uid)
+        REFERENCES `battle_settlement` (settlement_id, game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `battle_settlement_owner` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    fence BIGINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid),
+    CONSTRAINT fk_battle_settlement_owner FOREIGN KEY (game_ulong_uid)
+        REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `role_pokemon` (
@@ -646,6 +674,14 @@ CREATE TABLE IF NOT EXISTS `role_credit` (
     CONSTRAINT fk_role_credit_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `role_credit_recovery_day` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    day BIGINT NOT NULL,
+    resume_credit INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid, day),
+    CONSTRAINT fk_credit_recovery_day_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
 CREATE TABLE IF NOT EXISTS `role_credit_task` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL,
     task_id INT NOT NULL,
@@ -984,6 +1020,15 @@ CREATE TABLE IF NOT EXISTS `role_skill_effects_expand_pack` (
     skill_effects_expand_pack_id INT NOT NULL,
     PRIMARY KEY (game_ulong_uid, pokemon_avatar_id, skill_effects_expand_pack_type),
     CONSTRAINT fk_role_skill_effects_expand_pack_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `battle_ten_games_settlement` (
+    settlement_id CHAR(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    plan LONGBLOB NOT NULL,
+    applied BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at BIGINT NOT NULL,
+    PRIMARY KEY (settlement_id),
+    KEY ix_ten_games_settlement_created (created_at)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `ten_games_team` (

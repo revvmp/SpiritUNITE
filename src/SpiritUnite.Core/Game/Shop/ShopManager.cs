@@ -196,7 +196,8 @@ public sealed class ShopManager(
             return PB_ENUM_RES_ERROR_CODE.PbErrShopBuyNumFail;
         }
 
-        if (shopInfo.VoucherID != 0 || shopInfo.DiscountTicketID != 0 || shopInfo.ChooseResId != NoChoice)
+        if (shopInfo.VoucherID != 0 || shopInfo.DiscountTicketID != 0
+            || shopInfo.ChooseResId != NoChoice && shopInfo.ChooseResId != shopItem.ShopResID)
         {
             return PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
         }

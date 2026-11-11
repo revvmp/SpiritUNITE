@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SpiritUnite.Database.Models;
 using SpiritUnite.Database.Repositories;
 using SpiritUnite.Databin;
 using SpiritUnite.Game.Activity;
@@ -470,19 +471,23 @@ public sealed class BattlePassManager(
             .ToArray();
         foreach (var progress in ended)
         {
-            if (!await repository.MarkSettledAsync(uid, progress.SeasonID))
+            var savedMails = await repository.SettleSeasonAsync(uid, progress.SeasonID, stored => BuildUnclaimedRewardMails(uid, stored));
+            if (savedMails.Count > 0)
             {
-                continue;
+                logger.LogInformation(
+                    "Battle pass season {SeasonID} of uid {Uid} settled: {MailCount} reward mails committed",
+                    progress.SeasonID, uid, savedMails.Count);
             }
 
-            var stored = new BattlePassStored(progress, await repository.FindClaimedAsync(uid, progress.SeasonID));
-            await MailUnclaimedRewardsAsync(role, stored);
+            foreach (var saved in savedMails)
+            {
+                await mail.PushMailNewAsync(saved);
+            }
         }
     }
 
-    private async Task MailUnclaimedRewardsAsync(LMNRoleInfo role, BattlePassStored stored)
+    private IReadOnlyList<RoleMail> BuildUnclaimedRewardMails(ulong uid, BattlePassStored stored)
     {
-        var uid = role.GameUlongUID;
         var seasonID = stored.Progress.SeasonID;
         var resources = FindClaimable(stored)
             .SelectMany(key => BattlePassRewards.FindAwards(seasons.FindLevelReward(seasonID, key.Level)!, key.Type))
@@ -505,18 +510,13 @@ public sealed class BattlePassManager(
         }
 
         var mailed = attachments.Where(mail.CanAttach).ToArray();
-        foreach (var chunk in mailed.Chunk(MailBox.MaxMailAccess))
-        {
-            await mail.SendSystemMailAsync(uid, new SystemMail(
+        return mailed.Chunk(MailBox.MaxMailAccess)
+            .Select(chunk => mail.CreateSystemMail(uid, new SystemMail(
                 Subject: SeasonRewardMailSubject,
                 Content: SeasonRewardMailContent,
                 Attachments: chunk,
-                MailID: SeasonRewardMailID));
-        }
-
-        logger.LogInformation(
-            "Battle pass season {SeasonID} of uid {Uid} settled at level {Level}: {AttachmentCount} unclaimed rewards mailed",
-            seasonID, uid, stored.Progress.Level, mailed.Length);
+                MailID: SeasonRewardMailID)))
+            .ToArray();
     }
 
     private BattlePassOutcome Finish(LMNRoleInfo role, string action, BattlePassCommit commit, string what)

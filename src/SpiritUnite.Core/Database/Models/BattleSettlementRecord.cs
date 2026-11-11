@@ -23,6 +23,9 @@ public sealed class BattleSettlementRecord
     [Column("updated_at")]
     public long UpdatedAt { get; set; }
 
+    [Column("battle_started_at")]
+    public long BattleStartedAt { get; set; }
+
     [Column("last_error"), NotNull]
     public string LastError { get; set; } = string.Empty;
 }

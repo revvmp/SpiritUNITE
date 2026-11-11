@@ -45,6 +45,28 @@ public sealed class GuildActivityTasks(
             ? [.. (await LoadStatesAsync(uid, found)).Select(state => state.ToTaskInfo())]
             : [];
 
+    public async Task ApplySettlementAsync(SettlementKey key, SettlementTaskPlan plan) => await taskProcesses.ApplySettlementAsync(key, plan);
+
+    public async Task<SettlementTaskPlan> PrepareSettlementAsync(ulong uid, GuildBattle battle, DateTimeOffset now)
+    {
+        const string effect = "tasks.guild";
+        if (await FindTasksAsync(uid, now) is not { } found)
+        {
+            return SettlementTaskPlan.Empty(effect, now.ToUnixTimeSeconds());
+        }
+
+        var memberUids = (await repository.GetMembersAsync(found.Member.GuildID)).Select(member => member.GameUlongUID).ToHashSet();
+        var withGuildMember = battle.TeammateUids.Any(teammate => teammate != uid && memberUids.Contains(teammate));
+        var increments = found.Tasks
+            .Select(task => (Task: task, Condition: task.FinishCondition.FirstOrDefault()))
+            .Where(entry => entry.Condition is not null)
+            .Select(entry => (entry.Task, entry.Condition, Delta: Measure(entry.Condition!, battle, withGuildMember)))
+            .Where(entry => entry.Delta > 0)
+            .Select(entry => new TaskProcessIncrement(entry.Task.TaskID, PeriodStartOf(entry.Task, found.Period, now), entry.Delta, entry.Condition!.TargetProcess))
+            .ToArray();
+        return new SettlementTaskPlan(effect, now.ToUnixTimeSeconds(), increments, []);
+    }
+
     public async Task RecordBattleAsync(ulong uid, GuildBattle battle)
     {
         if (await FindTasksAsync(uid) is not { } found)
@@ -137,14 +159,14 @@ public sealed class GuildActivityTasks(
 
     private int MaxGuildScore() => gameData.GuildActivityScoreGear.Rows.Select(gear => gear.Score).DefaultIfEmpty(0).Max();
 
-    private async Task<GuildTaskSet?> FindTasksAsync(ulong uid)
+    private async Task<GuildTaskSet?> FindTasksAsync(ulong uid, DateTimeOffset? at = null)
     {
         if (await repository.FindMemberAsync(uid) is not { } member)
         {
             return null;
         }
 
-        var period = activities.CurrentPeriod();
+        var period = at is { } eventTime ? GuildActivityPeriod.Find(gameData, UTCTimeUtil.ServerTime2CfgTime(eventTime)) : activities.CurrentPeriod();
         if (await activities.FindStartedActivityAsync(member.GuildID, period) is not { } activity
             || gameData.GuildActivityTask.Find(activity.RewardID) is not { } taskRow)
         {

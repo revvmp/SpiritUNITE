@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
+using SpiritUnite.Database.Models;
 using SpiritUnite.Database.Repositories;
 using SpiritUnite.Databin;
 using SpiritUnite.Game.Mail;
@@ -11,6 +12,8 @@ using SpiritUnite.Tools;
 namespace SpiritUnite.Game.Credit;
 
 public sealed record CreditPenalty(bool IsPenalized, int CreditPoint, long BanEndTime);
+
+public sealed record CreditSettlementPlan(long Day, int Recovery, int DailyLimit, int Deduction);
 
 public sealed record HangupPenalty(int ReducePoint, int CreditPoint, pbSCCreditPointNtf? CreditPointNtf);
 
@@ -32,6 +35,7 @@ public sealed class CreditManager(
     CreditRepository repository,
     GameData gameData,
     MailManager mail,
+    SettlementMailRepository settlementMails,
     LobbyRoles lobbyRoles,
     BackgroundOperations background,
     TimeProvider clock,
@@ -181,6 +185,28 @@ public sealed class CreditManager(
         0,
         HangupIncomeRatioBase);
 
+    public Task QueueHangupPunishMailsAsync(HangupPunishNotice notice, SettlementKey key, long now)
+    {
+        if (key.GameUlongUID != notice.Uid || key.SettlementID != notice.SettlementID.ToString("N"))
+        {
+            throw new ArgumentException("Settlement identity does not match punishment notice", nameof(key));
+        }
+
+        var mails = new List<RoleMail>
+        {
+            mail.CreateSystemMail(notice.Uid, BuildHangupPunishMail(notice)),
+        };
+        mails.AddRange(notice.TeammateUids.Distinct().Where(uid => uid != notice.Uid)
+            .Select(uid => mail.CreateSystemMail(uid, BuildSysAutoPunishMail(notice))));
+        foreach (var saved in mails)
+        {
+            saved.ExpireTime = now + saved.ExpireTime - saved.SendTime;
+            saved.SendTime = now;
+        }
+
+        return settlementMails.QueueAsync(key, new SettlementMailPlan(now + (long)HangupPunishMailDelay.TotalSeconds, [.. mails]));
+    }
+
     public void ScheduleHangupPunishMails(HangupPunishNotice notice)
     {
         var isFirstOfBattle = false;
@@ -210,16 +236,28 @@ public sealed class CreditManager(
         }
     }
 
-    public async Task<HangupPenalty> PenalizeHangupAsync(ulong uid, CreditReduceBattle battle, PB_ENUM_ENM_HANGUP_TYPE hangupType)
+    public CreditSettlementPlan PrepareSettlement(int mapId, bool isManMachine, PB_ENUM_ENM_HANGUP_TYPE hangupType, long settledAt)
+    {
+        var scheme = HangupSchemeIDOf(mapId);
+        return new CreditSettlementPlan(
+            settledAt / SecondsPerDay,
+            Math.Max(0, SchemeValueOf(scheme, isManMachine ? ManmachineResumeCreditKey : BattleResumeCreditKey)),
+            gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalCompleteResumeCreditDailyLimit),
+            HangupDeductionOf(scheme, hangupType));
+    }
+
+    private int HangupDeductionOf(int hangupSchemeID, PB_ENUM_ENM_HANGUP_TYPE hangupType) => hangupType switch
+    {
+        PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeMild => SchemeValueOf(hangupSchemeID, MildHandupDeduceCreditpointKey),
+        PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeSevere => SchemeValueOf(hangupSchemeID, SevereHandupDeduceCreditpointKey),
+        PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeMalicious => SchemeValueOf(hangupSchemeID, MaliciousHandupDeduceCreditpointKey),
+        _ => 0,
+    };
+
+    public async Task<HangupPenalty> PenalizeHangupAsync(ulong uid, CreditReduceBattle battle, PB_ENUM_ENM_HANGUP_TYPE hangupType, SettlementKey? settlementKey = null, CreditSettlementPlan? prepared = null)
     {
         var hangupSchemeID = HangupSchemeIDOf(battle.MapId);
-        var deduction = hangupType switch
-        {
-            PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeMild => SchemeValueOf(hangupSchemeID, MildHandupDeduceCreditpointKey),
-            PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeSevere => SchemeValueOf(hangupSchemeID, SevereHandupDeduceCreditpointKey),
-            PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeMalicious => SchemeValueOf(hangupSchemeID, MaliciousHandupDeduceCreditpointKey),
-            _ => 0,
-        };
+        var deduction = prepared?.Deduction ?? HangupDeductionOf(hangupSchemeID, hangupType);
         return await UpdateAsync(uid, record =>
         {
             var creditPoint = Math.Max(MinCreditPoint, record.CreditPoint - Math.Max(0, deduction));
@@ -236,7 +274,7 @@ public sealed class CreditManager(
                 : (record with { CreditPoint = creditPoint },
                     BuildReduceRecord(battle, PB_ENUM_ENM_CREDIT_DEDUCE_REASON.PbEnmCreditDeduceReasonHangup, reducePoint),
                     new HangupPenalty(reducePoint, creditPoint, new pbSCCreditPointNtf { CurrentCreditPoint = creditPoint }));
-        });
+        }, settlementKey, "credit.hangup");
     }
 
     private async Task SendHangupPunishMailsAsync(Guid settlementID)
@@ -335,32 +373,18 @@ public sealed class CreditManager(
         _ => throw new ArgumentOutOfRangeException(nameof(hangupType), hangupType, "Only an idle hang-up type has a punish mail"),
     };
 
-    public async Task<pbSCCreditPointNtf?> RecoverAfterBattleAsync(ulong uid, int mapId, bool isManMachine)
+    public async Task<pbSCCreditPointNtf?> RecoverAfterBattleAsync(ulong uid, int mapId, bool isManMachine, SettlementKey? settlementKey = null, long? settledAt = null, CreditSettlementPlan? prepared = null)
     {
-        var hangupSchemeID = HangupSchemeIDOf(mapId);
-        var recovery = Math.Max(0, SchemeValueOf(hangupSchemeID, isManMachine ? ManmachineResumeCreditKey : BattleResumeCreditKey));
-        var dailyLimit = gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalCompleteResumeCreditDailyLimit);
-        return await UpdateAsync(uid, record =>
+        if (settlementKey is not null && settlementKey.GameUlongUID != uid)
         {
-            var today = clock.GetUtcNow().ToUnixTimeSeconds() / SecondsPerDay;
-            var resumedToday = record.ResumeDay == today ? record.ResumeCredit : 0;
-            var allowed = Math.Clamp(dailyLimit - resumedToday, 0, recovery);
-            var creditPoint = Math.Min(MaxCreditPoint, record.CreditPoint + allowed);
-            var resumed = Math.Max(0, creditPoint - record.CreditPoint);
-            logger.LogInformation(
-                "Uid {Uid} recovers credit after a battle on hang-up scheme {HangupSchemeID}: {Before} -> {After}, {ResumedToday} of {DailyLimit} recovered today",
-                uid,
-                hangupSchemeID,
-                record.CreditPoint,
-                record.CreditPoint + resumed,
-                resumedToday + resumed,
-                dailyLimit);
-            return resumed == 0
-                ? (record, (CreditReduceRecord?)null, (pbSCCreditPointNtf?)null)
-                : (record with { CreditPoint = record.CreditPoint + resumed, ResumeDay = today, ResumeCredit = resumedToday + resumed },
-                    null,
-                    new pbSCCreditPointNtf { CurrentCreditPoint = record.CreditPoint + resumed });
-        });
+            throw new ArgumentException("Settlement uid does not match credit uid", nameof(settlementKey));
+        }
+
+        var hangupSchemeID = HangupSchemeIDOf(mapId);
+        var recovery = prepared?.Recovery ?? Math.Max(0, SchemeValueOf(hangupSchemeID, isManMachine ? ManmachineResumeCreditKey : BattleResumeCreditKey));
+        var dailyLimit = prepared?.DailyLimit ?? gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalCompleteResumeCreditDailyLimit);
+        var today = prepared?.Day ?? (settledAt ?? clock.GetUtcNow().ToUnixTimeSeconds()) / SecondsPerDay;
+        return await WithGateAsync(uid, () => repository.RecoverBattleAsync(uid, settlementKey, today, recovery, dailyLimit, MaxCreditPoint, StartingCreditPoint));
     }
 
     public async Task<pbCOMDT_CREDIT_REDUCE_RECORD_LIST> BuildReduceRecordListAsync(ulong uid) => new()
@@ -418,9 +442,20 @@ public sealed class CreditManager(
         return punishCredit;
     }
 
-    private Task<T> UpdateAsync<T>(ulong uid, Func<CreditRecord, (CreditRecord Saved, CreditReduceRecord? Reduce, T Result)> change) =>
+    private Task<T> UpdateAsync<T>(ulong uid, Func<CreditRecord, (CreditRecord Saved, CreditReduceRecord? Reduce, T Result)> change, SettlementKey? settlementKey = null, string effect = "") =>
         WithGateAsync(uid, async () =>
         {
+            if (settlementKey is not null)
+            {
+                if (settlementKey.GameUlongUID != uid)
+                {
+                    throw new ArgumentException("Settlement uid does not match credit uid", nameof(settlementKey));
+                }
+
+                return await repository.ApplySettlementAsync(settlementKey, effect,
+                    new CreditRecord(StartingCreditPoint, 0, 0, 0, 0, 0), MaxDeduceCreditPointRecordNum, change);
+            }
+
             var record = await LoadAsync(uid);
             var (saved, reduce, result) = change(record);
             if (saved != record || reduce is not null)

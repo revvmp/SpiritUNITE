@@ -54,6 +54,40 @@ public sealed class NewbieChallengeTaskManager(
     public async Task<pbCOMDT_TASK_INFO[]> BuildTaskInfoListAsync(LMNRoleInfo role) =>
         [.. (await LoadTasksAsync(role)).Select(task => task.Info)];
 
+    public async Task<pbCOMDT_TASK_INFO[]> ApplySettlementAsync(SettlementKey key, NewbieChallengeSettlementPlan plan)
+    {
+        if (plan.ReceiveChallenge)
+        {
+            await repository.ReceiveAsync(key.GameUlongUID, plan.Tasks.Now);
+            await repository.ReceiveDaysAsync(key.GameUlongUID, plan.TaskDays, plan.Tasks.Now);
+        }
+
+        return await taskProcesses.ApplySettlementAsync(key, plan.Tasks);
+    }
+
+    public async Task<NewbieChallengeSettlementPlan> PrepareSettlementAsync(LMNRoleInfo role, BattleTaskEvent battle, DateTimeOffset now)
+    {
+        const string effect = "tasks.newbie";
+        var challenge = await LoadChallengeAsync(role, now, true);
+        if (challenge.IsChallengeOvered)
+        {
+            return new NewbieChallengeSettlementPlan(SettlementTaskPlan.Empty(effect, now.ToUnixTimeSeconds()),
+                Enumerable.Range(FirstTaskDay + 1, Math.Max(0, challenge.UnlockDays - FirstTaskDay)).ToArray(), challenges.IsUnlocked(role));
+        }
+
+        var increments = challenge.Tasks
+            .Select(task => task.Task.FinishCondition.FirstOrDefault() is { } condition && BattleTasks.MeasureBattle(condition, battle) is { } delta
+                ? new TaskProcessIncrement(task.Task.TaskID, NoResetPeriod, delta, condition.TargetProcess)
+                : null)
+            .OfType<TaskProcessIncrement>()
+            .ToArray();
+        var touched = increments.Select(increment => increment.TaskId).ToHashSet();
+        return new NewbieChallengeSettlementPlan(new SettlementTaskPlan(effect, now.ToUnixTimeSeconds(), increments,
+            [.. challenge.Tasks.Where(task => touched.Contains(task.Task.TaskID)).Select(task => new SettlementTaskTemplate(
+                task.Info, NoResetPeriod, [task.Task.FinishCondition[0].TargetProcess], [0], SettlementTaskCompleteTime.Received))]),
+            Enumerable.Range(FirstTaskDay + 1, Math.Max(0, challenge.UnlockDays - FirstTaskDay)).ToArray(), true);
+    }
+
     public async Task<pbCOMDT_TASK_INFO[]> RecordBattleAsync(LMNRoleInfo role, BattleTaskEvent battle)
     {
         var challenge = await LoadChallengeAsync(role);
@@ -317,20 +351,23 @@ public sealed class NewbieChallengeTaskManager(
 
     private async Task<ChallengeTask[]> LoadTasksAsync(LMNRoleInfo role) => (await LoadChallengeAsync(role)).Tasks;
 
-    private async Task<LoadedChallenge> LoadChallengeAsync(LMNRoleInfo role)
+    private async Task<LoadedChallenge> LoadChallengeAsync(LMNRoleInfo role, DateTimeOffset? at = null, bool readOnly = false)
     {
         if (!challenges.IsUnlocked(role))
         {
             return new LoadedChallenge([], new HashSet<int>(), 0, true);
         }
 
-        var now = clock.GetUtcNow().ToUnixTimeSeconds();
-        var firstDayRecvTime = await repository.ReceiveAsync(role.GameUlongUID, now);
+        var now = (at ?? clock.GetUtcNow()).ToUnixTimeSeconds();
+        var received = readOnly ? await repository.FindReceivedAsync(role.GameUlongUID) : default;
+        var firstDayRecvTime = readOnly ? received.FirstDay ?? now : await repository.ReceiveAsync(role.GameUlongUID, now);
         var rewardTimes = await repository.FindRewardTimesAsync(role.GameUlongUID);
-        var unlockInfo = await challenges.BuildUnlockInfoAsync(role);
+        var unlockInfo = await challenges.BuildUnlockInfoAsync(role, at);
         var unlockDays = Math.Max(0, unlockInfo.UnlockDays);
         var laterDays = Enumerable.Range(FirstTaskDay + 1, Math.Max(0, unlockDays - FirstTaskDay)).ToArray();
-        var dayReceipt = await repository.ReceiveDaysAsync(role.GameUlongUID, laterDays, now);
+        var dayReceipt = readOnly
+            ? new NewbieChallengeDayReceipt(received.Days, new HashSet<int>())
+            : await repository.ReceiveDaysAsync(role.GameUlongUID, laterDays, now);
         var storedProcesses = await taskProcesses.FindAsync(role.GameUlongUID);
         var schemeId = GetSchemeId();
         ChallengeTask[] tasks =
@@ -428,3 +465,5 @@ public sealed class NewbieChallengeTaskManager(
 
     private sealed record LoadedChallenge(ChallengeTask[] Tasks, IReadOnlySet<int> DaysReceivedNow, int UnlockDays, bool IsChallengeOvered);
 }
+
+public sealed record NewbieChallengeSettlementPlan(SettlementTaskPlan Tasks, int[] TaskDays, bool ReceiveChallenge);

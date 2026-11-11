@@ -19,6 +19,12 @@ public sealed record TenGamesBattle(
 
 public sealed record TenGamesBattleScore(int IncTenGamesScore, int TotalTenGamesScore);
 
+public sealed record TenGamesTeamBattlePlan(
+    ulong TeamID, int JoinTenGamesID, int BeforeScore, int BeforeWins, int BeforeLosses,
+    int Score, int Wins, int Losses, bool Won, IReadOnlyList<ulong> Uids);
+
+public sealed record TenGamesSettlementPlan(Guid SettlementID, long CreatedAt, int BPActivityID, IReadOnlyList<TenGamesTeamBattlePlan> Teams);
+
 internal sealed record TenGamesDeskScores(
     Lazy<Task<IReadOnlyDictionary<ulong, TenGamesBattleScore>>> Scores,
     ConcurrentDictionary<ulong, byte> PendingUids);
@@ -68,6 +74,51 @@ public sealed class TenGamesBattleRecorder(
         }
 
         return scores.GetValueOrDefault(uid);
+    }
+
+    public async Task<TenGamesSettlementPlan?> PrepareSettlementAsync(TenGamesBattle battle, Guid settlementID, long now)
+    {
+        if (!IsTenGamesMap(gameData, battle.MapId))
+        {
+            return null;
+        }
+
+        return await tenGames.PrepareBattleAsync(settlementID, () => BuildSettlementPlanAsync(battle, settlementID, now));
+    }
+
+    public async Task<TenGamesBattleScore?> RecordBattleAsync(TenGamesSettlementPlan plan, ulong uid)
+    {
+        var applied = await tenGames.ApplyBattleAsync(plan.SettlementID, uid);
+        var team = applied.Teams.FirstOrDefault(entry => entry.Uids.Contains(uid));
+        return team is null ? null : new TenGamesBattleScore(team.Score - team.BeforeScore, team.Score);
+    }
+
+    private async Task<TenGamesSettlementPlan> BuildSettlementPlanAsync(TenGamesBattle battle, Guid settlementID, long now)
+    {
+        if (battle.IsDraw)
+        {
+            return new TenGamesSettlementPlan(settlementID, now, 0, []);
+        }
+
+        var entries = await FindPlayingEntriesAsync(battle, DateTimeOffset.FromUnixTimeSeconds(now));
+        var initScore = gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalTenGamesInitMmrscore);
+        var lower = gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalTenGamesMmrLowerboundary);
+        var upper = gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalTenGamesMmrUpperboundary);
+        var teams = new List<TenGamesTeamBattlePlan>();
+        foreach (var entry in entries)
+        {
+            var before = entry.Team;
+            var won = entry.CampClient == battle.WinCampClient;
+            var opponentScore = entries.Where(other => other.CampClient != entry.CampClient)
+                .Select(other => (double)other.Team.CurScore).DefaultIfEmpty(initScore).Average();
+            var k = gameData.GetGlobalIntData(EloKByTeamSize[Math.Clamp(entry.Uids.Count, 1, EloKByTeamSize.Length) - 1]);
+            var expected = 1 / (1 + Math.Pow(EloBase, (opponentScore - before.CurScore) / EloScale));
+            var score = Math.Clamp((int)Math.Round(before.CurScore + k * ((won ? WinScore : LoseScore) - expected), MidpointRounding.AwayFromZero), lower, upper);
+            teams.Add(new TenGamesTeamBattlePlan(before.TeamID, before.JoinTenGamesID, before.CurScore, before.WinCount, before.LoseCount,
+                score, before.WinCount + (won ? 1 : 0), before.LoseCount + (won ? 0 : 1), won, entry.Uids));
+        }
+
+        return new TenGamesSettlementPlan(settlementID, now, bpActivity.FindSettlementActivityID(now), teams);
     }
 
     private async Task<IReadOnlyDictionary<ulong, TenGamesBattleScore>> SettleDeskAsync(TenGamesBattle battle)
@@ -126,12 +177,12 @@ public sealed class TenGamesBattleRecorder(
         return scores;
     }
 
-    private async Task<List<TenGamesCampEntry>> FindPlayingEntriesAsync(TenGamesBattle battle)
+    private async Task<List<TenGamesCampEntry>> FindPlayingEntriesAsync(TenGamesBattle battle, DateTimeOffset? when = null)
     {
         var playing = new List<(TenGamesBattlePlayer Human, TenGamesTeam Team)>();
         foreach (var human in battle.Humans)
         {
-            if (await tenGames.FindPlayingTeamAsync(human.Uid, battle.MapId) is { } team)
+            if (await tenGames.FindPlayingTeamAsync(human.Uid, battle.MapId, when) is { } team)
             {
                 playing.Add((human, team));
             }

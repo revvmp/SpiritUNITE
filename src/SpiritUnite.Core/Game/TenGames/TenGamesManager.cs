@@ -638,11 +638,11 @@ public sealed class TenGamesManager(
         return new TenGamesRoomTeam(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, teamInfo, game.Row.MapList.FirstOrDefault(mapID => mapID != 0));
     }
 
-    public async Task<TenGamesTeam?> FindPlayingTeamAsync(ulong uid, int mapId)
+    public async Task<TenGamesTeam?> FindPlayingTeamAsync(ulong uid, int mapId, DateTimeOffset? when = null)
     {
         if (await FindMembershipAsync(uid) is not { } membership
             || schedule.Find(membership.Team.JoinTenGamesID) is not { } game
-            || game.FindOpenWindow(Now()) is null
+            || game.FindOpenWindow(when?.ToUnixTimeSeconds() ?? Now()) is null
             || !game.Row.MapList.Contains(mapId))
         {
             return null;
@@ -653,6 +653,32 @@ public sealed class TenGamesManager(
 
     public async Task<IReadOnlyList<ulong>> GetMemberUidsAsync(ulong teamID) =>
         [.. (await repository.GetMembersAsync(teamID)).Select(member => member.GameUlongUID)];
+
+    public async Task<TenGamesSettlementPlan> PrepareBattleAsync(Guid settlementID, Func<Task<TenGamesSettlementPlan>> prepare)
+    {
+        await gate.WaitAsync();
+        try
+        {
+            return await repository.FindSettlementPlanAsync(settlementID) ?? await repository.StoreSettlementPlanAsync(await prepare());
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
+
+    public async Task<TenGamesSettlementPlan> ApplyBattleAsync(Guid settlementID, ulong ownerUid)
+    {
+        await gate.WaitAsync();
+        try
+        {
+            return await repository.ApplySettlementPlanAsync(settlementID, ownerUid);
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
 
     public async Task SaveBattleAsync(TenGamesTeam team)
     {
@@ -732,6 +758,12 @@ public sealed class TenGamesManager(
         await gate.WaitAsync();
         try
         {
+            if (await repository.HasPendingSettlementAsync(gamesId))
+            {
+                logger.LogInformation("Ten games {GamesId} archive waits for pending battle settlements", gamesId);
+                return;
+            }
+
             var teams = RankTeams(await repository.GetTeamsOfGameAsync(gamesId));
             for (var index = 0; index < teams.Count; index++)
             {

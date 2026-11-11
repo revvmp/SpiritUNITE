@@ -111,6 +111,29 @@ public sealed class LMNRoleInfo(
         ? roleHistoryMaxTotalExp
         : throw new InvalidDataException("RoleHistoryMaxTotalExp cannot be below RoleTotalExp");
 
+    public LMNRoleInfo CreateProgressSnapshot()
+    {
+        lock (gate)
+        {
+            return new LMNRoleInfo(GameUlongUID, InGameUsrName, Gender, RoleAvatarInfo.Clone(), bitsDetail,
+                pokemon.Values, items.Values, mFollowPokemonId, mUsingLobbyBgId, RoleTotalExp, RoleHistoryMaxTotalExp,
+                FirstPokemonId,
+                pveChallengeStarNums.Select(star => new RolePveChallengeStar(star.Key.StageID, star.Key.NodeID, star.Key.DifficultyLevel, star.Value)),
+                heavenTrainerChallengeCnts.Select(record => new ChallengeTrainerRecord(record.Key.MapId, record.Key.LevelType, record.Value)),
+                timeLimitedPokemonById.Values);
+        }
+    }
+
+    public void ApplyCommittedRoleTotalExp(int totalExp)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(totalExp);
+        lock (gate)
+        {
+            RoleTotalExp = Math.Max(RoleTotalExp, totalExp);
+            RoleHistoryMaxTotalExp = Math.Max(RoleHistoryMaxTotalExp, RoleTotalExp);
+        }
+    }
+
     public int AddRoleTotalExp(int chgExp)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(chgExp);

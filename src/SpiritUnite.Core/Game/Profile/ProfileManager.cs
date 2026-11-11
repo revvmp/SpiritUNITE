@@ -14,9 +14,11 @@ namespace SpiritUnite.Game.Profile;
 
 public sealed class ProfileManager(
     ProfileRepository repository,
+    ProfileStatisticRepository statistics,
     FabulousRepository fabulous,
     GameData gameData,
     PokemonManager pokemon,
+    RankedManager ranked,
     CreditManager credit,
     TimeProvider clock)
 {
@@ -227,6 +229,11 @@ public sealed class ProfileManager(
     {
         var pokemonList = await pokemon.BuildGetPokemonListRspAsync(role);
         var usedPokemonList = pokemonList.UsedPokemonList.Select(EmptyChildren.Fill).ToArray();
+        var seasonID = RankedMatch.FindCurrentSeason(gameData, clock.GetUtcNow()).Season.SeasonId;
+        var profileStatistics = await statistics.LoadAsync(role.GameUlongUID, seasonID);
+        await ranked.LoadAsync(role.GameUlongUID);
+        var rankedDivision = ranked.BuildRankedDivision(role.GameUlongUID);
+        var highestRankedDivision = await ranked.BuildHighestRankedDivisionInHistoryAsync(role.GameUlongUID);
         return new pbCSDT_PROFILE_DETAIL_NEW
         {
             OpenID = role.GameUlongUID.ToString(CultureInfo.InvariantCulture),
@@ -235,6 +242,8 @@ public sealed class ProfileManager(
             RoleLevel = RoleProfile.GetLevel(gameData, role),
             RoleCurExp = role.RoleTotalExp,
             RoleGender = role.Gender,
+            RankedDivision = rankedDivision.RankedDivision,
+            HighestRankedDivisionInHistory = highestRankedDivision.RankedDivision,
             FollowInfo = await pokemon.BuildFollowInfoAsync(role),
             PokemonList = { pokemonList.PokemonList },
             UsedPokemonList = { usedPokemonList },
@@ -243,7 +252,9 @@ public sealed class ProfileManager(
             PlayerContestantInfo = BuildPlayerContestantInfo(role, style),
             UserShortId = RoleProfile.BuildShortId(role),
             BeFabulousCnt = await fabulous.FindBeFabulousCntAsync(role.GameUlongUID),
-            RankedMatchSeasonID = RankedMatch.FindCurrentSeason(gameData, clock.GetUtcNow()).Season.SeasonId,
+            RankedMatchSeasonID = seasonID,
+            StatisticInfo = profileStatistics.StatisticInfo,
+            SeasonStatisticInfo = profileStatistics.SeasonStatisticInfo,
             HeadIconInfo = BuildHeadIconInfo(role, style),
             IsHideInfo = style.IsHideInfo,
             LableInfo = style.BuildLableInfo(),

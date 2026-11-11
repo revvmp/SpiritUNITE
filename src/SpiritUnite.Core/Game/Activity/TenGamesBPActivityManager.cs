@@ -31,6 +31,9 @@ public sealed class TenGamesBPActivityManager(
     private const int RewardReceivable = 2;
     private const int SenierCertCoinID = CoinID.Coupons;
 
+    public int FindSettlementActivityID(long now) =>
+        schedule.FindOpen(PB_ENUM_RES_ACTIVITY_TYPE.PbResActivityTypeBattlePassCompetion, DateTimeOffset.FromUnixTimeSeconds(now))?.Row.ActivityID ?? NoActivityID;
+
     public async Task RecordWinAsync(ulong uid)
     {
         if (FindOpenActivity() is { } activity)

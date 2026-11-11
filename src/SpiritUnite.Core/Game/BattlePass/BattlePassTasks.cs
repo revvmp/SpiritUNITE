@@ -80,6 +80,25 @@ public sealed class BattlePassTasks(
             Count(PB_ENUM_ENM_TASKSYSTEM.PbEnmTasksystemBattlepassSeasontask));
     }
 
+    public async Task<SettlementTaskPlan> PrepareSettlementAsync(LMNRoleInfo role, BattleTaskEvent battle, DateTimeOffset now)
+    {
+        const string effect = "tasks.battlepass";
+        var current = seasons.FindCurrentSeason(now);
+        if (!current.IsInProcess)
+        {
+            return SettlementTaskPlan.Empty(effect, now.ToUnixTimeSeconds());
+        }
+
+        var states = await EvaluateAsync(role, current, now);
+        var eligible = states.Where(state => state.Status == PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusRecved && !state.Locked && !state.Expired).ToArray();
+        var increments = eligible.Select(state => FindBattleIncrement(state, battle)).OfType<TaskProcessIncrement>().ToArray();
+        var touched = increments.Select(increment => increment.TaskId).ToHashSet();
+        return new SettlementTaskPlan(effect, now.ToUnixTimeSeconds(), increments,
+            [.. eligible.Where(state => touched.Contains(state.Task.TaskID)).Select(state => new SettlementTaskTemplate(
+                state.ToTaskInfo(), state.PeriodStart, [.. state.Conditions.Select(condition => condition.TargetProcess)],
+                [.. state.Conditions.Select(condition => BattleTasks.IsBattleCondition(condition) ? 0 : -1)], SettlementTaskCompleteTime.Stored))]);
+    }
+
     public async Task<pbCOMDT_TASK_INFO[]> RecordBattleAsync(LMNRoleInfo role, BattleTaskEvent battle)
     {
         var now = clock.GetUtcNow();

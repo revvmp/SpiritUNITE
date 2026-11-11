@@ -29,6 +29,7 @@ using SpiritUnite.Game.Wallet;
 using SpiritUnite.Online;
 using SpiritUnite.Packets;
 using SpiritUnite.Packets.Messages;
+using SpiritUnite.Tools;
 
 namespace SpiritUnite.Battle;
 
@@ -40,7 +41,7 @@ public sealed record BattleResult(BattleDesk Desk, DeskPlayer Human, pbCSMultgam
 
     public int AdditionHangUpTime => Gameover.AcntInfo.FirstOrDefault(info => info.AcntUid == Human.Uid)?.CommonData?.AcntClientInfo?.AdditionHangUpTime ?? 0;
 
-    public int TotalHangupSeconds => Math.Min(Math.Max(0, GameTime), HangupSeconds + Math.Max(0, AdditionHangUpTime));
+    public int TotalHangupSeconds => (int)Math.Min(Math.Max(0, GameTime), (long)HangupSeconds + Math.Max(0, AdditionHangUpTime));
 
     public bool IsDraw => !QuitByExitButton && IsDrawReport(Gameover.BattleParam);
 
@@ -133,12 +134,14 @@ public sealed class BattleSettlement
     private readonly FriendRepository friends;
     private readonly GVoiceOptions gVoice;
     private readonly IOptionsMonitor<BattleSettlementOptions> options;
+    private readonly BackgroundOperations operations;
+    private readonly SettlementDeliveryTracker settlementDelivery;
     private readonly TimeProvider clock;
     private readonly ILogger<BattleSettlement> logger;
     private readonly IReadOnlyDictionary<int, int> pokemonIdByHeroID;
     private readonly IReadOnlySet<int> eeveelutionPokemonIDs;
     private readonly ILookup<int, pbDrop_Static> dropsById;
-    private readonly ConcurrentDictionary<ulong, pbSCMultiGameSettleGainRsp> settleGains = new();
+    private readonly ConcurrentDictionary<ulong, CachedSettlementGain> settleGains = new();
     private static readonly BattleTaskUpdate NoBattleTasks = new([], 0, 0, null);
 
     public BattleSettlement(
@@ -180,6 +183,8 @@ public sealed class BattleSettlement
         IOptions<GVoiceOptions> gVoiceOptions,
         IOptionsMonitor<BattleSettlementOptions> options,
         TimeProvider clock,
+        SettlementDeliveryTracker settlementDelivery,
+        BackgroundOperations operations,
         ILogger<BattleSettlement> logger)
     {
         this.gameData = gameData;
@@ -220,6 +225,8 @@ public sealed class BattleSettlement
         gVoice = gVoiceOptions.Value;
         this.options = options;
         this.clock = clock;
+        this.settlementDelivery = settlementDelivery;
+        this.operations = operations;
         this.logger = logger;
         pokemonIdByHeroID = gameData.PokemonBase.Rows
             .Where(row => row.MainUnitId != NoPokemon)
@@ -229,13 +236,31 @@ public sealed class BattleSettlement
         eeveelutionPokemonIDs = BattleTasks.FindEeveelutionPokemonIDs(gameData.TaskBase.Rows);
     }
 
-    public pbSCMultiGameSettleGainRsp? FindSettleGain(ulong uid) => settleGains.GetValueOrDefault(uid);
+    private sealed record CachedSettlementGain(SettlementKey Key, pbSCMultiGameSettleGainRsp Gain);
+
+    public pbSCMultiGameSettleGainRsp? FindSettleGain(ulong uid) =>
+        settleGains.TryGetValue(uid, out var cached) && settlementDelivery.AllowsReplay(cached.Key) ? cached.Gain : null;
+
+    public async Task<pbSCMultiGameSettleGainRsp?> FindSettleGainAsync(ulong uid)
+    {
+        if (settleGains.TryGetValue(uid, out var cached) && settlementDelivery.IsCurrent(cached.Key))
+        {
+            return cached.Gain;
+        }
+
+        var stored = await repository.FindLatestGainAsync(uid, (clock.GetUtcNow() - SettleGainRetention).ToUnixTimeSeconds());
+        if (stored is not null)
+        {
+            return settlementDelivery.AllowsReplay(stored.Value.Key) ? stored.Value.Gain : null;
+        }
+
+        return null;
+    }
 
     public async Task EndTimedOutGameAsync(BattleDesk desk, ulong uid)
     {
         var gain = new pbSCMultiGameSettleGainRsp { GameTimeoutEnd = GameTimeoutEnded };
-        settleGains[uid] = gain;
-        _ = ForgetSettleGainAsync(uid, gain);
+        CacheGain(new SettlementKey(desk.SettlementID.ToString("N"), uid), gain);
         var delivered = await lobbyRoles.PushAsync(uid, GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidMultiGameSettleGainRsp, gain));
         logger.LogInformation(
             "Desk {DeskID}: uid {Uid} {Delivery} the game timeout end",
@@ -253,6 +278,216 @@ public sealed class BattleSettlement
             throw new InvalidOperationException($"Uid {uid} has no role to settle for desk {result.Desk.DeskID}");
         }
 
+        if (journalEntry is not null && await repository.FindResponseAsync(journalEntry) is { } storedResponse)
+        {
+            await DeliverResponseAsync(result, delivery, storedResponse);
+            return;
+        }
+
+        var commit = journalEntry is null ? null : await repository.FindCommittedAsync(journalEntry);
+        commit ??= await PrepareCoreAsync(role, result, journalEntry);
+        var checkpoint = SettlementEffects.Deserialize<CoreSettlementCheckpoint>(commit.Checkpoint);
+        var plan = checkpoint.Plan;
+        var now = checkpoint.Now;
+        var levelBefore = checkpoint.LevelBefore;
+        var challengeUnlockedBefore = checkpoint.ChallengeUnlockedBefore;
+        var mvp = checkpoint.Mvp;
+        var fightRecordNtf = checkpoint.FightRecord;
+        var hangupType = checkpoint.HangupType;
+        var intimacy = checkpoint.Intimacy;
+        var heldItemGrants = commit.HeldItemUnlockGrants;
+        await warmBattles.LoadAsync(uid);
+
+        foreach (var clamped in commit.ClampedGrants)
+        {
+            logger.LogWarning(
+                "Desk {DeskID}: uid {Uid} got {Cnt} of item {ItemId}; the rest did not fit its stack of {StackSize}",
+                result.Desk.DeskID,
+                uid,
+                clamped.Cnt,
+                clamped.ItemId,
+                clamped.StackSize);
+        }
+
+        role.ApplyCommittedRoleTotalExp(commit.RoleTotalExp);
+        if (plan.NewStar is { } star)
+        {
+            role.RecordPveChallengeStarNum(star);
+        }
+
+        if (commit.HeavenTrainerRecord is { } heavenTrainerRecord)
+        {
+            role.RecordHeavenTrainerChallengeCnt(heavenTrainerRecord);
+        }
+
+        logger.LogInformation(
+            "Desk {DeskID}: uid {Uid} settled ({Result}): +{ChgExp} trainer exp, {StarNum} stars on node {NodeID}, {GrantCount} item grants",
+            result.Desk.DeskID,
+            uid,
+            result.QuitByExitButton ? "quit" : result.IsDraw ? "draw" : plan.Won ? "win" : "loss",
+            plan.ChgExp,
+            plan.StarNum,
+            result.Desk.PveChallengeSelectNode?.NodeID,
+            heldItemGrants.Count + plan.ItemGrants.Count);
+        var rankedSettlement = checkpoint.RankedPlan is { } rankedPlan
+            ? journalEntry is not null
+                ? await ranked.SettleAsync(uid, rankedPlan, journalEntry)
+                : await ranked.SettleAsync(uid, new RankedBattle(result.Won, result.IsDraw, rankPointMedals.Award(BuildRankMedalPlayers(result), result.Human.ObjId)), settledAt: now)
+            : null;
+        var isTodaySetNoReminded = await ranked.TakeIsTodaySetNoRemindedAsync(uid, journalEntry, now);
+        logger.LogDebug("Desk {DeskID}: uid {Uid} settlement IsTodaySetNoReminded {IsTodaySetNoReminded}", result.Desk.DeskID, uid, isTodaySetNoReminded);
+        var gain = BuildSettleGainRsp(role, result, plan, commit, levelBefore, mvp, rankedSettlement, isTodaySetNoReminded, now);
+        var tenGamesScore = checkpoint.TenGamesPlan is { } tenGamesPlan
+            ? await tenGamesBattles.RecordBattleAsync(tenGamesPlan, uid)
+            : null;
+        if (tenGamesScore is not null)
+        {
+            gain.Detail.AcntInfo.IncTenGamesScore = tenGamesScore.IncTenGamesScore;
+            gain.Detail.AcntInfo.TotalTenGamesScore = tenGamesScore.TotalTenGamesScore;
+        }
+
+        var countsBattle = !IsCustomBattle(result) && !result.QuitByExitButton;
+        BattleTaskUpdate battleTasks;
+        if (journalEntry is not null && checkpoint.TaskPlan is { } taskPlan && checkpoint.NewbiePlan is { } newbiePlan)
+        {
+            var newbieProgress = await newbieChallengeTaskManager.ApplySettlementAsync(journalEntry, newbiePlan);
+            battleTasks = await taskUpdates.ApplySettlementAsync(role, journalEntry, taskPlan,
+                [.. plan.StarTasks.Select(task => BuildStarTaskInfo(task, now)), .. newbieProgress]);
+        }
+        else
+        {
+            battleTasks = countsBattle ? await RecordBattleTasksAsync(role, result, plan, now) : NoBattleTasks;
+        }
+
+        if (journalEntry is not null && checkpoint.GuildPlan is { } guildPlan)
+        {
+            await guildActivityTasks.ApplySettlementAsync(journalEntry, guildPlan);
+        }
+        else if (countsBattle)
+        {
+            await guildActivityTasks.RecordBattleAsync(uid, BuildGuildBattle(result, mvp));
+        }
+
+        var eventBattlePushes = journalEntry is not null && checkpoint.EventPlan is { } eventPlan
+            ? await eventBattles.ApplySettlementAsync(journalEntry, eventPlan)
+            : !countsBattle ? []
+            : await eventBattles.RecordAsync(role, plan.Won, result.Desk.DeskInfo.MapId, pokemonIdByHeroID.GetValueOrDefault(plan.HeroID));
+
+        var hangupPenalty = !result.QuitByExitButton && hangupType != PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeNone
+            ? await credit.PenalizeHangupAsync(uid, BuildCreditReduceBattle(result), hangupType, journalEntry, checkpoint.CreditPlan)
+            : null;
+        var creditPointNtf = result.QuitByExitButton ? null
+            : hangupPenalty is not null ? hangupPenalty.CreditPointNtf
+            : await credit.RecoverAfterBattleAsync(uid, result.Desk.DeskInfo.MapId, result.Desk.DeskInfo.ManMachine == CpuMatch.ManMachine, journalEntry, now, checkpoint.CreditPlan);
+        if (hangupPenalty is not null)
+        {
+            var punishment = new HangupPunishNotice(
+                result.Desk.SettlementID,
+                uid,
+                role.InGameUsrName,
+                hangupType,
+                result.GameStartTime,
+                hangupPenalty,
+                [.. result.Desk.CampOf(result.Human.CampClient).Where(player => !player.IsNpc && player.Uid != uid).Select(player => player.Uid)]);
+            if (journalEntry is not null)
+            {
+                await credit.QueueHangupPunishMailsAsync(punishment, journalEntry, now);
+            }
+            else
+            {
+                credit.ScheduleHangupPunishMails(punishment);
+            }
+        }
+
+        var creditPointTaskPushes = creditPointNtf is null ? []
+            : journalEntry is not null
+                ? await creditPointTasks.SyncSettlementAsync(uid, journalEntry, creditPointNtf.CurrentCreditPoint, now)
+                : await creditPointTasks.SyncAsync(uid);
+
+        var packets = await BuildPushesAsync(
+            role,
+            result,
+            plan,
+            commit,
+            heldItemGrants,
+            levelBefore,
+            challengeUnlockedBefore,
+            battleTasks,
+            creditPointNtf,
+            creditPointTaskPushes,
+            hangupPenalty is not null,
+            rankedSettlement,
+            gain,
+            fightRecordNtf);
+        if (intimacy is not null)
+        {
+            eventBattlePushes = [.. eventBattlePushes, FriendIntimacy.BuildFriendInteractionNtf(gameData, await friends.GetFriendsAsync(uid, intimacy.FriendUids))];
+        }
+
+        var response = new SettlementResponse(gain, packets, eventBattlePushes);
+        if (journalEntry is not null)
+        {
+            response = await repository.SaveResponseAsync(journalEntry, response);
+        }
+
+        await DeliverResponseAsync(result, delivery, response);
+    }
+
+    private async Task DeliverResponseAsync(BattleResult result, SettlementDelivery delivery, SettlementResponse response)
+    {
+        var key = SettlementKey.Of(result);
+        var uid = key.GameUlongUID;
+        if (!settlementDelivery.AllowsReplay(key))
+        {
+            return;
+        }
+
+        CacheGain(key, response.Gain);
+        if (!lobbyRoles.IsOnline(uid) || delivery == SettlementDelivery.Recovered && !settlementDelivery.IsCurrent(key))
+        {
+            logger.LogInformation("Settlement of uid {Uid} was stored for replay without unsolicited delivery ({Delivery})", uid, delivery);
+            return;
+        }
+
+        fabulous.Open(result.Desk, uid);
+        if (!await lobbyRoles.PushAsync(uid, response.Packets))
+        {
+            logger.LogInformation("Settlement of uid {Uid} was stored but not delivered: the push failed", uid);
+            return;
+        }
+
+        if (response.EventPackets.Length > 0)
+        {
+            await lobbyRoles.PushAsync(uid, response.EventPackets);
+        }
+
+        if (HasSettleRoom(result))
+        {
+            await EnterSettleRoomAsync(result);
+        }
+    }
+
+    private async Task<BattleSettlementCommit> PrepareCoreAsync(LMNRoleInfo role, BattleResult result, SettlementKey? journalEntry)
+    {
+        for (var attempt = 0; ; attempt++)
+        {
+            try
+            {
+                return await PrepareCoreAttemptAsync(role, result, journalEntry);
+            }
+            catch (SettlementPreparationChangedException) when (attempt < 9)
+            {
+                role = await roleRepository.FindAsync(result.Human.Uid)
+                    ?? throw new InvalidDataException("Settlement role no longer exists");
+            }
+        }
+    }
+
+    private sealed class SettlementPreparationChangedException : Exception;
+
+    private async Task<BattleSettlementCommit> PrepareCoreAttemptAsync(LMNRoleInfo role, BattleResult result, SettlementKey? journalEntry)
+    {
+        var uid = result.Human.Uid;
         var route = FindSettledRoute(role, result);
         var node = route is null ? null : new PveChallengeNodeKey(route.StageID, route.NodeID, route.DifficultyLevel);
         var knownStarNum = route is null ? NoStar : pveChallenge.GetStarNum(role, route);
@@ -272,10 +507,34 @@ public sealed class BattleSettlement
             now);
         var weekReward = route is null ? null : await pveChallengeManager.LoadWeekRewardAsync(uid, utcNow);
         var intimacy = await FindBattleIntimacyGainAsync(result);
+        var tenGamesPlan = await tenGamesBattles.PrepareSettlementAsync(BuildTenGamesBattle(result), result.Desk.SettlementID, now);
+        var creditPlan = credit.PrepareSettlement(result.Desk.DeskInfo.MapId, result.Desk.DeskInfo.ManMachine == CpuMatch.ManMachine, hangupType, now);
+        var rankedPlan = IsRankedMatch(result)
+            ? await ranked.PrepareSettlementAsync(uid, new RankedBattle(result.Won, result.IsDraw, rankPointMedals.Award(BuildRankMedalPlayers(result), result.Human.ObjId)), now)
+            : null;
+        var preparedPlan = Plan(role, result, route, knownStarNum, newbieBenefitActive, hangupType, weekReward, energyUnlocked);
+        var projectedRole = role.CreateProgressSnapshot();
+        projectedRole.AddRoleTotalExp(preparedPlan.ChgExp);
+        if (preparedPlan.NewStar is { } projectedStar)
+        {
+            projectedRole.RecordPveChallengeStarNum(projectedStar);
+        }
+
+        var countsBattle = !IsCustomBattle(result) && !result.QuitByExitButton;
+        var battleEvent = countsBattle ? await BuildBattleTaskEventAsync(result, preparedPlan) : null;
+        var taskPlan = battleEvent is null ? null : await taskUpdates.PrepareSettlementAsync(projectedRole, battleEvent, utcNow);
+        var newbiePlan = battleEvent is null ? null : await newbieChallengeTaskManager.PrepareSettlementAsync(projectedRole, battleEvent, utcNow);
+        var guildPlan = !countsBattle ? null : await guildActivityTasks.PrepareSettlementAsync(uid, BuildGuildBattle(result, mvp), utcNow);
+        var eventPlan = !countsBattle ? null : await eventBattles.PrepareSettlementAsync(projectedRole, preparedPlan.Won, result.Desk.DeskInfo.MapId, pokemonIdByHeroID.GetValueOrDefault(preparedPlan.HeroID), utcNow);
         SettlementPlan? plan = null;
         var commit = await repository.CommitAsync(uid, journalEntry, node, storedStarNum =>
         {
-            plan = Plan(role, result, route, Math.Max(storedStarNum, knownStarNum), newbieBenefitActive, hangupType, weekReward, energyUnlocked);
+            if (storedStarNum > knownStarNum)
+            {
+                throw new SettlementPreparationChangedException();
+            }
+
+            plan = preparedPlan;
             return new BattleSettlementChange(
                 plan.ChgExp,
                 plan.PointPokemonId,
@@ -306,137 +565,14 @@ public sealed class BattleSettlement
                         ? PveBonusClaimState.Available : PveBonusClaimState.Unavailable,
                     plan.RefreshDrops),
             };
-        }, now);
+        }, now, _ => SettlementEffects.Serialize(new CoreSettlementCheckpoint(
+            plan!, now, levelBefore, challengeUnlockedBefore, mvp, fightRecordNtf, hangupType, intimacy, rankedPlan, creditPlan, taskPlan, newbiePlan, guildPlan, eventPlan, tenGamesPlan)));
         if (commit is null || plan is null)
         {
             throw new InvalidOperationException($"Settlement of uid {uid} for desk {result.Desk.DeskID} was not committed");
         }
 
-        var heldItemGrants = commit.HeldItemUnlockGrants;
-        await warmBattles.LoadAsync(uid);
-
-        foreach (var clamped in commit.ClampedGrants)
-        {
-            logger.LogWarning(
-                "Desk {DeskID}: uid {Uid} got {Cnt} of item {ItemId}; the rest did not fit its stack of {StackSize}",
-                result.Desk.DeskID,
-                uid,
-                clamped.Cnt,
-                clamped.ItemId,
-                clamped.StackSize);
-        }
-
-        role.AddRoleTotalExp(plan.ChgExp);
-        if (plan.NewStar is { } star)
-        {
-            role.RecordPveChallengeStarNum(star);
-        }
-
-        if (commit.HeavenTrainerRecord is { } heavenTrainerRecord)
-        {
-            role.RecordHeavenTrainerChallengeCnt(heavenTrainerRecord);
-        }
-
-        logger.LogInformation(
-            "Desk {DeskID}: uid {Uid} settled ({Result}): +{ChgExp} trainer exp, {StarNum} stars on node {NodeID}, {GrantCount} item grants",
-            result.Desk.DeskID,
-            uid,
-            result.QuitByExitButton ? "quit" : result.IsDraw ? "draw" : plan.Won ? "win" : "loss",
-            plan.ChgExp,
-            plan.StarNum,
-            result.Desk.PveChallengeSelectNode?.NodeID,
-            heldItemGrants.Count + plan.ItemGrants.Count);
-        var rankedSettlement = IsRankedMatch(result)
-            ? await ranked.SettleAsync(uid, new RankedBattle(result.Won, result.IsDraw, rankPointMedals.Award(BuildRankMedalPlayers(result), result.Human.ObjId)))
-            : null;
-        var isTodaySetNoReminded = await ranked.TakeIsTodaySetNoRemindedAsync(uid);
-        logger.LogDebug("Desk {DeskID}: uid {Uid} settlement IsTodaySetNoReminded {IsTodaySetNoReminded}", result.Desk.DeskID, uid, isTodaySetNoReminded);
-        var gain = BuildSettleGainRsp(role, result, plan, commit, levelBefore, mvp, rankedSettlement, isTodaySetNoReminded, now);
-        if (await tenGamesBattles.RecordBattleAsync(BuildTenGamesBattle(result), uid) is { } tenGamesScore)
-        {
-            gain.Detail.AcntInfo.IncTenGamesScore = tenGamesScore.IncTenGamesScore;
-            gain.Detail.AcntInfo.TotalTenGamesScore = tenGamesScore.TotalTenGamesScore;
-        }
-
-        if (delivery == SettlementDelivery.Live)
-        {
-            settleGains[uid] = gain;
-            _ = ForgetSettleGainAsync(uid, gain);
-            fabulous.Open(result.Desk, uid);
-        }
-
-        var countsBattle = !IsCustomBattle(result) && !result.QuitByExitButton;
-        var battleTasks = countsBattle ? await RecordBattleTasksAsync(role, result, plan, now) : NoBattleTasks;
-        if (countsBattle)
-        {
-            await guildActivityTasks.RecordBattleAsync(uid, BuildGuildBattle(result, mvp));
-        }
-
-        var eventBattlePushes = !countsBattle
-            ? []
-            : await eventBattles.RecordAsync(role, plan.Won, result.Desk.DeskInfo.MapId, pokemonIdByHeroID.GetValueOrDefault(plan.HeroID));
-
-        var hangupPenalty = !result.QuitByExitButton && hangupType != PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeNone
-            ? await credit.PenalizeHangupAsync(uid, BuildCreditReduceBattle(result), hangupType)
-            : null;
-        var creditPointNtf = result.QuitByExitButton ? null
-            : hangupPenalty is not null ? hangupPenalty.CreditPointNtf
-            : await credit.RecoverAfterBattleAsync(uid, result.Desk.DeskInfo.MapId, result.Desk.DeskInfo.ManMachine == CpuMatch.ManMachine);
-        if (hangupPenalty is not null)
-        {
-            credit.ScheduleHangupPunishMails(new HangupPunishNotice(
-                result.Desk.SettlementID,
-                uid,
-                role.InGameUsrName,
-                hangupType,
-                result.GameStartTime,
-                hangupPenalty,
-                [.. result.Desk.CampOf(result.Human.CampClient).Where(player => !player.IsNpc && player.Uid != uid).Select(player => player.Uid)]));
-        }
-
-        if (delivery == SettlementDelivery.Recovered || !lobbyRoles.IsOnline(uid))
-        {
-            logger.LogInformation("Settlement of uid {Uid} was stored without live delivery ({Delivery})", uid, delivery);
-            return;
-        }
-
-        var creditPointTaskPushes = creditPointNtf is null ? [] : await creditPointTasks.SyncAsync(uid);
-
-        var packets = await BuildPushesAsync(
-            role,
-            result,
-            plan,
-            commit,
-            heldItemGrants,
-            levelBefore,
-            challengeUnlockedBefore,
-            battleTasks,
-            creditPointNtf,
-            creditPointTaskPushes,
-            hangupPenalty is not null,
-            rankedSettlement,
-            gain,
-            fightRecordNtf);
-        if (!await lobbyRoles.PushAsync(uid, packets))
-        {
-            logger.LogInformation("Settlement of uid {Uid} was stored but not delivered: the push failed", uid);
-            return;
-        }
-
-        if (eventBattlePushes.Length > 0)
-        {
-            await lobbyRoles.PushAsync(uid, eventBattlePushes);
-        }
-
-        if (intimacy is not null)
-        {
-            await lobbyRoles.PushAsync(uid, FriendIntimacy.BuildFriendInteractionNtf(gameData, await friends.GetFriendsAsync(uid, intimacy.FriendUids)));
-        }
-
-        if (HasSettleRoom(result))
-        {
-            await EnterSettleRoomAsync(result);
-        }
+        return commit;
     }
 
     public async Task SettleJudgeAsync(BattleResult result, SettlementDelivery delivery)
@@ -470,8 +606,7 @@ public sealed class BattleSettlement
                 SettleReward = new pbCOMDT_SETTLE_RESULT_REWARD_DETAIL(),
             },
         };
-        settleGains[uid] = gain;
-        _ = ForgetSettleGainAsync(uid, gain);
+        CacheGain(SettlementKey.Of(result), gain);
         fabulous.Open(result.Desk, uid);
         logger.LogInformation(
             "Desk {DeskID}: judge uid {Uid} settled with camp {WinCampClient} winning ({GameResult} for the first camp); judges earn nothing",
@@ -559,17 +694,20 @@ public sealed class BattleSettlement
             .Select(player => new SettleTeamMember(player.Uid, player.ChosenHeroID, player.IsNpc)),
     ];
 
-    private async Task ForgetSettleGainAsync(ulong uid, pbSCMultiGameSettleGainRsp gain)
+    private void CacheGain(SettlementKey key, pbSCMultiGameSettleGainRsp gain)
     {
-        try
+        if (!settlementDelivery.AllowsReplay(key))
         {
-            await Task.Delay(SettleGainRetention, clock);
-            settleGains.TryRemove(new KeyValuePair<ulong, pbSCMultiGameSettleGainRsp>(uid, gain));
+            return;
         }
-        catch (Exception exception)
+
+        var cached = new CachedSettlementGain(key, gain);
+        settleGains[key.GameUlongUID] = cached;
+        operations.Run("Settlement response expiry", async cancellationToken =>
         {
-            logger.LogError(exception, "Forgetting the settlement of uid {Uid} failed", uid);
-        }
+            await Task.Delay(SettleGainRetention, clock, cancellationToken);
+            settleGains.TryRemove(new KeyValuePair<ulong, CachedSettlementGain>(key.GameUlongUID, cached));
+        });
     }
 
     private pbPveChallengeStageRoute? FindSettledRoute(LMNRoleInfo role, BattleResult result)
@@ -1264,11 +1402,11 @@ public sealed class BattleSettlement
             GameInfo = BuildGameInfo(result, mvp, result.GameResult),
             AcntInfo = new pbCOMDT_ACNT_INFO
             {
-                Lv = RoleProfile.GetLevel(gameData, role),
-                Exp = role.RoleTotalExp,
+                Lv = gameData.TrainerLevel.Rows.Where(row => row.UpgradeExp <= commit.RoleTotalExp).Max(row => row.Level),
+                Exp = commit.RoleTotalExp,
                 IncExp = plan.IncExp,
                 LastRoomMemCnt = result.Desk.Humans.Count(),
-                IncLevel = RoleProfile.GetLevel(gameData, role) - levelBefore,
+                IncLevel = gameData.TrainerLevel.Rows.Where(row => row.UpgradeExp <= commit.RoleTotalExp).Max(row => row.Level) - levelBefore,
                 BaseExp = plan.BaseExp,
                 ExtraExpOfNewbie = plan.ExtraExpOfNewbie,
             },
@@ -1296,7 +1434,7 @@ public sealed class BattleSettlement
         };
         if (plan.Route is { } route)
         {
-            var starNum = pveChallenge.GetStarNum(role, route);
+            var starNum = Math.Max(plan.PreviousStarNum, plan.StarNum);
             detail.SettleResultByGameType = new pbCOMDT_SETTLE_RESULT_BY_GAME_TYPE_UNION
             {
                 PveChallengeResult = new pbCOMDT_PVE_CHALLENGE_SETTLE_RESULT
@@ -1585,6 +1723,23 @@ public sealed class BattleSettlement
     private sealed record StarReward(int DropID, int Star, int AwardReason);
 
     private sealed record DropGrant(pbDrop_Static Drop, BagGrant Grant);
+
+    private sealed record CoreSettlementCheckpoint(
+        SettlementPlan Plan,
+        long Now,
+        int LevelBefore,
+        bool ChallengeUnlockedBefore,
+        MvpResult Mvp,
+        pbSCFightRecordNtf FightRecord,
+        PB_ENUM_ENM_HANGUP_TYPE HangupType,
+        BattleIntimacyGain? Intimacy,
+        RankedSettlementPlan? RankedPlan,
+        CreditSettlementPlan CreditPlan,
+        BattleTaskSettlementPlan? TaskPlan,
+        NewbieChallengeSettlementPlan? NewbiePlan,
+        SettlementTaskPlan? GuildPlan,
+        EventBattleSettlementPlan? EventPlan,
+        TenGamesSettlementPlan? TenGamesPlan);
 
     private sealed record SettlementPlan(
         bool Won,

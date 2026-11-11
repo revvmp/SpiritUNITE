@@ -47,6 +47,11 @@ public sealed class AdminMail(MailManager mail, RoleRepository roles, LobbyRoles
         var awards = new List<pbCOMDT_ONE_RESOURCE_AWARD_INFO>();
         foreach (var attachment in draft.Attachments)
         {
+            if (attachment is null)
+            {
+                return new AdminMailBuild(null, "Attachments must not be null");
+            }
+
             if (ToAward(attachment) is not { } award || !mail.CanAttach(award))
             {
                 return new AdminMailBuild(null, $"{attachment.Kind} {attachment.Id} x{attachment.Count} cannot be sent");

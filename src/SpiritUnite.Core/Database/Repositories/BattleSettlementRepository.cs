@@ -10,6 +10,7 @@ using SpiritUnite.Game.Pokemon;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Game.Wallet;
 using SpiritUnite.Packets.Messages;
+using SpiritUnite.Packets;
 
 namespace SpiritUnite.Database.Repositories;
 
@@ -60,7 +61,13 @@ public sealed record BattleSettlementCommit(
     BattleEnergyChange? Energy)
 {
     public IReadOnlyList<BagGrant> HeldItemUnlockGrants { get; init; } = [];
+
+    public byte[] Checkpoint { get; init; } = [];
+
+    public int RoleTotalExp { get; init; }
 }
+
+public sealed record SettlementResponse(pbSCMultiGameSettleGainRsp Gain, GamePacket[] Packets, GamePacket[] EventPackets);
 
 public sealed class BattleSettlementRepository(DataOptions options)
 {
@@ -74,27 +81,94 @@ public sealed class BattleSettlementRepository(DataOptions options)
         SettlementKey? journalEntry,
         PveChallengeNodeKey? node,
         Func<int, BattleSettlementChange> changeAfterStoredStarNum,
-        long now)
+        long now,
+        Func<BattleSettlementCommit, byte[]>? checkpoint = null)
     {
         await using var database = new DataConnection(options);
         await using var transaction = await database.BeginTransactionAsync();
-        if (journalEntry is not null && !await SettlementJournal.CompleteAsync(database, journalEntry, now))
+        if (journalEntry is not null && !await SettlementJournal.IsProcessingAsync(database, journalEntry))
         {
-            await transaction.RollbackAsync();
             throw new SettlementClaimLostException(journalEntry);
         }
 
-        if (!await LockRoleAsync(database, gameUlongUID))
+        var result = journalEntry is null
+            ? await CommitCoreAsync(database, gameUlongUID, node, changeAfterStoredStarNum, now, checkpoint)
+            : (await SettlementEffects.RunAsync(database, journalEntry, "core", () =>
+                CommitCoreAsync(database, gameUlongUID, node, changeAfterStoredStarNum, now, checkpoint))).Value;
+        if (result is null)
         {
             await transaction.RollbackAsync();
             return null;
         }
 
+        await transaction.CommitAsync();
+        return result;
+    }
+
+    public async Task<BattleSettlementCommit?> FindCommittedAsync(SettlementKey key)
+    {
+        await using var database = new DataConnection(options);
+        var rows = await database.GetTable<SettlementEffectRecord>()
+            .Where(row => row.SettlementID == key.SettlementID && row.GameUlongUID == key.GameUlongUID && row.Effect == "core")
+            .Select(row => row.Output).ToArrayAsync();
+        return rows.Length == 0 ? null : SettlementEffects.Deserialize<BattleSettlementCommit>(rows[0]);
+    }
+
+    public async Task<SettlementResponse> SaveResponseAsync(SettlementKey key, SettlementResponse response)
+    {
+        await using var database = new DataConnection(options);
+        await using var transaction = await database.BeginTransactionAsync();
+        var saved = await SettlementEffects.RunAsync(database, key, "response", () => Task.FromResult(response));
+        await transaction.CommitAsync();
+        return saved.Value;
+    }
+
+    public async Task<SettlementResponse?> FindResponseAsync(SettlementKey key)
+    {
+        await using var database = new DataConnection(options);
+        var output = await database.GetTable<SettlementEffectRecord>()
+            .Where(row => row.SettlementID == key.SettlementID && row.GameUlongUID == key.GameUlongUID && row.Effect == "response")
+            .Select(row => row.Output).FirstOrDefaultAsync();
+        return output is null ? null : SettlementEffects.Deserialize<SettlementResponse>(output);
+    }
+
+    public async Task<(SettlementKey Key, pbSCMultiGameSettleGainRsp Gain)?> FindLatestGainAsync(ulong uid, long minimumUpdatedAt)
+    {
+        await using var database = new DataConnection(options);
+        var latest = await database.GetTable<BattleSettlementRecord>().Where(row => row.GameUlongUID == uid)
+            .OrderByDescending(row => row.BattleStartedAt).ThenByDescending(row => row.SettlementID).FirstOrDefaultAsync();
+        if (latest is null || latest.UpdatedAt < minimumUpdatedAt)
+        {
+            return null;
+        }
+
+        var output = await database.GetTable<SettlementEffectRecord>()
+            .Where(row => row.SettlementID == latest.SettlementID && row.GameUlongUID == uid && row.Effect == "response")
+            .Select(row => row.Output).FirstOrDefaultAsync();
+        return output is null ? null : (SettlementKey.Of(latest), SettlementEffects.Deserialize<SettlementResponse>(output).Gain);
+    }
+
+    private static async Task<BattleSettlementCommit?> CommitCoreAsync(
+        DataConnection database,
+        ulong gameUlongUID,
+        PveChallengeNodeKey? node,
+        Func<int, BattleSettlementChange> changeAfterStoredStarNum,
+        long now,
+        Func<BattleSettlementCommit, byte[]>? checkpoint)
+    {
+        if (!await LockRoleAsync(database, gameUlongUID))
+        {
+            return null;
+        }
+
         var storedStarNum = node is null ? NoStar : await ReadStarNumAsync(database, gameUlongUID, node);
         var change = changeAfterStoredStarNum(storedStarNum);
+        if (change.CountedBattle is { } countedBattle)
+        {
+            await ProfileStatisticRepository.RecordAsync(database, gameUlongUID, countedBattle, change.FightHistory);
+        }
         if (await AddRoleTotalExpAsync(database, gameUlongUID, change.ChgExp) != OneRow)
         {
-            await transaction.RollbackAsync();
             return null;
         }
 
@@ -106,7 +180,6 @@ public sealed class BattleSettlementRepository(DataOptions options)
         var clampedGrants = await ApplyGrantsUpToStackAsync(database, gameUlongUID, grants, now);
         if (clampedGrants is null)
         {
-            await transaction.RollbackAsync();
             return null;
         }
 
@@ -154,11 +227,12 @@ public sealed class BattleSettlementRepository(DataOptions options)
             gameUlongUID,
             grants.Select(grant => (grant.ItemType, grant.ItemId)).Distinct());
         var wallet = await WalletRepository.ReadAsync(database, gameUlongUID);
-        await transaction.CommitAsync();
-        return new BattleSettlementCommit(changedItems, clampedGrants, beforeCoinNums, wallet, usedPokemon, heavenTrainerRecord, energy)
+        var result = new BattleSettlementCommit(changedItems, clampedGrants, beforeCoinNums, wallet, usedPokemon, heavenTrainerRecord, energy)
         {
             HeldItemUnlockGrants = heldItemUnlockGrants,
+            RoleTotalExp = await database.GetTable<Role>().Where(row => row.GameUlongUID == gameUlongUID).Select(row => row.RoleTotalExp).SingleAsync(),
         };
+        return checkpoint is null ? result : result with { Checkpoint = checkpoint(result) };
     }
 
     private static async Task<IReadOnlyList<BagGrant>> FilterHeldItemUnlockGrantsAsync(

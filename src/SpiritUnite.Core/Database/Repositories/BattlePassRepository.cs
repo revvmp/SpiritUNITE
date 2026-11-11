@@ -43,7 +43,6 @@ public sealed record BattlePassCommit(
 
 public sealed class BattlePassRepository(DataOptions options)
 {
-    private const int OneRow = 1;
     private const int Settled = 1;
     private const int NotSettled = 0;
 
@@ -64,12 +63,6 @@ public sealed class BattlePassRepository(DataOptions options)
             .Select(ToProgress)];
     }
 
-    public async Task<IReadOnlySet<BattlePassLevelRewardKey>> FindClaimedAsync(ulong gameUlongUID, int seasonID)
-    {
-        await using var database = new DataConnection(options);
-        return await ReadClaimedAsync(database, gameUlongUID, seasonID);
-    }
-
     public async Task<BattlePassTaskRewardRecord[]> FindTaskRewardsAsync(ulong gameUlongUID, long periodStartSince)
     {
         await using var database = new DataConnection(options);
@@ -79,13 +72,37 @@ public sealed class BattlePassRepository(DataOptions options)
             .ToArrayAsync();
     }
 
-    public async Task<bool> MarkSettledAsync(ulong gameUlongUID, int seasonID)
+    public async Task<IReadOnlyList<RoleMail>> SettleSeasonAsync(
+        ulong gameUlongUID,
+        int seasonID,
+        Func<BattlePassStored, IReadOnlyList<RoleMail>> createMails)
     {
         await using var database = new DataConnection(options);
-        return await database.GetTable<RoleBattlePass>()
-            .Where(row => row.GameUlongUID == gameUlongUID && row.SeasonID == seasonID && row.SeasonSettled == NotSettled)
-            .Set(row => row.SeasonSettled, Settled)
-            .UpdateAsync() == OneRow;
+        await using var transaction = await database.BeginTransactionAsync();
+        var locked = await database.GetTable<RoleBattlePass>()
+            .Where(row => row.GameUlongUID == gameUlongUID && row.SeasonID == seasonID)
+            .AsMySql()
+            .ForUpdateHint()
+            .ToArrayAsync();
+        if (locked is not [var row] || row.SeasonSettled == Settled)
+        {
+            await transaction.RollbackAsync();
+            return [];
+        }
+
+        var stored = new BattlePassStored(ToProgress(row), await ReadClaimedAsync(database, gameUlongUID, seasonID));
+        var mails = createMails(stored);
+        foreach (var mail in mails)
+        {
+            await MailRepository.InsertAsync(database, mail);
+        }
+
+        await database.GetTable<RoleBattlePass>()
+            .Where(saved => saved.GameUlongUID == gameUlongUID && saved.SeasonID == seasonID)
+            .Set(saved => saved.SeasonSettled, Settled)
+            .UpdateAsync();
+        await transaction.CommitAsync();
+        return mails;
     }
 
     public async Task<BattlePassCommit> CommitAsync(
@@ -110,6 +127,12 @@ public sealed class BattlePassRepository(DataOptions options)
         {
             await transaction.RollbackAsync();
             return BattlePassCommit.Refused(PB_ENUM_RES_ERROR_CODE.PbErrCommonFailed);
+        }
+
+        if (row.SeasonSettled == Settled)
+        {
+            await transaction.RollbackAsync();
+            return BattlePassCommit.Refused(PB_ENUM_RES_ERROR_CODE.PbErrBattlePassInvalidSeasonState);
         }
 
         var stored = new BattlePassStored(ToProgress(row), await ReadClaimedAsync(database, gameUlongUID, seasonID));

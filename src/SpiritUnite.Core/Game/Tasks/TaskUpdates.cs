@@ -1,3 +1,4 @@
+using SpiritUnite.Database.Repositories;
 using SpiritUnite.Game.Achievement;
 using SpiritUnite.Game.Activity;
 using SpiritUnite.Game.BattlePass;
@@ -7,7 +8,7 @@ using SpiritUnite.Packets.Messages;
 
 namespace SpiritUnite.Game.Tasks;
 
-public sealed class TaskUpdates(ActivityManager activityManager, AchievementManager achievementManager, BattlePassTasks battlePassTasks)
+public sealed class TaskUpdates(ActivityManager activityManager, AchievementManager achievementManager, BattlePassTasks battlePassTasks, TaskProcessRepository taskProcesses)
 {
     private static readonly IReadOnlySet<PB_ENUM_RES_CONDITION_ID> OwnershipConditions = new HashSet<PB_ENUM_RES_CONDITION_ID>
     {
@@ -38,6 +39,27 @@ public sealed class TaskUpdates(ActivityManager activityManager, AchievementMana
             .. await activityManager.BuildTaskInfoListAsync(role, PB_ENUM_RES_CONDITION_ID.PbResConditionTypeTrainerLevelReach),
             .. await achievementManager.BuildTaskInfoListAsync(role, TrainerLevelConditions),
         ]);
+
+    public async Task<BattleTaskSettlementPlan> PrepareSettlementAsync(LMNRoleInfo role, BattleTaskEvent battle, DateTimeOffset now) => new(
+        await activityManager.PrepareSettlementAsync(role, battle, now),
+        await achievementManager.PrepareSettlementAsync(role, battle, now),
+        await battlePassTasks.PrepareSettlementAsync(role, battle, now));
+
+    public async Task<BattleTaskUpdate> ApplySettlementAsync(
+        LMNRoleInfo role,
+        SettlementKey key,
+        BattleTaskSettlementPlan plan,
+        IReadOnlyCollection<pbCOMDT_TASK_INFO> otherBattleTasks)
+    {
+        var activity = await activityManager.ApplySettlementAsync(role, key, plan.Activity);
+        var achievements = await taskProcesses.ApplySettlementAsync(key, plan.Achievements);
+        var battlePass = await taskProcesses.ApplySettlementAsync(key, plan.BattlePass);
+        return new BattleTaskUpdate(
+            [.. activity.UpdatedTasks, .. achievements, .. battlePass, .. otherBattleTasks],
+            activity.CompleteCountBefore,
+            activity.CompleteCountAfter,
+            activity.AutoClaim);
+    }
 
     public async Task<BattleTaskUpdate> RecordBattleAsync(
         LMNRoleInfo role,
@@ -77,3 +99,5 @@ public sealed record BattleTaskUpdate(
             .. AutoClaim is { } claim ? new[] { TaskRedDots.BuildCount(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdActivityReward, claim.CompleteTaskCount) } : [],
         ];
 }
+
+public sealed record BattleTaskSettlementPlan(ActivitySettlementPlan Activity, SettlementTaskPlan Achievements, SettlementTaskPlan BattlePass);

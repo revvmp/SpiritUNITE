@@ -41,6 +41,11 @@ public sealed class RallyChallengeRepository(DataOptions options)
     {
         await using var database = new DataConnection(options);
         await using var transaction = await database.BeginTransactionAsync();
+        if (!await TaskProcessRepository.LockRoleAsync(database, gameUlongUID))
+        {
+            return false;
+        }
+
         var cleared = await database.GetTable<RoleUniteChallengeBattle>()
             .Where(row => row.GameUlongUID == gameUlongUID && row.PeriodId == periodId)
             .DeleteAsync();
@@ -58,47 +63,68 @@ public sealed class RallyChallengeRepository(DataOptions options)
         return true;
     }
 
-    public async Task<UniteChallengeState?> RecordBattleAsync(ulong gameUlongUID, int periodId, int battleStatus, int maxBattleCount, int rewardCount)
+    public async Task<UniteChallengeState?> RecordBattleAsync(ulong gameUlongUID, int periodId, int battleStatus, int maxBattleCount, int rewardCount, SettlementKey? settlement = null, int? expectedRound = null)
     {
+        if (settlement is not null && settlement.GameUlongUID != gameUlongUID)
+        {
+            throw new InvalidDataException("Settlement identity does not match event recipient");
+        }
+
         await using var database = new DataConnection(options);
         await using var transaction = await database.BeginTransactionAsync();
-        var state = await ReadAsync(database, gameUlongUID, periodId);
-        if (state.IsClickStart != Started || state.BattleStatusList.Length >= maxBattleCount)
+        async Task<UniteChallengeState?> ApplyAsync()
         {
-            await transaction.RollbackAsync();
-            return null;
-        }
-
-        try
-        {
-            await database.InsertAsync(new RoleUniteChallengeBattle
+            if (!await TaskProcessRepository.LockRoleAsync(database, gameUlongUID))
             {
-                GameUlongUID = gameUlongUID,
-                PeriodId = periodId,
-                BattleIndex = state.BattleStatusList.Length + 1,
-                BattleStatus = battleStatus,
-            });
-        }
-        catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
-        {
-            await transaction.RollbackAsync();
-            return null;
-        }
+                throw new InvalidDataException($"Settlement role {gameUlongUID} is missing");
+            }
 
-        int[] battles = [.. state.BattleStatusList, battleStatus];
-        var roundWins = Math.Min(battles.Count(status => status == (int)PB_ENUM_ENM_UNITE_CHALLENGE_BATTLE_STATUS.PbEnmUniteChallengeBattleStatusWin), rewardCount);
-        for (var rewardIndex = state.RewardStatusList.Length + 1; rewardIndex <= roundWins; rewardIndex++)
-        {
-            await database.InsertAsync(new RoleUniteChallengeReward
+            var state = await ReadAsync(database, gameUlongUID, periodId);
+            if (expectedRound is { } round && state.RoundCnt != round)
             {
-                GameUlongUID = gameUlongUID,
-                PeriodId = periodId,
-                RewardIndex = rewardIndex,
-                RewardStatus = CanReceive,
-            });
+                throw new InvalidDataException($"Unite Challenge round changed before settlement for uid {gameUlongUID}, period {periodId}: expected {round}, found {state.RoundCnt}");
+            }
+
+            if (state.IsClickStart != Started || state.BattleStatusList.Length >= maxBattleCount)
+            {
+                return null;
+            }
+
+            try
+            {
+                await database.InsertAsync(new RoleUniteChallengeBattle
+                {
+                    GameUlongUID = gameUlongUID,
+                    PeriodId = periodId,
+                    BattleIndex = state.BattleStatusList.Length + 1,
+                    BattleStatus = battleStatus,
+                });
+            }
+            catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
+            {
+                return null;
+            }
+
+            int[] battles = [.. state.BattleStatusList, battleStatus];
+            var roundWins = Math.Min(battles.Count(status => status == (int)PB_ENUM_ENM_UNITE_CHALLENGE_BATTLE_STATUS.PbEnmUniteChallengeBattleStatusWin), rewardCount);
+            for (var rewardIndex = state.RewardStatusList.Length + 1; rewardIndex <= roundWins; rewardIndex++)
+            {
+                await database.InsertAsync(new RoleUniteChallengeReward
+                {
+                    GameUlongUID = gameUlongUID,
+                    PeriodId = periodId,
+                    RewardIndex = rewardIndex,
+                    RewardStatus = CanReceive,
+                });
+            }
+
+            var recorded = await ReadAsync(database, gameUlongUID, periodId);
+            return recorded;
         }
 
-        var recorded = await ReadAsync(database, gameUlongUID, periodId);
+        var recorded = settlement is null
+            ? await ApplyAsync()
+            : (await SettlementEffects.RunAsync(database, settlement, "events.rally", ApplyAsync)).Value;
         await transaction.CommitAsync();
         return recorded;
     }

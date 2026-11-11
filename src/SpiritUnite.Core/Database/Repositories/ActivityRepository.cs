@@ -30,6 +30,59 @@ public sealed record ActivityRewardChange(
 
 public sealed class ActivityRepository(DataOptions options)
 {
+    public async Task<ActivitySettlementReward?> FindSettlementRewardAsync(SettlementKey key, int taskId, long periodStart)
+    {
+        await using var database = new DataConnection(options);
+        var effect = SettlementRewardEffect(taskId, periodStart);
+        var row = await database.GetTable<SettlementEffectRecord>()
+            .FirstOrDefaultAsync(row => row.SettlementID == key.SettlementID && row.GameUlongUID == key.GameUlongUID && row.Effect == effect);
+        return row is null ? null : SettlementEffects.Deserialize<ActivitySettlementReward>(row.Output);
+    }
+
+    public async Task<ActivitySettlementReward> CommitSettlementRewardAsync(
+        SettlementKey key,
+        ActivityTaskReward reward,
+        ActivityTaskGrant grant,
+        ActivityRewardChange change,
+        SettlementTaskPlan progress)
+    {
+        await using var database = new DataConnection(options);
+        await using var transaction = await database.BeginTransactionAsync();
+        var receipt = await SettlementEffects.RunAsync(database, key, SettlementRewardEffect(reward.TaskId, reward.PeriodStart), async () =>
+        {
+            var alreadyClaimed = await database.GetTable<RoleActivityTaskReward>()
+                .AnyAsync(row => row.GameUlongUID == key.GameUlongUID && row.TaskId == reward.TaskId && row.PeriodStart == reward.PeriodStart);
+            var commit = alreadyClaimed
+                ? ActivityRewardCommit.Refused(PB_ENUM_RES_ERROR_CODE.PbErrTaskRewardTaked)
+                : await ApplyTaskRewardAsync(database, key.GameUlongUID, reward, change);
+            if (!alreadyClaimed && commit.Result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+            {
+                throw new InvalidDataException($"Activity settlement task {reward.TaskId} reward failed: {commit.Result}");
+            }
+
+            var tasks = await TaskProcessRepository.ReadSettlementTasksAsync(database, key.GameUlongUID, progress);
+            var rewards = await database.GetTable<RoleActivityTaskReward>()
+                .Where(row => row.GameUlongUID == key.GameUlongUID)
+                .ToArrayAsync();
+            foreach (var task in tasks)
+            {
+                var period = progress.Tasks.First(template => template.Info.TaskId == task.TaskId).PeriodStart;
+                if (rewards.FirstOrDefault(row => row.TaskId == task.TaskId && row.PeriodStart == period) is { } claimed)
+                {
+                    task.Status = (int)PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusRewarded;
+                    task.CompleteNum = 1;
+                    task.RewardTime = claimed.RewardTime;
+                }
+            }
+
+            return new ActivitySettlementReward(commit.Wallet is null ? null : new ActivityTaskGrantResult(grant, commit), tasks);
+        });
+        await transaction.CommitAsync();
+        return receipt.Value;
+    }
+
+    private static string SettlementRewardEffect(int taskId, long periodStart) => $"activity.reward.{taskId}.{periodStart}";
+
     public async Task<bool> RecordLoginDayAsync(ulong gameUlongUID, DateOnly loginDay)
     {
         await using var database = new DataConnection(options);
@@ -154,9 +207,26 @@ public sealed class ActivityRepository(DataOptions options)
     {
         await using var database = new DataConnection(options);
         await using var transaction = await database.BeginTransactionAsync();
-        if (rewardChange.ProcessIncrements.Count > 0 && !await TaskProcessRepository.LockRoleAsync(database, gameUlongUID))
+        var result = await ApplyTaskRewardAsync(database, gameUlongUID, reward, rewardChange);
+        if (result.Result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+        {
+            await transaction.CommitAsync();
+        }
+        else
         {
             await transaction.RollbackAsync();
+        }
+        return result;
+    }
+
+    private static async Task<ActivityRewardCommit> ApplyTaskRewardAsync(
+        DataConnection database,
+        ulong gameUlongUID,
+        ActivityTaskReward reward,
+        ActivityRewardChange rewardChange)
+    {
+        if (!await TaskProcessRepository.LockRoleAsync(database, gameUlongUID))
+        {
             return ActivityRewardCommit.Refused(PB_ENUM_RES_ERROR_CODE.PbErrCommonFailed);
         }
 
@@ -176,7 +246,6 @@ public sealed class ActivityRepository(DataOptions options)
         }
         catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
         {
-            await transaction.RollbackAsync();
             return ActivityRewardCommit.Refused(PB_ENUM_RES_ERROR_CODE.PbErrTaskRewardTaked);
         }
 
@@ -193,7 +262,6 @@ public sealed class ActivityRepository(DataOptions options)
         }
         catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
         {
-            await transaction.RollbackAsync();
             return ActivityRewardCommit.Refused(PB_ENUM_RES_ERROR_CODE.PbErrCommonFailed);
         }
 
@@ -206,14 +274,12 @@ public sealed class ActivityRepository(DataOptions options)
         var applied = await BagRepository.ApplyAsync(database, gameUlongUID, rewardChange.Change, reward.RewardTime);
         if (applied != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
         {
-            await transaction.RollbackAsync();
             return ActivityRewardCommit.Refused(applied);
         }
 
         await TaskProcessRepository.ApplyAsync(database, gameUlongUID, rewardChange.ProcessIncrements, reward.RewardTime);
         var changedItems = await BagRepository.ReadItemsAsync(database, gameUlongUID, rewardChange.Change.TouchedItems);
         var wallet = await WalletRepository.ReadAsync(database, gameUlongUID);
-        await transaction.CommitAsync();
         return new ActivityRewardCommit(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, specialCoinsBefore, wallet, changedItems);
     }
 }

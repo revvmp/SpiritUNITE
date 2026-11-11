@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SpiritUnite.Database.Repositories;
 using SpiritUnite.Game.Mail;
 using SpiritUnite.Game.Role;
+using SpiritUnite.Game.Tasks;
 using SpiritUnite.Packets;
 using SpiritUnite.Packets.Messages;
 
@@ -98,6 +99,40 @@ public sealed class AllPkmChallengeManager(
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
+    public async Task<AllPkmChallengeSettlementPlan?> PrepareSettlementAsync(LMNRoleInfo role, bool won, int pokemonId, DateTimeOffset now)
+    {
+        var activity = schedule.FindOpen(PB_ENUM_RES_ACTIVITY_TYPE.PbResActivityTypeAllPkmChallenge, now);
+        if (!won || pokemonId == NoPokemon || activity is null)
+        {
+            return null;
+        }
+
+        var increments = activityManager.PlanTaskGroupIncrements(PB_ENUM_RES_CONDITION_ID.PbResConditionIdUseSpecPokemonWin, activity.Row.ActivityParam, OneWin, now);
+        var infos = await activityManager.BuildTaskInfoListAsync(role, increments.Select(increment => increment.TaskId).ToArray(), now);
+        var tasks = infos.Select(info =>
+        {
+            var increment = increments.First(value => value.TaskId == info.TaskId);
+            return new SettlementTaskTemplate(info, increment.PeriodStart, [increment.TargetProcess], [increment.ConditionIndex], SettlementTaskCompleteTime.StoredAfterReceived);
+        }).ToArray();
+        return new AllPkmChallengeSettlementPlan(activity.Row.ActivityID, pokemonId, MaxPkmCount, now.ToUnixTimeSeconds(),
+            new SettlementTaskPlan("events.allpokemon.tasks", now.ToUnixTimeSeconds(), increments, tasks));
+    }
+
+    public async Task<GamePacket[]> ApplySettlementAsync(SettlementKey key, AllPkmChallengeSettlementPlan plan)
+    {
+        var listed = await repository.RecordWinDetailedAsync(key.GameUlongUID, plan.ActivityID, plan.PokemonID, plan.MaxPkmCount, plan.Tasks.Increments, plan.Now, key, plan.Tasks);
+        return listed is null ? [] :
+        [
+            GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidAllPkmChallengeStatusNtf, new pbSCAllPkmChallengeStatusNtf
+            {
+                ResultInfo = new pbResultInfo(),
+                PkmChallengedNum = listed.Pokemon.Length,
+                PkmChallengeList = { listed.Pokemon.Select(ToDetail) },
+            }),
+            GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf, new pbSCUpdateTaskInfoNtf { TaskInfoList = { listed.Tasks } }),
+        ];
+    }
+
     public async Task<GamePacket[]> RecordBattleAsync(LMNRoleInfo role, bool won, int pokemonId)
     {
         if (!won || pokemonId == NoPokemon || FindOpenActivity() is not { } activity)
@@ -141,3 +176,5 @@ public sealed class AllPkmChallengeManager(
     private ScheduledActivity? FindOpenActivity() =>
         schedule.FindOpen(PB_ENUM_RES_ACTIVITY_TYPE.PbResActivityTypeAllPkmChallenge, clock.GetUtcNow());
 }
+
+public sealed record AllPkmChallengeSettlementPlan(int ActivityID, int PokemonID, int MaxPkmCount, long Now, SettlementTaskPlan Tasks);

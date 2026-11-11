@@ -103,6 +103,29 @@ public sealed class AchievementManager
     private static bool CountsForAchievements(BattleTaskEvent battle) =>
         !battle.IsManMachine && AchievementBattleSubModes.Contains(battle.MapSubMode);
 
+    public async Task<SettlementTaskPlan> PrepareSettlementAsync(LMNRoleInfo role, BattleTaskEvent battle, DateTimeOffset now)
+    {
+        const string effect = "tasks.achievement";
+        if (!CountsForAchievements(battle))
+        {
+            return SettlementTaskPlan.Empty(effect, now.ToUnixTimeSeconds());
+        }
+
+        var increments = definitions
+            .Select(definition => MeasureBattle(definition.Condition, battle) is { } delta
+                ? new TaskProcessIncrement(definition.Task.TaskID, NoPeriod, delta, definition.Condition.TargetProcess)
+                : null)
+            .OfType<TaskProcessIncrement>()
+            .ToArray();
+        var touched = increments.Select(increment => increment.TaskId).ToHashSet();
+        var rewardTimes = await repository.FindRewardTimesAsync(role.GameUlongUID);
+        var measures = await LoadMeasuresAsync(role);
+        return new SettlementTaskPlan(effect, now.ToUnixTimeSeconds(), increments,
+            [.. definitions.Where(definition => touched.Contains(definition.Task.TaskID)).Select(definition => new SettlementTaskTemplate(
+                Evaluate(role, definition, rewardTimes, measures).ToTaskInfo(), NoPeriod,
+                [definition.Condition.TargetProcess], [0], SettlementTaskCompleteTime.Reward, true))]);
+    }
+
     public async Task<pbCOMDT_TASK_INFO[]> RecordBattleAsync(LMNRoleInfo role, BattleTaskEvent battle)
     {
         if (!CountsForAchievements(battle))

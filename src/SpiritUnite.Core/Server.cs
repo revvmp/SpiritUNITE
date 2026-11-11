@@ -245,6 +245,7 @@ public static class Server
         builder.Services.AddSingleton<FriendRepository>();
         builder.Services.AddSingleton<FriendGiftRepository>();
         builder.Services.AddSingleton<MailRepository>();
+        builder.Services.AddSingleton<SettlementMailRepository>();
         builder.Services.AddSingleton<ChatRepository>();
         builder.Services.AddSingleton<WalletRepository>();
         builder.Services.AddSingleton<ShopRepository>();
@@ -266,6 +267,7 @@ public static class Server
         builder.Services.AddSingleton<FirstChargeRepository>();
         builder.Services.AddSingleton<TrainerExpGiftRepository>();
         builder.Services.AddSingleton<ProfileRepository>();
+        builder.Services.AddSingleton<ProfileStatisticRepository>();
         builder.Services.AddSingleton<FightHistoryRepository>();
         builder.Services.AddSingleton<SettingsRepository>();
         builder.Services.AddSingleton<NewbieChallengeRepository>();
@@ -340,6 +342,7 @@ public static class Server
         builder.Services.AddSingleton<MailManager>();
         builder.Services.AddSingleton<GrantUpdates>();
         builder.Services.AddSingleton<CreditManager>();
+        builder.Services.AddHostedService<CreditSettlementMailDelivery>();
         builder.Services.AddSingleton<CreditPointTaskManager>();
         builder.Services.AddSingleton<AccusationManager>();
         builder.Services.AddSingleton<BattleVoiceManager>();
@@ -429,6 +432,7 @@ public static class Server
         builder.Services.AddSingleton<SettleFabulous>();
         builder.Services.AddSingleton<BattleSettlement>();
         builder.Services.AddSingleton<SettlementProcessor>();
+        builder.Services.AddSingleton<SettlementDeliveryTracker>();
         builder.Services.AddHostedService(services => services.GetRequiredService<SettlementProcessor>());
         builder.Services.AddSingleton<RelayManager>();
         builder.Services.AddSingleton<ObserveManager>();

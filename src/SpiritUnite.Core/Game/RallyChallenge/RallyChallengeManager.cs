@@ -236,6 +236,39 @@ public sealed class RallyChallengeManager(
         ]);
     }
 
+    public async Task<RallyChallengeSettlementPlan?> PrepareSettlementAsync(ulong uid, bool won, DateTimeOffset now)
+    {
+        var configTime = UTCTimeUtil.ServerTime2CfgTime(now);
+        var conf = gameData.UniteChallenge.Rows.FirstOrDefault(row => row.OpenTime <= configTime && configTime < row.CloseTime);
+        if (conf is null)
+        {
+            return null;
+        }
+
+        var state = await repository.FindAsync(uid, conf.PeriodID);
+        return state.IsClickStart != Started || state.BattleStatusList.Length >= MaxBattleCount ? null
+            : new RallyChallengeSettlementPlan(conf.PeriodID,
+                (int)(won ? PB_ENUM_ENM_UNITE_CHALLENGE_BATTLE_STATUS.PbEnmUniteChallengeBattleStatusWin : PB_ENUM_ENM_UNITE_CHALLENGE_BATTLE_STATUS.PbEnmUniteChallengeBattleStatusLose),
+                MaxBattleCount, Math.Min(conf.WinReward.Length, MaxRewardCount), state.RoundCnt);
+    }
+
+    public async Task<GamePacket[]> ApplySettlementAsync(SettlementKey key, RallyChallengeSettlementPlan plan)
+    {
+        var state = await repository.RecordBattleAsync(key.GameUlongUID, plan.PeriodID, plan.BattleStatus, plan.MaxBattleCount, plan.RewardCount, key, plan.RoundCnt);
+        if (state is null)
+        {
+            return [];
+        }
+
+        var update = GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUniteChallengeInfoUpdateNtf, new pbSCUniteChallengeInfoUpdateNtf
+        {
+            BattleInfo = BuildBattleInfo(state),
+            RewardInfo = BuildRewardInfo(state),
+        });
+        return state.BattleStatusList.Length < plan.MaxBattleCount ? [update]
+            : [update, GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUniteChallengeRoundEndNtf, new pbSCUniteChallengeRoundEndNtf { LastBattleInfo = BuildBattleInfo(state) })];
+    }
+
     public async Task<GamePacket[]> RecordBattleAsync(ulong uid, bool won)
     {
         if (FindOpenConf() is not { } conf)
@@ -294,3 +327,5 @@ public sealed class RallyChallengeManager(
         return result;
     }
 }
+
+public sealed record RallyChallengeSettlementPlan(int PeriodID, int BattleStatus, int MaxBattleCount, int RewardCount, int RoundCnt);

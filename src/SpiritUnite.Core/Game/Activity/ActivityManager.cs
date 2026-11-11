@@ -11,7 +11,7 @@ using SpiritUnite.Packets.Messages;
 
 namespace SpiritUnite.Game.Activity;
 
-public sealed class ActivityManager(
+public sealed partial class ActivityManager(
     ActivitySchedule schedule,
     ActivityRepository repository,
     TaskProcessRepository taskProcesses,
@@ -56,9 +56,9 @@ public sealed class ActivityManager(
         return [.. tasks.Select(task => progress.Evaluate(task).ToTaskInfo())];
     }
 
-    public async Task<pbCOMDT_TASK_INFO[]> BuildTaskInfoListAsync(LMNRoleInfo role, IReadOnlyCollection<int> taskIds)
+    public async Task<pbCOMDT_TASK_INFO[]> BuildTaskInfoListAsync(LMNRoleInfo role, IReadOnlyCollection<int> taskIds, DateTimeOffset? at = null)
     {
-        var now = clock.GetUtcNow();
+        var now = at ?? clock.GetUtcNow();
         var tasks = (await FindRoleTasksAsync(role, now))
             .Where(task => taskIds.Contains(task.Task.TaskID) && HasConditions(task))
             .OrderBy(task => task.Task.TaskID)
@@ -461,9 +461,9 @@ public sealed class ActivityManager(
         }
     }
 
-    public TaskProcessIncrement[] PlanTaskGroupIncrements(PB_ENUM_RES_CONDITION_ID conditionId, int groupId, int delta)
+    public TaskProcessIncrement[] PlanTaskGroupIncrements(PB_ENUM_RES_CONDITION_ID conditionId, int groupId, int delta, DateTimeOffset? at = null)
     {
-        var now = clock.GetUtcNow();
+        var now = at ?? clock.GetUtcNow();
         return
         [
             .. schedule.FindActiveTasksInGroup(groupId, now)

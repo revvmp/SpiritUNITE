@@ -105,6 +105,37 @@ public sealed class MailManager(
         }));
     }
 
+    public async Task<bool> PushSystemMailBatchAsync(ulong uid, int mailType, IReadOnlyList<RoleMail> savedMails)
+    {
+        var unread = await repository.CountUnreadAsync(uid, clock.GetUtcNow().ToUnixTimeSeconds());
+        var items = new List<pbCOMDT_MAIL_ITEM>();
+        foreach (var saved in savedMails)
+        {
+            if (saved.GameUlongUID != uid || saved.MailType != mailType)
+            {
+                throw new ArgumentException("Mail batch recipient or type does not match", nameof(savedMails));
+            }
+
+            var item = BuildMailItem(saved);
+            if (await FindSenderAsync(saved.FromUid) is { } sender)
+            {
+                item.UserPlantInfo = sender.Style.BuildUserPlantInfo();
+            }
+
+            items.Add(item);
+        }
+
+        return await lobbyRoles.PushAsync(uid,
+        [
+            .. BuildOtherUnreadRedDotPackets(unread, mailType),
+            GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidMailNewNtf, new pbSCMailNewNtf
+            {
+                MailList = new pbCOMDT_MAIL_LIST { MailType = mailType, MailInfo = { items } },
+            }),
+            .. await BuildUnreadRedDotPacketsAsync(uid, mailType),
+        ]);
+    }
+
     public async Task<GamePacket[]> BuildNewMailRedDotPacketsAsync(ulong uid, int mailType) =>
         mailType == (int)PB_ENUM_RES_MAIL_TYPE.PbResMailTypePerson
             ?

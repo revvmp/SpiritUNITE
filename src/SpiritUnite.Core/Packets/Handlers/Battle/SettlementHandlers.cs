@@ -14,10 +14,10 @@ public sealed class SettlementHandlers(BattleSettlement settlement, SettleFabulo
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidMultiGameSettleGainReq)]
-    public GamePacket[] OnMultiGameSettleGainReq(GamePacket request)
+    public async Task<GamePacket[]> OnMultiGameSettleGainReq(GamePacket request)
     {
         pbCSMultiGameSettleGainReq.Parser.ParseFrom(request.PkgData);
-        if (settlement.FindSettleGain(request.Uid) is not { } gain)
+        if (await settlement.FindSettleGainAsync(request.Uid) is not { } gain)
         {
             logger.LogInformation("Uid {Uid} asked for a settlement it does not have", request.Uid);
             return [];

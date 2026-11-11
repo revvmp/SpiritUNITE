@@ -170,6 +170,7 @@ public sealed class DeskManager
     private readonly IReadOnlyDictionary<int, pbPokemon_Base> pokemonByHeroID;
     private readonly NpcHeldItem[] npcHeldItems;
     private readonly FrozenDictionary<(int GroupId, int Level), int> levelUpDesignIds;
+    private readonly SettlementDeliveryTracker settlementDelivery;
     private readonly Lock gate = new();
     private readonly Dictionary<int, BattleDesk> desksById = [];
     private readonly Dictionary<ulong, BattleDesk> desksByUid = [];
@@ -200,6 +201,7 @@ public sealed class DeskManager
         HeldItemManager heldItems,
         TimeProvider clock,
         BackgroundOperations operations,
+        SettlementDeliveryTracker settlementDelivery,
         ILogger<DeskManager> logger)
     {
         this.gameData = gameData;
@@ -222,6 +224,7 @@ public sealed class DeskManager
         this.heldItems = heldItems;
         this.clock = clock;
         this.operations = operations;
+        this.settlementDelivery = settlementDelivery;
         this.logger = logger;
         pokemonByHeroID = gameData.PokemonBase.Rows
             .Where(row => row.MainUnitId != NoHeroID)
@@ -298,6 +301,11 @@ public sealed class DeskManager
             releasedUids.ExceptWith(memberUids);
 
             desk = CreateDesk(match, scene, humanProfiles, friendshipsAmongHumans, roomRules, now);
+            foreach (var attendee in desk.Attendees)
+            {
+                settlementDelivery.Begin(attendee.Uid, desk.SettlementID);
+            }
+
             desksById[desk.DeskID] = desk;
             foreach (var uid in desk.HumanUids)
             {

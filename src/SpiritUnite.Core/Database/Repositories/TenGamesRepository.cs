@@ -1,9 +1,11 @@
 using LinqToDB;
 using LinqToDB.Async;
 using LinqToDB.Data;
+using LinqToDB.DataProvider.MySql;
 using MySqlConnector;
 using SpiritUnite.Database.Models;
 using SpiritUnite.Game.Guild;
+using SpiritUnite.Game.TenGames;
 using SpiritUnite.Packets.Messages;
 
 namespace SpiritUnite.Database.Repositories;
@@ -143,6 +145,84 @@ public sealed class TenGamesRepository(DataOptions options)
             .UpdateAsync();
     }
 
+    public async Task<bool> HasPendingSettlementAsync(int gamesId)
+    {
+        await using var database = new DataConnection(options);
+        var plans = await database.GetTable<TenGamesSettlement>().Where(row => !row.Applied).Select(row => row.Plan).ToArrayAsync();
+        return plans.Select(SettlementEffects.Deserialize<TenGamesSettlementPlan>).Any(plan => plan.Teams.Any(team => team.JoinTenGamesID == gamesId));
+    }
+
+    public async Task<TenGamesSettlementPlan?> FindSettlementPlanAsync(Guid settlementID)
+    {
+        await using var database = new DataConnection(options);
+        var id = settlementID.ToString("N");
+        var row = await database.GetTable<TenGamesSettlement>().FirstOrDefaultAsync(entry => entry.SettlementID == id);
+        return row is null ? null : SettlementEffects.Deserialize<TenGamesSettlementPlan>(row.Plan);
+    }
+
+    public async Task<TenGamesSettlementPlan> StoreSettlementPlanAsync(TenGamesSettlementPlan plan)
+    {
+        await using var database = new DataConnection(options);
+        var id = plan.SettlementID.ToString("N");
+        try
+        {
+            await database.InsertAsync(new TenGamesSettlement { SettlementID = id, CreatedAt = plan.CreatedAt, Plan = SettlementEffects.Serialize(plan) });
+            return plan;
+        }
+        catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
+        {
+            var row = await database.GetTable<TenGamesSettlement>().SingleAsync(entry => entry.SettlementID == id);
+            return SettlementEffects.Deserialize<TenGamesSettlementPlan>(row.Plan);
+        }
+    }
+
+    public async Task<TenGamesSettlementPlan> ApplySettlementPlanAsync(Guid settlementID, ulong ownerUid)
+    {
+        await using var database = new DataConnection(options);
+        await using var transaction = await database.BeginTransactionAsync();
+        var id = settlementID.ToString("N");
+        var row = await database.GetTable<TenGamesSettlement>().Where(entry => entry.SettlementID == id).AsMySql().ForUpdateHint().SingleAsync();
+        var plan = SettlementEffects.Deserialize<TenGamesSettlementPlan>(row.Plan);
+        if (!row.Applied)
+        {
+            foreach (var uid in plan.Teams.SelectMany(team => team.Uids).Append(ownerUid).Distinct().Order())
+            {
+                await SettlementEffects.LockRoleAsync(database, uid);
+            }
+
+            await SettlementOwnership.VerifyAsync(database, ownerUid);
+
+            foreach (var team in plan.Teams.OrderBy(team => team.TeamID))
+            {
+                var changed = await database.GetTable<TenGamesTeam>()
+                    .Where(saved => saved.TeamID == team.TeamID && saved.JoinTenGamesID == team.JoinTenGamesID
+                        && saved.CurScore == team.BeforeScore && saved.WinCount == team.BeforeWins && saved.LoseCount == team.BeforeLosses)
+                    .Set(saved => saved.CurScore, team.Score)
+                    .Set(saved => saved.WinCount, team.Wins)
+                    .Set(saved => saved.LoseCount, team.Losses)
+                    .UpdateAsync();
+                if (changed != 1)
+                {
+                    throw new InvalidOperationException("Ten Games team changed after settlement was prepared");
+                }
+
+                if (team.Won && plan.BPActivityID != 0)
+                {
+                    foreach (var uid in team.Uids)
+                    {
+                        await AddBPWinAsync(database, uid, plan.BPActivityID);
+                    }
+                }
+            }
+
+            await database.GetTable<TenGamesSettlement>().Where(entry => entry.SettlementID == id)
+                .Set(entry => entry.Applied, true).UpdateAsync();
+        }
+
+        await transaction.CommitAsync();
+        return plan;
+    }
+
     public async Task SaveBattleAsync(TenGamesTeam team)
     {
         await using var database = new DataConnection(options);
@@ -275,6 +355,11 @@ public sealed class TenGamesRepository(DataOptions options)
     public async Task AddBPWinAsync(ulong gameUlongUID, int activityID)
     {
         await using var database = new DataConnection(options);
+        await AddBPWinAsync(database, gameUlongUID, activityID);
+    }
+
+    private static async Task AddBPWinAsync(DataConnection database, ulong gameUlongUID, int activityID)
+    {
         var updated = await database.GetTable<RoleTenGamesBP>()
             .Where(bp => bp.GameUlongUID == gameUlongUID && bp.ActivityID == activityID)
             .Set(bp => bp.WinCnt, bp => bp.WinCnt + 1)

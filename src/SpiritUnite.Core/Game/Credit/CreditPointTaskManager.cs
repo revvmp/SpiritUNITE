@@ -68,6 +68,22 @@ public sealed class CreditPointTaskManager(
     public Task<GamePacket[]> SyncAsync(ulong uid) =>
         WithGateAsync(uid, async () => (await SyncTasksAsync(uid)).Pushes);
 
+    public Task<GamePacket[]> SyncSettlementAsync(ulong uid, SettlementKey key, int creditPoint, long now) =>
+        WithGateAsync(uid, async () =>
+        {
+            if (key.GameUlongUID != uid)
+            {
+                throw new ArgumentException("Settlement uid does not match credit task uid", nameof(key));
+            }
+
+            var badgeNum = await FindRedDotBadgeNumAsync(uid);
+            return await repository.ApplyTaskSettlementAsync(key, saved =>
+            {
+                var plan = PlanSync(uid, creditPoint, now, saved, badgeNum);
+                return ((IReadOnlyList<CreditPointTaskRecord>)plan.Changed, plan.Pushes);
+            });
+        });
+
     public Task<(pbCOMDT_TASK_INFO[] Tasks, GamePacket[] Pushes)> BuildTaskInfoListAsync(ulong uid) =>
         WithGateAsync(uid, async () =>
         {
@@ -142,7 +158,21 @@ public sealed class CreditPointTaskManager(
     {
         var creditPoint = await credit.GetCreditPointAsync(uid);
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
-        var saved = (await repository.ListTasksAsync(uid)).ToDictionary(task => task.TaskId);
+        var existing = await repository.ListTasksAsync(uid);
+        var badgeNum = await FindRedDotBadgeNumAsync(uid);
+        var plan = PlanSync(uid, creditPoint, now, existing, badgeNum);
+        if (plan.Changed.Length > 0)
+        {
+            await repository.SaveTasksAsync(uid, plan.Changed);
+        }
+
+        return (plan.Tasks, plan.Pushes);
+    }
+
+    private (CreditPointTaskRecord[] Tasks, CreditPointTaskRecord[] Changed, GamePacket[] Pushes) PlanSync(
+        ulong uid, int creditPoint, long now, CreditPointTaskRecord[] existing, int badgeNum)
+    {
+        var saved = existing.ToDictionary(task => task.TaskId);
         var tasks = new List<CreditPointTaskRecord>();
         var changed = new List<CreditPointTaskRecord>();
         var redDotSteps = new List<int>();
@@ -198,22 +228,20 @@ public sealed class CreditPointTaskManager(
 
         if (changed.Count == 0)
         {
-            return ([.. tasks], []);
+            return ([.. tasks], [], []);
         }
 
-        await repository.SaveTasksAsync(uid, changed);
         var pushes = new List<GamePacket>
         {
             GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf, BuildUpdateTaskInfoNtf(changed)),
         };
-        var badgeNum = await FindRedDotBadgeNumAsync(uid);
         foreach (var step in redDotSteps)
         {
             badgeNum = Math.Max(0, badgeNum + step);
             pushes.Add(TaskRedDots.BuildCount(PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdCreditPointReward, badgeNum));
         }
 
-        return ([.. tasks], [.. pushes]);
+        return ([.. tasks], [.. changed], [.. pushes]);
     }
 
     private static CreditPointTaskRecord Issue(CreditPointTaskDefinition definition, int creditPoint, long recvTime)

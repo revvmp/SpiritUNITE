@@ -40,6 +40,8 @@ public sealed record RankedBattle(bool Won, bool IsDraw, IReadOnlyList<pbCOMDT_S
 
 public sealed record RankedSettlement(pbCOMDT_CATCH_SETTLE_RESULT CatchSettleResult, pbSCRankedMatchInfoNtf InfoNtf);
 
+public sealed record RankedSettlementPlan(ulong Uid, RankedSeasonRecord Before, RankedBattleOutcome Outcome, bool Won, bool IsDraw, long SettledAt);
+
 public sealed record FreeTicketCardUse(PB_ENUM_RES_ERROR_CODE Result, IReadOnlyList<BagItem> ChangedItems, pbSCRankedMatchInfoNtf? InfoNtf);
 
 public sealed record RankedSeasonRollover(
@@ -217,14 +219,17 @@ public sealed class RankedManager
     }
 
     public async Task<pbCOMDT_RANKED_DIVISION> BuildHighestRankedDivisionInHistoryAsync(ulong uid)
+        => BuildHighestRankedDivisionInHistory(await repository.ListSeasonsAsync(uid));
+
+    private pbCOMDT_RANKED_DIVISION BuildHighestRankedDivisionInHistory(IEnumerable<RankedSeasonRecord> seasons)
     {
-        var highest = (await repository.ListSeasonsAsync(uid))
-            .Where(season => season.Position.RankedDivision != RankedLadder.UnplacedRankedDivision)
-            .OrderByDescending(season => ladder.IndexOf(season.Position.RankedDivision))
-            .ThenByDescending(season => season.Position.MasterPoint)
-            .ThenByDescending(season => season.Position.WinPoint)
+        var highest = seasons
+            .Where(season => season.HighestRankedDivision != RankedLadder.UnplacedRankedDivision)
+            .OrderByDescending(season => ladder.IndexOf(season.HighestRankedDivision))
+            .ThenByDescending(season => season.HighestMasterPoint)
             .FirstOrDefault();
-        return highest is null ? new pbCOMDT_RANKED_DIVISION() : ToDivision(highest.Position, highest.SeasonId);
+        return highest is null ? new pbCOMDT_RANKED_DIVISION()
+            : ToDivision(new RankedPosition(highest.HighestRankedDivision, 0, highest.HighestMasterPoint), highest.SeasonId);
     }
 
     public async Task<RankedSeasonStatus> FindSeasonStatusAsync(ulong uid)
@@ -351,9 +356,32 @@ public sealed class RankedManager
         return claim;
     }
 
-    public async Task<int> TakeIsTodaySetNoRemindedAsync(ulong uid)
+    public async Task<int> TakeIsTodaySetNoRemindedAsync(ulong uid, SettlementKey? settlementKey = null, long? settledAt = null)
     {
-        var today = Today;
+        var today = (settledAt ?? clock.GetUtcNow().ToUnixTimeSeconds()) / SecondsPerDay;
+        if (settlementKey is not null)
+        {
+            if (settlementKey.GameUlongUID != uid)
+            {
+                throw new ArgumentException("Settlement uid does not match ranked uid", nameof(settlementKey));
+            }
+
+            var value = TodayNotSetNoReminded;
+            await UpdateAsync(uid, async state =>
+            {
+                var outcome = await repository.TakeSettlementReminderAsync(settlementKey, today);
+                value = outcome.Value.IsTodaySetNoReminded;
+                if (!outcome.Applied)
+                {
+                    states.TryRemove(uid, out _);
+                    return (await LoadAsync(uid), true);
+                }
+
+                return (state with { NoRemindedBuyProtectCardDay = outcome.Value.Day }, true);
+            });
+            return value;
+        }
+
         var isTodaySetNoReminded = TodayNotSetNoReminded;
         await UpdateAsync(uid, async state =>
         {
@@ -604,69 +632,121 @@ public sealed class RankedManager
             : new FreeTicketCardUse(result, [], null);
     }
 
-    public async Task<RankedSettlement?> SettleAsync(ulong uid, RankedBattle battle)
+    public async Task<RankedSettlementPlan> PrepareSettlementAsync(ulong uid, RankedBattle battle, long settledAt)
     {
-        RankedSettlement? settlement = null;
+        RankedSettlementPlan? plan = null;
         await UpdateAsync(uid, async state =>
         {
-            var season = state.Season;
-            var old = season.Position;
-            var ticket = season.Entry?.TicketConsume ?? NoTicketConsume;
-            var big = ladder.BigOf((season.Entry?.Before ?? old).RankedDivision);
-            var basePoint = battle.IsDraw ? 0
-                : battle.Won ? Options.WinPointOf(big)
-                : Options.LoseBasePointOf(big);
-            var medals = ladder.RowOf((season.Entry?.Before ?? old).RankedDivision).MedalPoint > NoMedalPoint ? battle.Medals : [];
-            var medalPoint = medals.Sum(medal => medal.Score);
-            var battleAddSumPoint = basePoint + medalPoint;
-            var move = ladder.Move(old, battleAddSumPoint);
-            var entryFallProtect = season.Entry is { } entry && ladder.Move(entry.Before, -entry.TicketConsume).DivisionFallProtect;
-            var record = Advance(season, move.Position, battle.Won);
-            await repository.CommitSeasonAsync(uid, record, itemCost: null, clock.GetUtcNow().ToUnixTimeSeconds());
-
-            var saved = state with { Season = record, SeasonStored = true };
-            settlement = new RankedSettlement(
-                new pbCOMDT_CATCH_SETTLE_RESULT
-                {
-                    OldRankedDivision = ToDivision(old, season.SeasonId),
-                    NewRankedDivision = ToDivision(record.Position, season.SeasonId),
-                    VirtualRegionRankInfo = new pbCOMDT_VIRTUAL_REGION_RANK_INFO(),
-                    DivisionFallProtect = entryFallProtect ? FallProtected : 0,
-                    BattlePointDetail = new pbCOMDT_SETTLE_POINT_DETAIL
-                    {
-                        TicketConsumePoint = ticket,
-                        BattleAddSumPoint = battleAddSumPoint,
-                        BasePoint = basePoint,
-                        MedalPoint = medalPoint,
-                        HangUpPercent = NotHungUpPercent,
-                        MedalPointList = new pbCOMDT_SETTLE_MEDAlPOINT_LIST { MedalList = { medals.Select(medal => medal.Clone()) } },
-                    },
-                },
-                new pbSCRankedMatchInfoNtf());
-            logger.LogInformation(
-                "Uid {Uid} ranked {Result}: division {OldDivision} ({OldWinPoint} wp, {OldMasterPoint} mp) -> {NewDivision} ({NewWinPoint} wp, {NewMasterPoint} mp); entry cost {TicketConsume}, base {BasePoint}, medals {MedalPoint}, fall protection {DivisionFallProtect}",
-                uid,
-                battle.IsDraw ? "draw" : battle.Won ? "win" : "loss",
-                old.RankedDivision,
-                old.WinPoint,
-                old.MasterPoint,
-                record.Position.RankedDivision,
-                record.Position.WinPoint,
-                record.Position.MasterPoint,
-                ticket,
-                basePoint,
-                medalPoint,
-                entryFallProtect);
-            return (saved, true);
+            plan = await BuildSettlementPlanAsync(uid, state, battle, DateTimeOffset.FromUnixTimeSeconds(settledAt));
+            return (state, false);
         });
-        if (settlement is not null)
+        return plan ?? throw new InvalidOperationException("Ranked settlement plan was not prepared");
+    }
+
+    public async Task<RankedSettlement?> SettleAsync(ulong uid, RankedBattle battle, SettlementKey? settlementKey = null, long? settledAt = null)
+    {
+        RankedSettlement? result = null;
+        await UpdateAsync(uid, async state =>
         {
-            settlement.InfoNtf.Detail = await BuildDetailAsync(uid);
+            var plan = await BuildSettlementPlanAsync(uid, state, battle,
+                settledAt is { } timestamp ? DateTimeOffset.FromUnixTimeSeconds(timestamp) : clock.GetUtcNow());
+            var applied = await ApplySettlementPlanAsync(uid, state, plan, settlementKey);
+            result = applied.Result;
+            return (applied.State, true);
+        });
+        return result;
+    }
+
+    public async Task<RankedSettlement> SettleAsync(ulong uid, RankedSettlementPlan plan, SettlementKey settlementKey)
+    {
+        RankedSettlement? result = null;
+        await UpdateAsync(uid, async state =>
+        {
+            var applied = await ApplySettlementPlanAsync(uid, state, plan, settlementKey);
+            result = applied.Result;
+            return (applied.State, true);
+        });
+        return result ?? throw new InvalidOperationException("Ranked settlement was not applied");
+    }
+
+    private async Task<(RankedState State, RankedSettlement Result)> ApplySettlementPlanAsync(ulong uid, RankedState state, RankedSettlementPlan plan, SettlementKey? key)
+    {
+        if (plan.Uid != uid || key is not null && key.GameUlongUID != uid)
+        {
+            throw new ArgumentException("Settlement uid does not match ranked uid", nameof(plan));
         }
 
-        sessions.AddOrUpdate(uid, _ => RankedSessionRecord.Empty.After(battle.Won, battle.IsDraw), (_, session) => session.After(battle.Won, battle.IsDraw));
+        var applied = true;
+        var outcome = plan.Outcome;
+        if (key is not null)
+        {
+            var committed = await repository.CommitBattleAsync(key, plan.Before, outcome);
+            outcome = committed.Value;
+            applied = committed.Applied;
+        }
+        else
+        {
+            await repository.CommitSeasonAsync(uid, outcome.Season, null, plan.SettledAt);
+        }
 
-        return settlement;
+        if (applied)
+        {
+            sessions.AddOrUpdate(uid, _ => RankedSessionRecord.Empty.After(plan.Won, plan.IsDraw), (_, session) => session.After(plan.Won, plan.IsDraw));
+            if (state.Season.SeasonId == outcome.Season.SeasonId)
+            {
+                state = state with { Season = outcome.Season, SeasonStored = true };
+            }
+        }
+        else
+        {
+            states.TryRemove(uid, out _);
+            state = await LoadAsync(uid);
+        }
+
+        return (state, outcome.Settlement);
+    }
+
+    private async Task<RankedSettlementPlan> BuildSettlementPlanAsync(ulong uid, RankedState state, RankedBattle battle, DateTimeOffset when)
+    {
+        var match = RankedMatch.FindCurrentSeason(gameData, when);
+        var season = state.Season.SeasonId == match.Season.SeasonId
+            ? state.Season
+            : await repository.FindSeasonAsync(uid, match.Season.SeasonId) ?? StartingSeason(match.Season.SeasonId);
+        var old = season.Position;
+        var ticket = season.Entry?.TicketConsume ?? NoTicketConsume;
+        var big = ladder.BigOf((season.Entry?.Before ?? old).RankedDivision);
+        var basePoint = battle.IsDraw ? 0
+            : battle.Won ? Options.WinPointOf(big)
+            : Options.LoseBasePointOf(big);
+        var medals = ladder.RowOf((season.Entry?.Before ?? old).RankedDivision).MedalPoint > NoMedalPoint ? battle.Medals : [];
+        var medalPoint = medals.Sum(medal => medal.Score);
+        var battleAddSumPoint = basePoint + medalPoint;
+        var move = ladder.Move(old, battleAddSumPoint);
+        var entryFallProtect = season.Entry is { } entry && ladder.Move(entry.Before, -entry.TicketConsume).DivisionFallProtect;
+        var record = Advance(season, move.Position, battle.Won);
+        var settlement = new RankedSettlement(
+            new pbCOMDT_CATCH_SETTLE_RESULT
+            {
+                OldRankedDivision = ToDivision(old, season.SeasonId),
+                NewRankedDivision = ToDivision(record.Position, season.SeasonId),
+                VirtualRegionRankInfo = new pbCOMDT_VIRTUAL_REGION_RANK_INFO(),
+                DivisionFallProtect = entryFallProtect ? FallProtected : 0,
+                BattlePointDetail = new pbCOMDT_SETTLE_POINT_DETAIL
+                {
+                    TicketConsumePoint = ticket,
+                    BattleAddSumPoint = battleAddSumPoint,
+                    BasePoint = basePoint,
+                    MedalPoint = medalPoint,
+                    HangUpPercent = NotHungUpPercent,
+                    MedalPointList = new pbCOMDT_SETTLE_MEDAlPOINT_LIST { MedalList = { medals.Select(medal => medal.Clone()) } },
+                },
+            },
+            new pbSCRankedMatchInfoNtf());
+        var allSeasons = (await repository.ListSeasonsAsync(uid)).Where(candidate => candidate.SeasonId != record.SeasonId).Append(record);
+        settlement.InfoNtf.Detail = BuildDetail(record, match.RankedMatchState,
+            state.Season.SeasonId == record.SeasonId ? state.AwardedRankedDivisions : (await repository.FindTaskAwardsAsync(uid, record.SeasonId)).ToHashSet(),
+            BuildHighestRankedDivisionInHistory(allSeasons));
+        return new RankedSettlementPlan(uid, season, new RankedBattleOutcome(record, settlement), battle.Won, battle.IsDraw, when.ToUnixTimeSeconds());
     }
 
     public async Task<pbSCGetRankedMatchHistoryInfoRsp> BuildHistoryAsync(ulong uid)

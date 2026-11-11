@@ -16,7 +16,7 @@ public sealed class NewbieChallengeManager(
     private const int SecondsPerDay = 86400;
     private const int MaxNewbieChallengeDayNum = (int)PB_MACRO_COM_MAX_NEWBIE_CHALLENGE_DAY_NUM.PbComMaxNewbieChallengeDayNum;
 
-    public async Task<pbCOMDT_NEWBIE_CHALLENGE_UNLOCK_INFO> BuildUnlockInfoAsync(LMNRoleInfo role)
+    public async Task<pbCOMDT_NEWBIE_CHALLENGE_UNLOCK_INFO> BuildUnlockInfoAsync(LMNRoleInfo role, DateTimeOffset? at = null)
     {
         if (!IsUnlocked(role))
         {
@@ -24,7 +24,7 @@ public sealed class NewbieChallengeManager(
         }
 
         var registerDay = await FindRegisterDayAsync(role);
-        var now = clock.GetUtcNow();
+        var now = at ?? clock.GetUtcNow();
         var today = DateOnly.FromDateTime(now.UtcDateTime);
         return new pbCOMDT_NEWBIE_CHALLENGE_UNLOCK_INFO
         {

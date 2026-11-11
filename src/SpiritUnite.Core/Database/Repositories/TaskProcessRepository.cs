@@ -4,6 +4,7 @@ using LinqToDB.Data;
 using LinqToDB.DataProvider.MySql;
 using SpiritUnite.Database.Models;
 using SpiritUnite.Game.Tasks;
+using SpiritUnite.Packets.Messages;
 
 namespace SpiritUnite.Database.Repositories;
 
@@ -41,6 +42,72 @@ public sealed class TaskProcessRepository(DataOptions options)
         await ApplyAsync(database, gameUlongUID, increments, now);
         await transaction.CommitAsync();
         return true;
+    }
+
+    public async Task<pbCOMDT_TASK_INFO[]> ApplySettlementAsync(SettlementKey key, SettlementTaskPlan plan)
+    {
+        await using var database = new DataConnection(options);
+        await using var transaction = await database.BeginTransactionAsync();
+        var effect = await SettlementEffects.RunAsync(database, key, plan.Effect, async () =>
+        {
+            if (!await LockRoleAsync(database, key.GameUlongUID))
+            {
+                throw new InvalidDataException($"Settlement role {key.GameUlongUID} is missing");
+            }
+
+            await ApplyAsync(database, key.GameUlongUID, plan.Increments, plan.Now);
+            return await ReadSettlementTasksAsync(database, key.GameUlongUID, plan);
+        });
+        await transaction.CommitAsync();
+        return effect.Value;
+    }
+
+    internal static async Task<pbCOMDT_TASK_INFO[]> ReadSettlementTasksAsync(DataConnection database, ulong uid, SettlementTaskPlan plan)
+    {
+        var taskIds = plan.Tasks.Select(task => task.Info.TaskId).ToArray();
+        var rows = await database.GetTable<RoleTaskProcess>()
+            .Where(row => row.GameUlongUID == uid && taskIds.Contains(row.TaskId))
+            .ToArrayAsync();
+        var stored = rows.GroupBy(row => (row.TaskId, row.PeriodStart)).ToDictionary(group => group.Key, ToStoredTaskProcess);
+        return plan.Tasks.Select(task => BuildSettlementTask(task, stored)).ToArray();
+    }
+
+    private static pbCOMDT_TASK_INFO BuildSettlementTask(
+        SettlementTaskTemplate task,
+        IReadOnlyDictionary<(int TaskId, long PeriodStart), StoredTaskProcess> stored)
+    {
+        var info = task.Info.Clone();
+        var process = stored.GetValueOrDefault((info.TaskId, task.PeriodStart));
+        for (var index = 0; index < task.StoredConditionIndexes.Length; index++)
+        {
+            if (task.StoredConditionIndexes[index] >= 0)
+            {
+                info.TaskProcess[index] = Math.Min(task.Targets[index], process?.ProcessOf(task.StoredConditionIndexes[index]) ?? 0);
+            }
+        }
+
+        var completed = info.IsLockProcess == 0 && task.Targets.Length > 0
+            && task.Targets.Select((target, index) => info.TaskProcess[index] >= target).All(value => value);
+        if (info.Status != (int)PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusRewarded)
+        {
+            info.Status = (int)(completed ? PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusComplete : PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusRecved);
+        }
+
+        var received = info.Status == (int)PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusRecved;
+        info.CompleteNum = received ? 0 : 1;
+        info.CompleteTime = received ? 0 : task.CompleteTime switch
+        {
+            SettlementTaskCompleteTime.Received => info.RecvTime,
+            SettlementTaskCompleteTime.StoredAfterReceived => Math.Max(info.RecvTime, Math.Max(info.CompleteTime, process?.CompleteTime ?? 0)),
+            SettlementTaskCompleteTime.Reward => info.RewardTime,
+            _ => process is { CompleteTime: > 0 } ? process.CompleteTime : task.PeriodStart,
+        };
+        if (task.HideNewTagOnComplete && !received)
+        {
+            info.NewTag = 0;
+        }
+
+        return info;
     }
 
     internal static async Task ApplyAsync(

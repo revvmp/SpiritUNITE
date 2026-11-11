@@ -1,6 +1,7 @@
 using LinqToDB;
 using LinqToDB.Async;
 using LinqToDB.Data;
+using LinqToDB.DataProvider.MySql;
 using MySqlConnector;
 using SpiritUnite.Battle;
 using SpiritUnite.Database.Models;
@@ -43,6 +44,7 @@ public sealed class SettlementJournal(DataOptions options, TimeProvider clock)
                 State = (int)SettlementState.Pending,
                 Payload = BattleSettlementSnapshot.Serialize(result),
                 UpdatedAt = clock.GetUtcNow().ToUnixTimeSeconds(),
+                BattleStartedAt = result.GameStartTime,
             });
         }
         catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
@@ -76,16 +78,30 @@ public sealed class SettlementJournal(DataOptions options, TimeProvider clock)
             .ToArrayAsync(cancellationToken);
     }
 
+    public Task<SettlementOwnership?> TryAcquireOwnershipAsync(ulong uid) => SettlementOwnership.TryAcquireAsync(options, uid);
+
     public async Task<BattleSettlementRecord?> TryClaimAsync(SettlementKey key)
     {
         await using var database = new DataConnection(options);
+        await using var transaction = await database.BeginTransactionAsync();
+        await SettlementEffects.LockRoleAsync(database, key.GameUlongUID);
+        await SettlementOwnership.VerifyAsync(database, key.GameUlongUID);
+        var requested = await Find(database, key).FirstOrDefaultAsync();
+        if (requested is null || await database.GetTable<BattleSettlementRecord>().AnyAsync(row =>
+            row.GameUlongUID == key.GameUlongUID && row.State != (int)SettlementState.Completed
+            && row.BattleStartedAt < requested.BattleStartedAt))
+        {
+            return null;
+        }
         var claimed = await Find(database, key)
             .Where(row => row.State == (int)SettlementState.Pending || row.State == (int)SettlementState.Processing)
             .Set(row => row.State, (int)SettlementState.Processing)
             .Set(row => row.Attempts, row => row.Attempts + 1)
             .Set(row => row.UpdatedAt, clock.GetUtcNow().ToUnixTimeSeconds())
             .UpdateAsync();
-        return claimed == 1 ? await Find(database, key).FirstAsync() : null;
+        var result = claimed == 1 ? await Find(database, key).FirstAsync() : null;
+        await transaction.CommitAsync();
+        return result;
     }
 
     public static async Task<bool> CompleteAsync(DataConnection database, SettlementKey key, long now) =>
@@ -100,7 +116,12 @@ public sealed class SettlementJournal(DataOptions options, TimeProvider clock)
     public async Task<bool> CompleteAsync(SettlementKey key)
     {
         await using var database = new DataConnection(options);
-        return await CompleteAsync(database, key, clock.GetUtcNow().ToUnixTimeSeconds());
+        await using var transaction = await database.BeginTransactionAsync();
+        await SettlementEffects.LockRoleAsync(database, key.GameUlongUID);
+        await SettlementOwnership.VerifyAsync(database, key.GameUlongUID);
+        var completed = await CompleteAsync(database, key, clock.GetUtcNow().ToUnixTimeSeconds());
+        await transaction.CommitAsync();
+        return completed;
     }
 
     public Task<bool> ReleaseForRetryAsync(SettlementKey key, string error) =>
@@ -109,23 +130,40 @@ public sealed class SettlementJournal(DataOptions options, TimeProvider clock)
     public Task<bool> FlagForReviewAsync(SettlementKey key, string error) =>
         LeaveProcessingAsync(key, SettlementState.NeedsReview, error);
 
+    public static async Task<bool> IsProcessingAsync(DataConnection database, SettlementKey key) =>
+        (await Find(database, key).AsMySql().ForUpdateHint().Select(row => row.State).ToArrayAsync())
+            is [(int)SettlementState.Processing];
+
     public async Task<int> PurgeCompletedAsync(long completedNoLaterThan)
     {
         await using var database = new DataConnection(options);
+        await database.GetTable<TenGamesSettlement>()
+            .Where(plan => plan.CreatedAt <= completedNoLaterThan
+                && !database.GetTable<BattleSettlementRecord>().Any(row => row.SettlementID == plan.SettlementID && row.State != (int)SettlementState.Completed))
+            .DeleteAsync();
         return await database.GetTable<BattleSettlementRecord>()
-            .Where(row => row.State == (int)SettlementState.Completed && row.UpdatedAt <= completedNoLaterThan)
+            .Where(row => row.State == (int)SettlementState.Completed && row.UpdatedAt <= completedNoLaterThan
+                && (!database.GetTable<SettlementEffectRecord>().Any(effect => effect.SettlementID == row.SettlementID
+                        && effect.GameUlongUID == row.GameUlongUID && effect.Effect == "credit.mail-plan")
+                    || database.GetTable<SettlementEffectRecord>().Any(effect => effect.SettlementID == row.SettlementID
+                        && effect.GameUlongUID == row.GameUlongUID && effect.Effect == "credit.mail-sent")))
             .DeleteAsync();
     }
 
     private async Task<bool> LeaveProcessingAsync(SettlementKey key, SettlementState state, string error)
     {
         await using var database = new DataConnection(options);
-        return await Find(database, key)
+        await using var transaction = await database.BeginTransactionAsync();
+        await SettlementEffects.LockRoleAsync(database, key.GameUlongUID);
+        await SettlementOwnership.VerifyAsync(database, key.GameUlongUID);
+        var changed = await Find(database, key)
             .Where(row => row.State == (int)SettlementState.Processing)
             .Set(row => row.State, (int)state)
             .Set(row => row.UpdatedAt, clock.GetUtcNow().ToUnixTimeSeconds())
             .Set(row => row.LastError, error.Length <= MaxErrorLength ? error : error[..MaxErrorLength])
             .UpdateAsync() == 1;
+        await transaction.CommitAsync();
+        return changed;
     }
 
     private static IQueryable<BattleSettlementRecord> Find(DataConnection database, SettlementKey key) =>

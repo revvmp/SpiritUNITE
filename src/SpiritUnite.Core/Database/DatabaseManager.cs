@@ -50,6 +50,7 @@ public static class DatabaseManager
             await database.GetTable<RoleChatOffline>().AnyAsync();
             await database.GetTable<RoleMail>().FirstOrDefaultAsync();
             await database.GetTable<RoleProfileStyle>().AnyAsync();
+            await database.GetTable<RoleStatistic>().AnyAsync();
             await database.GetTable<RoleCardFaceWear>().AnyAsync();
             await database.GetTable<RoleSetting>().FirstOrDefaultAsync();
             await database.GetTable<RoleBattlePass>().AnyAsync();
@@ -59,6 +60,10 @@ public static class DatabaseManager
             await database.GetTable<RolePveChallengeNode>().AnyAsync();
             await database.GetTable<RolePveSettlement>().AnyAsync();
             await database.GetTable<BattleSettlementRecord>().AnyAsync();
+            await database.GetTable<SettlementEffectRecord>().AnyAsync();
+            await database.GetTable<SettlementOwnerRecord>().AnyAsync();
+            await database.GetTable<TenGamesSettlement>().AnyAsync();
+            await database.GetTable<RoleCreditRecoveryDay>().AnyAsync();
             await database.GetTable<RoleActivityExchange>().AnyAsync();
             await database.GetTable<RoleChallengeTrainerRecord>().FirstOrDefaultAsync();
             await database.GetTable<RoleNewbieChallenge>().AnyAsync();

@@ -35,6 +35,11 @@ public sealed class CreditRepository(DataOptions options)
     public async Task<CreditPointTaskRecord[]> ListTasksAsync(ulong gameUlongUID)
     {
         await using var database = new DataConnection(options);
+        return await ListTasksAsync(database, gameUlongUID);
+    }
+
+    private static async Task<CreditPointTaskRecord[]> ListTasksAsync(DataConnection database, ulong gameUlongUID)
+    {
         return await database.GetTable<RoleCreditTask>()
             .Where(task => task.GameUlongUID == gameUlongUID)
             .Select(task => new CreditPointTaskRecord(
@@ -46,6 +51,24 @@ public sealed class CreditRepository(DataOptions options)
                 task.CompleteTime,
                 task.RewardTime))
             .ToArrayAsync();
+    }
+
+    public async Task<T> ApplyTaskSettlementAsync<T>(SettlementKey key, Func<CreditPointTaskRecord[], (IReadOnlyList<CreditPointTaskRecord> Changed, T Result)> plan)
+    {
+        await using var database = new DataConnection(options);
+        await using var transaction = await database.BeginTransactionAsync();
+        var outcome = await SettlementEffects.RunAsync(database, key, "credit.tasks", async () =>
+        {
+            var (changed, result) = plan(await ListTasksAsync(database, key.GameUlongUID));
+            foreach (var task in changed)
+            {
+                await database.InsertOrReplaceAsync(ToEntity(key.GameUlongUID, task));
+            }
+
+            return result;
+        });
+        await transaction.CommitAsync();
+        return outcome.Value;
     }
 
     public async Task SaveTasksAsync(ulong gameUlongUID, IReadOnlyList<CreditPointTaskRecord> tasks)
@@ -100,6 +123,11 @@ public sealed class CreditRepository(DataOptions options)
     public async Task<CreditRecord?> FindAsync(ulong gameUlongUID)
     {
         await using var database = new DataConnection(options);
+        return await FindAsync(database, gameUlongUID);
+    }
+
+    private static async Task<CreditRecord?> FindAsync(DataConnection database, ulong gameUlongUID)
+    {
         var row = await database.GetTable<RoleCredit>().FirstOrDefaultAsync(credit => credit.GameUlongUID == gameUlongUID);
         return row is null
             ? null
@@ -110,6 +138,80 @@ public sealed class CreditRepository(DataOptions options)
     {
         await using var database = new DataConnection(options);
         await using var transaction = await database.BeginTransactionAsync();
+        await SaveAsync(database, gameUlongUID, record, reduceRecord, maxReduceRecordNum);
+        await transaction.CommitAsync();
+    }
+
+    public async Task<T> ApplySettlementAsync<T>(
+        SettlementKey key,
+        string effect,
+        CreditRecord starting,
+        int maxReduceRecordNum,
+        Func<CreditRecord, (CreditRecord Saved, CreditReduceRecord? Reduce, T Result)> change)
+    {
+        await using var database = new DataConnection(options);
+        await using var transaction = await database.BeginTransactionAsync();
+        var outcome = await SettlementEffects.RunAsync(database, key, effect, async () =>
+        {
+            var record = await FindAsync(database, key.GameUlongUID) ?? starting;
+            var (saved, reduce, result) = change(record);
+            if (saved != record || reduce is not null)
+            {
+                await SaveAsync(database, key.GameUlongUID, saved, reduce, maxReduceRecordNum);
+            }
+
+            return result;
+        });
+        await transaction.CommitAsync();
+        return outcome.Value;
+    }
+
+    public async Task<pbSCCreditPointNtf?> RecoverBattleAsync(ulong uid, SettlementKey? key, long day, int recovery, int dailyLimit, int maxCredit, int startingCredit)
+    {
+        await using var database = new DataConnection(options);
+        await using var transaction = await database.BeginTransactionAsync();
+        async Task<pbSCCreditPointNtf?> ApplyAsync()
+        {
+            var record = await FindAsync(database, uid) ?? new CreditRecord(startingCredit, 0, 0, 0, 0, 0);
+            var savedDay = await database.GetTable<RoleCreditRecoveryDay>()
+                .FirstOrDefaultAsync(row => row.GameUlongUID == uid && row.Day == day);
+            var resumedToday = savedDay?.ResumeCredit ?? (record.ResumeDay == day ? record.ResumeCredit : 0);
+            var allowed = Math.Clamp(dailyLimit - resumedToday, 0, recovery);
+            var creditPoint = Math.Min(maxCredit, record.CreditPoint + allowed);
+            var resumed = Math.Max(0, creditPoint - record.CreditPoint);
+            await database.InsertOrReplaceAsync(new RoleCreditRecoveryDay
+            {
+                GameUlongUID = uid,
+                Day = day,
+                ResumeCredit = resumedToday + resumed,
+            });
+            if (resumed == 0)
+            {
+                return null;
+            }
+
+            var saved = record with { CreditPoint = creditPoint };
+            if (day >= record.ResumeDay)
+            {
+                saved = saved with { ResumeDay = day, ResumeCredit = resumedToday + resumed };
+            }
+
+            await SaveAsync(database, uid, saved, null, 0);
+            return new pbSCCreditPointNtf { CurrentCreditPoint = creditPoint };
+        }
+
+        if (key is null)
+        {
+            await SettlementEffects.LockRoleAsync(database, uid);
+        }
+
+        var result = key is null ? await ApplyAsync() : (await SettlementEffects.RunAsync(database, key, "credit.recovery", ApplyAsync)).Value;
+        await transaction.CommitAsync();
+        return result;
+    }
+
+    private static async Task SaveAsync(DataConnection database, ulong gameUlongUID, CreditRecord record, CreditReduceRecord? reduceRecord, int maxReduceRecordNum)
+    {
         await database.InsertOrReplaceAsync(new RoleCredit
         {
             GameUlongUID = gameUlongUID,
@@ -124,8 +226,6 @@ public sealed class CreditRepository(DataOptions options)
         {
             await AddReduceRecordAsync(database, gameUlongUID, reduceRecord, maxReduceRecordNum);
         }
-
-        await transaction.CommitAsync();
     }
 
     public async Task<CreditReduceRecord[]> ListReduceRecordsAsync(ulong gameUlongUID)
