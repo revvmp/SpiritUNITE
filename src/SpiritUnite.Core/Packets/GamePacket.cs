@@ -47,24 +47,67 @@ public sealed record GamePacket(int MsgID, ulong Uid, int ClientSeq, byte[] PkgD
         }
     }
 
-    public byte[] ToByteArray(int svrPkgSeq, bool isPkgMem = false)
-    {
-        using var buffer = new MemoryStream();
-        using var output = new CodedOutputStream(buffer, leaveOpen: true);
-        output.WriteBytes(BuildHead(svrPkgSeq, isPkgMem));
-        output.WriteBytes(BuildBody());
-        output.Flush();
-        return buffer.ToArray();
-    }
+    public byte[] ToByteArray(int svrPkgSeq, bool isPkgMem = false) =>
+        Encode(relay: false, svrPkgSeq, isPkgMem);
 
-    public byte[] ToRelayByteArray()
+    public byte[] ToRelayByteArray() => Encode(relay: true, SvrPkgSeq, isPkgMem: false);
+
+    private byte[] Encode(bool relay, int? svrPkgSeq, bool isPkgMem)
     {
-        using var buffer = new MemoryStream();
-        using var output = new CodedOutputStream(buffer, leaveOpen: true);
-        output.WriteBytes(BuildRelayHead());
-        output.WriteBytes(BuildBody());
+        var writesMsgID = !relay || !MsgIDInBodyOnly;
+        var writesUid = !relay && Uid != NoUid;
+        var headSize = (writesMsgID ? CodedOutputStream.ComputeTagSize(MsgIDField) + CodedOutputStream.ComputeInt32Size(MsgID) : 0)
+            + (writesUid ? CodedOutputStream.ComputeTagSize(UidField) + CodedOutputStream.ComputeUInt64Size(Uid) : 0)
+            + (Version != NoVersion ? CodedOutputStream.ComputeTagSize(VersionField) + CodedOutputStream.ComputeInt32Size(Version) : 0)
+            + (svrPkgSeq is { } sequence ? CodedOutputStream.ComputeTagSize(SvrPkgSeqField) + CodedOutputStream.ComputeInt32Size(sequence) : 0)
+            + (ClientSeq != NoClientSeq ? CodedOutputStream.ComputeTagSize(ClientSeqField) + CodedOutputStream.ComputeInt32Size(ClientSeq) : 0)
+            + (isPkgMem ? CodedOutputStream.ComputeTagSize(IsPkgMemField) + CodedOutputStream.ComputeInt32Size(PkgMem) : 0);
+        var bodySize = checked(CodedOutputStream.ComputeTagSize(MsgID) + CodedOutputStream.ComputeLengthSize(PkgData.Length) + PkgData.Length);
+        var packet = new byte[checked(CodedOutputStream.ComputeLengthSize(headSize) + headSize + CodedOutputStream.ComputeLengthSize(bodySize) + bodySize)];
+        using var output = new CodedOutputStream(packet);
+        output.WriteLength(headSize);
+        if (writesMsgID)
+        {
+            output.WriteTag(MsgIDField, WireFormat.WireType.Varint);
+            output.WriteInt32(MsgID);
+        }
+
+        if (writesUid)
+        {
+            output.WriteTag(UidField, WireFormat.WireType.Varint);
+            output.WriteUInt64(Uid);
+        }
+
+        if (Version != NoVersion)
+        {
+            output.WriteTag(VersionField, WireFormat.WireType.Varint);
+            output.WriteInt32(Version);
+        }
+
+        if (svrPkgSeq is { } writtenSequence)
+        {
+            output.WriteTag(SvrPkgSeqField, WireFormat.WireType.Varint);
+            output.WriteInt32(writtenSequence);
+        }
+
+        if (ClientSeq != NoClientSeq)
+        {
+            output.WriteTag(ClientSeqField, WireFormat.WireType.Varint);
+            output.WriteInt32(ClientSeq);
+        }
+
+        if (isPkgMem)
+        {
+            output.WriteTag(IsPkgMemField, WireFormat.WireType.Varint);
+            output.WriteInt32(PkgMem);
+        }
+
+        output.WriteLength(bodySize);
+        output.WriteTag(MsgID, WireFormat.WireType.LengthDelimited);
+        output.WriteLength(PkgData.Length);
         output.Flush();
-        return buffer.ToArray();
+        PkgData.CopyTo(packet.AsSpan((int)output.Position));
+        return packet;
     }
 
     private static (int MsgID, ulong Uid, int ClientSeq) ParseHead(ByteString head)
@@ -115,82 +158,5 @@ public sealed record GamePacket(int MsgID, ulong Uid, int ClientSeq, byte[] PkgD
         }
 
         return (headMsgID, []);
-    }
-
-    private ByteString BuildHead(int svrPkgSeq, bool isPkgMem)
-    {
-        using var buffer = new MemoryStream();
-        using var output = new CodedOutputStream(buffer, leaveOpen: true);
-        output.WriteTag(MsgIDField, WireFormat.WireType.Varint);
-        output.WriteInt32(MsgID);
-        if (Uid != NoUid)
-        {
-            output.WriteTag(UidField, WireFormat.WireType.Varint);
-            output.WriteUInt64(Uid);
-        }
-
-        WriteVersion(output);
-        output.WriteTag(SvrPkgSeqField, WireFormat.WireType.Varint);
-        output.WriteInt32(svrPkgSeq);
-        if (ClientSeq != NoClientSeq)
-        {
-            output.WriteTag(ClientSeqField, WireFormat.WireType.Varint);
-            output.WriteInt32(ClientSeq);
-        }
-
-        if (isPkgMem)
-        {
-            output.WriteTag(IsPkgMemField, WireFormat.WireType.Varint);
-            output.WriteInt32(PkgMem);
-        }
-
-        output.Flush();
-        return ByteString.CopyFrom(buffer.ToArray());
-    }
-
-    private ByteString BuildRelayHead()
-    {
-        using var buffer = new MemoryStream();
-        using var output = new CodedOutputStream(buffer, leaveOpen: true);
-        if (!MsgIDInBodyOnly)
-        {
-            output.WriteTag(MsgIDField, WireFormat.WireType.Varint);
-            output.WriteInt32(MsgID);
-        }
-
-        WriteVersion(output);
-        if (SvrPkgSeq is { } svrPkgSeq)
-        {
-            output.WriteTag(SvrPkgSeqField, WireFormat.WireType.Varint);
-            output.WriteInt32(svrPkgSeq);
-        }
-
-        if (ClientSeq != NoClientSeq)
-        {
-            output.WriteTag(ClientSeqField, WireFormat.WireType.Varint);
-            output.WriteInt32(ClientSeq);
-        }
-
-        output.Flush();
-        return ByteString.CopyFrom(buffer.ToArray());
-    }
-
-    private void WriteVersion(CodedOutputStream output)
-    {
-        if (Version != NoVersion)
-        {
-            output.WriteTag(VersionField, WireFormat.WireType.Varint);
-            output.WriteInt32(Version);
-        }
-    }
-
-    private ByteString BuildBody()
-    {
-        using var buffer = new MemoryStream();
-        using var output = new CodedOutputStream(buffer, leaveOpen: true);
-        output.WriteTag(MsgID, WireFormat.WireType.LengthDelimited);
-        output.WriteBytes(ByteString.CopyFrom(PkgData));
-        output.Flush();
-        return ByteString.CopyFrom(buffer.ToArray());
     }
 }

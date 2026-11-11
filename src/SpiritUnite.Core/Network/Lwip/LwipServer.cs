@@ -33,6 +33,12 @@ public abstract class LwipServer(
 
     private readonly IPAddress bindAddress = IPAddress.Parse(options.Value.BindAddress);
     private readonly ConcurrentDictionary<LwipFlowKey, LwipFlow> flows = new();
+    private readonly ConcurrentDictionary<LwipTicket, LwipFlow> flowsByTicket = new();
+    private readonly Lock maintenanceGate = new();
+    private readonly SortedSet<Maintenance> maintenance = new(MaintenanceComparer.Instance);
+    private readonly Dictionary<LwipFlow, Maintenance> maintenanceByFlow = [];
+    private long nextMaintenanceId;
+    private int flowCount;
     private Socket? socket;
     private uint[] relayMixes = [];
 
@@ -60,6 +66,7 @@ public abstract class LwipServer(
         }
 
         socket = udp;
+        tickets.Revoked += CloseRevokedFlow;
         relayMixes = await ResolveRelayMixesAsync(cancellationToken);
         logger.LogInformation("{ServerType} listening on udp {EndPoint}", serverType, udp.LocalEndPoint);
         await base.StartAsync(cancellationToken);
@@ -76,6 +83,7 @@ public abstract class LwipServer(
 
     public override void Dispose()
     {
+        tickets.Revoked -= CloseRevokedFlow;
         socket?.Dispose();
         base.Dispose();
     }
@@ -149,7 +157,7 @@ public abstract class LwipServer(
         while (await timer.WaitForNextTickAsync(stoppingToken))
         {
             var now = Environment.TickCount64;
-            foreach (var flow in flows.Values)
+            while (TakeDueFlow(now) is { } flow)
             {
                 if (!tickets.IsIssued(flow.Ticket))
                 {
@@ -166,6 +174,66 @@ public abstract class LwipServer(
                     logger.LogError(exception, "Relay flow tick failed");
                     flow.Close();
                 }
+            }
+        }
+    }
+
+    private void ScheduleFlow(LwipFlow flow, long due)
+    {
+        lock (maintenanceGate)
+        {
+            if (maintenanceByFlow.TryGetValue(flow, out var current))
+            {
+                if (current.Due == due)
+                {
+                    return;
+                }
+
+                maintenance.Remove(current);
+            }
+
+            var next = new Maintenance(due, ++nextMaintenanceId, flow);
+            maintenanceByFlow[flow] = next;
+            maintenance.Add(next);
+        }
+    }
+
+    private LwipFlow? TakeDueFlow(long now)
+    {
+        lock (maintenanceGate)
+        {
+            if (maintenance.Min is not { } next || next.Due > now)
+            {
+                return null;
+            }
+
+            maintenance.Remove(next);
+            maintenanceByFlow.Remove(next.Flow);
+            return next.Flow;
+        }
+    }
+
+    private void CloseRevokedFlow(LwipTicket ticket)
+    {
+        if (flowsByTicket.TryGetValue(ticket, out var flow))
+        {
+            flow.Close();
+        }
+    }
+
+    private void RemoveFlow(LwipFlow flow)
+    {
+        if (flows.TryRemove(new KeyValuePair<LwipFlowKey, LwipFlow>(flow.Key, flow)))
+        {
+            Interlocked.Decrement(ref flowCount);
+        }
+
+        flowsByTicket.TryRemove(new KeyValuePair<LwipTicket, LwipFlow>(flow.Ticket, flow));
+        lock (maintenanceGate)
+        {
+            if (maintenanceByFlow.Remove(flow, out var scheduled))
+            {
+                maintenance.Remove(scheduled);
             }
         }
     }
@@ -220,13 +288,14 @@ public abstract class LwipServer(
 
     private void Open(Socket udp, LwipFlowKey key, LwipTicket ticket, LwipSegment syn, uint counter, EndPoint source, long now, CancellationToken stoppingToken)
     {
-        if (flows.Count >= options.Value.MaxConnections)
+        if (Volatile.Read(ref flowCount) >= options.Value.MaxConnections)
         {
             logger.LogWarning("Refused relay flow from {RemoteEndPoint}: limit of {MaxConnections} flows reached", source, options.Value.MaxConnections);
             return;
         }
 
-        var requiredQuietMs = flows.Values.Any(previous => previous.Ticket == ticket) ? ReconnectQuietMs : 0;
+        flowsByTicket.TryGetValue(ticket, out var previous);
+        var requiredQuietMs = previous is not null ? ReconnectQuietMs : 0;
         if (!ticket.TryClaimNewFlow(counter, now, requiredQuietMs))
         {
             logger.LogInformation("Dropped a relay SYN from {RemoteEndPoint} for uid {Uid}: its ZSD counter is not above the live flow's and that flow is still active",
@@ -234,13 +303,20 @@ public abstract class LwipServer(
             return;
         }
 
-        foreach (var previous in flows.Values.Where(previous => previous.Ticket == ticket))
+        previous?.Close();
+
+        var flow = new LwipFlow(key, ticket, (ushort)port, syn, counter, source, udp, RemoveFlow, ScheduleFlow);
+        Interlocked.Increment(ref flowCount);
+        flows[key] = flow;
+        flowsByTicket[ticket] = flow;
+        if (!tickets.IsIssued(ticket) || flow.IsClosed)
         {
-            previous.Close();
+            flow.Close();
+            RemoveFlow(flow);
+            return;
         }
 
-        var flow = new LwipFlow(key, ticket, (ushort)port, syn, counter, source, udp, closed => flows.TryRemove(new KeyValuePair<LwipFlowKey, LwipFlow>(closed.Key, closed)));
-        flows[key] = flow;
+        flow.StartMaintenance();
         logger.LogInformation("Relay flow from {RemoteEndPoint} opened for uid {Uid}", source, ticket.Uid);
         if (!operations.Run("relay connection", async token =>
         {
@@ -413,14 +489,21 @@ public abstract class LwipServer(
 
     private sealed class GcpStreamBuffer
     {
-        private readonly byte[] buffer = new byte[GcpHead.MaxPacketSize + LwipEnvelope.MaxSegmentSize];
+        private const int MaxBufferedBytes = GcpHead.MaxPacketSize + LwipEnvelope.MaxSegmentSize;
+        private byte[] buffer = new byte[LwipEnvelope.MaxSegmentSize];
         private int buffered;
 
         public IEnumerable<(GcpHead Head, ReadOnlyMemory<byte> Packet)> Append(byte[] data)
         {
-            if (data.Length > buffer.Length - buffered)
+            if (data.Length > MaxBufferedBytes - buffered)
             {
                 throw new GcpProtocolException("Relay stream overflowed the packet buffer");
+            }
+
+            var required = buffered + data.Length;
+            if (required > buffer.Length)
+            {
+                Array.Resize(ref buffer, Math.Min(MaxBufferedBytes, Math.Max(required, buffer.Length * 2)));
             }
 
             data.CopyTo(buffer.AsSpan(buffered));
@@ -441,6 +524,34 @@ public abstract class LwipServer(
             buffer.AsSpan(consumed, buffered - consumed).CopyTo(buffer);
             buffered -= consumed;
             return packets;
+        }
+    }
+
+    private sealed record Maintenance(long Due, long Id, LwipFlow Flow);
+
+    private sealed class MaintenanceComparer : IComparer<Maintenance>
+    {
+        public static MaintenanceComparer Instance { get; } = new();
+
+        public int Compare(Maintenance? left, Maintenance? right)
+        {
+            if (ReferenceEquals(left, right))
+            {
+                return 0;
+            }
+
+            if (left is null)
+            {
+                return -1;
+            }
+
+            if (right is null)
+            {
+                return 1;
+            }
+
+            var byDue = left.Due.CompareTo(right.Due);
+            return byDue != 0 ? byDue : left.Id.CompareTo(right.Id);
         }
     }
 }

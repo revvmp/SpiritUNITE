@@ -58,6 +58,8 @@ public sealed class LwipTickets
 
     private readonly ConcurrentDictionary<ZsdId, LwipTicket> tickets = new();
 
+    internal event Action<LwipTicket>? Revoked;
+
     public string Issue(ulong uid, int token)
     {
         while (true)
@@ -76,8 +78,16 @@ public sealed class LwipTickets
         }
     }
 
-    public bool Revoke(string zsdCode) =>
-        TryParseZsdCode(zsdCode, out var id) && tickets.TryRemove(id, out _);
+    public bool Revoke(string zsdCode)
+    {
+        if (!TryParseZsdCode(zsdCode, out var id) || !tickets.TryRemove(id, out var ticket))
+        {
+            return false;
+        }
+
+        Revoked?.Invoke(ticket);
+        return true;
+    }
 
     internal LwipTicket? Find(ZsdId id) => tickets.GetValueOrDefault(id);
 

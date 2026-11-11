@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Security.Cryptography;
 
 namespace SpiritUnite.Network.Gcp;
@@ -30,20 +31,29 @@ public sealed class GcpCipher : IDisposable
             throw new GcpProtocolException($"Ciphertext length {ciphertext.Length} is not a whole number of blocks");
         }
 
-        var padded = aes.DecryptCbc(ciphertext, InitializationVector, PaddingMode.None);
-        var tailStart = padded.Length - PadLengthSize - TailMarker.Length;
-        if (tailStart < 0 || !padded.AsSpan(tailStart, TailMarker.Length).SequenceEqual(TailMarker))
+        var buffer = ArrayPool<byte>.Shared.Rent(ciphertext.Length);
+        try
         {
-            throw new GcpProtocolException("Decrypted body has no padding marker");
-        }
+            var padded = buffer.AsSpan(0, ciphertext.Length);
+            aes.DecryptCbc(ciphertext, InitializationVector, padded, PaddingMode.None);
+            var tailStart = padded.Length - PadLengthSize - TailMarker.Length;
+            if (tailStart < 0 || !padded.Slice(tailStart, TailMarker.Length).SequenceEqual(TailMarker))
+            {
+                throw new GcpProtocolException("Decrypted body has no padding marker");
+            }
 
-        var plaintextLength = padded.Length - padded[^1];
-        if (plaintextLength <= 0 || PaddingLengthFor(plaintextLength) != padded[^1])
+            var plaintextLength = padded.Length - padded[^1];
+            if (plaintextLength <= 0 || PaddingLengthFor(plaintextLength) != padded[^1])
+            {
+                throw new GcpProtocolException($"Decrypted body has invalid padding length {padded[^1]}");
+            }
+
+            return padded[..plaintextLength].ToArray();
+        }
+        finally
         {
-            throw new GcpProtocolException($"Decrypted body has invalid padding length {padded[^1]}");
+            ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
         }
-
-        return padded[..plaintextLength];
     }
 
     public byte[] Encrypt(ReadOnlySpan<byte> plaintext)
@@ -53,16 +63,36 @@ public sealed class GcpCipher : IDisposable
             throw new ArgumentException("GCP cannot encrypt an empty body", nameof(plaintext));
         }
 
-        var paddingLength = PaddingLengthFor(plaintext.Length);
-        var padded = new byte[plaintext.Length + paddingLength];
-        plaintext.CopyTo(padded);
+        var encrypted = new byte[EncryptedLength(plaintext.Length)];
+        Encrypt(plaintext, encrypted);
+        return encrypted;
+    }
 
-        var tailStart = padded.Length - PadLengthSize - TailMarker.Length;
-        RandomNumberGenerator.Fill(padded.AsSpan(plaintext.Length, tailStart - plaintext.Length));
-        TailMarker.CopyTo(padded.AsSpan(tailStart));
-        padded[^1] = (byte)paddingLength;
+    internal static int EncryptedLength(int plaintextLength) => checked(plaintextLength + PaddingLengthFor(plaintextLength));
 
-        return aes.EncryptCbc(padded, InitializationVector, PaddingMode.None);
+    internal void Encrypt(ReadOnlySpan<byte> plaintext, Span<byte> destination)
+    {
+        if (plaintext.IsEmpty)
+        {
+            throw new ArgumentException("GCP cannot encrypt an empty body", nameof(plaintext));
+        }
+
+        var paddedLength = EncryptedLength(plaintext.Length);
+        var buffer = ArrayPool<byte>.Shared.Rent(paddedLength);
+        try
+        {
+            var padded = buffer.AsSpan(0, paddedLength);
+            plaintext.CopyTo(padded);
+            var tailStart = padded.Length - PadLengthSize - TailMarker.Length;
+            RandomNumberGenerator.Fill(padded.Slice(plaintext.Length, tailStart - plaintext.Length));
+            TailMarker.CopyTo(padded[tailStart..]);
+            padded[^1] = (byte)(paddedLength - plaintext.Length);
+            aes.EncryptCbc(padded, InitializationVector, destination, PaddingMode.None);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
+        }
     }
 
     public void Dispose() => aes.Dispose();

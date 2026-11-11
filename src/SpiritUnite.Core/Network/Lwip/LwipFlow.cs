@@ -47,6 +47,7 @@ internal sealed class LwipFlow
     private readonly Socket socket;
     private readonly ushort serverPort;
     private readonly Action<LwipFlow> closed;
+    private readonly Action<LwipFlow, long>? schedule;
     private readonly Channel<LwipInbound> inbound = Channel.CreateUnbounded<LwipInbound>();
     private readonly List<SentSegment> unacked = [];
     private readonly Queue<(byte[] Payload, LwipFlags Flags)> pending = [];
@@ -75,7 +76,7 @@ internal sealed class LwipFlow
     private uint highestCounter;
     private ulong seenCounters = 1;
 
-    public LwipFlow(LwipFlowKey key, LwipTicket ticket, ushort serverPort, LwipSegment syn, uint counter, EndPoint remote, Socket socket, Action<LwipFlow> closed)
+    public LwipFlow(LwipFlowKey key, LwipTicket ticket, ushort serverPort, LwipSegment syn, uint counter, EndPoint remote, Socket socket, Action<LwipFlow> closed, Action<LwipFlow, long>? schedule = null)
     {
         Key = key;
         Ticket = ticket;
@@ -83,6 +84,7 @@ internal sealed class LwipFlow
         this.remote = remote;
         this.socket = socket;
         this.closed = closed;
+        this.schedule = schedule;
         highestCounter = counter;
         initialReceiveSeq = syn.Seq;
         initialSendSeq = BinaryPrimitives.ReadUInt32LittleEndian(RandomNumberGenerator.GetBytes(sizeof(uint)));
@@ -171,6 +173,7 @@ internal sealed class LwipFlow
                 ReceiveData(segment, now);
             }
 
+            ScheduleMaintenance();
             return true;
         }
     }
@@ -190,6 +193,7 @@ internal sealed class LwipFlow
             }
 
             TransmitPending(Environment.TickCount64);
+            ScheduleMaintenance();
             return Task.CompletedTask;
         }
     }
@@ -212,6 +216,7 @@ internal sealed class LwipFlow
                 }
 
                 TransmitPending(now);
+                ScheduleMaintenance();
                 return Task.CompletedTask;
             }
 
@@ -232,6 +237,7 @@ internal sealed class LwipFlow
             if (state == LwipFlowState.SynReceived)
             {
                 TickHandshake(now);
+                ScheduleMaintenance();
                 return;
             }
 
@@ -240,13 +246,48 @@ internal sealed class LwipFlow
                 return;
             }
 
-            foreach (var segment in unacked.Where(segment => IsRetransmitDue(segment, now)).ToArray())
+            for (var index = 0; index < unacked.Count; index++)
             {
-                Retransmit(segment, now);
+                var segment = unacked[index];
+                if (IsRetransmitDue(segment, now))
+                {
+                    Retransmit(segment, now);
+                }
             }
 
             TransmitPending(now);
+            ScheduleMaintenance();
         }
+    }
+
+    public void StartMaintenance()
+    {
+        lock (gate)
+        {
+            ScheduleMaintenance();
+        }
+    }
+
+    private void ScheduleMaintenance()
+    {
+        if (state == LwipFlowState.Closed || schedule is null)
+        {
+            return;
+        }
+
+        var due = state == LwipFlowState.SynReceived
+            ? Math.Min(lastReceivedAt + HandshakeTimeoutMs, synAckSentAt + Backoff(synAckRetries))
+            : idleCloseRequested ? long.MaxValue
+            : Math.Min(lastStreamReceivedAt + IdleCloseMs, Math.Max(lastStreamReceivedAt, lastKeepaliveAt) + KeepaliveIntervalMs);
+        if (state == LwipFlowState.Established)
+        {
+            foreach (var segment in unacked)
+            {
+                due = Math.Min(due, segment.SentAt + (segment.Sacked ? MaxRetransmitMs : Backoff(segment.Retries)));
+            }
+        }
+
+        schedule(this, due);
     }
 
     public void Close()

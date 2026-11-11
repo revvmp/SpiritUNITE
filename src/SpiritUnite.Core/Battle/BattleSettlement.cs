@@ -337,7 +337,6 @@ public sealed class BattleSettlement
             role.RecordHeavenTrainerChallengeCnt(heavenTrainerRecord);
         }
 
-        await roles.SaveAsync(role);
         logger.LogInformation(
             "Desk {DeskID}: uid {Uid} settled ({Result}): +{ChgExp} trainer exp, {StarNum} stars on node {NodeID}, {GrantCount} item grants",
             result.Desk.DeskID,

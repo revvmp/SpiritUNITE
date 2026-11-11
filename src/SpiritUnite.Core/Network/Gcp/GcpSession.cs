@@ -39,6 +39,7 @@ public sealed class GcpSession(
     private readonly PacketLog packetLog = new(logger);
     private readonly SemaphoreSlim sendLock = new(1, 1);
     private readonly SemaphoreSlim requestLock = new(1, 1);
+    private readonly Lock sessionStateGate = new();
     private readonly LoginSession login = new();
     private readonly byte sessionRoute = (byte)SessionRouteAlphabet[RandomNumberGenerator.GetInt32(SessionRouteAlphabet.Length)];
     private GcpCipher? cipher;
@@ -110,7 +111,10 @@ public sealed class GcpSession(
     private async Task HandlePacketAsync(GcpHead head, ReadOnlyMemory<byte> packet)
     {
         packetLog.Received(head);
-        lastHead = head;
+        lock (sessionStateGate)
+        {
+            lastHead = head;
+        }
 
         var task = (state, (GcpCommand)head.Command) switch
         {
@@ -141,7 +145,7 @@ public sealed class GcpSession(
 
     private async Task AcceptUnreliableBodyAsync(ReadOnlyMemory<byte> encryptedBody, bool compressed)
     {
-        if (lastHead is not { } head || state != GcpSessionState.Established)
+        if (EstablishedHead() is not { } head)
         {
             throw new GcpProtocolException("Unreliable data arrived before the session was established");
         }
@@ -152,7 +156,7 @@ public sealed class GcpSession(
 
     public async Task PushAsync(IReadOnlyList<GamePacket> packets)
     {
-        if (lastHead is not { } head || state != GcpSessionState.Established)
+        if (EstablishedHead() is not { } head)
         {
             throw new InvalidOperationException("Session cannot take pushed packets before it is established");
         }
@@ -162,7 +166,7 @@ public sealed class GcpSession(
 
     public async Task PushUnreliableAsync(IReadOnlyList<GamePacket> packets)
     {
-        if (lastHead is not { } head || state != GcpSessionState.Established)
+        if (EstablishedHead() is not { } head)
         {
             throw new InvalidOperationException("Session cannot take pushed packets before it is established");
         }
@@ -189,7 +193,7 @@ public sealed class GcpSession(
     {
         try
         {
-            if (lastHead is { } head && state == GcpSessionState.Established)
+            if (EstablishedHead() is { } head)
             {
                 logger.LogInformation("Stopping the GCP session: reason {Reason}, ex code 0x{ExCode:X8}", reason, exCode);
                 await SendAsync(() => [BuildPacket(head, GcpCommand.ServerStop, [], GcpMessages.BuildServerStop(reason, exCode), encryptsBody: false)]);
@@ -259,6 +263,14 @@ public sealed class GcpSession(
 
     private void ThrowIfClosed() => ObjectDisposedException.ThrowIf(!IsOpen, this);
 
+    private GcpHead? EstablishedHead()
+    {
+        lock (sessionStateGate)
+        {
+            return state == GcpSessionState.Established ? lastHead : null;
+        }
+    }
+
     private async Task NotifyLoginCompletedAsync()
     {
         if (loginCompletedNotified || login.Phase != LoginPhase.Completed || gameAcntUid == 0)
@@ -302,7 +314,10 @@ public sealed class GcpSession(
         synAccount = style.EchoesAccountInAuthRsp ? syn.Account : ReadOnlyMemory<byte>.Empty;
         var sessionKey = RandomNumberGenerator.GetBytes(GcpCipher.KeySize);
         cipher = new GcpCipher(sessionKey);
-        state = GcpSessionState.AwaitingAuth;
+        lock (sessionStateGate)
+        {
+            state = GcpSessionState.AwaitingAuth;
+        }
 
         return [BuildPacket(head, GcpCommand.Ack, GcpMessages.BuildAckSection(sessionKey, head.PackingVersion, compression), GcpMessages.BuildAckBody())];
     }
@@ -323,7 +338,10 @@ public sealed class GcpSession(
             ThrowIfClosed();
         }
 
-        state = GcpSessionState.Established;
+        lock (sessionStateGate)
+        {
+            state = GcpSessionState.Established;
+        }
         var transDataReplies = request.TransData.IsEmpty
             ? []
             : await DispatchGamePacketAsync(request.TransData);
@@ -481,9 +499,9 @@ public sealed class GcpSession(
     private byte[] BuildPacket(GcpHead request, GcpCommand command, ReadOnlySpan<byte> section, ReadOnlySpan<byte> body, bool encryptsBody = true)
     {
         var encrypted = encryptsBody && cipher is not null && !body.IsEmpty;
-        ReadOnlySpan<byte> sentBody = encrypted ? cipher!.Encrypt(body) : body;
+        var bodyLength = encrypted ? GcpCipher.EncryptedLength(body.Length) : body.Length;
         var headLength = GcpHead.Size + section.Length;
-        var packet = new byte[headLength + sentBody.Length];
+        var packet = new byte[headLength + bodyLength];
         var head = new GcpHead(
             request.PackingVersion,
             request.HeaderVersion,
@@ -491,11 +509,19 @@ public sealed class GcpSession(
             encrypted,
             nextSequence++,
             (uint)headLength,
-            (uint)sentBody.Length);
+            (uint)bodyLength);
 
         head.WriteTo(packet);
         section.CopyTo(packet.AsSpan(GcpHead.Size));
-        sentBody.CopyTo(packet.AsSpan(headLength));
+        if (encrypted)
+        {
+            cipher!.Encrypt(body, packet.AsSpan(headLength));
+        }
+        else
+        {
+            body.CopyTo(packet.AsSpan(headLength));
+        }
+
         packetLog.Sent(head);
         return packet;
     }

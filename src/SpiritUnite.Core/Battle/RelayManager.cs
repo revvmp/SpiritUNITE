@@ -1908,27 +1908,38 @@ public sealed class RelayManager
 
     private static void AddFrameSends(RelayGame game, int firstNew, List<RelaySend> sends)
     {
-        var packets = new List<GamePacket>();
-        for (var chunkStart = firstNew; chunkStart <= game.KFrapsNo; chunkStart += MaxSpareFrapNum)
+        var packetCount = (game.KFrapsNo - firstNew) / MaxSpareFrapNum + 1;
+        var framePackets = new GamePacket[packetCount];
+        for (var packetIndex = 0; packetIndex < packetCount; packetIndex++)
         {
+            var chunkStart = firstNew + packetIndex * MaxSpareFrapNum;
             var chunkEnd = Math.Min(chunkStart + MaxSpareFrapNum - 1, game.KFrapsNo);
             var oldest = Math.Max(1, Math.Min(chunkStart, chunkEnd - RedundantFrapNum + 1));
-            packets.Add(BuildFramesPacket(game, chunkEnd, oldest));
+            framePackets[packetIndex] = BuildFramesPacket(game, chunkEnd, oldest);
         }
 
         var receivers = game.ConnectedViewers.Where(seat => seat.LoadFinished || seat.HasBeginfight).ToList();
         var extraFrames = receivers.Any(seat => seat.IsLossy) ? Math.Max(0, game.FrapBootSession + 1 - RedundantFrapNum) : 0;
         var oldestExtra = Math.Max(1, game.KFrapsNo - RedundantFrapNum - extraFrames + 1);
-        var extraPackets = new List<GamePacket>();
-        for (var newest = game.KFrapsNo - RedundantFrapNum; newest >= oldestExtra; newest -= RedundantFrapNum)
+        var extraPacketCount = Math.Max(0, (game.KFrapsNo - oldestExtra) / RedundantFrapNum);
+        var lossyFramePackets = framePackets;
+        if (extraPacketCount > 0)
         {
-            extraPackets.Add(BuildFramesPacket(game, newest, Math.Max(oldestExtra, newest - RedundantFrapNum + 1)));
+            lossyFramePackets = new GamePacket[extraPacketCount + packetCount];
+            framePackets.CopyTo(lossyFramePackets, extraPacketCount);
+            var newest = game.KFrapsNo - RedundantFrapNum;
+            for (var packetIndex = extraPacketCount - 1; packetIndex >= 0; packetIndex--)
+            {
+                lossyFramePackets[packetIndex] = BuildFramesPacket(game, newest, Math.Max(oldestExtra, newest - RedundantFrapNum + 1));
+                newest -= RedundantFrapNum;
+            }
         }
 
-        extraPackets.Reverse();
-        GamePacket[] framePackets = [.. packets];
-        GamePacket[] lossyFramePackets = [.. extraPackets, .. packets];
-        sends.AddRange(receivers.Select(seat => new RelaySend(seat.Uid, RelayChannel.Unreliable, seat.IsLossy ? lossyFramePackets : framePackets)));
+        sends.EnsureCapacity(sends.Count + receivers.Count);
+        foreach (var seat in receivers)
+        {
+            sends.Add(new RelaySend(seat.Uid, RelayChannel.Unreliable, seat.IsLossy ? lossyFramePackets : framePackets));
+        }
     }
 
     private static GamePacket BuildFramesPacket(RelayGame game, int newest, int oldest)
@@ -2267,7 +2278,7 @@ public sealed class RelayManager
         }
     }
 
-    private sealed record RelaySend(ulong Uid, RelayChannel Channel, GamePacket[] Packets);
+    private readonly record struct RelaySend(ulong Uid, RelayChannel Channel, GamePacket[] Packets);
 
     private sealed record RelayStep(RelaySend[] Sends, List<SeatCompletion> Completions, bool Finishes, TimeSpan? Wait, ulong[]? TimedOutUids = null);
 
