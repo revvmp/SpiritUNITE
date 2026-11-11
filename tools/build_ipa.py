@@ -371,7 +371,12 @@ def resolve_target(arguments: argparse.Namespace) -> HostTarget:
             "--web-port",
         )
     else:
-        web_port = validate_port(arguments.web_port or DEFAULT_HTTPS_PORT, "--web-port")
+        web_port = validate_port(
+            arguments.web_port
+            if arguments.web_port is not None
+            else DEFAULT_HTTPS_PORT,
+            "--web-port",
+        )
     update_port = port_setting(
         None,
         settings,

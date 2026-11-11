@@ -405,7 +405,9 @@ def appsetting(settings: dict, section: str, key: str):
 def port_setting(
     argument: int | None, settings: dict, section: str, default: int, option: str
 ) -> int:
-    port = argument or appsetting(settings, section, "Port") or default
+    port = argument if argument is not None else appsetting(settings, section, "Port")
+    if port is None:
+        port = default
     if not isinstance(port, int) or isinstance(port, bool):
         raise BuildError(
             f"{section}.Port in appsettings.json must be a number, got {port!r}."
@@ -442,7 +444,12 @@ def resolve_target(arguments: argparse.Namespace) -> HostTarget:
                 f"Warning: Android WebView refuses port {web_port}, so the account login page will not open on this build (guest login still works). Set HttpServer.Port to another port, such as {DEFAULT_DEV_WEB_PORT}."
             )
     else:
-        web_port = validate_port(arguments.web_port or DEFAULT_HTTPS_PORT, "--web-port")
+        web_port = validate_port(
+            arguments.web_port
+            if arguments.web_port is not None
+            else DEFAULT_HTTPS_PORT,
+            "--web-port",
+        )
     update_port = port_setting(
         None,
         settings,
