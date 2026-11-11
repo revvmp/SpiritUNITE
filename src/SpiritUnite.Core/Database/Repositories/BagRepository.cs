@@ -35,6 +35,12 @@ public sealed class BagRepository(DataOptions options)
         return [.. rows.Select(ToBagItem)];
     }
 
+    internal static Task<int[]> ReadOwnedItemIdsAsync(DataConnection database, ulong gameUlongUID, RoleItemType itemType) =>
+        database.GetTable<RoleItem>()
+            .Where(item => item.GameUlongUID == gameUlongUID && item.ItemType == (int)itemType && item.ItemCnt > 0)
+            .Select(item => item.ItemId)
+            .ToArrayAsync();
+
     public async Task<BagItem?> FindAsync(ulong gameUlongUID, RoleItemType itemType, int itemId)
     {
         await using var database = new DataConnection(options);

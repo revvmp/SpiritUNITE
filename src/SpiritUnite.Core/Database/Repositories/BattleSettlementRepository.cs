@@ -35,6 +35,8 @@ public sealed record BattleSettlementChange(
     public BattleIntimacyGain? Intimacy { get; init; }
 
     public PveSettlementEligibility? PveBonus { get; init; }
+
+    public IReadOnlyList<BagGrant> HeldItemUnlockGrants { get; init; } = [];
 }
 
 public sealed record BattleIntimacyGain(IReadOnlyList<ulong> FriendUids, int IntimacyValue);
@@ -55,7 +57,10 @@ public sealed record BattleSettlementCommit(
     RoleWallet Wallet,
     UsedPokemonInfo? UsedPokemon,
     ChallengeTrainerRecord? HeavenTrainerRecord,
-    BattleEnergyChange? Energy);
+    BattleEnergyChange? Energy)
+{
+    public IReadOnlyList<BagGrant> HeldItemUnlockGrants { get; init; } = [];
+}
 
 public sealed class BattleSettlementRepository(DataOptions options)
 {
@@ -68,7 +73,7 @@ public sealed class BattleSettlementRepository(DataOptions options)
         ulong gameUlongUID,
         SettlementKey? journalEntry,
         PveChallengeNodeKey? node,
-        Func<int, Task<BattleSettlementChange>> changeAfterStoredStarNum,
+        Func<int, BattleSettlementChange> changeAfterStoredStarNum,
         long now)
     {
         await using var database = new DataConnection(options);
@@ -85,8 +90,8 @@ public sealed class BattleSettlementRepository(DataOptions options)
             return null;
         }
 
-        var storedStarNum = node is null ? NoStar : await ReadStarNumForUpdateAsync(database, gameUlongUID, node);
-        var change = await changeAfterStoredStarNum(storedStarNum);
+        var storedStarNum = node is null ? NoStar : await ReadStarNumAsync(database, gameUlongUID, node);
+        var change = changeAfterStoredStarNum(storedStarNum);
         if (await AddRoleTotalExpAsync(database, gameUlongUID, change.ChgExp) != OneRow)
         {
             await transaction.RollbackAsync();
@@ -96,7 +101,9 @@ public sealed class BattleSettlementRepository(DataOptions options)
         var usedPokemon = change.PokemonId == NoPokemon
             ? null
             : await AddPokemonPointAsync(database, gameUlongUID, change);
-        var clampedGrants = await ApplyGrantsUpToStackAsync(database, gameUlongUID, change.Grants, now);
+        var heldItemUnlockGrants = await FilterHeldItemUnlockGrantsAsync(database, gameUlongUID, change.HeldItemUnlockGrants);
+        BagGrant[] grants = [.. heldItemUnlockGrants, .. change.Grants];
+        var clampedGrants = await ApplyGrantsUpToStackAsync(database, gameUlongUID, grants, now);
         if (clampedGrants is null)
         {
             await transaction.RollbackAsync();
@@ -145,16 +152,33 @@ public sealed class BattleSettlementRepository(DataOptions options)
         var changedItems = await BagRepository.ReadItemsAsync(
             database,
             gameUlongUID,
-            change.Grants.Select(grant => (grant.ItemType, grant.ItemId)).Distinct());
+            grants.Select(grant => (grant.ItemType, grant.ItemId)).Distinct());
         var wallet = await WalletRepository.ReadAsync(database, gameUlongUID);
         await transaction.CommitAsync();
-        return new BattleSettlementCommit(changedItems, clampedGrants, beforeCoinNums, wallet, usedPokemon, heavenTrainerRecord, energy);
+        return new BattleSettlementCommit(changedItems, clampedGrants, beforeCoinNums, wallet, usedPokemon, heavenTrainerRecord, energy)
+        {
+            HeldItemUnlockGrants = heldItemUnlockGrants,
+        };
+    }
+
+    private static async Task<IReadOnlyList<BagGrant>> FilterHeldItemUnlockGrantsAsync(
+        DataConnection database,
+        ulong gameUlongUID,
+        IReadOnlyList<BagGrant> grants)
+    {
+        if (grants.Count == 0)
+        {
+            return [];
+        }
+
+        var owned = (await BagRepository.ReadOwnedItemIdsAsync(database, gameUlongUID, RoleItemType.OutSideItem)).ToHashSet();
+        return [.. grants.Where(grant => !owned.Contains(grant.ItemId))];
     }
 
     private static async Task<BattleEnergyChange> GainEnergyAsync(DataConnection database, ulong gameUlongUID, BattleEnergyGrant grant, DateTimeOffset now)
     {
-        var before = (await EnergyRepository.ReadForUpdateAsync(database, gameUlongUID))?.FlushedAt(now, grant.WeeklyEnergyFreeCapacity)
-            ?? EnergyCenter.Starting(now, grant.WeeklyEnergyFreeCapacity);
+        var stored = await EnergyRepository.ReadOrCreateForUpdateAsync(database, gameUlongUID, EnergyCenter.Starting(now, grant.WeeklyEnergyFreeCapacity));
+        var before = stored.FlushedAt(now, grant.WeeklyEnergyFreeCapacity);
         var after = before.Gain(grant.EnergyGain);
         await EnergyRepository.SaveAsync(database, gameUlongUID, after);
         return new BattleEnergyChange(before, after);
@@ -168,15 +192,13 @@ public sealed class BattleSettlementRepository(DataOptions options)
             .Select(role => role.GameUlongUID)
             .ToArrayAsync()).Length == OneRow;
 
-    private static async Task<int> ReadStarNumForUpdateAsync(DataConnection database, ulong gameUlongUID, PveChallengeNodeKey node)
+    private static async Task<int> ReadStarNumAsync(DataConnection database, ulong gameUlongUID, PveChallengeNodeKey node)
     {
         var starNums = await database.GetTable<RolePveChallengeNode>()
             .Where(row => row.GameUlongUID == gameUlongUID
                 && row.StageID == node.StageID
                 && row.NodeID == node.NodeID
                 && row.DifficultyLevel == node.DifficultyLevel)
-            .AsMySql()
-            .ForUpdateHint()
             .Select(row => row.StarNum)
             .ToArrayAsync();
         return starNums.DefaultIfEmpty(NoStar).Max();

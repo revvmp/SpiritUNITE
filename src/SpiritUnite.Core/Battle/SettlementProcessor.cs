@@ -22,6 +22,8 @@ public sealed class SettlementProcessor(
 {
     private const int MaxSettleAttempts = 10;
     private const int ShutdownJournalAttempts = 2;
+    private const int LockRetryBaseDelayMilliseconds = 25;
+    private const int LockRetryMaxDelayMilliseconds = 1000;
     private static readonly TimeSpan RecoveryInterval = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan RecoveryAge = TimeSpan.FromMinutes(1);
     private static readonly TimeSpan PersistenceRetryDelay = TimeSpan.FromSeconds(5);
@@ -154,72 +156,104 @@ public sealed class SettlementProcessor(
 
     private async Task<SettlementState> ClaimAndSettleAsync(SettlementKey key, BattleResult? liveResult, SettlementDelivery delivery)
     {
-        if (await journal.TryClaimAsync(key) is not { } claimed)
+        while (true)
         {
-            return await CurrentStateAsync(key);
+            if (await journal.TryClaimAsync(key) is not { } claimed)
+            {
+                return await CurrentStateAsync(key);
+            }
+
+            if (claimed.Attempts > MaxSettleAttempts)
+            {
+                logger.LogError("Settlement {SettlementID} for uid {Uid} needs review: it was claimed {Attempts} times without completing",
+                    key.SettlementID, key.GameUlongUID, claimed.Attempts);
+                await journal.FlagForReviewAsync(key, $"Gave up after {MaxSettleAttempts} attempts");
+                return await CurrentStateAsync(key);
+            }
+
+            var result = liveResult;
+            try
+            {
+                result ??= BattleSettlementSnapshot.Deserialize(claimed.Payload);
+                if (SettlementKey.Of(result) != key)
+                {
+                    throw new InvalidDataException("Settlement identity does not match its snapshot");
+                }
+
+                if (result.Human.IsJudge)
+                {
+                    await settlement.SettleJudgeAsync(result, delivery);
+                    await journal.CompleteAsync(key);
+                }
+                else
+                {
+                    await settlement.SettleAsync(result, delivery, key);
+                }
+
+                return SettlementState.Completed;
+            }
+            catch (SettlementClaimLostException)
+            {
+                logger.LogWarning("Settlement {SettlementID} for uid {Uid} was completed or released by another runner; this run granted nothing",
+                    key.SettlementID, key.GameUlongUID);
+                return await CurrentStateAsync(key);
+            }
+            catch (Exception exception) when (DatabaseFaults.IsTransient(exception) && claimed.Attempts < MaxSettleAttempts)
+            {
+                if (await journal.ReleaseForRetryAsync(key, exception.Message))
+                {
+                    if (result?.Human.IsJudge != true && DatabaseFaults.IsLockConflict(exception)
+                        && await WaitForLockRetryAsync(key, claimed.Attempts, delivery))
+                    {
+                        continue;
+                    }
+
+                    logger.LogWarning(exception, "Settlement {SettlementID} for uid {Uid} hit a transient database fault on attempt {Attempts}; journal recovery will retry it",
+                        key.SettlementID, key.GameUlongUID, claimed.Attempts);
+                }
+                else
+                {
+                    LogFailureAfterCommit(exception, key);
+                }
+
+                return await CurrentStateAsync(key);
+            }
+            catch (Exception exception)
+            {
+                if (await journal.FlagForReviewAsync(key, exception.Message))
+                {
+                    logger.LogError(exception, "Settlement {SettlementID} for uid {Uid} needs review after attempt {Attempts}; it will not be replayed automatically",
+                        key.SettlementID, key.GameUlongUID, claimed.Attempts);
+                }
+                else
+                {
+                    LogFailureAfterCommit(exception, key);
+                }
+
+                return await CurrentStateAsync(key);
+            }
+        }
+    }
+
+    private async Task<bool> WaitForLockRetryAsync(SettlementKey key, int attempts, SettlementDelivery delivery)
+    {
+        if (lifetime.ApplicationStopping.IsCancellationRequested)
+        {
+            return false;
         }
 
-        if (claimed.Attempts > MaxSettleAttempts)
-        {
-            logger.LogError("Settlement {SettlementID} for uid {Uid} needs review: it was claimed {Attempts} times without completing",
-                key.SettlementID, key.GameUlongUID, claimed.Attempts);
-            await journal.FlagForReviewAsync(key, $"Gave up after {MaxSettleAttempts} attempts");
-            return await CurrentStateAsync(key);
-        }
-
+        var maximumDelay = Math.Min(LockRetryMaxDelayMilliseconds, LockRetryBaseDelayMilliseconds << attempts);
+        var delay = TimeSpan.FromMilliseconds(Random.Shared.Next(maximumDelay / 2, maximumDelay + 1));
+        logger.LogWarning("Settlement {SettlementID} for uid {Uid} hit a database lock conflict on attempt {Attempts}; retrying in {Delay} with {Delivery} delivery",
+            key.SettlementID, key.GameUlongUID, attempts, delay, delivery);
         try
         {
-            var result = liveResult ?? BattleSettlementSnapshot.Deserialize(claimed.Payload);
-            if (SettlementKey.Of(result) != key)
-            {
-                throw new InvalidDataException("Settlement identity does not match its snapshot");
-            }
-
-            if (result.Human.IsJudge)
-            {
-                await settlement.SettleJudgeAsync(result, delivery);
-                await journal.CompleteAsync(key);
-            }
-            else
-            {
-                await settlement.SettleAsync(result, delivery, key);
-            }
-
-            return SettlementState.Completed;
+            await Task.Delay(delay, clock, lifetime.ApplicationStopping);
+            return true;
         }
-        catch (SettlementClaimLostException)
+        catch (OperationCanceledException) when (lifetime.ApplicationStopping.IsCancellationRequested)
         {
-            logger.LogWarning("Settlement {SettlementID} for uid {Uid} was completed or released by another runner; this run granted nothing",
-                key.SettlementID, key.GameUlongUID);
-            return await CurrentStateAsync(key);
-        }
-        catch (Exception exception) when (DatabaseFaults.IsTransient(exception) && claimed.Attempts < MaxSettleAttempts)
-        {
-            if (await journal.ReleaseForRetryAsync(key, exception.Message))
-            {
-                logger.LogWarning(exception, "Settlement {SettlementID} for uid {Uid} hit a transient database fault on attempt {Attempts}; it will be retried",
-                    key.SettlementID, key.GameUlongUID, claimed.Attempts);
-            }
-            else
-            {
-                LogFailureAfterCommit(exception, key);
-            }
-
-            return await CurrentStateAsync(key);
-        }
-        catch (Exception exception)
-        {
-            if (await journal.FlagForReviewAsync(key, exception.Message))
-            {
-                logger.LogError(exception, "Settlement {SettlementID} for uid {Uid} needs review after attempt {Attempts}; it will not be replayed automatically",
-                    key.SettlementID, key.GameUlongUID, claimed.Attempts);
-            }
-            else
-            {
-                LogFailureAfterCommit(exception, key);
-            }
-
-            return await CurrentStateAsync(key);
+            return false;
         }
     }
 

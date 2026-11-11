@@ -273,11 +273,9 @@ public sealed class BattleSettlement
         var weekReward = route is null ? null : await pveChallengeManager.LoadWeekRewardAsync(uid, utcNow);
         var intimacy = await FindBattleIntimacyGainAsync(result);
         SettlementPlan? plan = null;
-        IReadOnlyList<BagGrant> heldItemGrants = [];
-        var commit = await repository.CommitAsync(uid, journalEntry, node, async storedStarNum =>
+        var commit = await repository.CommitAsync(uid, journalEntry, node, storedStarNum =>
         {
             plan = Plan(role, result, route, Math.Max(storedStarNum, knownStarNum), newbieBenefitActive, hangupType, weekReward, energyUnlocked);
-            heldItemGrants = await heldItems.CreateHeldItemUnlockGrantsAsync(role, role.RoleTotalExp + plan.ChgExp);
             return new BattleSettlementChange(
                 plan.ChgExp,
                 plan.PointPokemonId,
@@ -285,7 +283,7 @@ public sealed class BattleSettlement
                 plan.Won ? now : UsedPokemonInfo.NeverWon,
                 plan.NewStar,
                 FindHeavenTrainerChallenge(result),
-                [.. heldItemGrants, .. plan.Grants],
+                [.. plan.Grants],
                 plan.Coins,
                 fightHistory,
                 FightHistoryManager.MaxRecordNumPerMapSubMode,
@@ -297,6 +295,7 @@ public sealed class BattleSettlement
                     : null,
                 BuildCountedGame(uid, result, plan))
             {
+                HeldItemUnlockGrants = heldItems.CreateHeldItemUnlockGrants(role, role.RoleTotalExp + plan.ChgExp),
                 PveChallengeWeek = plan.NewWeek,
                 Intimacy = intimacy,
                 PveBonus = node is null ? null : new PveSettlementEligibility(
@@ -313,6 +312,7 @@ public sealed class BattleSettlement
             throw new InvalidOperationException($"Settlement of uid {uid} for desk {result.Desk.DeskID} was not committed");
         }
 
+        var heldItemGrants = commit.HeldItemUnlockGrants;
         await warmBattles.LoadAsync(uid);
 
         foreach (var clamped in commit.ClampedGrants)

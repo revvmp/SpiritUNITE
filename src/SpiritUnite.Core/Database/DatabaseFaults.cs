@@ -5,6 +5,13 @@ namespace SpiritUnite.Database;
 
 public static class DatabaseFaults
 {
+    public static bool IsLockConflict(Exception exception) => exception switch
+    {
+        MySqlException mysql => mysql.ErrorCode is MySqlErrorCode.LockDeadlock or MySqlErrorCode.LockWaitTimeout,
+        AggregateException aggregate => aggregate.InnerExceptions.Count > 0 && aggregate.InnerExceptions.All(IsLockConflict),
+        _ => exception.InnerException is { } inner && IsLockConflict(inner),
+    };
+
     public static bool IsTransient(Exception exception) => exception switch
     {
         MySqlException mysql when mysql.IsTransient || IsTransientErrorCode(mysql.ErrorCode) => true,

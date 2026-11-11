@@ -54,7 +54,7 @@ public sealed class HeldItemManager(
                 notices.GetBusinessSchemeId(PB_ENUM_RES_USER_SCHEME_BUSINESS_TYPE.PbResUserSchemeBusinessTypeSystemUnlock))) is { } unlock
             && roleTotalExp >= unlock.TrainerExp);
 
-    public async Task<BagGrant[]> CreateHeldItemUnlockGrantsAsync(LMNRoleInfo role, int roleTotalExpAfter)
+    public BagGrant[] CreateHeldItemUnlockGrants(LMNRoleInfo role, int roleTotalExpAfter)
     {
         if (GetHeldItemSlotUnlockNum(role) > 0 || GetHeldItemSlotUnlockNum(roleTotalExpAfter) == 0)
         {
@@ -62,7 +62,6 @@ public sealed class HeldItemManager(
         }
 
         var maxLevel = gameData.HeldItemSystemConfig.Find(HeldItemSystemConfigId)?.MaxLevel ?? 0;
-        var owned = (await bag.GetOwnedOutSideItemsAsync(role.GameUlongUID)).Select(item => item.ItemId).ToHashSet();
         var boundGrants = gameData.OutSideItemBase.Rows
             .Where(item => item.OutSideItemCategory == BagManager.HeldItemCategory
                 && item.IsCanLevelUp != Enabled
@@ -72,7 +71,7 @@ public sealed class HeldItemManager(
         var starterGrants = options.CurrentValue.UnlockGrantItemIdsOrOfficial
             .Select(itemId => bag.CreateOutSideItemGrant(itemId, 1))
             .OfType<BagGrant>();
-        return [.. starterGrants.Concat(boundGrants).Where(grant => !owned.Contains(grant.ItemId)).DistinctBy(grant => grant.ItemId)];
+        return [.. starterGrants.Concat(boundGrants).DistinctBy(grant => grant.ItemId)];
     }
 
     public async Task<pbSCHeldItemSlotNtf> BuildHeldItemSlotNtfAsync(LMNRoleInfo role) => new()
