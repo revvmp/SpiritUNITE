@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SpiritUnite.Network.Gcp;
+using SpiritUnite.Tools;
 
 namespace SpiritUnite.Network.Tuap;
 
@@ -12,8 +13,11 @@ public abstract class TuapServer(
     int port,
     IOptions<TcpServerOptions> options,
     TimeProvider time,
+    BackgroundOperations operations,
     ILogger<TuapServer> logger) : BackgroundService
 {
+    private const int InitialReceiveBufferSize = 4096;
+
     private readonly TcpListener listener = new(IPAddress.Parse(options.Value.BindAddress), port);
 
     private int activeConnections;
@@ -62,7 +66,15 @@ public abstract class TuapServer(
             return;
         }
 
-        _ = ServeAsync(client, stoppingToken);
+        if (!operations.Run("TUAP connection", async token =>
+        {
+            using var stopped = CancellationTokenSource.CreateLinkedTokenSource(token, stoppingToken);
+            await ServeAsync(client, stopped.Token);
+        }))
+        {
+            client.Dispose();
+            Interlocked.Decrement(ref activeConnections);
+        }
     }
 
     private async Task ServeAsync(TcpClient client, CancellationToken stoppingToken)
@@ -119,12 +131,24 @@ public abstract class TuapServer(
 
     private async Task ReceiveUntilClosedAsync(NetworkStream stream, TuapSession session, CancellationToken stoppingToken)
     {
-        var buffer = new byte[TuapPacket.MaxPacketLength];
+        var buffer = GC.AllocateArray<byte>(InitialReceiveBufferSize, pinned: true);
         var buffered = 0;
         var idleTimeout = TimeSpan.FromSeconds(options.Value.IdleTimeoutSeconds);
 
         while (true)
         {
+            if (buffered == buffer.Length)
+            {
+                if (buffer.Length == TuapPacket.MaxPacketLength)
+                {
+                    throw new GcpProtocolException($"TUAP packet exceeds {TuapPacket.MaxPacketLength} bytes");
+                }
+
+                var grown = GC.AllocateArray<byte>(Math.Min(buffer.Length * 2, TuapPacket.MaxPacketLength), pinned: true);
+                buffer.AsSpan(0, buffered).CopyTo(grown);
+                buffer = grown;
+            }
+
             using var idleTimer = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
             idleTimer.CancelAfter(idleTimeout);
 

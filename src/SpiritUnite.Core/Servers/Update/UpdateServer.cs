@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using SpiritUnite.Network;
 using SpiritUnite.Network.Thrift;
 using SpiritUnite.Network.Tuap;
+using SpiritUnite.Tools;
 
 namespace SpiritUnite.Servers.Update;
 
@@ -12,9 +13,10 @@ public sealed class UpdateServer(
     IOptions<TcpServerOptions> options,
     UpdateServiceReplies replies,
     TimeProvider time,
+    BackgroundOperations operations,
     ILogger<UpdateServer> updateLogger,
     ILogger<TuapServer> logger)
-    : TuapServer(nameof(UpdateServer), updateServer.Value.Port, options, time, logger)
+    : TuapServer(nameof(UpdateServer), updateServer.Value.Port, options, time, operations, logger)
 {
     protected override TuapService? FindService(string name) => UpdateServiceReplies.FindService(name);
 

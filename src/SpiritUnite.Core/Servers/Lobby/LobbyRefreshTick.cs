@@ -30,7 +30,7 @@ public sealed class LobbyRefreshTick(
         while (true)
         {
             await Task.Delay(RefreshInterval, clock, stoppingToken);
-            await broadcast.PushRefreshAsync();
+            await broadcast.PushRefreshAsync(stoppingToken);
         }
     }
 

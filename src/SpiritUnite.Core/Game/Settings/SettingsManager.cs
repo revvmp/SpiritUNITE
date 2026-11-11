@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using SpiritUnite.Database.Repositories;
 using SpiritUnite.Databin;
+using SpiritUnite.Packets;
 using SpiritUnite.Packets.Messages;
 
 namespace SpiritUnite.Game.Settings;
@@ -31,10 +32,10 @@ public sealed class SettingsManager(SettingsRepository repository, GameData game
     ];
 
     public Task<RoleSettings> LoadAsync(ulong gameUlongUID) =>
-        WithSettingsAsync(gameUlongUID, settings => (false, settings.Clone()));
+        WithSettingsAsync<RoleSettings>(gameUlongUID, settings => (null, settings.Clone()));
 
     public Task<bool> HidesFriendshipAsync(ulong gameUlongUID) =>
-        WithSettingsAsync(gameUlongUID, settings => (false, settings.IsCloseIntimacyShow == SwitchOn));
+        WithSettingsAsync<bool>(gameUlongUID, settings => (null, settings.IsCloseIntimacyShow == SwitchOn));
 
     public void Forget(ulong gameUlongUID) => entries.TryRemove(gameUlongUID, out _);
 
@@ -88,16 +89,37 @@ public sealed class SettingsManager(SettingsRepository repository, GameData game
             ReplaceRedDot(settings.RedDotInfo.RedDotDetail, redDotDetail) | changed));
 
     public Task ClearRedDotAsync(ulong gameUlongUID, int redDotID) =>
-        ChangeAsync(gameUlongUID, settings =>
-            SwapRemove(settings.RedDotInfo.RedDotDetail, redDotDetail => redDotDetail.RedDotID == redDotID));
+        ChangeAsync(gameUlongUID, settings => ClearRedDot(settings, redDotID));
 
     public Task ReplaceBubTipsAsync(ulong gameUlongUID, IReadOnlyList<pbCOMDT_BUB_TIP_DETAIL> bubTipDetails) =>
         ChangeAsync(gameUlongUID, settings => bubTipDetails.Aggregate(false, (changed, bubTipDetail) =>
             ReplaceBubTip(settings.BubTipInfo.BubTipDetail, bubTipDetail) | changed));
 
     public Task ClearBubTipAsync(ulong gameUlongUID, int bubTipID) =>
-        ChangeAsync(gameUlongUID, settings =>
-            SwapRemove(settings.BubTipInfo.BubTipDetail, bubTipDetail => bubTipDetail.BubTipID == bubTipID));
+        ChangeAsync(gameUlongUID, settings => ClearBubTip(settings, bubTipID));
+
+    public Task RecordNotificationsAsync(ulong gameUlongUID, IReadOnlyList<GamePacket> packets) =>
+        packets.Any(packet => IsStoredNotification(packet.MsgID))
+            ? RecordStoredNotificationsAsync(gameUlongUID, packets)
+            : Task.CompletedTask;
+
+    private Task RecordStoredNotificationsAsync(ulong gameUlongUID, IReadOnlyList<GamePacket> packets) =>
+        WithSettingsAsync(gameUlongUID, settings =>
+        {
+            if (!RequiresNotificationCopy(settings, packets))
+            {
+                return (null, true);
+            }
+
+            var candidate = settings.Clone();
+            var changed = false;
+            foreach (var packet in packets)
+            {
+                changed |= ApplyNotification(candidate, packet);
+            }
+
+            return (changed ? candidate : null, true);
+        });
 
     public async Task<PB_ENUM_RES_ERROR_CODE> SetLobbyMenuSortAsync(ulong gameUlongUID, IReadOnlyList<int> menuList)
     {
@@ -209,6 +231,70 @@ public sealed class SettingsManager(SettingsRepository repository, GameData game
 
     private static bool IsSwitch(int value) => value is RoleSettings.Off or SwitchOn;
 
+    private static bool IsStoredNotification(int msgID) => (PB_ENUM_CS_MSGID_DEF)msgID is
+        PB_ENUM_CS_MSGID_DEF.PbScidRedDotReplaceNtf or PB_ENUM_CS_MSGID_DEF.PbScidRedDotClearNtf
+        or PB_ENUM_CS_MSGID_DEF.PbScidBubTipReplaceNtf or PB_ENUM_CS_MSGID_DEF.PbScidBubTipClearNtf;
+
+    private static bool RequiresNotificationCopy(RoleSettings settings, IReadOnlyList<GamePacket> packets)
+    {
+        foreach (var packet in packets)
+        {
+            switch ((PB_ENUM_CS_MSGID_DEF)packet.MsgID)
+            {
+                case PB_ENUM_CS_MSGID_DEF.PbScidRedDotReplaceNtf:
+                case PB_ENUM_CS_MSGID_DEF.PbScidBubTipReplaceNtf:
+                    return true;
+                case PB_ENUM_CS_MSGID_DEF.PbScidRedDotClearNtf:
+                    var redDotID = pbSCRedDotClearNtf.Parser.ParseFrom(packet.PkgData).RedDotID;
+                    var redDots = settings.RedDotInfo.RedDotDetail;
+                    for (var index = 0; index < redDots.Count; index++)
+                    {
+                        if (redDots[index].RedDotID == redDotID)
+                        {
+                            return true;
+                        }
+                    }
+
+                    break;
+                case PB_ENUM_CS_MSGID_DEF.PbScidBubTipClearNtf:
+                    var bubTipID = pbSCBubTipClearNtf.Parser.ParseFrom(packet.PkgData).BubTipID;
+                    var bubTips = settings.BubTipInfo.BubTipDetail;
+                    for (var index = 0; index < bubTips.Count; index++)
+                    {
+                        if (bubTips[index].BubTipID == bubTipID)
+                        {
+                            return true;
+                        }
+                    }
+
+                    break;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool ApplyNotification(RoleSettings settings, GamePacket packet) => (PB_ENUM_CS_MSGID_DEF)packet.MsgID switch
+    {
+        PB_ENUM_CS_MSGID_DEF.PbScidRedDotReplaceNtf =>
+            (pbSCRedDotReplaceNtf.Parser.ParseFrom(packet.PkgData).RedDotInfo?.RedDotDetail ?? [])
+                .Aggregate(false, (changed, detail) => ReplaceRedDot(settings.RedDotInfo.RedDotDetail, detail) | changed),
+        PB_ENUM_CS_MSGID_DEF.PbScidRedDotClearNtf =>
+            ClearRedDot(settings, pbSCRedDotClearNtf.Parser.ParseFrom(packet.PkgData).RedDotID),
+        PB_ENUM_CS_MSGID_DEF.PbScidBubTipReplaceNtf =>
+            (pbSCBubTipReplaceNtf.Parser.ParseFrom(packet.PkgData).BubTipInfo?.BubTipDetail ?? [])
+                .Aggregate(false, (changed, detail) => ReplaceBubTip(settings.BubTipInfo.BubTipDetail, detail) | changed),
+        PB_ENUM_CS_MSGID_DEF.PbScidBubTipClearNtf =>
+            ClearBubTip(settings, pbSCBubTipClearNtf.Parser.ParseFrom(packet.PkgData).BubTipID),
+        _ => false,
+    };
+
+    private static bool ClearRedDot(RoleSettings settings, int redDotID) =>
+        SwapRemove(settings.RedDotInfo.RedDotDetail, detail => detail.RedDotID == redDotID);
+
+    private static bool ClearBubTip(RoleSettings settings, int bubTipID) =>
+        SwapRemove(settings.BubTipInfo.BubTipDetail, detail => detail.BubTipID == bubTipID);
+
     private static bool IsSelfInvisibleChange(int isInvisible, int invisibleType) => invisibleType switch
     {
         (int)PB_ENUM_ENM_INVISIBLE_TYPE.PbEnmInvisibleTypeTemp or (int)PB_ENUM_ENM_INVISIBLE_TYPE.PbEnmInvisibleTypeForever =>
@@ -296,18 +382,23 @@ public sealed class SettingsManager(SettingsRepository repository, GameData game
     }
 
     private Task ChangeAsync(ulong gameUlongUID, Func<RoleSettings, bool> change) =>
-        WithSettingsAsync(gameUlongUID, settings => (change(settings), true));
+        WithSettingsAsync(gameUlongUID, settings =>
+        {
+            var candidate = settings.Clone();
+            return (change(candidate) ? candidate : null, true);
+        });
 
-    private async Task<T> WithSettingsAsync<T>(ulong gameUlongUID, Func<RoleSettings, (bool Changed, T Result)> use)
+    private async Task<T> WithSettingsAsync<T>(ulong gameUlongUID, Func<RoleSettings, (RoleSettings? Changed, T Result)> use)
     {
         var entry = await LoadEntryAsync(gameUlongUID);
         await entry.Gate.WaitAsync();
         try
         {
             var (changed, result) = use(entry.Settings);
-            if (changed)
+            if (changed is not null)
             {
-                await repository.SaveAsync(gameUlongUID, entry.Settings);
+                await repository.SaveAsync(gameUlongUID, changed);
+                entry.Settings = changed;
             }
 
             return result;
@@ -331,7 +422,7 @@ public sealed class SettingsManager(SettingsRepository repository, GameData game
 
     private sealed class RoleSettingsEntry(RoleSettings settings)
     {
-        public RoleSettings Settings { get; } = settings;
+        public RoleSettings Settings { get; set; } = settings;
         public SemaphoreSlim Gate { get; } = new(1, 1);
     }
 }

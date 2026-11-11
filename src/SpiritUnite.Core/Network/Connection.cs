@@ -17,6 +17,7 @@ public sealed class Connection(
     GcpCompression compression,
     ILogger<Connection> logger)
 {
+    private const int InitialReceiveBufferSize = 4096;
     private const int MaxLoggedBytes = 64;
 
     public async Task RunAsync(CancellationToken stoppingToken)
@@ -83,11 +84,23 @@ public sealed class Connection(
 
     private async Task ReceiveUntilClosedAsync(NetworkStream stream, GcpSession session, CancellationToken stoppingToken)
     {
-        var buffer = new byte[GcpHead.MaxPacketSize];
+        var buffer = GC.AllocateArray<byte>(InitialReceiveBufferSize, pinned: true);
         var buffered = 0;
 
         while (true)
         {
+            if (buffered == buffer.Length)
+            {
+                if (buffer.Length == GcpHead.MaxPacketSize)
+                {
+                    throw new GcpProtocolException("Receive buffer exceeded the maximum packet size");
+                }
+
+                var grown = GC.AllocateArray<byte>(Math.Min(buffer.Length * 2, GcpHead.MaxPacketSize), pinned: true);
+                buffer.AsSpan(0, buffered).CopyTo(grown);
+                buffer = grown;
+            }
+
             using var idleTimer = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
             idleTimer.CancelAfter(session.AwaitingRegistration ? registrationIdleTimeout : idleTimeout);
 
@@ -122,6 +135,11 @@ public sealed class Connection(
 
     private void LogReceived(ReadOnlySpan<byte> received)
     {
+        if (!logger.IsEnabled(LogLevel.Trace))
+        {
+            return;
+        }
+
         var loggedBytes = received[..Math.Min(received.Length, MaxLoggedBytes)];
         logger.LogTrace("RECV {Size} bytes: {Hex}", received.Length, Convert.ToHexString(loggedBytes));
     }
