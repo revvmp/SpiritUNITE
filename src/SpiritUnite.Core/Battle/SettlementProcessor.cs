@@ -24,6 +24,7 @@ public sealed class SettlementProcessor(
     private const int ShutdownJournalAttempts = 2;
     private const int LockRetryBaseDelayMilliseconds = 25;
     private const int LockRetryMaxDelayMilliseconds = 1000;
+    private const int MaxConcurrentSettlements = 16;
     private static readonly TimeSpan RecoveryInterval = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan RecoveryAge = TimeSpan.FromMinutes(1);
     private static readonly TimeSpan PersistenceRetryDelay = TimeSpan.FromSeconds(5);
@@ -31,7 +32,7 @@ public sealed class SettlementProcessor(
     private static readonly TimeSpan PurgeInterval = TimeSpan.FromHours(1);
 
     private readonly ConcurrentDictionary<SettlementKey, SettlementDelivery> settling = new();
-    private readonly SemaphoreSlim processingSlots = new(16);
+    private readonly SemaphoreSlim processingSlots = new(MaxConcurrentSettlements);
 
     public async Task<bool> EnqueueAsync(BattleResult result)
     {
@@ -187,11 +188,38 @@ public sealed class SettlementProcessor(
         }
     }
 
+    private async Task<BattleSettlementRecord?> TryClaimAsync(SettlementKey key, SettlementDelivery delivery)
+    {
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                return await journal.TryClaimAsync(key);
+            }
+            catch (SettlementClaimLostException)
+            {
+                logger.LogWarning("Settlement {SettlementID} for uid {Uid} was not claimed: another owner took over its role", key.SettlementID, key.GameUlongUID);
+                return null;
+            }
+            catch (Exception exception) when (DatabaseFaults.IsTransient(exception))
+            {
+                if (attempt < MaxSettleAttempts && await WaitForLockRetryAsync(key, attempt, delivery))
+                {
+                    continue;
+                }
+
+                logger.LogWarning(exception, "Settlement {SettlementID} for uid {Uid} could not be claimed; the journal remains recoverable",
+                    key.SettlementID, key.GameUlongUID);
+                return null;
+            }
+        }
+    }
+
     private async Task<SettlementState> ClaimAndSettleAsync(SettlementKey key, BattleResult? liveResult, SettlementDelivery delivery)
     {
         while (true)
         {
-            if (await journal.TryClaimAsync(key) is not { } claimed)
+            if (await TryClaimAsync(key, delivery) is not { } claimed)
             {
                 return await CurrentStateAsync(key);
             }
@@ -221,7 +249,6 @@ public sealed class SettlementProcessor(
                 else
                 {
                     await settlement.SettleAsync(result, delivery, key);
-                    await journal.CompleteAsync(key);
                 }
 
                 return SettlementState.Completed;
@@ -292,11 +319,12 @@ public sealed class SettlementProcessor(
     }
 
     private void LogFailureAfterCommit(Exception exception, SettlementKey key) =>
-        logger.LogError(exception, "Settlement {SettlementID} for uid {Uid} failed after its rewards were committed; the steps after the commit did not run",
+        logger.LogError(exception, "Settlement {SettlementID} for uid {Uid} failed after it stopped being processed here (completed, or taken over by another owner); this run did not finish its remaining steps",
             key.SettlementID, key.GameUlongUID);
 
     private async Task<SettlementState> SettleUnjournaledAsync(BattleResult result)
     {
+        await processingSlots.WaitAsync();
         try
         {
             await (result.Human.IsJudge
@@ -309,6 +337,10 @@ public sealed class SettlementProcessor(
             logger.LogError(exception, "Unjournaled settlement {SettlementID} for uid {Uid} failed; its rewards are lost",
                 result.Desk.SettlementID.ToString("N"), result.Human.Uid);
             return SettlementState.NeedsReview;
+        }
+        finally
+        {
+            processingSlots.Release();
         }
     }
 

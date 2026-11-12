@@ -565,7 +565,7 @@ public sealed class RankedManager
                 var position = season.Position;
                 var ticket = season.UseFreeTicket ? NoTicketConsume : ladder.TicketConsumeOf(position.RankedDivision);
                 var paid = ticket == NoTicketConsume ? position : ladder.Move(position, -ticket).Position;
-                var saved = season with { Position = paid, Entry = new RankedEntry(position, ticket), UseFreeTicket = false };
+                var saved = season with { Position = paid, Entry = EntryOf(position, ticket), UseFreeTicket = false };
                 await repository.SaveSeasonAsync(uid, saved);
                 logger.LogInformation(
                     "Uid {Uid} paid the ranked entry cost {TicketConsume} at division {RankedDivision}: win point {WinPoint} -> {PaidWinPoint}, master point {MasterPoint} -> {PaidMasterPoint}",
@@ -580,6 +580,9 @@ public sealed class RankedManager
             });
         }
     }
+
+    private static RankedEntry? EntryOf(RankedPosition position, int ticket) =>
+        position.RankedDivision == RankedLadder.UnplacedRankedDivision ? null : new RankedEntry(position, ticket);
 
     public async Task<FreeTicketCardUse> UseFreeTicketCardAsync(ulong uid, int resID, ulong gridUniqueID, int resCnt)
     {

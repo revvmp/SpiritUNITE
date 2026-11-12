@@ -49,6 +49,14 @@ public sealed class TrainerExpGiftManager(
     public async Task LoadAsync(ulong gameUlongUID) =>
         claimedRewardExps[gameUlongUID] = (await repository.FindClaimedRewardExpsAsync(gameUlongUID, NormalGiftType)).ToFrozenSet();
 
+    public async Task EnsureLoadedAsync(ulong gameUlongUID)
+    {
+        if (!claimedRewardExps.ContainsKey(gameUlongUID))
+        {
+            claimedRewardExps.TryAdd(gameUlongUID, (await repository.FindClaimedRewardExpsAsync(gameUlongUID, NormalGiftType)).ToFrozenSet());
+        }
+    }
+
     public static int GetSeasonPoint(LMNRoleInfo role) => role.RoleTotalExp;
 
     public int GetReachMaxSeasonGift(LMNRoleInfo role)

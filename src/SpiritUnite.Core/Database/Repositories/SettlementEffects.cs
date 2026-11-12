@@ -35,6 +35,11 @@ public static class SettlementEffects
             throw new InvalidOperationException("Settlement effects require an existing transaction");
         }
 
+        if (lockRole)
+        {
+            await LockRoleAsync(database, key.GameUlongUID);
+        }
+
         await database.ExecuteAsync(
             "INSERT INTO battle_settlement_effect (settlement_id, game_ulong_uid, effect, output) VALUES (@settlement, @uid, @effect, @output) ON DUPLICATE KEY UPDATE effect=VALUES(effect)",
             new DataParameter("settlement", key.SettlementID),
@@ -45,11 +50,6 @@ public static class SettlementEffects
         if (output.Length > 0)
         {
             return new SettlementEffectResult<T>(Deserialize<T>(output), false);
-        }
-
-        if (lockRole)
-        {
-            await LockRoleAsync(database, key.GameUlongUID);
         }
 
         await SettlementOwnership.VerifyAsync(database, key.GameUlongUID);

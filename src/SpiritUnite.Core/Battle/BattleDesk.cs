@@ -47,6 +47,7 @@ public sealed class DeskPlayer(
     public bool IsJudge => IsReferee(CampClient);
     public RelayTicket? RelayTicket { get; set; }
     public IReadOnlyDictionary<int, RandomPickHero> RandomPickHeroes { get; set; } = new Dictionary<int, RandomPickHero>();
+    public pbCOMDT_RECENTLY_USED_POKEMON_SORT_LIST_INFO RecentlyUsedPokemonList { get; init; } = new();
 
     public static bool IsReferee(int campClient) =>
         campClient is >= (int)PB_ENUM_COM_CAMP_CLIENT.PbCampClientJudgeBegin and <= (int)PB_ENUM_COM_CAMP_CLIENT.PbCampClientJudgeEnd;

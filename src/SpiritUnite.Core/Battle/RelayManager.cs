@@ -1303,7 +1303,7 @@ public sealed class RelayManager
     {
         judge.QueueSettlement();
         var fightSeconds = (int)Math.Round(clock.GetElapsedTime(game.FightStartedAt).TotalSeconds);
-        return new SeatCompletion(new BattleResult(game.Desk, judge.Human, agreed.Clone(), game.GameStartTime, fightSeconds), sendsFinalRsp);
+        return new SeatCompletion(new BattleResult(game.Desk, judge.Human, agreed.Clone(), game.GameStartTime, fightSeconds, IsSurrenderEnd: game.EndedBySurrender), sendsFinalRsp);
     }
 
     public pbSCJudgeGameOverRsp JudgeGameOver(ulong uid)
@@ -1497,7 +1497,7 @@ public sealed class RelayManager
             seat.Takeover = RelaySeatTakeover.AiHosted;
         }
 
-        return new SeatCompletion(new BattleResult(game.Desk, seat.Human, seat.Gameover!.Clone(), game.GameStartTime, seat.GameoverFightSeconds, seat.GameoverHangupSeconds), SendsFinalRsp: true);
+        return new SeatCompletion(new BattleResult(game.Desk, seat.Human, seat.Gameover!.Clone(), game.GameStartTime, seat.GameoverFightSeconds, seat.GameoverHangupSeconds, game.EndedBySurrender), SendsFinalRsp: true);
     }
 
     private static TimeSpan? HangupAfter(RelayGame game) => game.RunsFrameLoop ? game.Limits.Afk2HangupTime : null;
@@ -1526,13 +1526,17 @@ public sealed class RelayManager
                     gameover.GameoverSummary = agreed.GameoverSummary?.Clone();
                 }
 
-                completions.Add(new SeatCompletion(new BattleResult(game.Desk, seat.Human, gameover, game.GameStartTime, seat.GameoverFightSeconds, seat.GameoverHangupSeconds), SendsFinalRsp: true));
+                completions.Add(new SeatCompletion(new BattleResult(game.Desk, seat.Human, gameover, game.GameStartTime, seat.GameoverFightSeconds, seat.GameoverHangupSeconds, game.EndedBySurrender), SendsFinalRsp: true));
                 seat.QueueSettlement();
             }
-            else if (seat.IsConnected && agreed is not null)
+            else if (agreed is not null)
             {
-                logger.LogInformation("Desk {DeskID}: uid {Uid} never reported the game over and is settled with the agreed result", game.Desk.DeskID, seat.Uid);
-                completions.Add(new SeatCompletion(new BattleResult(game.Desk, seat.Human, agreed.Clone(), game.GameStartTime, fightSeconds, HangupSecondsOf(game, seat)), SendsFinalRsp: false));
+                logger.LogInformation(
+                    "Desk {DeskID}: uid {Uid} never reported the game over ({Connection}) and is settled with the agreed result",
+                    game.Desk.DeskID,
+                    seat.Uid,
+                    seat.IsConnected ? "still on the relay" : "left the relay");
+                completions.Add(new SeatCompletion(new BattleResult(game.Desk, seat.Human, agreed.Clone(), game.GameStartTime, fightSeconds, HangupSecondsOf(game, seat), game.EndedBySurrender), SendsFinalRsp: false));
                 seat.QueueSettlement();
             }
         }
@@ -1648,22 +1652,22 @@ public sealed class RelayManager
             logger.LogError(exception, "Game over on desk {DeskID} failed", game.Desk.DeskID);
         }
 
-        async Task SettleAllAsync(Task<bool[]> journaling)
+        async Task SettleAllAsync(Task<bool[]> journaling) =>
+            await Task.WhenAll(completions.Zip(await journaling).Select(entry => SettleOneAsync(entry.First, entry.Second)));
+
+        async Task SettleOneAsync(SeatCompletion completion, bool isJournaled)
         {
-            foreach (var (completion, isJournaled) in completions.Zip(await journaling))
+            try
             {
-                try
+                var state = await settlementProcessor.ProcessAsync(completion.Result, isJournaled);
+                lock (game.Gate)
                 {
-                    var state = await settlementProcessor.ProcessAsync(completion.Result, isJournaled);
-                    lock (game.Gate)
-                    {
-                        game.FindViewer(completion.Result.Human.Uid)!.RecordSettlement(state);
-                    }
+                    game.FindViewer(completion.Result.Human.Uid)!.RecordSettlement(state);
                 }
-                catch (Exception exception)
-                {
-                    logger.LogError(exception, "Settlement of uid {Uid} on desk {DeskID} failed", completion.Result.Human.Uid, game.Desk.DeskID);
-                }
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Settlement of uid {Uid} on desk {DeskID} failed", completion.Result.Human.Uid, game.Desk.DeskID);
             }
         }
     }

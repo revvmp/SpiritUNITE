@@ -257,6 +257,9 @@ public sealed class RallyChallengeManager(
         var state = await repository.RecordBattleAsync(key.GameUlongUID, plan.PeriodID, plan.BattleStatus, plan.MaxBattleCount, plan.RewardCount, key, plan.RoundCnt);
         if (state is null)
         {
+            logger.LogInformation(
+                "Unite Challenge period {PeriodID} round {RoundCnt} of uid {Uid} took no battle from settlement {SettlementID}: the round was full, reset or not started",
+                plan.PeriodID, plan.RoundCnt, key.GameUlongUID, key.SettlementID);
             return [];
         }
 

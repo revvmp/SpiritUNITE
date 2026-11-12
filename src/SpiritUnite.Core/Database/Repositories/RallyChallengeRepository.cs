@@ -80,12 +80,8 @@ public sealed class RallyChallengeRepository(DataOptions options)
             }
 
             var state = await ReadAsync(database, gameUlongUID, periodId);
-            if (expectedRound is { } round && state.RoundCnt != round)
-            {
-                throw new InvalidDataException($"Unite Challenge round changed before settlement for uid {gameUlongUID}, period {periodId}: expected {round}, found {state.RoundCnt}");
-            }
-
-            if (state.IsClickStart != Started || state.BattleStatusList.Length >= maxBattleCount)
+            var roundResetSinceBattle = expectedRound is { } round && state.RoundCnt != round;
+            if (roundResetSinceBattle || state.IsClickStart != Started || state.BattleStatusList.Length >= maxBattleCount)
             {
                 return null;
             }

@@ -60,4 +60,10 @@ public sealed class RolePokemonUsed
 
     [Column("skill_recommend_info")]
     public byte[] SkillRecommendInfo { get; set; } = [];
+
+    [Column("use_count")]
+    public int UseCount { get; set; }
+
+    [Column("last_use_time")]
+    public long LastUseTime { get; set; }
 }

@@ -270,7 +270,7 @@ public sealed class DeskManager
                 return AbortAll(memberUids, PB_ENUM_RES_ERROR_CODE.PbErrPrepareDeskFail);
             }
 
-            var profile = await LoadHumanProfileAsync(role, scene, roomRules);
+            var profile = await LoadHumanProfileAsync(role, scene, roomRules, ShowsHumanWayTip(match.LeadRoom));
             humanProfiles[uid] = match.LeadRoom.PveChallengeSelectNode is null
                 ? profile
                 : profile with { PveChallengeBuffInfo = await pveChallengeManager.BuildBattleBuffInfoAsync(role.GameUlongUID) };
@@ -677,7 +677,7 @@ public sealed class DeskManager
         if (AddRandomHero(desk, human) is var heroID and > NoHeroID)
         {
             human.ChoiceHero = human.UsableHeroes[heroID].Clone();
-            human.ChoiceHero.ChgWayTipTime = (int)(now + WayTipTimeLeadSeconds);
+            StampWayTipTime(human.ChoiceHero, now);
         }
     }
 
@@ -760,8 +760,16 @@ public sealed class DeskManager
     private void ChooseHumanHero(BattleDesk desk, DeskPlayer player, pbCOMDT_CHOICEHERO choice, long now, RoomOutcome outcome)
     {
         player.ChoiceHero = choice.Clone();
-        player.ChoiceHero.ChgWayTipTime = (int)(now + WayTipTimeLeadSeconds);
+        StampWayTipTime(player.ChoiceHero, now);
         outcome.PushAll(desk.HumanUidsOf(player.CampClient), PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildBroadcastWayTipChgNtf(player, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroChooseHero));
+    }
+
+    private static void StampWayTipTime(pbCOMDT_CHOICEHERO choice, long now)
+    {
+        if (choice.WayTipType != (int)PB_ENUM_ENM_WAY_TIP_TYPE.PbEnmWayTipTypeNull)
+        {
+            choice.ChgWayTipTime = (int)(now + WayTipTimeLeadSeconds);
+        }
     }
 
     private static bool IsLaneWayTip(int wayTipType) =>
@@ -964,7 +972,9 @@ public sealed class DeskManager
 
     private bool IsPicking(BattleDesk desk) => IsCurrent(desk, DeskPhase.Picking) || IsCurrent(desk, DeskPhase.WaitingRelay);
 
-    private async Task<HumanProfile> LoadHumanProfileAsync(LMNRoleInfo role, pbScene_Map scene, FriendlyRoomRules roomRules)
+    private static bool ShowsHumanWayTip(MatchRoom room) => room.ManMachine == CpuMatch.ManMachine;
+
+    private async Task<HumanProfile> LoadHumanProfileAsync(LMNRoleInfo role, pbScene_Map scene, FriendlyRoomRules roomRules, bool showsWayTip)
     {
         var style = await profiles.LoadAsync(role.GameUlongUID);
         var usedPokemon = (await pokemon.LoadUsedPokemonAsync(role)).ToDictionary(used => used.PokemonId);
@@ -998,7 +1008,7 @@ public sealed class DeskManager
                 .Distinct()
                 .Order(),
         ];
-        var loadout = new HumanLoadout(heldItemLevels, trainerItemIDs);
+        var loadout = new HumanLoadout(heldItemLevels, trainerItemIDs, showsWayTip);
         var heroDetails = new List<pbCOMDT_ACNT_USABLE_HERO_DETAIL>();
         var usableHeroes = new Dictionary<int, pbCOMDT_CHOICEHERO>();
         var ownedPokemonIds = role.BuildPokemonList().Select(owned => owned.PokemonId).ToArray();
@@ -1086,6 +1096,7 @@ public sealed class DeskManager
             randomPickItemNum)
         {
             UsablePasterList = await pokemon.BuildUsablePasterListAsync(role),
+            RecentlyUsedPokemonList = UsedPokemonInfo.BuildRecentlyUsedPokemonList(usedPokemon.Values),
         };
     }
 
@@ -1269,6 +1280,7 @@ public sealed class DeskManager
             npcConfig: null)
         {
             IsGuestAccount = room.FindMember(acnt.Uid)?.Profile.IsGuestAccount == true,
+            RecentlyUsedPokemonList = profile.RecentlyUsedPokemonList,
         };
     }
 
@@ -1333,7 +1345,7 @@ public sealed class DeskManager
             HeldItemList = BuildHeldItemList(used?.HeldItemID ?? [], loadout.HeldItemLevels),
             SkillRecommendInfo = used?.SkillRecommendInfo?.Clone() ?? new pbCOMDT_SKILLRECOMMENDINFO(),
             WearPasterID = used?.WearPasterID ?? PokemonManager.NoPaster,
-            WayTipType = WayTipTypeOf(heroID),
+            WayTipType = loadout.ShowsWayTip ? WayTipTypeOf(heroID) : (int)PB_ENUM_ENM_WAY_TIP_TYPE.PbEnmWayTipTypeNull,
             CarryTrainerItemID = trainerItemID,
             CarryTrainerSkillID = TrainerSkillOf(trainerItemID),
             PokemonTotalPoint = used?.PokemonTotalPoint ?? 0,
@@ -1970,6 +1982,17 @@ public sealed class DeskManager
         }
     }
 
+    public ulong[]? FindPickingCampmateUids(ulong uid)
+    {
+        lock (gate)
+        {
+            return desksByUid.GetValueOrDefault(uid) is { Phase: DeskPhase.Picking or DeskPhase.WaitingRelay } desk
+                && desk.FindHuman(uid) is { } human
+                    ? [.. desk.HumanUidsOf(human.CampClient).Where(campmateUid => campmateUid != uid)]
+                    : null;
+        }
+    }
+
     public BattleDesk? FindRelayDesk(ulong uid)
     {
         lock (gate)
@@ -2127,7 +2150,9 @@ public sealed class DeskManager
         GVoiceInfo = gVoice.BuildGVoiceInfo(),
         OBDeskInfo = desk.BuildOBDesk(),
         CampClient = recipient.CampClient,
-        RecentlyUsedPokemonList = new pbCOMDT_RECENTLY_USED_POKEMON_SORT_LIST_INFO(),
+        RecentlyUsedPokemonList = desk.DeskInfo.GameType == HeavenTrainerGameType
+            ? new pbCOMDT_RECENTLY_USED_POKEMON_SORT_LIST_INFO()
+            : recipient.RecentlyUsedPokemonList.Clone(),
         PveChallengeSelectNode = desk.PveChallengeSelectNode?.Clone() ?? new pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE(),
     };
 
@@ -2231,7 +2256,7 @@ public sealed class DeskManager
         public static NpcHeldItemLoadout None { get; } = new(NoHeldItemLevel, 0);
     }
 
-    private sealed record HumanLoadout(IReadOnlyDictionary<int, int> HeldItemLevels, IReadOnlyList<int> TrainerItemIDs);
+    private sealed record HumanLoadout(IReadOnlyDictionary<int, int> HeldItemLevels, IReadOnlyList<int> TrainerItemIDs, bool ShowsWayTip);
 
     private sealed record HumanProfile(
         pbCOMDT_TRAINER_IMAGE_INFO TrainerImageInfo,
@@ -2245,6 +2270,8 @@ public sealed class DeskManager
         public pbCOMDT_POKEMON_PASTER_LIST UsablePasterList { get; init; } = new();
 
         public pbCOMDT_PVE_CHALLENGE_BUFF_INFO PveChallengeBuffInfo { get; init; } = new();
+
+        public pbCOMDT_RECENTLY_USED_POKEMON_SORT_LIST_INFO RecentlyUsedPokemonList { get; init; } = new();
     }
 
     public bool IsGVoiceCampMember(ulong uid, int deskID, int deskCrtSeq, int relayEntity, int campClient)

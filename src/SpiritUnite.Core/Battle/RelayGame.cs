@@ -263,6 +263,8 @@ public sealed class RelayGame
         _ => PB_ENUM_RECONN_RELAY_STATE_TYPE.PbReconnRelayStateGameover,
     };
 
+    public bool EndedBySurrender => SurrenderWinCampClient is not null;
+
     public pbCSMultgameGameoverReq? FindAgreedGameover()
     {
         var reports = GameoverOrder

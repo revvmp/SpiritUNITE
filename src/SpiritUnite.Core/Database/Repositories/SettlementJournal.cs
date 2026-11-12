@@ -88,7 +88,8 @@ public sealed class SettlementJournal(DataOptions options, TimeProvider clock)
         await SettlementOwnership.VerifyAsync(database, key.GameUlongUID);
         var requested = await Find(database, key).FirstOrDefaultAsync();
         if (requested is null || await database.GetTable<BattleSettlementRecord>().AnyAsync(row =>
-            row.GameUlongUID == key.GameUlongUID && row.State != (int)SettlementState.Completed
+            row.GameUlongUID == key.GameUlongUID
+            && (row.State == (int)SettlementState.Pending || row.State == (int)SettlementState.Processing)
             && row.BattleStartedAt < requested.BattleStartedAt))
         {
             return null;
@@ -155,7 +156,15 @@ public sealed class SettlementJournal(DataOptions options, TimeProvider clock)
         await using var database = new DataConnection(options);
         await using var transaction = await database.BeginTransactionAsync();
         await SettlementEffects.LockRoleAsync(database, key.GameUlongUID);
-        await SettlementOwnership.VerifyAsync(database, key.GameUlongUID);
+        try
+        {
+            await SettlementOwnership.VerifyAsync(database, key.GameUlongUID);
+        }
+        catch (SettlementClaimLostException)
+        {
+            return false;
+        }
+
         var changed = await Find(database, key)
             .Where(row => row.State == (int)SettlementState.Processing)
             .Set(row => row.State, (int)state)

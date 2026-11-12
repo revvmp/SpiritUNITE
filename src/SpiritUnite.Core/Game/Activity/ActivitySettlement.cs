@@ -60,16 +60,14 @@ public sealed partial class ActivityManager
         var chained = new List<pbCOMDT_TASK_INFO>();
         var chainGrants = new List<ActivityTaskGrantResult>();
         var progressed = new HashSet<int>();
-        var claimedIds = new HashSet<int>();
+        var settledIds = new HashSet<int>();
         var pending = new HashSet<int>();
         foreach (var task in plan.Tasks.Where(task => task.AutoClaimed && initialCompleted.Contains(task.Task.TaskID)))
         {
-            var result = await ClaimAsync(task);
-            if (result is not null)
+            if (await ClaimAsync(task) is { } result)
             {
                 claimed.Add(DisplayTask(infos.First(info => info.TaskId == task.Task.TaskID), task));
                 grants.Add(result);
-                claimedIds.Add(task.Task.TaskID);
                 pending.UnionWith(result.Grant.AddedResources.Keys);
             }
         }
@@ -83,17 +81,15 @@ public sealed partial class ActivityManager
             foreach (var task in candidates)
             {
                 progressed.Add(task.Task.TaskID);
-                if (claimedIds.Contains(task.Task.TaskID))
+                if (settledIds.Contains(task.Task.TaskID))
                 {
                     continue;
                 }
 
-                var result = await ClaimAsync(task);
-                if (result is not null)
+                if (await ClaimAsync(task) is { } result)
                 {
                     chained.Add(DisplayTask(infos.First(info => info.TaskId == task.Task.TaskID), task));
                     chainGrants.Add(result);
-                    claimedIds.Add(task.Task.TaskID);
                     pending.UnionWith(result.Grant.AddedResources.Keys);
                 }
             }
@@ -131,6 +127,7 @@ public sealed partial class ActivityManager
                     new ActivityRewardChange(grant.Items, grant.PokemonIds, grant.Change, increments), plan.Progress);
             }
 
+            settledIds.Add(task.Task.TaskID);
             infos = existing.Tasks;
             if (existing.Grant is { } result)
             {

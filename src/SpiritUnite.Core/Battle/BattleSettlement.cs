@@ -33,7 +33,7 @@ using SpiritUnite.Tools;
 
 namespace SpiritUnite.Battle;
 
-public sealed record BattleResult(BattleDesk Desk, DeskPlayer Human, pbCSMultgameGameoverReq Gameover, long GameStartTime, int GameTime, int HangupSeconds = 0)
+public sealed record BattleResult(BattleDesk Desk, DeskPlayer Human, pbCSMultgameGameoverReq Gameover, long GameStartTime, int GameTime, int HangupSeconds = 0, bool IsSurrenderEnd = false)
 {
     public const int DrawWinCampClient = 0;
 
@@ -58,6 +58,8 @@ public sealed record BattleResult(BattleDesk Desk, DeskPlayer Human, pbCSMultgam
 public sealed class BattleSettlement
 {
     private const int AcntExpResID = (int)PB_ENUM_ENM_RESOURCES_ID.PbEnmResourcesIdAcntExp;
+    private const int NotSurrenderEnded = 0;
+    private const int SurrenderEnded = 1;
     private const int HeavenTrainerGameType = (int)PB_ENUM_RES_MATCHGAMETYPE.PbMatchGameTypeHeavenTrainer;
     private const int CatchGameType = (int)PB_ENUM_RES_MATCHGAMETYPE.PbMatchGameTypeCatch;
     private const int WinMedalType = (int)PB_ENUM_ENM_BATTLE_MASK_TYPE.PbEnmBattleMaskTypeWin;
@@ -280,12 +282,17 @@ public sealed class BattleSettlement
 
         if (journalEntry is not null && await repository.FindResponseAsync(journalEntry) is { } storedResponse)
         {
-            await DeliverResponseAsync(result, delivery, storedResponse);
+            await DeliverResponseAsync(result, delivery, await CompleteWithResponseAsync(journalEntry, storedResponse));
             return;
         }
 
         var commit = journalEntry is null ? null : await repository.FindCommittedAsync(journalEntry);
-        commit ??= await PrepareCoreAsync(role, result, journalEntry);
+        if (commit is null)
+        {
+            await warmBattles.LoadAsync(uid);
+            commit = await PrepareCoreAsync(role, result, journalEntry);
+        }
+
         var checkpoint = SettlementEffects.Deserialize<CoreSettlementCheckpoint>(commit.Checkpoint);
         var plan = checkpoint.Plan;
         var now = checkpoint.Now;
@@ -297,6 +304,7 @@ public sealed class BattleSettlement
         var intimacy = checkpoint.Intimacy;
         var heldItemGrants = commit.HeldItemUnlockGrants;
         await warmBattles.LoadAsync(uid);
+        await trainerExpGiftManager.EnsureLoadedAsync(uid);
 
         foreach (var clamped in commit.ClampedGrants)
         {
@@ -427,11 +435,14 @@ public sealed class BattleSettlement
         var response = new SettlementResponse(gain, packets, eventBattlePushes);
         if (journalEntry is not null)
         {
-            response = await repository.SaveResponseAsync(journalEntry, response);
+            response = await CompleteWithResponseAsync(journalEntry, response);
         }
 
         await DeliverResponseAsync(result, delivery, response);
     }
+
+    private Task<SettlementResponse> CompleteWithResponseAsync(SettlementKey journalEntry, SettlementResponse response) =>
+        repository.SaveResponseAndCompleteAsync(journalEntry, response, clock.GetUtcNow().ToUnixTimeSeconds());
 
     private async Task DeliverResponseAsync(BattleResult result, SettlementDelivery delivery, SettlementResponse response)
     {
@@ -788,8 +799,9 @@ public sealed class BattleSettlement
     {
         var won = result.Won;
         var isMatch = IsMatch(result);
-        var acntInfo = result.Gameover.AcntInfo.First(info => info.AcntUid == result.Human.Uid && info.ObjType == AcntObjType);
-        var pokemonLevel = acntInfo.CommonData?.PokemonData?.PokemonDetailInfo?.Level ?? 0;
+        var pokemonLevel = result.Gameover.AcntInfo
+            .FirstOrDefault(info => info.AcntUid == result.Human.Uid && info.ObjType == AcntObjType)?
+            .CommonData?.PokemonData?.PokemonDetailInfo?.Level ?? 0;
         var heroID = result.Human.ChosenHeroID;
         var pokemonId = pokemonIdByHeroID.GetValueOrDefault(heroID);
         var isCustomBattle = IsCustomBattle(result);
@@ -1511,8 +1523,11 @@ public sealed class BattleSettlement
             WinMvpObjID = mvp.WinMvpObjID,
             LoseMvpObjID = mvp.LoseMvpObjID,
             BattleMaskDetail = BuildBattleMaskDetail(result, mvp),
+            IsSurrenderEnd = SurrenderEndFlagOf(result),
         };
     }
+
+    private static int SurrenderEndFlagOf(BattleResult result) => result.IsSurrenderEnd ? SurrenderEnded : NotSurrenderEnded;
 
     private static PB_ENUM_ENM_BATTLE_RESULT_TYPE JudgeGameResultOf(BattleResult result) =>
         result.IsDraw ? PB_ENUM_ENM_BATTLE_RESULT_TYPE.PbEnmBattleResultTypeDraw
@@ -1654,6 +1669,7 @@ public sealed class BattleSettlement
                 TowerDefenseResult = new pbCOMDT_TOWER_DEFENSE_SETTLE_RESULT(),
                 GameResult = (int)result.GameResult,
                 IsManMachine = deskInfo.ManMachine,
+                IsSurrenderEnd = SurrenderEndFlagOf(result),
             },
         };
     }

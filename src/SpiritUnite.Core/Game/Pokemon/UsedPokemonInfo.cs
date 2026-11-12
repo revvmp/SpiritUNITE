@@ -13,7 +13,9 @@ public sealed record UsedPokemonInfo(
     int PokemonSeasonPoint = 0,
     long LastBattleWinTime = 0,
     UsedPokemonStatistics? Statistics = null,
-    pbCOMDT_SKILLRECOMMENDINFO? SkillRecommendInfo = null)
+    pbCOMDT_SKILLRECOMMENDINFO? SkillRecommendInfo = null,
+    int UseCount = 0,
+    long LastUseTime = 0)
 {
     public const long NeverWon = 0;
 
@@ -21,6 +23,23 @@ public sealed record UsedPokemonInfo(
     private const int SkillRecommendGameType = 0;
 
     public static UsedPokemonInfo Unused(int pokemonId) => new(pokemonId, []);
+
+    public static pbCOMDT_RECENTLY_USED_POKEMON_SORT_LIST_INFO BuildRecentlyUsedPokemonList(IEnumerable<UsedPokemonInfo> usedPokemon) => new()
+    {
+        SortPokemonList =
+        {
+            usedPokemon
+                .Where(used => used.UseCount > 0)
+                .OrderByDescending(used => used.UseCount)
+                .ThenByDescending(used => used.LastUseTime)
+                .Select(used => new pbCOMDT_RECENTLY_USED_POKEMON_COUNT_INFO
+                {
+                    PokemonId = used.PokemonId,
+                    UseCount = used.UseCount,
+                    LastUseTimeStamp = used.LastUseTime,
+                }),
+        },
+    };
 
     public pbCOMDT_HELDITEM_DESIGN_INFO BuildHeldItemDesignInfo() => new() { HeldItemID = { HeldItemID } };
 

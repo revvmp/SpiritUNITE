@@ -75,6 +75,7 @@ public sealed class BattleSettlementRepository(DataOptions options)
     private const int NoPokemon = 0;
     private const int NoStar = 0;
     private const int OneChallenge = 1;
+    private const int OneUse = 1;
 
     public async Task<BattleSettlementCommit?> CommitAsync(
         ulong gameUlongUID,
@@ -86,9 +87,13 @@ public sealed class BattleSettlementRepository(DataOptions options)
     {
         await using var database = new DataConnection(options);
         await using var transaction = await database.BeginTransactionAsync();
-        if (journalEntry is not null && !await SettlementJournal.IsProcessingAsync(database, journalEntry))
+        if (journalEntry is not null)
         {
-            throw new SettlementClaimLostException(journalEntry);
+            await SettlementEffects.LockRoleAsync(database, gameUlongUID);
+            if (!await SettlementJournal.IsProcessingAsync(database, journalEntry))
+            {
+                throw new SettlementClaimLostException(journalEntry);
+            }
         }
 
         var result = journalEntry is null
@@ -114,11 +119,19 @@ public sealed class BattleSettlementRepository(DataOptions options)
         return rows.Length == 0 ? null : SettlementEffects.Deserialize<BattleSettlementCommit>(rows[0]);
     }
 
-    public async Task<SettlementResponse> SaveResponseAsync(SettlementKey key, SettlementResponse response)
+    public async Task<SettlementResponse> SaveResponseAndCompleteAsync(SettlementKey key, SettlementResponse response, long completedAt)
     {
         await using var database = new DataConnection(options);
         await using var transaction = await database.BeginTransactionAsync();
-        var saved = await SettlementEffects.RunAsync(database, key, "response", () => Task.FromResult(response));
+        await SettlementEffects.LockRoleAsync(database, key.GameUlongUID);
+        await SettlementOwnership.VerifyAsync(database, key.GameUlongUID);
+        if (!await SettlementJournal.IsProcessingAsync(database, key))
+        {
+            throw new SettlementClaimLostException(key);
+        }
+
+        var saved = await SettlementEffects.RunAsync(database, key, "response", () => Task.FromResult(response), lockRole: false);
+        await SettlementJournal.CompleteAsync(database, key, completedAt);
         await transaction.CommitAsync();
         return saved.Value;
     }
@@ -174,7 +187,7 @@ public sealed class BattleSettlementRepository(DataOptions options)
 
         var usedPokemon = change.PokemonId == NoPokemon
             ? null
-            : await AddPokemonPointAsync(database, gameUlongUID, change);
+            : await AddPokemonPointAsync(database, gameUlongUID, change, now);
         var heldItemUnlockGrants = await FilterHeldItemUnlockGrantsAsync(database, gameUlongUID, change.HeldItemUnlockGrants);
         BagGrant[] grants = [.. heldItemUnlockGrants, .. change.Grants];
         var clampedGrants = await ApplyGrantsUpToStackAsync(database, gameUlongUID, grants, now);
@@ -324,7 +337,7 @@ public sealed class BattleSettlementRepository(DataOptions options)
             .Set(role => role.RoleTotalExp, role => role.RoleTotalExp + chgExp)
             .UpdateAsync();
 
-    private static async Task<UsedPokemonInfo> AddPokemonPointAsync(DataConnection database, ulong gameUlongUID, BattleSettlementChange change)
+    private static async Task<UsedPokemonInfo> AddPokemonPointAsync(DataConnection database, ulong gameUlongUID, BattleSettlementChange change, long now)
     {
         var emptyHeldItemDesign = UsedPokemonInfo.Unused(change.PokemonId).BuildHeldItemDesignInfo().ToByteArray();
         var point = change.PokemonPoint;
@@ -338,12 +351,16 @@ public sealed class BattleSettlementRepository(DataOptions options)
                 PokemonTotalPoint = point,
                 PokemonSeasonPoint = point,
                 LastBattleWinTime = winTime,
+                UseCount = OneUse,
+                LastUseTime = now,
             },
             saved => new RolePokemonUsed
             {
                 PokemonTotalPoint = saved.PokemonTotalPoint + point,
                 PokemonSeasonPoint = saved.PokemonSeasonPoint + point,
                 LastBattleWinTime = winTime == UsedPokemonInfo.NeverWon ? saved.LastBattleWinTime : winTime,
+                UseCount = saved.UseCount < int.MaxValue ? saved.UseCount + OneUse : saved.UseCount,
+                LastUseTime = now,
             });
         var row = await database.GetTable<RolePokemonUsed>()
             .FirstAsync(used => used.GameUlongUID == gameUlongUID && used.PokemonId == change.PokemonId);
