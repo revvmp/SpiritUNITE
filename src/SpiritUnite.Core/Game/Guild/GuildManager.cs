@@ -24,6 +24,7 @@ public sealed class GuildManager(
     GuildInfoBuilder builder,
     GuildComments comments,
     GuildActivityManager activities,
+    GuildActivityTasks activityTasks,
     RoleInfoStore roles,
     GameData gameData,
     LobbyRoles lobbyRoles,
@@ -163,6 +164,7 @@ public sealed class GuildManager(
             ResultInfo = new pbResultInfo(),
             HasGuild = HasGuild,
             GuildActivityInfo = await activities.BuildActivityInfoAsync(uid, guildID),
+            DailyUniqTaskInfo = await activityTasks.BuildDailyUniqTaskInfoAsync(uid),
         });
         response.GuildInfo = guildInfo;
         return new GuildOutcome<pbSCGuildQueryRsp>(response, [])

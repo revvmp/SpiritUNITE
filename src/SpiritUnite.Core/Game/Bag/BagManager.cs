@@ -123,8 +123,11 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
             cnt,
             stackSize,
             isHeldItem ? InitialHeldItemLevel : NoItemLevel,
-            isHeldItem ? ShowNewTag : NoNewTag);
+            UsesBagRedDot(config.OutSideItemType) ? ShowNewTag : NoNewTag);
     }
+
+    private bool UsesBagRedDot(int outSideItemType) =>
+        gameData.OutSideItemRedDot.Find(outSideItemType) is { IsUseRedDot: Enabled };
 
     public async Task<BagOutcome> SellOutSideItemAsync(ulong gameUlongUID, int resID, ulong gridUniqueID, int resCnt)
     {

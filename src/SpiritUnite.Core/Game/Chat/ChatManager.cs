@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using SpiritUnite.Battle;
 using SpiritUnite.Database.Models;
 using SpiritUnite.Database.Repositories;
+using SpiritUnite.Databin;
 using SpiritUnite.Game.Friend;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Game.Room;
@@ -37,6 +38,7 @@ public sealed class ChatManager
     private readonly RoomManager rooms;
     private readonly DeskManager desks;
     private readonly LobbyRoles lobbyRoles;
+    private readonly GameData gameData;
     private readonly TimeProvider clock;
     private readonly ILogger<ChatManager> logger;
     private readonly ConcurrentDictionary<ulong, DateTimeOffset> lastChatTimes = new();
@@ -47,6 +49,7 @@ public sealed class ChatManager
         RoomManager rooms,
         DeskManager desks,
         LobbyRoles lobbyRoles,
+        GameData gameData,
         TimeProvider clock,
         ILogger<ChatManager> logger)
     {
@@ -55,6 +58,7 @@ public sealed class ChatManager
         this.rooms = rooms;
         this.desks = desks;
         this.lobbyRoles = lobbyRoles;
+        this.gameData = gameData;
         this.clock = clock;
         this.logger = logger;
         lobbyRoles.RoleOnline += DeliverOfflineAsync;
@@ -70,6 +74,12 @@ public sealed class ChatManager
         }
 
         lastChatTimes[role.GameUlongUID] = now;
+        if (IsFreeText(chatMsg) && !HasChannelLevel(role, chatMsg.Type))
+        {
+            logger.LogInformation("Refused free text chat on channel {ChatMsgType} from uid {Uid} below the channel level", chatMsg.Type, role.GameUlongUID);
+            return new(PB_ENUM_RES_ERROR_CODE.PbErrChatException);
+        }
+
         return (PB_ENUM_RES_CHAT_MSG_TYPE)chatMsg.Type switch
         {
             PB_ENUM_RES_CHAT_MSG_TYPE.PbResChatMsgTypeFriend when chatMsg.ChatInfo?.PrivateChat is { } privateChat =>
@@ -251,6 +261,17 @@ public sealed class ChatManager
         logger.LogInformation("Hero selection chat from uid {Uid} to {Count} campmates", uid, campmateUids.Length);
         return new(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, chatMsg);
     }
+
+    private static bool IsFreeText(pbCOMDT_CHAT_MSG chatMsg) => (PB_ENUM_RES_CHAT_MSG_TYPE)chatMsg.Type switch
+    {
+        PB_ENUM_RES_CHAT_MSG_TYPE.PbResChatMsgTypeFriend => chatMsg.ChatInfo?.PrivateChat?.ContentType == FriendChatTextContent,
+        PB_ENUM_RES_CHAT_MSG_TYPE.PbResChatMsgTypeRoom => chatMsg.ChatInfo?.Room?.Type == RoomChatStr,
+        PB_ENUM_RES_CHAT_MSG_TYPE.PbResChatMsgTypeBattle => chatMsg.ChatInfo?.Battle?.Type == BattleChatStr,
+        _ => false,
+    };
+
+    private bool HasChannelLevel(LMNRoleInfo role, int chatMsgType) =>
+        gameData.ChatType.Find(chatMsgType) is not { } channel || RoleProfile.GetLevel(gameData, role) >= channel.MinLevel;
 
     private static PB_ENUM_RES_ERROR_CODE ValidateContent(int contentType, string content, int textID, int textContentType, int fastContentType)
     {

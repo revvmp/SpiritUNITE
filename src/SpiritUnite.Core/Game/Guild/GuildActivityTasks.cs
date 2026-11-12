@@ -45,6 +45,28 @@ public sealed class GuildActivityTasks(
             ? [.. (await LoadStatesAsync(uid, found)).Select(state => state.ToTaskInfo())]
             : [];
 
+    public async Task<pbCOMDT_DAILY_UNIQ_TASK_INFO> BuildDailyUniqTaskInfoAsync(ulong uid)
+    {
+        var info = new pbCOMDT_DAILY_UNIQ_TASK_INFO();
+        if (await FindTasksAsync(uid) is not { } found)
+        {
+            return info;
+        }
+
+        info.GroupInfo.Add((await LoadStatesAsync(uid, found))
+            .Where(state => state.CompleteTime != NoCompleteTime)
+            .Select(state => (Group: gameData.DailyUniqGroup.Find(state.Task.TaskID), state.CompleteTime))
+            .Where(finished => finished.Group is not null)
+            .GroupBy(finished => finished.Group!.GroupID)
+            .OrderBy(group => group.Key)
+            .Select(group => new pbCOMDT_DAILY_UNIQ_GROUP_INFO
+            {
+                GroupID = group.Key,
+                LastFinishTime = group.Max(finished => finished.CompleteTime),
+            }));
+        return info;
+    }
+
     public async Task ApplySettlementAsync(SettlementKey key, SettlementTaskPlan plan) => await taskProcesses.ApplySettlementAsync(key, plan);
 
     public async Task<SettlementTaskPlan> PrepareSettlementAsync(ulong uid, GuildBattle battle, DateTimeOffset now)
