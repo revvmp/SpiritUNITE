@@ -386,6 +386,7 @@ public static class Server
         builder.Services.AddSingleton<TenGamesManager>();
         builder.Services.AddSingleton<TenGamesBattleRecorder>();
         builder.Services.AddSingleton<AchievementManager>();
+        builder.Services.AddSingleton<AchievementScoreRewardManager>();
         builder.Services.AddSingleton<TaskUpdates>();
         builder.Services.AddSingleton<StarRoadManager>();
         builder.Services.AddSingleton<TrainerExpGiftManager>();

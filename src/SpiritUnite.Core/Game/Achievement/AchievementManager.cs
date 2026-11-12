@@ -401,21 +401,6 @@ public sealed class AchievementManager
     }
 }
 
-public static class AchievementScoreReward
-{
-    private static readonly int[] RewardScores = [100, 200, 300];
-
-    public static pbCSDT_ACHIEVEMENT_SCORE_REWARD_DETAIL_LIST BuildDetailList() => new()
-    {
-        AchievementInfoList = { RewardScores.Select(score => new pbCSDT_ACHIEVEMENT_SCORE_REWARD_DETAIL { Score = score }) },
-    };
-
-    public static PB_ENUM_RES_ERROR_CODE RefuseClaim(int rewardScore, int score) =>
-        RewardScores.Contains(rewardScore) && rewardScore <= score
-            ? PB_ENUM_RES_ERROR_CODE.PbErrCommonFailed
-            : PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
-}
-
 public sealed record AchievementReward(
     int AchievementID,
     long RewardTime,

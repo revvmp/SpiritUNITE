@@ -363,6 +363,14 @@ CREATE TABLE IF NOT EXISTS `role_achievement` (
     CONSTRAINT fk_role_achievement_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `role_achievement_score_reward` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    total_score INT NOT NULL,
+    reward_time BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, total_score),
+    CONSTRAINT fk_role_achievement_score_reward_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `role_social` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     deny_all_request_flag INT NOT NULL DEFAULT 0,
