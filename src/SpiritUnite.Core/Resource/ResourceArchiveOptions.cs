@@ -1,3 +1,4 @@
+using System.Net;
 using SpiritUnite.Servers.Http;
 using SpiritUnite.Servers.Lobby;
 
@@ -20,7 +21,9 @@ public sealed class ResourceArchiveOptions
     public Uri ServedBase(LobbyAddressOptions lobbyAddress, HttpServerOptions httpServer) =>
         TryParseBaseUrl(BaseUrl, out var baseUrl)
             ? baseUrl
-            : new UriBuilder(Uri.UriSchemeHttp, lobbyAddress.Host, httpServer.Port).Uri;
+            : IPAddress.TryParse(lobbyAddress.Host, out _)
+                ? new UriBuilder(Uri.UriSchemeHttp, lobbyAddress.Host, httpServer.Port).Uri
+                : new UriBuilder(Uri.UriSchemeHttp, lobbyAddress.Host).Uri;
 
     public static (string Url, string SecureUrl) ArchiveUrls(Uri servedBase, int productId, string fileName)
     {
