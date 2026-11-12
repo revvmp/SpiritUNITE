@@ -42,6 +42,11 @@ public sealed class AppearanceGift(
 
         foreach (var badge in NewPlayerDefaultGrants.RowsOf(gameData, PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesBadge))
         {
+            if (gameData.BadgeBase.Find(badge.ResourceId) is not { } badgeRow)
+            {
+                continue;
+            }
+
             var grant = new BagGrant(RoleItemType.Badge, badge.ResourceId, badge.ResourceNum, UnlimitedBadgeStack, NoItemLevel, BadgeManager.ShowNewTag);
             var commit = await bagRepository.CommitAsync(role.GameUlongUID, new BagChange { Grants = [grant] }, gainTime);
             if (commit.Result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
@@ -49,7 +54,7 @@ public sealed class AppearanceGift(
                 continue;
             }
 
-            pushes.Add((PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf, await taskUpdates.BuildBadgeGroupUpdateTaskInfoNtfAsync(role)));
+            pushes.Add((PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf, await taskUpdates.BuildBadgeGroupUpdateTaskInfoNtfAsync(role, badgeRow.BadgeQuality)));
             pushes.Add((PB_ENUM_CS_MSGID_DEF.PbScidUpdateBadgeNotify, BadgeManager.BuildUpdateBadgeNotify(commit.ChangedItems)));
             pushes.Add((PB_ENUM_CS_MSGID_DEF.PbScidGetBadgePictureNtf, await badges.BuildGainedBadgePictureNtfAsync(role.GameUlongUID)));
             pushes.Add(await BuildOwnershipTasksAsync(role));

@@ -179,6 +179,12 @@ CREATE TABLE IF NOT EXISTS `role_newbie_gift` (
     CONSTRAINT fk_role_newbie_gift_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `role_rename` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    last_rename_time BIGINT NOT NULL,
+    CONSTRAINT fk_role_rename_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `role_login_day` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL,
     login_day DATE NOT NULL,

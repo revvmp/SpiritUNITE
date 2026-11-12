@@ -123,6 +123,12 @@ LUA_ONLY_FIELDS = {
     "pbSystemMenuList": {
         239936: Field("MenuItem", "int32"),
     },
+    "pbBeautySkin": {
+        258479: Field("Gender", "int32"),
+        266127: Field("ID", "int32"),
+        280713: Field("RoleImagePic", "string"),
+        288763: Field("SkinColorID", "int32"),
+    },
     "pbLobbyBg": {
         212370: Field("TransmuteId", "int32"),
         250142: Field("LobbyBgID", "int32"),
@@ -203,6 +209,11 @@ LUA_ONLY_FIELDS = {
         294988: Field("EndTime", "int64"),
     },
     "pbReward_Pool": {
+        236391: Field("StartTime", "int64"),
+        258880: Field("EndTime", "int64"),
+        259142: Field("LotteryPoolId", "int32"),
+    },
+    "pbBadgeReward_Pool": {
         236391: Field("StartTime", "int64"),
         258880: Field("EndTime", "int64"),
         259142: Field("LotteryPoolId", "int32"),
@@ -763,6 +774,7 @@ TABLES = {
     "databin_Drop_Base": Table("pbDrop_Base", LUA_ONLY_FIELDS["pbDrop_Base"]),
     "databin_Drop_Pack": Table("pbDrop_Pack", LUA_ONLY_FIELDS["pbDrop_Pack"]),
     "databin_LobbyBg": Table("pbLobbyBg", LUA_ONLY_FIELDS["pbLobbyBg"]),
+    "databin_BeautySkin": Table("pbBeautySkin", LUA_ONLY_FIELDS["pbBeautySkin"]),
     "databin_Newbie_RewardHero": Table("pbNewbie_RewardHero"),
     "databin_OutSideItem_Base": Table(
         "pbOutSideItem_Base", key_field="OutSideItemId", kept_fields=OUT_SIDE_ITEM_SERVER_FIELDS
@@ -832,6 +844,7 @@ TABLES = {
     "databin_BattlePass_WeekTaskGroup": Table("pbBattlePass_WeekTaskGroup", key_field="WeekTaskGroupID"),
     "databin_BattlePassTaskBase": Table("pbTask_Base", SERVER_FIELD_SUBSETS["pbTask_Base"], key_field="TaskID"),
     "databin_Reward_Pool": Table("pbReward_Pool", LUA_ONLY_FIELDS["pbReward_Pool"], key_field="LotteryPoolId"),
+    "databin_BadgeReward_Pool": Table("pbBadgeReward_Pool", LUA_ONLY_FIELDS["pbBadgeReward_Pool"], key_field="LotteryPoolId"),
     "databin_Canopy_Base": Table("pbCanopy_Base", LUA_ONLY_FIELDS["pbCanopy_Base"], key_field="CanopyID"),
     "databin_CardFace": Table("pbCardFace", LUA_ONLY_FIELDS["pbCardFace"], key_field="CardFaceID"),
     "databin_Contestant_Card_Decoration": Table(

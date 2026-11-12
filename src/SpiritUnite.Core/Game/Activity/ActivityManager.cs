@@ -339,15 +339,41 @@ public sealed partial class ActivityManager(
             grants[^1].Commit.Wallet!,
             [.. grants.SelectMany(grant => grant.Grant.Change.CoinGrants.Keys).Distinct()],
             specialCoinsBefore,
-            [.. grants.SelectMany(grant => grant.Commit.ChangedItems)
+            [.. OrderForSeveralGrants(grants, grants.SelectMany(grant => grant.Commit.ChangedItems)
                 .GroupBy(item => (item.ItemType, item.ItemId))
-                .Select(group => group.Last())],
+                .Select(group => group.Last()), item => item.ItemId)],
             [.. grants.SelectMany(grant => grant.Grant.PokemonIds)],
-            [.. grants.SelectMany(grant => grant.Grant.Awards)])
+            [.. grants.Count > 1 ? MergeSameAwards(grants.SelectMany(grant => grant.Grant.Awards)) : grants[0].Grant.Awards])
         {
             Items = [.. grants.SelectMany(grant => grant.Grant.Items)],
         };
     }
+
+    private static IEnumerable<T> OrderForSeveralGrants<T>(IReadOnlyList<ActivityTaskGrantResult> grants, IEnumerable<T> items, Func<T, int> resId) =>
+        grants.Count > 1 ? items.OrderBy(resId) : items;
+
+    private static IEnumerable<pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO> MergeSameAwards(IEnumerable<pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO> awards)
+    {
+        var merged = new List<pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO>();
+        foreach (var award in awards)
+        {
+            if (award is { IsReplaced: 0, FinallyAwardInfo: { } granted }
+                && merged.Find(candidate => IsSameUnreplacedAward(candidate, granted)) is { } sameAward)
+            {
+                sameAward.FinallyAwardInfo.ResCnt += granted.ResCnt;
+                continue;
+            }
+
+            merged.Add(award.Clone());
+        }
+
+        return merged.OrderBy(award => award.FinallyAwardInfo?.ResID ?? 0);
+    }
+
+    private static bool IsSameUnreplacedAward(pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO candidate, pbCOMDT_ONE_RESOURCE_AWARD_INFO granted) =>
+        candidate is { IsReplaced: 0, FinallyAwardInfo: { } candidateAward }
+        && candidateAward.ResID == granted.ResID
+        && candidateAward.ResType == granted.ResType;
 
     private ActiveActivityTask[] FindAddResIdTasks(IReadOnlySet<int> resIds, DateTimeOffset now) =>
     [

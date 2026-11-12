@@ -35,7 +35,7 @@ public sealed class EnergyHandlers(
         var response = new pbSCCurRewardPoolRsp { ResultInfo = new pbResultInfo(), PoolType = query.PoolType };
         if (EnergyCenter.IsKnownPoolType(query.PoolType))
         {
-            response.RewardPoolID = EnergyCenter.FindCurrentRewardPoolId(gameData, clock.GetUtcNow());
+            response.RewardPoolID = EnergyCenter.FindCurrentRewardPoolId(gameData, clock.GetUtcNow(), (PB_ENUM_ENUM_ENERGY_POOL_TYPE)query.PoolType);
         }
         else
         {

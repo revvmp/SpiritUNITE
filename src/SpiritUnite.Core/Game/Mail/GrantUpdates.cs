@@ -10,7 +10,7 @@ using SpiritUnite.Packets.Messages;
 
 namespace SpiritUnite.Game.Mail;
 
-public sealed class GrantUpdates(GameData gameData, StarRoadManager starRoad)
+public sealed class GrantUpdates(GameData gameData, StarRoadManager starRoad, BadgeManager badges)
 {
     public async Task<GamePacket[]> BuildAsync(LMNRoleInfo role, IReadOnlyList<GrantOutcome> claims, bool withAwardNotify)
     {
@@ -46,6 +46,9 @@ public sealed class GrantUpdates(GameData gameData, StarRoadManager starRoad)
                 packets.Add(GamePacket.Create(
                     PB_ENUM_CS_MSGID_DEF.PbScidUpdateBadgeNotify,
                     BadgeManager.BuildUpdateBadgeNotify(changedBagItems.Where(item => item.ItemType == RoleItemType.Badge))));
+                packets.Add(GamePacket.Create(
+                    PB_ENUM_CS_MSGID_DEF.PbScidGetBadgePictureNtf,
+                    await badges.BuildGainedBadgePictureNtfAsync(role.GameUlongUID)));
             }
         }
 

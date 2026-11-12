@@ -18,6 +18,8 @@ public sealed record BagOutcome(PB_ENUM_RES_ERROR_CODE Result, IReadOnlyList<Bag
     public IReadOnlyList<RoleItemInfo> TimeLimitedPasters { get; init; } = [];
     public IReadOnlyList<RolePokemonInfo> TimeLimitedPokemon { get; init; } = [];
     public int AwardReason { get; init; } = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonOpenawardbox;
+    public long LastRenameTime { get; init; }
+    public int RenameRemainSeconds { get; init; }
 
     public bool Succeeded => Result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
 
@@ -32,6 +34,7 @@ public sealed record BagOutcome(PB_ENUM_RES_ERROR_CODE Result, IReadOnlyList<Bag
         {
             BeforeCoinNums = commit.BeforeCoinNums,
             TimeLimitedPasters = commit.TimeLimitedPasters,
+            LastRenameTime = commit.LastRenameTime,
         };
 }
 
@@ -51,6 +54,7 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
     private const int NoNewTag = 0;
     private const int ShowNewTag = 1;
     private const int NoDropID = 0;
+    private const long SecondsPerDay = 86400;
     private const int FirstDropSeq = 1;
     private const int OpenAwardBoxReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonOpenawardbox;
     private const int OptionalChestReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonOptionalchest;
@@ -336,10 +340,26 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
-    public static pbCOMDT_REQ_INFO? BuildUseInfo(int type) =>
-        type == (int)PB_ENUM_ENM_REQ_INFO_TYPE.PbEnmReqInfoTypeRenamecdlimit
-            ? new pbCOMDT_REQ_INFO { RenameCDLimitInfo = new pbCOMDT_REQ_INFO_RENAMECDLIMIT() }
-            : null;
+    public async Task<pbCOMDT_REQ_INFO?> BuildUseInfoAsync(ulong gameUlongUID, int type)
+    {
+        if (type != (int)PB_ENUM_ENM_REQ_INFO_TYPE.PbEnmReqInfoTypeRenamecdlimit)
+        {
+            return null;
+        }
+
+        var lastRenameTime = await repository.FindLastRenameTimeAsync(gameUlongUID);
+        return new pbCOMDT_REQ_INFO
+        {
+            RenameCDLimitInfo = new pbCOMDT_REQ_INFO_RENAMECDLIMIT
+            {
+                RemainSeconds = CreateRenameCooldown().RemainSeconds(lastRenameTime),
+                LastRenameTime = lastRenameTime,
+            },
+        };
+    }
+
+    private RenameCooldown CreateRenameCooldown() =>
+        new(clock.GetUtcNow().ToUnixTimeSeconds(), (long)gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalRenameCddays) * SecondsPerDay);
 
     public async Task<BagOutcome> UseRenameCardAsync(LMNRoleInfo role, int resID, ulong gridUniqueID, string newUserName)
     {
@@ -360,13 +380,16 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
             return BagOutcome.Refused(nameResult);
         }
 
-        var outcome = BagOutcome.From(await repository.UseRenameCardAsync(role.GameUlongUID, resID, newUserName));
+        var cooldown = CreateRenameCooldown();
+        var outcome = BagOutcome.From(await repository.UseRenameCardAsync(role.GameUlongUID, resID, newUserName, cooldown));
         if (outcome.Succeeded)
         {
             role.ChgInGameUsrName(newUserName);
         }
 
-        return outcome;
+        return outcome.Result == PB_ENUM_RES_ERROR_CODE.PbErrInRenameCdlimit
+            ? outcome with { RenameRemainSeconds = cooldown.RemainSeconds(outcome.LastRenameTime) }
+            : outcome;
     }
 
     private async Task<BagOutcome> OpenChestAsync(LMNRoleInfo role, pbOutSideItem_Base chest, int openCnt)
@@ -390,7 +413,7 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
             return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrDropSystemDropPackFail);
         }
 
-        var rolledCnts = new Dictionary<int, long>();
+        var rolledCnts = new SortedDictionary<int, long>();
         for (var opened = 0; opened < openCnt; opened++)
         {
             foreach (var staticDrop in staticDrops)
@@ -748,6 +771,7 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
             && entry.MaxDropCount >= entry.MinDropCount
             && (CoinID.IsGrantableCoin(entry.ResID)
                 || gameData.OutSideItemBase.Contains(entry.ResID)
+                || gameData.BadgeBase.Contains(entry.ResID)
                 || CosmeticGrant.FindItemType(gameData, entry.ResID) is not null));
 
     private static ChestDrop RollDropPack(pbDrop_Pack[] entries)

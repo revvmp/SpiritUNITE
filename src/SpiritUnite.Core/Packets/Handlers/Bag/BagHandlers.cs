@@ -295,11 +295,11 @@ public sealed class BagHandlers(
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidUseInfoReq)]
-    public GamePacket[] OnUseInfoReq(GamePacket request)
+    public async Task<GamePacket[]> OnUseInfoReq(GamePacket request)
     {
         roles.Require(request.Uid);
         var useInfo = pbCSUseInfoReq.Parser.ParseFrom(request.PkgData);
-        var info = BagManager.BuildUseInfo(useInfo.Type);
+        var info = await bag.BuildUseInfoAsync(request.Uid, useInfo.Type);
         return
         [
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUseInfoRsp, new pbSCUseInfoRsp
@@ -330,6 +330,8 @@ public sealed class BagHandlers(
         {
             ResultInfo = new pbResultInfo { ResultId = (int)outcome.Result },
             NewUserName = use.NewUserName,
+            RemainSeconds = outcome.RenameRemainSeconds,
+            LastRenameTime = outcome.LastRenameTime,
         });
         return outcome.Succeeded ? [.. BuildBagUpdates(request, outcome), reply] : [reply];
     }

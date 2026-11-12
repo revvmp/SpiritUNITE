@@ -36,16 +36,25 @@ public static class EnergyCenter
 
     public static bool IsKnownPoolType(int poolType) => Enum.IsDefined((PB_ENUM_ENUM_ENERGY_POOL_TYPE)poolType);
 
-    public static int FindCurrentRewardPoolId(GameData gameData, DateTimeOffset now)
+    public static int FindCurrentRewardPoolId(GameData gameData, DateTimeOffset now, PB_ENUM_ENUM_ENERGY_POOL_TYPE poolType) =>
+        poolType == PB_ENUM_ENUM_ENERGY_POOL_TYPE.PbEnumEnergyPoolTypeBadge
+            ? FindCurrentPoolId(gameData.BadgeRewardPool.Rows.Select(pool => (pool.LotteryPoolId, pool.StartTime, pool.EndTime)), now)
+            : FindCurrentPoolId(gameData.RewardPool.Rows.Select(pool => (pool.LotteryPoolId, pool.StartTime, pool.EndTime)), now);
+
+    private static int FindCurrentPoolId(IEnumerable<(int LotteryPoolId, long StartTime, long EndTime)> poolRows, DateTimeOffset now)
     {
         var nowSeconds = now.ToUnixTimeSeconds();
-        var pools = gameData.RewardPool.Rows;
-        var started = pools
-            .Where(pool => UTCTimeUtil.CfgTime2ServerUnixTime(pool.StartTime) <= nowSeconds)
+        var pools = poolRows
+            .Select(pool => (pool.LotteryPoolId, Start: UTCTimeUtil.CfgTime2ServerUnixTime(pool.StartTime), End: UTCTimeUtil.CfgTime2ServerUnixTime(pool.EndTime)))
             .ToArray();
-        var current = started.FirstOrDefault(pool => nowSeconds <= UTCTimeUtil.CfgTime2ServerUnixTime(pool.EndTime))
-            ?? started.MaxBy(pool => UTCTimeUtil.CfgTime2ServerUnixTime(pool.StartTime))
-            ?? pools.MinBy(pool => UTCTimeUtil.CfgTime2ServerUnixTime(pool.StartTime))!;
-        return current.LotteryPoolId;
+        var started = pools.Where(pool => pool.Start <= nowSeconds).ToArray();
+        if (started.Length == 0)
+        {
+            return pools.MinBy(pool => pool.Start).LotteryPoolId;
+        }
+
+        return started.Any(pool => nowSeconds <= pool.End)
+            ? started.First(pool => nowSeconds <= pool.End).LotteryPoolId
+            : started.MaxBy(pool => pool.Start).LotteryPoolId;
     }
 }

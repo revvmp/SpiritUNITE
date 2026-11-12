@@ -1,0 +1,132 @@
+[
+  {
+    "StartTime": "20220224000000",
+    "EndTime": "20220225235959",
+    "LotteryPoolId": 1
+  },
+  {
+    "StartTime": "20220226000000",
+    "EndTime": "20220720235959",
+    "LotteryPoolId": 2
+  },
+  {
+    "StartTime": "20220721000000",
+    "EndTime": "20220901235959",
+    "LotteryPoolId": 3
+  },
+  {
+    "StartTime": "20220902000000",
+    "EndTime": "20221201035959",
+    "LotteryPoolId": 4
+  },
+  {
+    "StartTime": "20221201040000",
+    "EndTime": "20230227035959",
+    "LotteryPoolId": 5
+  },
+  {
+    "StartTime": "20230227040000",
+    "EndTime": "20230608035959",
+    "LotteryPoolId": 6
+  },
+  {
+    "StartTime": "20230608040000",
+    "EndTime": "20230907035959",
+    "LotteryPoolId": 7
+  },
+  {
+    "StartTime": "20230907040000",
+    "EndTime": "20231023235959",
+    "LotteryPoolId": 8
+  },
+  {
+    "StartTime": "20231024000000",
+    "EndTime": "20231205235959",
+    "LotteryPoolId": 9
+  },
+  {
+    "StartTime": "20231206000000",
+    "EndTime": "20240116235959",
+    "LotteryPoolId": 10
+  },
+  {
+    "StartTime": "20240117000000",
+    "EndTime": "20240303235959",
+    "LotteryPoolId": 11
+  },
+  {
+    "StartTime": "20240304000000",
+    "EndTime": "20240606235959",
+    "LotteryPoolId": 12
+  },
+  {
+    "StartTime": "20240607000000",
+    "EndTime": "20240905235959",
+    "LotteryPoolId": 13
+  },
+  {
+    "StartTime": "20240906000000",
+    "EndTime": "20241203235959",
+    "LotteryPoolId": 14
+  },
+  {
+    "StartTime": "20241204000000",
+    "EndTime": "20250226235959",
+    "LotteryPoolId": 15
+  },
+  {
+    "StartTime": "20250227000000",
+    "EndTime": "20250605235959",
+    "LotteryPoolId": 16
+  },
+  {
+    "StartTime": "20250606000000",
+    "EndTime": "20250905235959",
+    "LotteryPoolId": 17
+  },
+  {
+    "StartTime": "20250906000000",
+    "EndTime": "20251203235959",
+    "LotteryPoolId": 18
+  },
+  {
+    "StartTime": "20251204000000",
+    "EndTime": "20260226235959",
+    "LotteryPoolId": 19
+  },
+  {
+    "StartTime": "20260227000000",
+    "EndTime": "20260605235959",
+    "LotteryPoolId": 20
+  },
+  {
+    "StartTime": "20260606235959",
+    "EndTime": "20260905235959",
+    "LotteryPoolId": 21
+  },
+  {
+    "StartTime": "20260906000000",
+    "EndTime": "20261203235959",
+    "LotteryPoolId": 22
+  },
+  {
+    "StartTime": "20261204000000",
+    "EndTime": "20270226235959",
+    "LotteryPoolId": 23
+  },
+  {
+    "StartTime": "20270227000000",
+    "EndTime": "20270605235959",
+    "LotteryPoolId": 24
+  },
+  {
+    "StartTime": "20270606235959",
+    "EndTime": "20270905235959",
+    "LotteryPoolId": 25
+  },
+  {
+    "StartTime": "20270906000000",
+    "EndTime": "20271203235959",
+    "LotteryPoolId": 26
+  }
+]

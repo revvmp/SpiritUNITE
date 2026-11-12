@@ -48,6 +48,25 @@ public static class RoleAvatar
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
+    public static int[] ReplaceSlots(
+        GameData gameData,
+        IReadOnlyCollection<int> wornAvatarIDList,
+        IReadOnlyCollection<int> newAvatarIDs)
+    {
+        var replacedSlots = newAvatarIDs
+            .Select(avatarID => gameData.AvatarItem.Find(avatarID)?.AvatarSlotType)
+            .OfType<int>()
+            .ToHashSet();
+        return
+        [
+            .. wornAvatarIDList
+                .Where(avatarID => gameData.AvatarItem.Find(avatarID) is not { } avatarItem
+                    || !replacedSlots.Contains(avatarItem.AvatarSlotType))
+                .Concat(newAvatarIDs)
+                .Distinct(),
+        ];
+    }
+
     private static bool AreDistinctAvatarIDs(IReadOnlyCollection<int> avatarIDList) =>
         avatarIDList.All(IsAvatarID) && avatarIDList.Distinct().Count() == avatarIDList.Count;
 

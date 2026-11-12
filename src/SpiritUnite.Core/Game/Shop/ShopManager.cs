@@ -16,11 +16,13 @@ public sealed record ShopBuyOutcome(
     ShopPurchase? Purchase = null,
     RoleWallet? Wallet = null,
     IReadOnlyList<ShopBuyRecord>? BuyRecords = null,
-    IReadOnlyList<BagItem>? ChangedBagItems = null);
+    IReadOnlyList<BagItem>? ChangedBagItems = null,
+    pbCOMDT_ROLE_AVATAR_INFO? WornRoleAvatarInfo = null);
 
 public sealed class ShopManager(
     GameData gameData,
     ShopRepository repository,
+    RoleInfoStore roles,
     WalletManager wallets,
     BagManager bag,
     TimeProvider clock)
@@ -82,6 +84,8 @@ public sealed class ShopManager(
         var pokemonIds = new List<int>();
         var outSideItems = new List<BagGrant>();
         var changedRecords = new List<ShopBuyRecord>();
+        var beautyAvatarIDs = new List<int>();
+        int? beautySkinColorID = null;
 
         foreach (var shopInfo in buyShopList)
         {
@@ -97,7 +101,11 @@ public sealed class ShopManager(
                 return new(result);
             }
 
-            result = AddGrants(role, shopItem, shopInfo.Num, now.ToUnixTimeSeconds(), items, pokemonIds, outSideItems);
+            result = gameData.BeautySkin.Find(shopItem.ShopResID) is { } beautySkin && IsBeautyShop(shopItem)
+                ? ChooseBeautySkin(role, beautySkin, shopInfo.Num, ref beautySkinColorID)
+                : IsBeautyAvatar(shopItem)
+                    ? AddBeautyGrant(role, shopItem, shopInfo.Num, now.ToUnixTimeSeconds(), items, beautyAvatarIDs)
+                    : AddGrants(role, shopItem, shopInfo.Num, now.ToUnixTimeSeconds(), items, pokemonIds, outSideItems);
             if (result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
             {
                 return new(result);
@@ -168,7 +176,84 @@ public sealed class ShopManager(
                 (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonShopadditem);
         }
 
-        return new(commitResult, purchase, walletAfter, [.. buyRecords.Values], changedBagItems);
+        var wornRoleAvatarInfo = await WearBeautyAsync(role, beautyAvatarIDs, beautySkinColorID, now.ToUnixTimeSeconds());
+        return new(commitResult, purchase, walletAfter, [.. buyRecords.Values], changedBagItems, wornRoleAvatarInfo);
+    }
+
+    private static bool IsBeautyShop(pbShop shopItem) =>
+        (PB_ENUM_RES_SHOP_TYPE)shopItem.ShopType == PB_ENUM_RES_SHOP_TYPE.PbResShopTypeBeautyShop;
+
+    private bool IsBeautyAvatar(pbShop shopItem) =>
+        IsBeautyShop(shopItem) && gameData.AvatarItem.Contains(shopItem.ShopResID);
+
+    private static PB_ENUM_RES_ERROR_CODE ChooseBeautySkin(LMNRoleInfo role, pbBeautySkin beautySkin, int num, ref int? beautySkinColorID)
+    {
+        if (num != PermanentItemBuyNum)
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrShopBuyNumFail;
+        }
+
+        if (beautySkin.Gender != role.Gender || beautySkinColorID is not null)
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
+        }
+
+        if (role.RoleAvatarInfo.SkinColorID == beautySkin.SkinColorID)
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrShopAvatarExists;
+        }
+
+        beautySkinColorID = beautySkin.SkinColorID;
+        return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
+    }
+
+    private static PB_ENUM_RES_ERROR_CODE AddBeautyGrant(
+        LMNRoleInfo role,
+        pbShop shopItem,
+        int num,
+        long gainTime,
+        List<RoleItemInfo> items,
+        List<int> beautyAvatarIDs)
+    {
+        if (num != PermanentItemBuyNum)
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrShopBuyNumFail;
+        }
+
+        var avatarID = shopItem.ShopResID;
+        if (role.RoleAvatarInfo.AvatarIDList.Contains(avatarID) || beautyAvatarIDs.Contains(avatarID))
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrShopAvatarExists;
+        }
+
+        AddItemGrant(role, RoleItemType.AvatarItem, avatarID, gainTime, items);
+        beautyAvatarIDs.Add(avatarID);
+        return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
+    }
+
+    private async Task<pbCOMDT_ROLE_AVATAR_INFO?> WearBeautyAsync(LMNRoleInfo role, List<int> beautyAvatarIDs, int? beautySkinColorID, long now)
+    {
+        if (beautyAvatarIDs.Count == 0 && beautySkinColorID is null)
+        {
+            return null;
+        }
+
+        if (beautyAvatarIDs.Count > 0)
+        {
+            var avatarIDList = RoleAvatar.ReplaceSlots(gameData, role.RoleAvatarInfo.AvatarIDList, beautyAvatarIDs);
+            if (role.SetRoleAvatar(gameData, avatarIDList, now, out _) != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+            {
+                return null;
+            }
+        }
+
+        if (beautySkinColorID is { } skinColorID)
+        {
+            role.SetSkinColor(skinColorID);
+        }
+
+        await roles.SaveAsync(role);
+        return role.RoleAvatarInfo;
     }
 
     private static PB_ENUM_RES_ERROR_CODE ValidateShopInfo(

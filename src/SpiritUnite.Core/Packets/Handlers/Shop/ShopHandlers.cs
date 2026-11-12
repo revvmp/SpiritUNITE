@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using SpiritUnite.Game.Bag;
 using SpiritUnite.Databin;
 using SpiritUnite.Game.Lobby;
+using SpiritUnite.Game.Newbie;
 using SpiritUnite.Game.PokemonAvatar;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Game.Shop;
@@ -14,6 +15,7 @@ public sealed class ShopHandlers(
     RoleInfoStore roles,
     ShopManager shop,
     MysteryShopManager mysteryShop,
+    NewbieChallengeTaskManager newbieChallengeTasks,
     GameData gameData,
     LobbyNotices notices,
     ILogger<ShopHandlers> logger)
@@ -68,7 +70,12 @@ public sealed class ShopHandlers(
             string.Join(',', purchase.CoinCosts.Select(cost => $"{cost.Key}x{cost.Value}").Concat(purchase.ItemCosts.Select(cost => $"{cost.ItemId}x{cost.Cnt}"))),
             purchase.Items.Count,
             string.Join(',', purchase.PokemonIds));
-        return [.. BuildPurchaseUpdates(request, role, purchase, wallet, buyRecords, bagItems), reply];
+        return
+        [
+            .. BuildPurchaseUpdates(request, role, purchase, wallet, buyRecords, bagItems),
+            .. await BuildBeautyWearUpdatesAsync(request, role, outcome.WornRoleAvatarInfo),
+            reply,
+        ];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidShopGetPriceReq)]
@@ -105,6 +112,27 @@ public sealed class ShopHandlers(
             ShopNewSaleInfo = new pbCOMDT_SHOP_NEW_SALE_INFO_LIST(),
         };
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidShopNewSaleClickRsp, response)];
+    }
+
+    private async Task<GamePacket[]> BuildBeautyWearUpdatesAsync(
+        GamePacket request,
+        LMNRoleInfo role,
+        pbCOMDT_ROLE_AVATAR_INFO? wornRoleAvatarInfo)
+    {
+        if (wornRoleAvatarInfo is null)
+        {
+            return [];
+        }
+
+        var wornAvatar = request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidSetRoleAvatarNtf, new pbSCSetRoleAvatarNtf
+        {
+            ResultInfo = new pbResultInfo(),
+            RoleAvatarInfo = wornRoleAvatarInfo,
+        });
+        var changedTasks = await newbieChallengeTasks.RecordProfilePhotoChangeAsync(role);
+        return changedTasks.Length == 0
+            ? [wornAvatar]
+            : [wornAvatar, request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf, new pbSCUpdateTaskInfoNtf { TaskInfoList = { changedTasks } })];
     }
 
     private IEnumerable<GamePacket> BuildPurchaseUpdates(

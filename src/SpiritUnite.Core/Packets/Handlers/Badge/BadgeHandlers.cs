@@ -126,6 +126,7 @@ public sealed class BadgeHandlers(
                 SchedueInfo = badges.BuildSchedueInfo(cur),
                 HasFixed = NotFixed,
             }),
+            BuildBadgePlateNtf(request, cur),
         ];
     }
 
@@ -281,6 +282,9 @@ public sealed class BadgeHandlers(
         if (outcome.ChangedBadges is { Count: > 0 } changed)
         {
             updates.Add(request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdateBadgeNotify, BadgeManager.BuildUpdateBadgeNotify(changed)));
+            updates.Add(request.Reply(
+                PB_ENUM_CS_MSGID_DEF.PbScidGetBadgePictureNtf,
+                await badges.BuildGainedBadgePictureNtfAsync(role.GameUlongUID)));
         }
 
         if (outcome.ChangedCurSchedue is { } schedue)

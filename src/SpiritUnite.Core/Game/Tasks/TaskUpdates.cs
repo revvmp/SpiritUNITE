@@ -22,13 +22,8 @@ public sealed class TaskUpdates(ActivityManager activityManager, AchievementMana
         PB_ENUM_RES_CONDITION_ID.PbResConditionTypeTrainerLevelReach,
     };
 
-    private static readonly IReadOnlySet<PB_ENUM_RES_CONDITION_ID> BadgeGroupConditions = new HashSet<PB_ENUM_RES_CONDITION_ID>
-    {
-        PB_ENUM_RES_CONDITION_ID.PbResConditionIdGetDiffGroupBadge,
-    };
-
-    public async Task<pbSCUpdateTaskInfoNtf> BuildBadgeGroupUpdateTaskInfoNtfAsync(LMNRoleInfo role) =>
-        ToUpdateTaskInfoNtf(await achievementManager.BuildTaskInfoListAsync(role, BadgeGroupConditions));
+    public async Task<pbSCUpdateTaskInfoNtf> BuildBadgeGroupUpdateTaskInfoNtfAsync(LMNRoleInfo role, int grantedBadgeQuality) =>
+        ToUpdateTaskInfoNtf(await achievementManager.BuildBadgeGroupTaskInfoListAsync(role, grantedBadgeQuality));
 
     public async Task<pbSCUpdateTaskInfoNtf> BuildOwnershipUpdateTaskInfoNtfAsync(LMNRoleInfo role) =>
         ToUpdateTaskInfoNtf(await achievementManager.BuildTaskInfoListAsync(role, OwnershipConditions));

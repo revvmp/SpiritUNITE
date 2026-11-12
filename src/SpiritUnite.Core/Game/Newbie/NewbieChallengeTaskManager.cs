@@ -103,14 +103,46 @@ public sealed class NewbieChallengeTaskManager(
                 : null)
             .OfType<TaskProcessIncrement>()
             .ToArray();
+        return await AddProcessesAsync(role, increments);
+    }
+
+    public async Task<pbCOMDT_TASK_INFO[]> RecordProfilePhotoChangeAsync(LMNRoleInfo role)
+    {
+        var challenge = await LoadChallengeAsync(role);
+        if (challenge.IsChallengeOvered)
+        {
+            return [];
+        }
+
+        var increments = challenge.Tasks
+            .Where(task => task.Task.FinishCondition.FirstOrDefault() is { } condition && IsProfilePhotoChange(condition))
+            .Select(task => new TaskProcessIncrement(task.Task.TaskID, NoResetPeriod, CompletedOnce, task.Task.FinishCondition[0].TargetProcess))
+            .ToArray();
+        return await AddProcessesAsync(role, increments);
+    }
+
+    private async Task<pbCOMDT_TASK_INFO[]> AddProcessesAsync(LMNRoleInfo role, TaskProcessIncrement[] increments)
+    {
         if (increments.Length == 0 || !await taskProcesses.AddAsync(role.GameUlongUID, increments, clock.GetUtcNow().ToUnixTimeSeconds()))
         {
             return [];
         }
 
         var touchedTaskIds = increments.Select(increment => increment.TaskId).ToHashSet();
-        return [.. (await LoadTasksAsync(role)).Where(task => touchedTaskIds.Contains(task.Task.TaskID)).Select(task => task.Info)];
+        return
+        [
+            .. (await LoadTasksAsync(role))
+                .Where(task => touchedTaskIds.Contains(task.Task.TaskID) || CountsAnySubTask(task.Task, touchedTaskIds))
+                .Select(task => task.Info),
+        ];
     }
+
+    private static bool CountsAnySubTask(pbTask_Base task, IReadOnlySet<int> subTaskIds) =>
+        task.FinishCondition.FirstOrDefault() is { ID: (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdFinishTask } condition
+        && condition.ParamA.Any(subTaskIds.Contains);
+
+    private static bool IsProfilePhotoChange(pbFinishCondition condition) =>
+        condition.ID == (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdChangeProfilePhoto;
 
     public async Task<NewbieChallengeUnlock> BuildUnlockAsync(LMNRoleInfo role)
     {
@@ -436,7 +468,7 @@ public sealed class NewbieChallengeTaskManager(
         pbFinishCondition condition,
         IReadOnlyDictionary<(int TaskId, long PeriodStart), StoredTaskProcess> storedProcesses,
         bool countsSubTasks) =>
-        BattleTasks.IsBattleCondition(condition)
+        BattleTasks.IsBattleCondition(condition) || IsProfilePhotoChange(condition)
             ? BattleTasks.FindStoredProcess(storedProcesses, task.TaskID, NoResetPeriod)
             : Evaluate(role, condition, storedProcesses, countsSubTasks);
 

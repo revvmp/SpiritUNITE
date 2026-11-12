@@ -362,7 +362,6 @@ public sealed class CreditManager(
     private async Task SendPunishMailAsync(ulong uid, SystemMail punishMail)
     {
         await mail.SendSystemMailAsync(uid, punishMail);
-        await lobbyRoles.PushAsync(uid, await mail.BuildUnreadRedDotPacketsAsync(uid, AccusationMailType));
     }
 
     private static string HangupTypeNameOf(PB_ENUM_ENM_HANGUP_TYPE hangupType) => hangupType switch

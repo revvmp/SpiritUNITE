@@ -56,6 +56,7 @@ public sealed class MailManager(
     {
         var saved = await InsertSystemMailAsync(uid, mail);
         await PushMailNewAsync(saved);
+        await lobbyRoles.PushAsync(uid, await BuildNewMailRedDotPacketsAsync(uid, saved.MailType));
         return saved;
     }
 
@@ -157,20 +158,18 @@ public sealed class MailManager(
         ];
     }
 
-    public async Task<pbCOMDT_RED_DOT_DETAIL[]> BuildUnreadRedDotDetailsAsync(ulong uid)
+    public async Task<pbCOMDT_RED_DOT_DETAIL[]> BuildUnreadRedDotDetailsAsync(ulong uid) =>
+        [.. (await BuildAllUnreadRedDotCountsAsync(uid)).Where(detail => detail.RedDotBadgeNum > 0)];
+
+    public async Task<pbCOMDT_RED_DOT_DETAIL[]> BuildAllUnreadRedDotCountsAsync(ulong uid)
     {
         var unread = await repository.CountUnreadAsync(uid, clock.GetUtcNow().ToUnixTimeSeconds());
         int[] redDotIDs =
         [
-            .. Enumerable.Range(0, MailBox.MailTypeCount).Select(MailBox.FindUnreadRedDotID).OfType<int>(),
+            .. Enumerable.Range(0, MailBox.MailTypeCount).Select(MailBox.FindUnreadRedDotID).OfType<int>().Distinct(),
             MailBox.UnreadAllMailRedDotID,
         ];
-        return
-        [
-            .. redDotIDs
-                .Select(redDotID => new pbCOMDT_RED_DOT_DETAIL { RedDotID = redDotID, RedDotBadgeNum = CountUnread(unread, redDotID) })
-                .Where(detail => detail.RedDotBadgeNum > 0),
-        ];
+        return [.. redDotIDs.Select(redDotID => new pbCOMDT_RED_DOT_DETAIL { RedDotID = redDotID, RedDotBadgeNum = CountUnread(unread, redDotID) })];
     }
 
     private static int CountUnread(int[] unread, int redDotID) =>

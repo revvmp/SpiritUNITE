@@ -33,6 +33,7 @@ public sealed class GameData
         TrainerLevel = LoadMessages<pbTrainerLevel>(row => row.Level);
         NewbieRewardHero = LoadMessages<pbNewbie_RewardHero>(row => row.HeroId);
         LobbyBg = LoadRecords<pbLobbyBg>(row => row.LobbyBgID);
+        BeautySkin = LoadRecords<pbBeautySkin>(row => row.ID);
         StarRoadSite = LoadRecords<pbStarRoadSite>(row => row.SiteID);
         NewbieGift = LoadRecords<pbNewbieGift>(row => pbNewbieGift.Key(row.GiftID, row.SchemeId));
         ReportText = LoadRecords<pbReportText>(row => pbReportText.Key(row.ReportCategory, row.ReportReason));
@@ -81,6 +82,7 @@ public sealed class GameData
         BattlePassWeekIndex = LoadMessages<pbBattlePass_WeekIndex>(row => pbBattlePass_WeekIndex.Key(row.SeasonID, row.WeekIndex));
         BattlePassWeekTaskGroup = LoadMessages<pbBattlePass_WeekTaskGroup>(row => row.WeekTaskGroupID);
         RewardPool = LoadRecords<pbReward_Pool>(row => row.LotteryPoolId);
+        BadgeRewardPool = LoadRecords<pbBadgeReward_Pool>(row => row.LotteryPoolId);
         HeadIconBase = LoadMessages<pbHeadIcon_Base>(row => row.HeadIconID);
         HeadIcon = LoadMessages<pbHeadIcon>(row => row.HeadIconID);
         ContestantCardDecoration = LoadMessages<pbContestant_Card_Decoration>(row => row.DecorationID);
@@ -151,6 +153,8 @@ public sealed class GameData
     public DatabinTable<pbTrainerLevel> TrainerLevel { get; }
     public DatabinTable<pbNewbie_RewardHero> NewbieRewardHero { get; }
     public DatabinTable<pbLobbyBg> LobbyBg { get; }
+
+    public DatabinTable<pbBeautySkin> BeautySkin { get; }
     public DatabinTable<pbStarRoadSite> StarRoadSite { get; }
     public DatabinTable<pbNewbieGift> NewbieGift { get; }
     public DatabinTable<pbReportText> ReportText { get; }
@@ -218,6 +222,7 @@ public sealed class GameData
     public DatabinTable<pbBattlePass_WeekIndex> BattlePassWeekIndex { get; }
     public DatabinTable<pbBattlePass_WeekTaskGroup> BattlePassWeekTaskGroup { get; }
     public DatabinTable<pbReward_Pool> RewardPool { get; }
+    public DatabinTable<pbBadgeReward_Pool> BadgeRewardPool { get; }
     public DatabinTable<pbHeadIcon_Base> HeadIconBase { get; }
     public DatabinTable<pbHeadIcon> HeadIcon { get; }
     public DatabinTable<pbContestant_Card_Decoration> ContestantCardDecoration { get; }

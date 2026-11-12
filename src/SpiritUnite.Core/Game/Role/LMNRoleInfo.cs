@@ -325,6 +325,19 @@ public sealed class LMNRoleInfo(
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
+    public void SetSkinColor(int skinColorID)
+    {
+        lock (gate)
+        {
+            RoleAvatarInfo = new pbCOMDT_ROLE_AVATAR_INFO
+            {
+                AvatarIDList = { RoleAvatarInfo.AvatarIDList },
+                RoleBaseModelID = RoleAvatarInfo.RoleBaseModelID,
+                SkinColorID = skinColorID,
+            };
+        }
+    }
+
     public PB_ENUM_RES_ERROR_CODE ClearAvatarNewTag(IReadOnlyCollection<int> avatarIDList, out RoleItemInfo[] cleared)
     {
         cleared = [];

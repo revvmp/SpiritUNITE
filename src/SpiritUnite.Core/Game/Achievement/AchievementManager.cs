@@ -28,6 +28,7 @@ public sealed class AchievementManager
         (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceNormal,
         (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceRank,
         (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRelaxNormal,
+        (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModePveChallenge,
     }.ToFrozenSet();
 
     private readonly GameData gameData;
@@ -96,6 +97,22 @@ public sealed class AchievementManager
                 .Select(definition => Evaluate(role, definition, rewardTimes, measures).ToTaskInfo()),
         ];
     }
+
+    public async Task<pbCOMDT_TASK_INFO[]> BuildBadgeGroupTaskInfoListAsync(LMNRoleInfo role, int grantedBadgeQuality)
+    {
+        var rewardTimes = await repository.FindRewardTimesAsync(role.GameUlongUID);
+        var measures = await LoadMeasuresAsync(role);
+        return
+        [
+            .. definitions
+                .Where(definition => definition.Condition.ID == (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdGetDiffGroupBadge
+                    && CountsBadgeQuality(definition.Condition, grantedBadgeQuality))
+                .Select(definition => Evaluate(role, definition, rewardTimes, measures).ToTaskInfo()),
+        ];
+    }
+
+    private static bool CountsBadgeQuality(pbFinishCondition condition, int badgeQuality) =>
+        condition.ParamA.Count == 0 || condition.ParamA.Contains(badgeQuality);
 
     public async Task<int> CountCompleteTasksAsync(LMNRoleInfo role) =>
         (await BuildTaskInfoListAsync(role)).Count(task => task.Status == (int)PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusComplete);
@@ -280,7 +297,7 @@ public sealed class AchievementManager
 
     private static int CountOwnedBadgeGroups(pbFinishCondition condition, AchievementMeasures measures) =>
         measures.OwnedBadges
-            .Where(badge => condition.ParamA.Count == 0 || condition.ParamA.Contains(badge.BadgeQuality))
+            .Where(badge => CountsBadgeQuality(condition, badge.BadgeQuality))
             .Select(badge => badge.BadgeGroupId)
             .Distinct()
             .Count();

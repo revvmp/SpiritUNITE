@@ -407,7 +407,7 @@ public sealed class FriendManager
         await PushNewFriendAsync(uid, requester);
         await PushNewFriendAsync(requestUid, role);
         await lobbyRoles.PushAsync(uid, await BuildFriendRequestRedDotAsync(uid));
-        var accepted = await mail.SendSystemMailAsync(requestUid, new SystemMail(
+        await mail.SendSystemMailAsync(requestUid, new SystemMail(
             Subject: AcceptedFriendRequestMailSubject,
             Content: AcceptedFriendRequestMailContent,
             Attachments: [],
@@ -416,7 +416,6 @@ public sealed class FriendManager
             FromName: role.InGameUsrName,
             FromUid: uid,
             ValidDays: AcceptedFriendRequestMailValidDays));
-        await lobbyRoles.PushAsync(requestUid, await mail.BuildNewMailRedDotPacketsAsync(requestUid, accepted.MailType));
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 

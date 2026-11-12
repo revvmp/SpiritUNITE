@@ -14,6 +14,7 @@ public sealed record BagCommit(PB_ENUM_RES_ERROR_CODE Result, IReadOnlyList<BagI
 {
     public IReadOnlyDictionary<int, long> BeforeCoinNums { get; init; } = new Dictionary<int, long>();
     public IReadOnlyList<RoleItemInfo> TimeLimitedPasters { get; init; } = [];
+    public long LastRenameTime { get; init; }
 
     public static BagCommit Refused(PB_ENUM_RES_ERROR_CODE result) => new(result, [], null);
 }
@@ -98,10 +99,23 @@ public sealed class BagRepository(DataOptions options)
         };
     }
 
-    public async Task<BagCommit> UseRenameCardAsync(ulong gameUlongUID, int renameCardId, string newUserName)
+    public async Task<long> FindLastRenameTimeAsync(ulong gameUlongUID)
+    {
+        await using var database = new DataConnection(options);
+        return await ReadLastRenameTimeAsync(database, gameUlongUID);
+    }
+
+    public async Task<BagCommit> UseRenameCardAsync(ulong gameUlongUID, int renameCardId, string newUserName, RenameCooldown cooldown)
     {
         await using var database = new DataConnection(options);
         await using var transaction = await database.BeginTransactionAsync();
+        var lastRenameTime = await ReadLastRenameTimeAsync(database, gameUlongUID);
+        if (cooldown.RemainSeconds(lastRenameTime) > 0)
+        {
+            await transaction.RollbackAsync();
+            return BagCommit.Refused(PB_ENUM_RES_ERROR_CODE.PbErrInRenameCdlimit) with { LastRenameTime = lastRenameTime };
+        }
+
         var debited = await database.GetTable<RoleItem>()
             .Where(item => item.GameUlongUID == gameUlongUID
                 && item.ItemType == (int)RoleItemType.OutSideItem
@@ -128,10 +142,17 @@ public sealed class BagRepository(DataOptions options)
             return BagCommit.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRegisterNameDup);
         }
 
+        await database.InsertOrReplaceAsync(new RoleRename { GameUlongUID = gameUlongUID, LastRenameTime = cooldown.Now });
         var changedItems = await ReadItemsAsync(database, gameUlongUID, [(RoleItemType.OutSideItem, renameCardId)]);
         await transaction.CommitAsync();
         return new BagCommit(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, changedItems, null);
     }
+
+    private static async Task<long> ReadLastRenameTimeAsync(DataConnection database, ulong gameUlongUID) =>
+        await database.GetTable<RoleRename>()
+            .Where(rename => rename.GameUlongUID == gameUlongUID)
+            .Select(rename => (long?)rename.LastRenameTime)
+            .FirstOrDefaultAsync() ?? 0;
 
     internal static async Task<PB_ENUM_RES_ERROR_CODE> ApplyAsync(
         DataConnection database,

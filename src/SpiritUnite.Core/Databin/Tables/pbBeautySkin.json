@@ -1,0 +1,50 @@
+[
+  {
+    "Gender": 1,
+    "ID": 1004001316,
+    "RoleImagePic": "t_CreateRole_male1_1",
+    "SkinColorID": 7
+  },
+  {
+    "Gender": 1,
+    "ID": 1004001416,
+    "RoleImagePic": "t_CreateRole_male2_1",
+    "SkinColorID": 8
+  },
+  {
+    "Gender": 1,
+    "ID": 1004001516,
+    "RoleImagePic": "t_CreateRole_male3_1",
+    "SkinColorID": 9
+  },
+  {
+    "Gender": 1,
+    "ID": 1004001616,
+    "RoleImagePic": "t_CreateRole_male4_1",
+    "SkinColorID": 10
+  },
+  {
+    "Gender": 2,
+    "ID": 1004001716,
+    "RoleImagePic": "t_CreateRole_female1_1",
+    "SkinColorID": 7
+  },
+  {
+    "Gender": 2,
+    "ID": 1004001816,
+    "RoleImagePic": "t_CreateRole_female2_1",
+    "SkinColorID": 8
+  },
+  {
+    "Gender": 2,
+    "ID": 1004001916,
+    "RoleImagePic": "t_CreateRole_female3_1",
+    "SkinColorID": 9
+  },
+  {
+    "Gender": 2,
+    "ID": 1004002016,
+    "RoleImagePic": "t_CreateRole_female4_1",
+    "SkinColorID": 10
+  }
+]
