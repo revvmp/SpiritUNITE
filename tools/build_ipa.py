@@ -102,6 +102,19 @@ MOV_W9_ZERO = 0x52800009
 UNREACHABLE_ORIGIN = "https://spiritunite.invalid"
 POKEMON_REDIRECT_URI = f"{UNREACHABLE_ORIGIN}/pokemon/loginSuccess"
 NINTENDO_REDIRECT_URI = f"{UNREACHABLE_ORIGIN}/nintendo/loginSuccess"
+ADJUST_DOMAIN_REPLACEMENTS = (
+    ("adjust.com", "ad"),
+    ("adjust.net.in", "adn.x"),
+    ("adjust.world", "adwx"),
+    ("eu.adjust.com", "eu.ad"),
+    ("tr.adjust.com", "tr.ad"),
+    ("us.adjust.com", "us.ad"),
+)
+ADJUST_HOSTS = tuple(
+    (f"{service}.{domain}", f"{service}.{replacement}.invalid")
+    for service in ("app", "gdpr", "subscription")
+    for domain, replacement in ADJUST_DOMAIN_REPLACEMENTS
+)
 SILENCED_MSDK_HOST_KEYS = (
     "MSDK_ACCOUNT_URL",
     "XG_HOST",
@@ -795,10 +808,23 @@ def silence_host(content: bytes, host: str, expected_count: int) -> bytes:
     replacement = (
         host[:prefix_length].rstrip(".-").ljust(prefix_length, "x") + ".invalid"
     )
+    return replace_host(content, host, replacement, expected_count)
+
+
+def replace_host(
+    content: bytes, host: str, replacement: str, expected_count: int
+) -> bytes:
     original = host.encode("ascii")
-    if content.count(original) != expected_count:
+    replaced = replacement.encode("ascii")
+    if len(original) != len(replaced) or content.count(original) != expected_count:
         raise BuildError(f"Expected {expected_count} copies of {host}.")
-    return content.replace(original, replacement.encode("ascii"))
+    return content.replace(original, replaced)
+
+
+def silence_adjust(content: bytes) -> bytes:
+    for host, replacement in ADJUST_HOSTS:
+        content = replace_host(content, host, replacement, 1)
+    return content
 
 
 def patch_gvoice_config(content: bytes, target: HostTarget) -> bytes:
@@ -1088,6 +1114,10 @@ def build_replacements(
             archive.read(name), executable, digest, offset, original, replacement
         )
         log(f"Patched {name} to skip ACE startup")
+
+    unity_name = f"{bundle.root}{UNITY_FRAMEWORK_EXECUTABLE}"
+    replacements[unity_name] = silence_adjust(replacements[unity_name])
+    log(f"Patched {unity_name} so Adjust attribution reaches no host")
 
     gvoice_name = f"{bundle.root}{GVOICE_CONFIG_PATH}"
     if gvoice_name not in archive.NameToInfo:

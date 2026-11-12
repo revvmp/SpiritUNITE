@@ -115,6 +115,23 @@ SILENCED_MSDK_HOST_KEYS = (
     "BUGLY_REPORT_URL_IOS",
     "TWITTER_WEB_LOGIN_URL",
 )
+ADJUST_DOMAIN_REPLACEMENTS = (
+    ("adjust.com", "ad"),
+    ("adjust.net.in", "adn.x"),
+    ("adjust.world", "adwx"),
+    ("eu.adjust.com", "eu.ad"),
+    ("tr.adjust.com", "tr.ad"),
+    ("us.adjust.com", "us.ad"),
+)
+ADJUST_HOSTS = tuple(
+    (
+        f"{service}.{domain}",
+        f"{service}.{replacement}.invalid",
+        2 if (service, domain) == ("app", "adjust.com") else 1,
+    )
+    for service in ("app", "gdpr", "subscription")
+    for domain, replacement in ADJUST_DOMAIN_REPLACEMENTS
+)
 GVOICE_DEFAULT_URLS = {
     "remoteConfigUrl": "https://hwconfig.gcloudcs.com:443",
     "logReportUrl": "https://tglog-hw.gcloudsdk.com:443",
@@ -310,7 +327,7 @@ def is_loopback(host: str) -> bool:
 HOSTNAME_LABEL = re.compile(r"^(?!-)[A-Za-z0-9-]{1,63}(?<!-)$")
 
 
-def validate_host(host: str) -> str:
+def validate_host(host: str, option: str = "--host") -> str:
     host = host.strip().rstrip(".")
     if not host:
         raise BuildError(
@@ -318,7 +335,7 @@ def validate_host(host: str) -> str:
         )
     if "://" in host or "/" in host:
         raise BuildError(
-            f"--host must be a bare domain or IPv4 address, not a URL: {host}"
+            f"{option} must be a bare domain or IPv4 address, not a URL: {host}"
         )
     try:
         address = ipaddress.ip_address(host)
@@ -332,7 +349,7 @@ def validate_host(host: str) -> str:
         len(host) > 253
         or not all(HOSTNAME_LABEL.match(label) for label in host.split("."))
     ):
-        raise BuildError(f"--host is not a valid domain name or IPv4 address: {host}")
+        raise BuildError(f"{option} is not a valid domain name or IPv4 address: {host}")
     return host
 
 
@@ -464,7 +481,7 @@ def resolve_target(arguments: argparse.Namespace) -> HostTarget:
         )
     voice_host = arguments.voice_host or appsetting(settings, "VoiceServer", "Host")
     voice_host = (
-        validate_host(voice_host)
+        validate_host(voice_host, "--voice-host")
         if isinstance(voice_host, str) and voice_host
         else host
     )
@@ -1902,22 +1919,35 @@ def patch_sdk_dex(content: bytes) -> bytes:
         ("update.crashlytics.com", 2),
     ):
         patched = bytearray(silence_host(bytes(patched), host, count))
+    for host, replacement, count in ADJUST_HOSTS:
+        patched = bytearray(replace_host(bytes(patched), host, replacement, count))
     return repair_dex_checksums(patched)
 
 
 def silence_host(
     content: bytes, host: str, expected_count: int, encoding: str = "utf-8"
 ) -> bytes:
-    original = host.encode(encoding)
     prefix_length = len(host) - len(".invalid")
     if prefix_length < 1:
         raise BuildError(f"Host {host} has no space for an .invalid address.")
     replacement = (
         host[:prefix_length].rstrip(".-").ljust(prefix_length, "x") + ".invalid"
-    ).encode(encoding)
-    if len(original) != len(replacement) or content.count(original) != expected_count:
+    )
+    return replace_host(content, host, replacement, expected_count, encoding)
+
+
+def replace_host(
+    content: bytes,
+    host: str,
+    replacement: str,
+    expected_count: int,
+    encoding: str = "utf-8",
+) -> bytes:
+    original = host.encode(encoding)
+    replaced = replacement.encode(encoding)
+    if len(original) != len(replaced) or content.count(original) != expected_count:
         raise BuildError(f"Expected {expected_count} copies of {host} in {encoding}.")
-    return content.replace(original, replacement)
+    return content.replace(original, replaced)
 
 
 def patch_gvoice_config(content: bytes, target: HostTarget) -> bytes:
@@ -2090,8 +2120,11 @@ def build(arguments: argparse.Namespace) -> None:
         log(
             f"Open TCP port {target.update_port} for the update server, and put the resource archive in resources/<productId>/ next to the server."
         )
+        archive_port = (
+            "the HttpServer.Port" if is_ipv4_literal(target.host) else "port 80"
+        )
         log(
-            "If players cannot reach the HttpServer port directly, set ResourceArchive.BaseUrl to the public address that serves /resources/."
+            f"Players download it from http://{target.host}/resources/ on {archive_port}; set ResourceArchive.BaseUrl only when another address serves /resources/."
         )
         log(
             f"Put the image mirror in resources/images/ next to the server; {target.image_cdn_address} must reach the HttpServer."
