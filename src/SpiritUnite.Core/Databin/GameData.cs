@@ -42,9 +42,17 @@ public sealed class GameData
         PveBuffLevelUpDesign = LoadRecords<pbPveBuffLevelUpDesign>(row => row.Id);
         ActivityExchange = LoadRecords<pbActivityExchange>(row => row.ExchangeID);
         FirstChargeAward = LoadRecords<pbFirstChargeAward>(row => row.LoginSeq);
+        AchievementScoreGift = LoadRecords<pbAchievementScoreGift>(row => row.TotalScore);
         MysteryShopDiscount = LoadRecords<pbMysteryShopDiscount>(row => pbMysteryShopDiscount.Key(row.AreaID, row.ActivityID));
         NewbieChallengeTask = LoadRecords<pbNewbieChallengeTask>(row => pbNewbieChallengeTask.Key(row.SchemeId, row.TaskDay));
         StarRoadPokemon = LoadRecords<pbStarRoadPokemon>(row => row.PokemonId);
+        StarRoadExtra = LoadRecords<pbStarRoadExtra>(row => row.ConfigID);
+        SettlementTaskMode = LoadRecords<pbSettlementTaskMode>(row => row.CondID);
+        BattlePassCycleLevel = LoadRecords<pbBattlePassCycleLevel>(row => row.SeasonID);
+        BattlePassLevelCycleReward = LoadRecords<pbBattlePassLevelCycleReward>(row => pbBattlePassLevelCycleReward.Key(row.SeasonID, row.CycleLevel));
+        NewbieSkip = LoadRecords<pbNewbieSkip>(row => pbNewbieSkip.Key(row.SkipID, row.NewbieEnum));
+        ActivityScheme = LoadRecords<pbActivityScheme>(row => pbActivityScheme.Key(row.ActivityID, row.SchemeId));
+        UserSchemeSelect = LoadRecords<pbUserSchemeSelect>(row => pbUserSchemeSelect.Key(row.BusinessType, row.SchemeId));
         ActivityBase = LoadMessages<pbActivity_Base>(row => row.ActivityID);
         TaskBase = LoadMessages<pbTask_Base>(row => row.TaskID);
         DropStatic = LoadMessages<pbDrop_Static>(row => pbDrop_Static.Key(row.SDropID, row.SDropSeq));
@@ -89,6 +97,8 @@ public sealed class GameData
         CanopyBase = LoadRecords<pbCanopy_Base>(row => row.CanopyID);
         CardFace = LoadRecords<pbCardFace>(row => row.CardFaceID);
         PersonStyleHeadFrame = LoadRecords<pbPersonStyleHeadFrame>(row => row.HeadIconID);
+        GloryAnnounce = LoadMessages<pbGloryAnnounce>(row => row.AnnounceID);
+        PersonaliseButton = LoadMessages<pbPersonaliseButton>(row => row.ButtonID);
         PersonalityLabel = LoadRecords<pbPersonalityLabel>(row => row.ID);
         BattleSignalCommunicate = LoadMessages<pbBattleSignalCommunicate>(row => row.Id);
         NationSelectInformation = LoadMessages<pbNationSelectInformation>(row => row.NationID);
@@ -143,6 +153,9 @@ public sealed class GameData
         PredictionTime = LoadRecords<pbPredictionTime>(row => row.PredictionStatge);
         IntimacySetting = LoadRecords<pbIntimacySetting>(row => row.ID);
         IntimacyRule = LoadRecords<pbIntimacyRule>(row => row.ID);
+        ChatType = LoadMessages<pbChat_Type>(row => row.ChatMsgType);
+        OutSideItemRedDot = LoadRecords<pbOutSideItemRedDot>(row => row.OutSideItemType);
+        DailyUniqGroup = LoadRecords<pbDailyUniqGroup>(row => row.TaskID);
         IntimacyLevel = LoadRecords<pbIntimacyLevel>(row => row.Level);
         DefaultLobbyBgId = FindDefaultLobbyBgId(LobbyBg);
     }
@@ -163,13 +176,24 @@ public sealed class GameData
     public DatabinTable<pbPveBuffLevelUpDesign> PveBuffLevelUpDesign { get; }
     public DatabinTable<pbActivityExchange> ActivityExchange { get; }
     public DatabinTable<pbFirstChargeAward> FirstChargeAward { get; }
+    public DatabinTable<pbAchievementScoreGift> AchievementScoreGift { get; }
     public DatabinTable<pbMysteryShopDiscount> MysteryShopDiscount { get; }
     public DatabinTable<pbNewbieChallengeTask> NewbieChallengeTask { get; }
     public DatabinTable<pbStarRoadPokemon> StarRoadPokemon { get; }
+    public DatabinTable<pbStarRoadExtra> StarRoadExtra { get; }
+    public DatabinTable<pbSettlementTaskMode> SettlementTaskMode { get; }
+    public DatabinTable<pbBattlePassCycleLevel> BattlePassCycleLevel { get; }
+    public DatabinTable<pbBattlePassLevelCycleReward> BattlePassLevelCycleReward { get; }
+    public DatabinTable<pbNewbieSkip> NewbieSkip { get; }
+    public DatabinTable<pbActivityScheme> ActivityScheme { get; }
+    public DatabinTable<pbUserSchemeSelect> UserSchemeSelect { get; }
     public DatabinTable<pbActivity_Base> ActivityBase { get; }
     public DatabinTable<pbNationGroup> NationGroup { get; }
     public DatabinTable<pbIntimacySetting> IntimacySetting { get; }
     public DatabinTable<pbIntimacyRule> IntimacyRule { get; }
+    public DatabinTable<pbChat_Type> ChatType { get; }
+    public DatabinTable<pbOutSideItemRedDot> OutSideItemRedDot { get; }
+    public DatabinTable<pbDailyUniqGroup> DailyUniqGroup { get; }
     public DatabinTable<pbIntimacyLevel> IntimacyLevel { get; }
     public DatabinTable<pbTowerDefenseBase> TowerDefenseBase { get; }
     public DatabinTable<pbTowerDefenseShop> TowerDefenseShop { get; }
@@ -229,6 +253,8 @@ public sealed class GameData
     public DatabinTable<pbCanopy_Base> CanopyBase { get; }
     public DatabinTable<pbCardFace> CardFace { get; }
     public DatabinTable<pbPersonStyleHeadFrame> PersonStyleHeadFrame { get; }
+    public DatabinTable<pbGloryAnnounce> GloryAnnounce { get; }
+    public DatabinTable<pbPersonaliseButton> PersonaliseButton { get; }
     public DatabinTable<pbPersonalityLabel> PersonalityLabel { get; }
     public DatabinTable<pbBattleSignalCommunicate> BattleSignalCommunicate { get; }
     public DatabinTable<pbNationSelectInformation> NationSelectInformation { get; }

@@ -1,0 +1,32 @@
+[
+  {
+    "MaxContentLen": 28,
+    "MinLevel": 1,
+    "ChatMsgType": 1
+  },
+  {
+    "MaxContentLen": 28,
+    "MinLevel": 6,
+    "ChatMsgType": 2
+  },
+  {
+    "MaxContentLen": 28,
+    "MinLevel": 6,
+    "ChatMsgType": 3
+  },
+  {
+    "MaxContentLen": 28,
+    "MinLevel": 6,
+    "ChatMsgType": 4
+  },
+  {
+    "MaxContentLen": 28,
+    "MinLevel": 6,
+    "ChatMsgType": 5
+  },
+  {
+    "MaxContentLen": 28,
+    "MinLevel": 6,
+    "ChatMsgType": 6
+  }
+]

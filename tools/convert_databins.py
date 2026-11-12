@@ -101,6 +101,10 @@ LUA_ONLY_FIELDS = {
         256220: Field("LoginSeq", "int32"),
         269784: Field("DropID", "int32"),
     },
+    "pbAchievementScoreGift": {
+        277088: Field("TotalScore", "int32"),
+        269784: Field("DropID", "int32"),
+    },
     "pbMysteryShopDiscount": {
         244760: Field("ActivityID", "int32"),
         277708: Field("AreaID", "int32"),
@@ -219,13 +223,17 @@ LUA_ONLY_FIELDS = {
         259142: Field("LotteryPoolId", "int32"),
     },
     "pbCanopy_Base": {
+        264402: Field("Transmuteid", "int32"),
         266240: Field("OnTime", "int64"),
         283821: Field("CanopyID", "int32"),
+        285181: Field("TransmuteNum", "int32"),
     },
     "pbCardFace": {
+        212338: Field("TransmuteID", "int32"),
         232556: Field("PokemonID", "int32"),
         247630: Field("CardFaceID", "int32"),
         266240: Field("OnTime", "int64"),
+        297667: Field("TransmuteNum", "int32"),
     },
     "pbPersonStyleHeadFrame": {
         221526: Field("HeadIconID", "int32"),
@@ -287,6 +295,14 @@ LUA_ONLY_FIELDS = {
         271147: Field("PasterSprayID", "int32"),
         288997: Field("SprayBuffID", "int32"),
         298384: Field("PokemonLimit", "int32"),
+    },
+    "pbOutSideItemRedDot": {
+        200224: Field("OutSideItemType", "int32"),
+        222315: Field("IsUseRedDot", "int32"),
+    },
+    "pbDailyUniqGroup": {
+        251686: Field("GroupID", "int32"),
+        289808: Field("TaskID", "int32"),
     },
     "pbIntimacySetting": {
         266127: Field("ID", "int32"),
@@ -481,6 +497,52 @@ LUA_ONLY_FIELDS = {
         299365: Field("PredictionStatge", "int32"),
         288591: Field("StartTime", "int64"),
         294988: Field("EndTime", "int64"),
+    },
+    "pbSettlementTaskMode": {
+        236467: Field("MapSubMode", "int32"),
+        299535: Field("CondID", "int32"),
+    },
+    "pbBattlePassCycleLevel": {
+        223064: Field("SeasonID", "int32"),
+        258302: Field("CycleUpExp", "int32"),
+        260061: Field("CycleUpPassCoinType", "int32"),
+        293924: Field("CycleUpMoneyCost", "int32"),
+    },
+    "pbBattlePassLevelCycleReward": {
+        207518: Field("CommonAwardNum", "int32"),
+        212161: Field("EliteAwardID", "int32"),
+        223064: Field("SeasonID", "int32"),
+        226608: Field("EliteAwardNum", "int32"),
+        263269: Field("CommonAwardID", "int32"),
+        265484: Field("CycleLevel", "int32"),
+    },
+    "pbUnclockedSeasonPoints": {
+        255441: Field("TrainerLevel", "int32"),
+        269998: Field("SchemeId", "int32"),
+    },
+    "pbStarRoadExtra": {
+        210795: Field("Value", "int32"),
+        214849: Field("ConfigID", "int32"),
+    },
+    "pbNewbieSkip": {
+        254366: Field("SkipID", "int32"),
+        259789: Field("NewbieEnum", "int32"),
+    },
+    "pbActivityScheme": {
+        230959: Field("TaskGroupIDList", "int32", repeated=True),
+        244760: Field("ActivityID", "int32"),
+        269998: Field("SchemeId", "int32"),
+        276850: Field("BusinessType", "int32"),
+    },
+    "pbUserSchemeSelect": {
+        202413: Field("RegisterStartTimeStamp", "int64"),
+        212438: Field("UID", "int32", repeated=True),
+        227886: Field("NationID", "int32", repeated=True),
+        230354: Field("RegisterEndTimeStamp", "int64"),
+        232893: Field("RegisterEndTime", "int64"),
+        269998: Field("SchemeId", "int32"),
+        276850: Field("BusinessType", "int32"),
+        286890: Field("RegisterStartTime", "int64"),
     },
 }
 
@@ -722,6 +784,10 @@ MAP_BASE_SERVER_FIELDS = ("MapBaseId", "MatchTime")
 
 POKEMON_RELEASE_SERVER_FIELDS = ("PokemonId", "OnTime", "Order")
 
+GLORY_ANNOUNCE_SERVER_FIELDS = ("AnnounceID", "Transmuteid", "TransmuteNum")
+
+PERSONALISE_BUTTON_SERVER_FIELDS = ("ButtonID", "ButtonType", "PokemonAvatarId", "Transmuteid", "TransmuteNum")
+
 TABLES = {
     "databin_TenGames": Table("pbTenGames", LUA_ONLY_FIELDS["pbTenGames"], key_field="GamesId"),
     "databin_TenGamesRankReward": Table("pbTenGamesRankReward", LUA_ONLY_FIELDS["pbTenGamesRankReward"]),
@@ -745,6 +811,9 @@ TABLES = {
         "pbActivityExchange", LUA_ONLY_FIELDS["pbActivityExchange"], key_field="ExchangeID"
     ),
     "databin_FirstChargeAward": Table("pbFirstChargeAward", LUA_ONLY_FIELDS["pbFirstChargeAward"], key_field="LoginSeq"),
+    "databin_AchievementScoreGift": Table(
+        "pbAchievementScoreGift", LUA_ONLY_FIELDS["pbAchievementScoreGift"], key_field="TotalScore"
+    ),
     "databin_MysteryShopDiscount": Table("pbMysteryShopDiscount", LUA_ONLY_FIELDS["pbMysteryShopDiscount"]),
     "databin_GuildActivity_Base": Table(
         "pbGuildActivity_Base", LUA_ONLY_FIELDS["pbGuildActivity_Base"], key_field="PeriodID"
@@ -878,6 +947,11 @@ TABLES = {
     "databin_Badge_Base": Table("pbBadge_Base", SERVER_FIELD_SUBSETS["pbBadge_Base"], key_field="BadgeId"),
     "databin_BadgeUnlock": Table("pbBadgeUnlock", LUA_ONLY_FIELDS["pbBadgeUnlock"], key_field="BadgeSchemeID"),
     "databin_IntimacySetting": Table("pbIntimacySetting", LUA_ONLY_FIELDS["pbIntimacySetting"], key_field="ID"),
+    "databin_Chat_Type": Table("pbChat_Type", key_field="ChatMsgType"),
+    "databin_OutSideItemRedDot": Table(
+        "pbOutSideItemRedDot", LUA_ONLY_FIELDS["pbOutSideItemRedDot"], key_field="OutSideItemType"
+    ),
+    "databin_DailyUniqGroup": Table("pbDailyUniqGroup", LUA_ONLY_FIELDS["pbDailyUniqGroup"], key_field="TaskID"),
     "databin_IntimacyRule": Table("pbIntimacyRule", LUA_ONLY_FIELDS["pbIntimacyRule"], key_field="ID"),
     "databin_IntimacyLevel": Table("pbIntimacyLevel", LUA_ONLY_FIELDS["pbIntimacyLevel"], key_field="Level"),
     "databin_BadgeColor": Table("pbBadgeColor", LUA_ONLY_FIELDS["pbBadgeColor"]),
@@ -911,6 +985,28 @@ TABLES = {
     "databin_Monster_Base_Monster": Table("pbUnit_Base", SERVER_FIELD_SUBSETS["pbUnit_Base"], key_field="UnitId"),
     "databin_Battle_Global_Base": Table("pbGlobal_Base", key_field="GlobalId"),
     "databin_Outside_Global_Base": Table("pbGlobal_Base", key_field="GlobalId"),
+    "databin_GloryAnnounce": Table(
+        "pbGloryAnnounce", key_field="AnnounceID", kept_fields=GLORY_ANNOUNCE_SERVER_FIELDS
+    ),
+    "databin_PersonaliseButton": Table(
+        "pbPersonaliseButton", key_field="ButtonID", kept_fields=PERSONALISE_BUTTON_SERVER_FIELDS
+    ),
+    "databin_SettlementTaskMode": Table(
+        "pbSettlementTaskMode", LUA_ONLY_FIELDS["pbSettlementTaskMode"], key_field="CondID"
+    ),
+    "databin_BattlePassCycleLevel": Table(
+        "pbBattlePassCycleLevel", LUA_ONLY_FIELDS["pbBattlePassCycleLevel"], key_field="SeasonID"
+    ),
+    "databin_BattlePassLevelCycleReward": Table(
+        "pbBattlePassLevelCycleReward", LUA_ONLY_FIELDS["pbBattlePassLevelCycleReward"]
+    ),
+    "databin_UnclockedSeasonPoints": Table(
+        "pbUnclockedSeasonPoints", LUA_ONLY_FIELDS["pbUnclockedSeasonPoints"], key_field="SchemeId"
+    ),
+    "databin_StarRoadExtra": Table("pbStarRoadExtra", LUA_ONLY_FIELDS["pbStarRoadExtra"], key_field="ConfigID"),
+    "databin_NewbieSkip": Table("pbNewbieSkip", LUA_ONLY_FIELDS["pbNewbieSkip"]),
+    "databin_ActivityScheme": Table("pbActivityScheme", LUA_ONLY_FIELDS["pbActivityScheme"]),
+    "databin_UserSchemeSelect": Table("pbUserSchemeSelect", LUA_ONLY_FIELDS["pbUserSchemeSelect"]),
 }
 
 TABLE_MAGIC = b"pbc"
