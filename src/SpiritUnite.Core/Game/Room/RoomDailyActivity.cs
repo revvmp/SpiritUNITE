@@ -53,7 +53,7 @@ public static class RoomDailyActivity
     {
         var dailyTasks = schedule.FindActive(now)
             .Where(activity => activity.Row.ActivityID == schedule.DailyActivityId)
-            .SelectMany(activity => activity.TaskGroupIds)
+            .SelectMany(schedule.FindSchemeTaskGroupIds)
             .SelectMany(groupId => schedule.FindActiveTasksInGroup(groupId, now))
             .Select(activeTask => activeTask.Task)
             .DistinctBy(task => task.TaskID)

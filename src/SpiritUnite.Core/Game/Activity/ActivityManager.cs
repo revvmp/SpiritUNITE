@@ -176,8 +176,8 @@ public sealed partial class ActivityManager(
             .Select(task => new ActiveActivityTask(activity, task, unlockedAt));
     }
 
-    private static IEnumerable<TaskProcessIncrement> FindBattleIncrement(ActiveActivityTask task, BattleTaskEvent battle, DateTimeOffset now) =>
-        BattleTasks.FindBattleIncrements(task.Task, FindPeriodStart(task, now).ToUnixTimeSeconds(), battle);
+    private IEnumerable<TaskProcessIncrement> FindBattleIncrement(ActiveActivityTask task, BattleTaskEvent battle, DateTimeOffset now) =>
+        BattleTasks.FindBattleIncrements(gameData, task.Task, FindPeriodStart(task, now).ToUnixTimeSeconds(), battle);
 
     private static IEnumerable<TaskProcessIncrement> FindClientActionIncrement(
         ActiveActivityTask task,

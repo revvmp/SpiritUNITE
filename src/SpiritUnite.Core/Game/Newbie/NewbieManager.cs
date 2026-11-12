@@ -31,8 +31,6 @@ public sealed class NewbieManager(
     TimeProvider clock,
     ILogger<NewbieManager> logger)
 {
-    public const int TutorialSkipID = 1;
-
     private const int LicensePokemonParamIndex = 0;
     private const int Replaced = 1;
     private const int NoDrop = 0;
@@ -44,11 +42,7 @@ public sealed class NewbieManager(
     private const int PveChallengeNormalRedDotID = (int)PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdPveChallengeNormal;
     private const int TrainerLavelGiftRedDotID = (int)PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdTrainerLavelGift;
 
-    private static readonly int[] TutorialBattleNewbies =
-    [
-        (int)PB_ENUM_RES_NEWBIE_STATUS_TYPE.PbResNewbieStatusTypeTutorialRound1,
-        (int)PB_ENUM_RES_NEWBIE_STATUS_TYPE.PbResNewbieStatusTypeTutorialRound2,
-    ];
+    private readonly ILookup<int, int> newbiesBySkipID = gameData.NewbieSkip.Rows.ToLookup(row => row.SkipID, row => row.NewbieEnum);
 
     private readonly IReadOnlyDictionary<int, int> dropByNewbie = gameData.NewbieGuideOrder.Rows
         .Where(order => order.SDropID != NoDrop)
@@ -71,10 +65,12 @@ public sealed class NewbieManager(
         return [.. CompletePveChallenge(role, newbie), .. await GrantGuideOrderDropAsync(role, archive)];
     }
 
-    public async Task<GamePacket[]> SkipTutorialAsync(LMNRoleInfo role)
+    public bool IsSkipID(int skipID) => newbiesBySkipID.Contains(skipID);
+
+    public async Task<GamePacket[]> SkipNewbieStepAsync(LMNRoleInfo role, int skipID)
     {
         var grants = new List<GamePacket>();
-        foreach (var newbie in TutorialBattleNewbies)
+        foreach (var newbie in newbiesBySkipID[skipID])
         {
             grants.AddRange(await ArchiveAsync(role, newbie));
         }

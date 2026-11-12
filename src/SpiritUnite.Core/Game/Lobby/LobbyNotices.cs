@@ -11,13 +11,18 @@ using SpiritUnite.Packets.Messages;
 
 namespace SpiritUnite.Game.Lobby;
 
-public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, IOptionsMonitor<LobbyOptions> options, ServerLists lists, TimeProvider clock)
+public sealed class LobbyNotices(
+    GameData gameData,
+    ActivitySchedule schedule,
+    UserSchemes userSchemes,
+    IOptionsMonitor<LobbyOptions> options,
+    ServerLists lists,
+    TimeProvider clock)
 {
     public const int PbScidPasterSprayerListNtf = 127750;
     public const int PbScidPasterSprayerAcntInfoNtf = 127752;
     public const int PbScidSubscriptionInterfaceRsp = 130652;
 
-    private const int DefaultSchemeId = 1;
     private const int NoNationGroup = 0;
     private const int NewSaleTag = 1;
     private const int ThemeSprayType = (int)PB_ENUM_RES_PASTER_SPRAY_TYPE.PbResPasterSprayTypeForever;
@@ -44,7 +49,7 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
     {
         UserSchemeInfo =
         {
-            Rules.UserSchemesOrOfficial.Select(scheme => new pbCOMDT_USER_SCHEME_INFO
+            userSchemes.Current.Select(scheme => new pbCOMDT_USER_SCHEME_INFO
             {
                 BusinessType = scheme.BusinessType,
                 SchemeId = scheme.SchemeId,
@@ -52,8 +57,7 @@ public sealed class LobbyNotices(GameData gameData, ActivitySchedule schedule, I
         },
     };
 
-    public int GetBusinessSchemeId(PB_ENUM_RES_USER_SCHEME_BUSINESS_TYPE businessType) =>
-        Rules.UserSchemesOrOfficial.FirstOrDefault(scheme => scheme.BusinessType == (int)businessType)?.SchemeId ?? DefaultSchemeId;
+    public int GetBusinessSchemeId(PB_ENUM_RES_USER_SCHEME_BUSINESS_TYPE businessType) => userSchemes.GetBusinessSchemeId(businessType);
 
     public static pbSCBanPokemonListNtf BuildBanPokemonListNtf() => new();
 

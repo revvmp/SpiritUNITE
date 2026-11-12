@@ -1,4 +1,5 @@
 using SpiritUnite.Databin;
+using SpiritUnite.Game.Lobby;
 using SpiritUnite.Packets.Messages;
 
 namespace SpiritUnite.Game.Activity;
@@ -13,9 +14,17 @@ public sealed class ActivitySchedule
     private readonly ScheduledActivity[] activities;
     private readonly ILookup<int, pbTask_Base> tasksByGroup;
     private readonly ILookup<int, pbDrop_Static> dropsById;
+    private readonly IReadOnlyDictionary<int, int> schemeBusinessTypeByActivity;
+    private readonly DatabinTable<pbActivityScheme> activitySchemes;
+    private readonly UserSchemes userSchemes;
 
-    public ActivitySchedule(GameData gameData)
+    public ActivitySchedule(GameData gameData, UserSchemes userSchemes)
     {
+        this.userSchemes = userSchemes;
+        activitySchemes = gameData.ActivityScheme;
+        schemeBusinessTypeByActivity = gameData.ActivityScheme.Rows
+            .GroupBy(row => row.ActivityID)
+            .ToDictionary(group => group.Key, group => group.First().BusinessType);
         activities = [.. gameData.ActivityBase.Rows.Select(ToScheduledActivity)];
         tasksByGroup = gameData.TaskBase.Rows.ToLookup(task => task.GroupID);
         dropsById = gameData.DropStatic.Rows.OrderBy(drop => drop.SDropSeq).ToLookup(drop => drop.SDropID);
@@ -41,7 +50,7 @@ public sealed class ActivitySchedule
 
     public ActiveActivityTask[] FindActiveTasks(DateTimeOffset now) =>
         [.. FindActive(now)
-            .SelectMany(activity => activity.TaskGroupIds
+            .SelectMany(activity => FindSchemeTaskGroupIds(activity)
                 .SelectMany(groupId => tasksByGroup[groupId])
                 .Select(task => new ActiveActivityTask(activity, task)))
             .DistinctBy(activeTask => activeTask.Task.TaskID)];
@@ -53,6 +62,14 @@ public sealed class ActivitySchedule
         [.. FindActiveTasks(now).Where(activeTask => activeTask.Task.GroupID == groupId)];
 
     public IEnumerable<pbDrop_Static> FindDrops(int sDropId) => dropsById[sDropId];
+
+    public int[] FindSchemeTaskGroupIds(ScheduledActivity activity) =>
+        schemeBusinessTypeByActivity.TryGetValue(activity.Row.ActivityID, out var businessType)
+        && activitySchemes.Find(pbActivityScheme.Key(
+            activity.Row.ActivityID,
+            userSchemes.GetBusinessSchemeId((PB_ENUM_RES_USER_SCHEME_BUSINESS_TYPE)businessType))) is { } scheme
+            ? [.. scheme.TaskGroupIDList.Where(groupId => groupId != NoTaskGroup).Distinct()]
+            : activity.TaskGroupIds;
 
     public static DateTimeOffset ParseConfigTime(long configTime)
     {

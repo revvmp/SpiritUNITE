@@ -1,3 +1,4 @@
+using SpiritUnite.Databin;
 using SpiritUnite.Packets.Messages;
 
 namespace SpiritUnite.Game.Tasks;
@@ -48,6 +49,7 @@ public static class BattleTasks
     private const int SingleBattleThresholdIndex = 0;
     private const int OneBattle = 1;
     private const int NoCondition = 0;
+    private const int AnySubMode = 0;
 
     private static readonly IReadOnlySet<PB_ENUM_RES_CONDITION_ID> BattleConditions = new HashSet<PB_ENUM_RES_CONDITION_ID>
     {
@@ -90,31 +92,21 @@ public static class BattleTasks
         PB_ENUM_RES_CONDITION_ID.PbResConditionIdUseDiffEeive,
     };
 
-    private static readonly IReadOnlySet<int> RaceSubModes = new HashSet<int>
-    {
-        (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceNormal,
-        (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceRank,
-    };
-
-    private static readonly IReadOnlySet<int> RelaxSubModes = new HashSet<int>
-    {
-        (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRelaxNormal,
-    };
-
     public static bool IsBattleCondition(pbFinishCondition condition) =>
         BattleConditions.Contains((PB_ENUM_RES_CONDITION_ID)condition.ID) && !IsLimitedToOtherGames(condition);
 
-    public static int? MeasureBattle(pbFinishCondition condition, BattleTaskEvent battle) => !IsBattleCondition(condition)
+    public static int? MeasureBattle(GameData gameData, pbFinishCondition condition, BattleTaskEvent battle) => !IsBattleCondition(condition)
         ? null
         : (PB_ENUM_RES_CONDITION_ID)condition.ID switch
         {
             _ when !IsPlayedOnListedMap(condition, battle) => null,
+            _ when !IsListedOrInSettlementTaskMode(gameData, condition, battle) => null,
             PB_ENUM_RES_CONDITION_ID.PbResConditionIdWin => battle.Won ? OneBattle : null,
             PB_ENUM_RES_CONDITION_ID.PbResConditionIdFinish => OneBattle,
-            PB_ENUM_RES_CONDITION_ID.PbResConditionIdRaceFinish => IsListedOrInSubMode(condition, battle, RaceSubModes) ? OneBattle : null,
-            PB_ENUM_RES_CONDITION_ID.PbResConditionIdRaceWin => battle.Won && IsListedOrInSubMode(condition, battle, RaceSubModes) ? OneBattle : null,
-            PB_ENUM_RES_CONDITION_ID.PbResConditionIdRelaxFinish => IsListedOrInSubMode(condition, battle, RelaxSubModes) ? OneBattle : null,
-            PB_ENUM_RES_CONDITION_ID.PbResConditionIdRelaxWin => battle.Won && IsListedOrInSubMode(condition, battle, RelaxSubModes) ? OneBattle : null,
+            PB_ENUM_RES_CONDITION_ID.PbResConditionIdRaceFinish => OneBattle,
+            PB_ENUM_RES_CONDITION_ID.PbResConditionIdRaceWin => battle.Won ? OneBattle : null,
+            PB_ENUM_RES_CONDITION_ID.PbResConditionIdRelaxFinish => OneBattle,
+            PB_ENUM_RES_CONDITION_ID.PbResConditionIdRelaxWin => battle.Won ? OneBattle : null,
             PB_ENUM_RES_CONDITION_ID.PbResConditionIdTotoalUseHelditem => battle.UsedHeldItem ? OneBattle : null,
             PB_ENUM_RES_CONDITION_ID.PbResConditionIdPokemonOccupation =>
                 condition.ParamB.Count > OccupationParamIndex && condition.ParamB[OccupationParamIndex] == battle.OccupationType
@@ -125,8 +117,8 @@ public static class BattleTasks
             PB_ENUM_RES_CONDITION_ID.PbResConditionIdJoinKillMonsterClassType => battle.JoinKills
                 .Where(kill => condition.ParamA.Contains(kill.MonsterClassType))
                 .Aggregate(0, (total, kill) => AddCounts(total, kill.KillCnt)),
-            PB_ENUM_RES_CONDITION_ID.PbResConditionIdRankedMatchFinish => IsRankedMatch(battle) ? OneBattle : null,
-            PB_ENUM_RES_CONDITION_ID.PbResConditionIdRankedMatchWin => battle.Won && IsRankedMatch(battle) ? OneBattle : null,
+            PB_ENUM_RES_CONDITION_ID.PbResConditionIdRankedMatchFinish => OneBattle,
+            PB_ENUM_RES_CONDITION_ID.PbResConditionIdRankedMatchWin => battle.Won ? OneBattle : null,
             PB_ENUM_RES_CONDITION_ID.PbResConditionIdJoinKillMonster =>
                 condition.ParamB.Count == 0 || condition.ParamB.Contains(battle.MapID)
                     ? battle.JoinKills
@@ -155,11 +147,11 @@ public static class BattleTasks
             : reportedValue;
     }
 
-    public static IEnumerable<TaskProcessIncrement> FindBattleIncrements(pbTask_Base task, long periodStart, BattleTaskEvent battle) =>
+    public static IEnumerable<TaskProcessIncrement> FindBattleIncrements(GameData gameData, pbTask_Base task, long periodStart, BattleTaskEvent battle) =>
         task.FinishCondition
             .Select((condition, conditionIndex) => (Condition: condition, ConditionIndex: conditionIndex))
             .Where(pair => pair.Condition.ID != NoCondition)
-            .Select(pair => MeasureBattle(pair.Condition, battle) is { } delta
+            .Select(pair => MeasureBattle(gameData, pair.Condition, battle) is { } delta
                 ? new TaskProcessIncrement(
                     task.TaskID,
                     periodStart,
@@ -179,9 +171,6 @@ public static class BattleTasks
     private static int? CountedValueOf(pbFinishCondition condition, BattleTaskEvent battle) =>
         condition.ID == (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdUseDiffEeive ? battle.PokemonID : null;
 
-    private static bool IsRankedMatch(BattleTaskEvent battle) =>
-        battle.MapSubMode == (int)PB_ENUM_RES_MATCHMAPSUBMODE.PbMatchMapSubModeRaceRank;
-
     private static bool IsCampOfDistinctListedPokemon(pbFinishCondition condition, BattleTaskEvent battle) =>
         battle.CampPokemonIDs.Count > 0
         && battle.CampPokemonIDs.All(condition.ParamB.Contains)
@@ -197,8 +186,12 @@ public static class BattleTasks
         int conditionIndex = StoredTaskProcess.FirstCondition) =>
         stored.TryGetValue((taskId, periodStart), out var process) ? process.ProcessOf(conditionIndex) : 0;
 
-    private static bool IsListedOrInSubMode(pbFinishCondition condition, BattleTaskEvent battle, IReadOnlySet<int> subModes) =>
-        condition.ParamA.Count > 0 || subModes.Contains(battle.MapSubMode);
+    private static bool IsListedOrInSettlementTaskMode(GameData gameData, pbFinishCondition condition, BattleTaskEvent battle) =>
+        (MapListedConditions.Contains((PB_ENUM_RES_CONDITION_ID)condition.ID) && condition.ParamA.Count > 0)
+        || FindSettlementTaskSubMode(gameData, condition) is var subMode && (subMode == AnySubMode || subMode == battle.MapSubMode);
+
+    private static int FindSettlementTaskSubMode(GameData gameData, pbFinishCondition condition) =>
+        gameData.SettlementTaskMode.Find(condition.ID)?.MapSubMode ?? AnySubMode;
 
     private static bool IsPlayedOnListedMap(pbFinishCondition condition, BattleTaskEvent battle) =>
         !MapListedConditions.Contains((PB_ENUM_RES_CONDITION_ID)condition.ID)

@@ -317,6 +317,7 @@ public static class Server
         builder.Services.AddSingleton<ServerLists>();
         builder.Services.AddHostedService(services => services.GetRequiredService<ServerLists>());
         builder.Services.AddSingleton<NoticeManager>();
+        builder.Services.AddSingleton<UserSchemes>();
         builder.Services.AddSingleton<LobbyNotices>();
         builder.Services.AddSingleton<LobbyBroadcast>();
         builder.Services.AddSingleton<LoginManager>();

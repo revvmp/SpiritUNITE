@@ -185,7 +185,7 @@ public sealed class AchievementManager
     private int? MeasureBattle(pbFinishCondition condition, BattleTaskEvent battle) =>
         battleAchievementIdByConditionId.TryGetValue(condition.ID, out var battleAchievementId)
             ? BattleTasks.MeasureReportedCondition(condition, battleAchievementId, battle)
-            : BattleTasks.MeasureBattle(condition, battle);
+            : BattleTasks.MeasureBattle(gameData, condition, battle);
 
     public async Task<int> GetScoreAsync(ulong gameUlongUID) =>
         SumScore(await repository.FindRewardTimesAsync(gameUlongUID));

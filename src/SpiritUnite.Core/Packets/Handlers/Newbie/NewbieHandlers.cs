@@ -37,13 +37,13 @@ public sealed class NewbieHandlers(
     {
         var role = roles.Require(request.Uid);
         var skipID = pbCSSkipNewbieStepReq.Parser.ParseFrom(request.PkgData).SkipID;
-        if (skipID != NewbieManager.TutorialSkipID)
+        if (!newbies.IsSkipID(skipID))
         {
             logger.LogInformation("Skip tutorial refused for uid {Uid}: unknown SkipID {SkipID}", role.GameUlongUID, skipID);
             return [BuildSkipNewbieStepRsp(request, PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid)];
         }
 
-        var grants = await newbies.SkipTutorialAsync(role);
+        var grants = await newbies.SkipNewbieStepAsync(role, skipID);
         await roles.SaveAsync(role);
         logger.LogInformation("Uid {Uid} skipped the tutorial with {GrantCount} grant messages", role.GameUlongUID, grants.Length);
         return

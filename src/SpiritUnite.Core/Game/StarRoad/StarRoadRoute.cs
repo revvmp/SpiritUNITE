@@ -32,21 +32,24 @@ public sealed record StarRoadPool(IReadOnlyList<int> KnownPokemonIDs, int Unknow
 public sealed class StarRoadRoute
 {
     public const int FullProgress = 10000;
-    public const int HalfProgress = FullProgress / 2;
 
     private const int Triggered = 1;
+    private const int ProgressListThresholdConfigID = 1;
 
     private readonly IReadOnlyList<StarRoadSiteLayout> sites;
     private readonly pbStarRoadSite[] rows;
     private readonly StarRoadScores scores;
+    private readonly int progressListThreshold;
 
     private StarRoadRoute(
         pbStarRoadSite[] rows,
         StarRoadScores scores,
         IReadOnlyList<StarRoadSiteLayout> sites,
         StarRoadState state,
-        long commonScoreNum)
+        long commonScoreNum,
+        int progressListThreshold)
     {
+        this.progressListThreshold = progressListThreshold;
         State = state;
         this.rows = rows;
         this.scores = scores;
@@ -69,7 +72,7 @@ public sealed class StarRoadRoute
         ? 0
         : (int)Math.Min(FullProgress, CommonScoreNum * FullProgress / site.NeedScore);
 
-    public bool ShowsProgress => CurSite is { } site && site.PokemonIDs.Any() && Progress >= HalfProgress;
+    public bool ShowsProgress => CurSite is { } site && site.PokemonIDs.Any() && Progress >= progressListThreshold;
 
     public static StarRoadRoute Build(GameData gameData, StarRoadScores scores, StarRoadState state, long commonScoreNum, DateTimeOffset now)
     {
@@ -122,8 +125,12 @@ public sealed class StarRoadRoute
             }
         }
 
-        return new StarRoadRoute(rows, scores, sites, state, commonScoreNum);
+        return new StarRoadRoute(rows, scores, sites, state, commonScoreNum, FindProgressListThreshold(gameData));
     }
+
+    private static int FindProgressListThreshold(GameData gameData) =>
+        gameData.StarRoadExtra.Find(ProgressListThresholdConfigID)?.Value
+        ?? throw new InvalidDataException($"pbStarRoadExtra has no ConfigID {ProgressListThresholdConfigID}");
 
     private static int[] TakeFromPool(Dictionary<int, StarRoadPool> pools, pbStarRoadSite row, HashSet<int> movedOut, int? curPokemonId)
     {

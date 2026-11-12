@@ -31,7 +31,8 @@ public sealed class AdminSettings(
     IConfiguration configuration,
     NoticeManager notices,
     ServerLists serverLists,
-    LobbyBroadcast lobbyBroadcast)
+    LobbyBroadcast lobbyBroadcast,
+    UserSchemes userSchemes)
 {
     public const string GameSettingsFileName = "gamesettings.json";
     private const string OfficialSuffix = "OrOfficial";
@@ -173,7 +174,7 @@ public sealed class AdminSettings(
         ContentGroup,
         section.Title,
         section.Description,
-        new JsonObject { ["kind"] = "object", ["fields"] = FieldsOf(section.Type, withOfficial: false) },
+        new JsonObject { ["kind"] = "object", ["fields"] = FieldsOf(section.Type, official: null) },
         ToNode(content, section.Type) as JsonObject ?? [],
         RestartNeeded: false);
 
@@ -210,9 +211,9 @@ public sealed class AdminSettings(
         return null;
     }
 
-    private static JsonObject Overrides(Type type, JsonObject current, JsonObject values)
+    private JsonObject Overrides(Type type, JsonObject current, JsonObject values)
     {
-        var defaults = ToNode(Activator.CreateInstance(type), type) as JsonObject ?? [];
+        var defaults = OfficialValues(type);
         var saved = new JsonObject();
         foreach (var property in BindableProperties(type))
         {
@@ -235,15 +236,25 @@ public sealed class AdminSettings(
     private AdminSettingsSection Describe(SettingsSection section, JsonObject file)
     {
         var fileValue = Bind(section.Name, section.Type, file[section.Name] as JsonObject ?? []) ?? Activator.CreateInstance(section.Type);
-        var values = ToNode(fileValue, section.Type) as JsonObject ?? [];
+        var values = WithTableOfficialValues(section.Type, ToNode(fileValue, section.Type) as JsonObject ?? []);
         return new AdminSettingsSection(
             section.Name,
             RulesGroup,
             section.Title,
             section.Description,
-            new JsonObject { ["kind"] = "object", ["fields"] = FieldsOf(section.Type, section.HasOfficialValues) },
+            new JsonObject { ["kind"] = "object", ["fields"] = FieldsOf(section.Type, section.HasOfficialValues ? OfficialValues(section.Type) : null) },
             values,
-            !JsonNode.DeepEquals(values, ToNode(LiveValue(section.Type), section.Type)));
+            !JsonNode.DeepEquals(values, WithTableOfficialValues(section.Type, ToNode(LiveValue(section.Type), section.Type) as JsonObject ?? [])));
+    }
+
+    private JsonObject WithTableOfficialValues(Type type, JsonObject values)
+    {
+        if (type == typeof(LobbyOptions) && values[nameof(LobbyOptions.UserSchemes)] is null)
+        {
+            values[nameof(LobbyOptions.UserSchemes)] = ToNode(userSchemes.Official, typeof(UserSchemeOptions[]));
+        }
+
+        return values;
     }
 
     private object? LiveValue(Type type)
@@ -356,17 +367,19 @@ public sealed class AdminSettings(
                 : new JsonObject
                 {
                     ["kind"] = "objects",
-                    ["fields"] = FieldsOf(elementType, withOfficial: false),
+                    ["fields"] = FieldsOf(elementType, official: null),
                     ["template"] = ToNode(Activator.CreateInstance(elementType), elementType),
                 };
         }
 
-        return new JsonObject { ["kind"] = "object", ["fields"] = FieldsOf(type, withOfficial: false) };
+        return new JsonObject { ["kind"] = "object", ["fields"] = FieldsOf(type, official: null) };
     }
 
-    private static JsonArray FieldsOf(Type type, bool withOfficial)
+    private JsonObject OfficialValues(Type type) =>
+        WithTableOfficialValues(type, ToNode(Activator.CreateInstance(type), type) as JsonObject ?? []);
+
+    private static JsonArray FieldsOf(Type type, JsonObject? official)
     {
-        var official = withOfficial ? ToNode(Activator.CreateInstance(type), type) as JsonObject : null;
         return
         [
             .. BindableProperties(type).Select(property =>

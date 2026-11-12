@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SpiritUnite.Databin;
 using SpiritUnite.Database.Repositories;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Game.Tasks;
@@ -17,6 +18,7 @@ public sealed record BattlePassTaskClaim(
 public sealed record BattlePassTaskFinishCnt(int DailyTaskFinishCnt, int WeeklyTaskFinishCnt, int ChallengeTaskFinishCnt);
 
 public sealed class BattlePassTasks(
+    GameData gameData,
     BattlePassSeasons seasons,
     BattlePassLeveling leveling,
     BattlePassRepository repository,
@@ -196,8 +198,8 @@ public sealed class BattlePassTasks(
             : drops.Sum(drop => drop.ResNum);
     }
 
-    private static TaskProcessIncrement? FindBattleIncrement(BattlePassTaskState state, BattleTaskEvent battle) =>
-        state.Conditions is [var condition] && BattleTasks.MeasureBattle(condition, battle) is { } delta
+    private TaskProcessIncrement? FindBattleIncrement(BattlePassTaskState state, BattleTaskEvent battle) =>
+        state.Conditions is [var condition] && BattleTasks.MeasureBattle(gameData, condition, battle) is { } delta
             ? new TaskProcessIncrement(state.Task.TaskID, state.PeriodStart, delta, condition.TargetProcess)
             : null;
 

@@ -76,7 +76,7 @@ public sealed class NewbieChallengeTaskManager(
         }
 
         var increments = challenge.Tasks
-            .Select(task => task.Task.FinishCondition.FirstOrDefault() is { } condition && BattleTasks.MeasureBattle(condition, battle) is { } delta
+            .Select(task => task.Task.FinishCondition.FirstOrDefault() is { } condition && BattleTasks.MeasureBattle(gameData, condition, battle) is { } delta
                 ? new TaskProcessIncrement(task.Task.TaskID, NoResetPeriod, delta, condition.TargetProcess)
                 : null)
             .OfType<TaskProcessIncrement>()
@@ -98,7 +98,7 @@ public sealed class NewbieChallengeTaskManager(
         }
 
         var increments = challenge.Tasks
-            .Select(task => task.Task.FinishCondition.FirstOrDefault() is { } condition && BattleTasks.MeasureBattle(condition, battle) is { } delta
+            .Select(task => task.Task.FinishCondition.FirstOrDefault() is { } condition && BattleTasks.MeasureBattle(gameData, condition, battle) is { } delta
                 ? new TaskProcessIncrement(task.Task.TaskID, NoResetPeriod, delta, condition.TargetProcess)
                 : null)
             .OfType<TaskProcessIncrement>()
