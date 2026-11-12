@@ -1,5 +1,7 @@
+using SpiritUnite.Databin;
 using SpiritUnite.Game.Bag;
 using SpiritUnite.Game.PokemonAvatar;
+using SpiritUnite.Game.Profile;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Game.StarRoad;
 using SpiritUnite.Game.Wallet;
@@ -8,7 +10,7 @@ using SpiritUnite.Packets.Messages;
 
 namespace SpiritUnite.Game.Activity;
 
-public sealed class ActivityRewardNotices(StarRoadManager starRoad)
+public sealed class ActivityRewardNotices(GameData gameData, StarRoadManager starRoad)
 {
     public async Task<GamePacket[]> BuildAsync(LMNRoleInfo role, ActivityRewardGroup? rewards)
     {
@@ -35,6 +37,7 @@ public sealed class ActivityRewardNotices(StarRoadManager starRoad)
         }
 
         packets.AddRange(PokemonAvatarManager.BuildGainPushes(rewards.Items));
+        packets.AddRange(ProfileGainPushes.Build(gameData, role, rewards.Items));
         foreach (var pokemonId in rewards.PokemonIds)
         {
             packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUpdatePokemonNtf, new pbSCUpdatePokemonNtf

@@ -1,7 +1,9 @@
 using Microsoft.Extensions.Logging;
+using SpiritUnite.Databin;
 using SpiritUnite.Game.Badge;
 using SpiritUnite.Game.Bag;
 using SpiritUnite.Game.PokemonAvatar;
+using SpiritUnite.Game.Profile;
 using SpiritUnite.Game.Ranked;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Game.StarRoad;
@@ -18,6 +20,7 @@ public sealed class BagHandlers(
     RankedManager ranked,
     StarRoadManager starRoad,
     TaskUpdates taskUpdates,
+    GameData gameData,
     ILogger<BagHandlers> logger)
 {
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidOutSideItemPackageAllInfoReq)]
@@ -205,6 +208,7 @@ public sealed class BagHandlers(
         }
 
         packets.AddRange(PokemonAvatarManager.BuildGainPushes(outcome.GrantedItems.Concat(outcome.TimeLimitedPasters)));
+        packets.AddRange(ProfileGainPushes.Build(gameData, role, outcome.GrantedItems));
 
         if (outcome.Awards.Count > 0)
         {

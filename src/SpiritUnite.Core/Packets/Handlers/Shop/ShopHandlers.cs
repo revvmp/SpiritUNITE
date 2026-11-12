@@ -4,6 +4,7 @@ using SpiritUnite.Databin;
 using SpiritUnite.Game.Lobby;
 using SpiritUnite.Game.Newbie;
 using SpiritUnite.Game.PokemonAvatar;
+using SpiritUnite.Game.Profile;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Game.Shop;
 using SpiritUnite.Game.Wallet;
@@ -155,6 +156,11 @@ public sealed class ShopHandlers(
         if (PokemonAvatarManager.BuildGainNtf(purchase.Items) is { } pokemonAvatarNtf)
         {
             yield return request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdatePokemonAvatarNtf, pokemonAvatarNtf);
+        }
+
+        foreach (var profileGain in ProfileGainPushes.Build(gameData, role, purchase.Items))
+        {
+            yield return profileGain;
         }
 
         if (purchase.Items.Any(item => item.ItemType == RoleItemType.LobbyBg))

@@ -1,41 +1,44 @@
 using Microsoft.Extensions.Logging;
 using SpiritUnite.Game.Lobby;
+using SpiritUnite.Game.Pokemon;
+using SpiritUnite.Game.Role;
 using SpiritUnite.Packets.Messages;
 
 namespace SpiritUnite.Packets.Handlers.Pokemon;
 
-public sealed class CustomizeHandlers(ILogger<CustomizeHandlers> logger)
+public sealed class CustomizeHandlers(RoleInfoStore roles, CustomizeManager customize, ILogger<CustomizeHandlers> logger)
 {
-    private const int DEFAULT_PERSONALISE_BUTTON_ID = 0;
-    private const int DefaultGloryAnnounceID = 0;
-
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetPersonaliseButtonReq)]
-    public GamePacket[] OnGetPersonaliseButtonReq(GamePacket request)
+    public async Task<GamePacket[]> OnGetPersonaliseButtonReq(GamePacket request)
     {
+        var role = roles.Require(request.Uid);
         pbCSGetPersonaliseButtonReq.Parser.ParseFrom(request.PkgData);
         var response = new pbSCGetPersonaliseButtonRsp
         {
             ResultInfo = new pbResultInfo(),
-            PersonaliseButtonInfo = new pbCOMDT_PERSONALISE_BUTTON_LIST(),
+            PersonaliseButtonInfo = await customize.BuildPersonaliseButtonListAsync(role),
         };
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetPersonaliseButtonRsp, response)];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidSetPersonaliseButtonReq)]
-    public GamePacket[] OnSetPersonaliseButtonReq(GamePacket request)
+    public async Task<GamePacket[]> OnSetPersonaliseButtonReq(GamePacket request)
     {
+        var role = roles.Require(request.Uid);
         var selection = pbCSSetPersonaliseButtonReq.Parser.ParseFrom(request.PkgData);
-        var result = selection.ButtonID == DEFAULT_PERSONALISE_BUTTON_ID
-            ? PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc
-            : PB_ENUM_RES_ERROR_CODE.PbErrPersonaliseButtonNotValid;
-        if (result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+        var outcome = await customize.SetPersonaliseButtonAsync(role, selection);
+        if (outcome.Result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
         {
-            logger.LogInformation("Personalise button {ButtonID} refused for uid {Uid}: {Result}", selection.ButtonID, request.Uid, result);
+            logger.LogInformation("Personalise button {ButtonID} refused for uid {Uid}: {Result}", selection.ButtonID, request.Uid, outcome.Result);
+        }
+        else
+        {
+            logger.LogInformation("Personalise button {ButtonID} set on {Count} holowear for uid {Uid}", selection.ButtonID, outcome.PasterIds.Length, request.Uid);
         }
 
         var response = new pbSCSetPersonaliseButtonRsp
         {
-            ResultInfo = new pbResultInfo { ResultId = (int)result },
+            ResultInfo = new pbResultInfo { ResultId = (int)outcome.Result },
             PasterID = selection.PasterID,
             ButtonID = selection.ButtonID,
             PasterList = selection.PasterList ?? new pbCOMDT_PASTERID_LIST(),
@@ -44,10 +47,15 @@ public sealed class CustomizeHandlers(ILogger<CustomizeHandlers> logger)
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetGloryAnnounceListReq)]
-    public GamePacket[] OnGetGloryAnnounceListReq(GamePacket request)
+    public async Task<GamePacket[]> OnGetGloryAnnounceListReq(GamePacket request)
     {
+        var role = roles.Require(request.Uid);
         pbCSGetGloryAnnounceListReq.Parser.ParseFrom(request.PkgData);
-        var response = new pbSCGetGloryAnnounceListRsp { ResultInfo = new pbResultInfo() };
+        var response = new pbSCGetGloryAnnounceListRsp
+        {
+            ResultInfo = new pbResultInfo(),
+            GloryAnnounceList = { await customize.BuildGloryAnnounceListAsync(role) },
+        };
         return
         [
             request.Reply(
@@ -58,16 +66,30 @@ public sealed class CustomizeHandlers(ILogger<CustomizeHandlers> logger)
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidSetGloryAnnounceReq)]
-    public GamePacket[] OnSetGloryAnnounceReq(GamePacket request)
+    public async Task<GamePacket[]> OnSetGloryAnnounceReq(GamePacket request)
     {
+        var role = roles.Require(request.Uid);
         var announce = pbCSSetGloryAnnounceReq.Parser.ParseFrom(request.PkgData).GloryAnnounceInfo
             ?? new pbCSDT_GLORY_ANNOUNCE_INFO();
-        var result = announce.AnnounceID == DefaultGloryAnnounceID
-            ? PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc
-            : PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
+        var result = await customize.SetGloryAnnounceAsync(role, announce);
         if (result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
         {
-            logger.LogInformation("Glory announce {AnnounceID} refused for uid {Uid}: {Result}", announce.AnnounceID, request.Uid, result);
+            logger.LogInformation(
+                "Glory announce {AnnounceID} on Pokemon [{PokemonList}] and holowear [{PasterList}] refused for uid {Uid}: {Result}",
+                announce.AnnounceID,
+                string.Join(',', announce.PokemonList),
+                string.Join(',', announce.PasterList),
+                request.Uid,
+                result);
+        }
+        else
+        {
+            logger.LogInformation(
+                "Glory announce {AnnounceID} set on {PokemonCount} Pokemon and {PasterCount} holowear for uid {Uid}",
+                announce.AnnounceID,
+                announce.PokemonList.Count,
+                announce.PasterList.Count,
+                request.Uid);
         }
 
         var response = new pbSCSetGloryAnnounceRsp
@@ -79,11 +101,16 @@ public sealed class CustomizeHandlers(ILogger<CustomizeHandlers> logger)
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGloryAnnounceClearNewTagReq)]
-    public GamePacket[] OnGloryAnnounceClearNewTagReq(GamePacket request)
+    public async Task<GamePacket[]> OnGloryAnnounceClearNewTagReq(GamePacket request)
     {
+        var role = roles.Require(request.Uid);
         var announceID = pbCSGloryAnnounceClearNewTagReq.Parser.ParseFrom(request.PkgData).AnnounceID;
-        const PB_ENUM_RES_ERROR_CODE result = PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid;
-        logger.LogInformation("Glory announce {AnnounceID} new tag clear refused for uid {Uid}: {Result}", announceID, request.Uid, result);
+        var result = await customize.ClearGloryAnnounceNewTagAsync(role, announceID);
+        if (result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+        {
+            logger.LogInformation("Glory announce {AnnounceID} new tag clear refused for uid {Uid}: {Result}", announceID, request.Uid, result);
+        }
+
         var response = new pbSCGloryAnnounceClearNewTagRsp
         {
             ResultInfo = new pbResultInfo { ResultId = (int)result },

@@ -20,9 +20,15 @@ public sealed record PasterSprayUse(
     IReadOnlyList<BagItem> ChangedItems,
     pbSCUpdatePokemonAvatarNtf? UpdateNtf = null);
 
-public sealed class PokemonAvatarManager(GameData gameData, BagManager bag, PasterRepository repository, TimeProvider clock)
+public sealed class PokemonAvatarManager(
+    GameData gameData,
+    BagManager bag,
+    PasterRepository repository,
+    CustomizeRepository customizeRepository,
+    TimeProvider clock)
 {
     public const int NoPasterSpray = 0;
+    public const int NoPersonaliseButton = 0;
 
     private const int SprayerDaysParamIndex = 0;
     private const int SprayerPasterSprayParamIndex = 1;
@@ -57,15 +63,16 @@ public sealed class PokemonAvatarManager(GameData gameData, BagManager bag, Past
             ? null
             : BuildUpdatePokemonAvatarNtf(
                 PB_ENUM_ENM_POKEMON_AVATAR_UPDATE_TYPE.PbEnmPokemonAvatarUpdateTypeAdd,
-                pasters.Select(paster => BuildPaster(paster, NoPasterSpray)));
+                pasters.Select(paster => BuildPaster(paster, NoPasterSpray, NoPersonaliseButton)));
     }
 
     public static IEnumerable<GamePacket> BuildGainPushes(IEnumerable<RoleItemInfo> items) =>
         BuildGainNtf(items) is { } ntf ? [GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUpdatePokemonAvatarNtf, ntf)] : [];
 
-    public static pbCOMDT_PASTER BuildPaster(RoleItemInfo paster, int wearPasterSprayID) => new()
+    public static pbCOMDT_PASTER BuildPaster(RoleItemInfo paster, int wearPasterSprayID, int buttonID) => new()
     {
         PasterId = paster.ItemId,
+        ButtonID = buttonID,
         NewTag = paster.NewTag,
         TimeLimited = paster.TimeLimited,
         OwnedTime = paster.GainTime,
@@ -98,6 +105,7 @@ public sealed class PokemonAvatarManager(GameData gameData, BagManager bag, Past
     public async Task<pbCOMDT_POKEMON_PASTER_INFO> BuildPasterInfoAsync(LMNRoleInfo role)
     {
         var wornSprays = await LoadWornSpraysAsync(role);
+        var usedButtons = await customizeRepository.LoadUsedPersonaliseButtonsAsync(role.GameUlongUID);
         var info = new pbCOMDT_POKEMON_PASTER_INFO();
         info.PokemonPasterList.Add((await ListUsablePastersAsync(role))
             .GroupBy(paster => gameData.PokemonAvatarBase.Find(paster.ItemId)!.PokemonId)
@@ -105,7 +113,13 @@ public sealed class PokemonAvatarManager(GameData gameData, BagManager bag, Past
             .Select(group => new pbCOMDT_POKEMON_PASTER
             {
                 PokemonID = group.Key,
-                PasterList = { group.Select(paster => BuildPaster(paster, wornSprays.GetValueOrDefault(paster.ItemId))) },
+                PasterList =
+                {
+                    group.Select(paster => BuildPaster(
+                        paster,
+                        wornSprays.GetValueOrDefault(paster.ItemId),
+                        usedButtons.GetValueOrDefault(paster.ItemId))),
+                },
             }));
         return info;
     }
@@ -113,9 +127,16 @@ public sealed class PokemonAvatarManager(GameData gameData, BagManager bag, Past
     public async Task<pbCOMDT_POKEMON_PASTER_LIST> BuildUsablePasterListAsync(LMNRoleInfo role)
     {
         var wornSprays = await LoadWornSpraysAsync(role);
+        var usedButtons = await customizeRepository.LoadUsedPersonaliseButtonsAsync(role.GameUlongUID);
         return new pbCOMDT_POKEMON_PASTER_LIST
         {
-            PasterList = { (await ListUsablePastersAsync(role)).Select(paster => BuildPaster(paster, wornSprays.GetValueOrDefault(paster.ItemId))) },
+            PasterList =
+            {
+                (await ListUsablePastersAsync(role)).Select(paster => BuildPaster(
+                    paster,
+                    wornSprays.GetValueOrDefault(paster.ItemId),
+                    usedButtons.GetValueOrDefault(paster.ItemId))),
+            },
             SkillEffectsExpandPackInfo = await BuildSkillEffectsExpandPackListAsync(role),
         };
     }
@@ -320,9 +341,10 @@ public sealed class PokemonAvatarManager(GameData gameData, BagManager bag, Past
 
         await repository.WearSprayAsync(role.GameUlongUID, pasterID, pasterSprayID);
         var paster = role.GetOwnedItems(RoleItemType.Paster).First(owned => owned.ItemId == pasterID);
+        var usedButtons = await customizeRepository.LoadUsedPersonaliseButtonsAsync(role.GameUlongUID);
         var ntf = BuildUpdatePokemonAvatarNtf(
             PB_ENUM_ENM_POKEMON_AVATAR_UPDATE_TYPE.PbEnmPokemonAvatarUpdateTypeModify,
-            [BuildPaster(paster, pasterSprayID)]);
+            [BuildPaster(paster, pasterSprayID, usedButtons.GetValueOrDefault(pasterID))]);
         return new(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, await BuildPasterUsedSprayerInfoAsync(role, pasterID), [], ntf);
     }
 

@@ -1038,6 +1038,23 @@ CREATE TABLE IF NOT EXISTS `role_skill_effects_expand_pack` (
     CONSTRAINT fk_role_skill_effects_expand_pack_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `role_used_personalise_button` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    paster_id INT NOT NULL,
+    button_id INT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, paster_id),
+    CONSTRAINT fk_role_used_personalise_button_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_used_glory_announce` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    used_res_id INT NOT NULL,
+    used_res_type INT NOT NULL,
+    announce_id INT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, used_res_id),
+    CONSTRAINT fk_role_used_glory_announce_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `battle_ten_games_settlement` (
     settlement_id CHAR(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     plan LONGBLOB NOT NULL,

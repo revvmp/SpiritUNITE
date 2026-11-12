@@ -653,7 +653,11 @@ public sealed class MailManager(
         or PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesHeadicon
         or PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesHeadFrame
         or PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesContestantCardRecoration
-        or PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesSkilleffectsexpandpack;
+        or PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesSkilleffectsexpandpack
+        or PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesCardFace
+        or PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesCanopy
+        or PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesNewPersonaliseButton
+        or PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesGloryAnnounce;
 
     private bool CanAttachCosmetic(pbCOMDT_ONE_RESOURCE_AWARD_INFO award) =>
         (int)CoinID.GetResIDType(award.ResID) == award.ResType

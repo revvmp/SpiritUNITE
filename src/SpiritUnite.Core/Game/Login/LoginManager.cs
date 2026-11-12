@@ -76,6 +76,7 @@ public sealed class LoginManager(
     TenGamesManager tenGames,
     PveChallengeProgress pveChallenge,
     PveChallengeManager pveChallengeManager,
+    CustomizeManager customize,
     LobbyRoles lobbyRoles,
     BackgroundOperations operations,
     TimeProvider clock,
@@ -233,7 +234,7 @@ public sealed class LoginManager(
             AchievementInfo = new pbCOMDT_ROLE_ACHIEVEMENT_INFO(),
             BanInfo = EmptyChildren.Fill(new pbCOMDT_BAN_INFO()),
             NoneRechargeInfo = new pbCOMDT_NONE_RECHARGE_ACTIVITY_VIEW_INFO(),
-            PersonaliseButtonInfo = new pbCOMDT_PERSONALISE_BUTTON_LIST(),
+            PersonaliseButtonInfo = await customize.BuildPersonaliseButtonListAsync(role),
         };
         await rallyChallenge.FillAcntLoginRspAsync(role.GameUlongUID, acntLoginRsp);
         await allPkmChallenges.MailUnclaimedRewardsAsync(role);

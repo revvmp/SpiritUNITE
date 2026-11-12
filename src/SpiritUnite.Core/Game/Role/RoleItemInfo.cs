@@ -38,6 +38,8 @@ public sealed record RoleItemInfo(RoleItemType ItemType, int ItemId, long GainTi
             RoleItemType.Canopy => PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesCanopy,
             RoleItemType.PersonStyleHeadFrame => PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesHeadFrame,
             RoleItemType.CardFace => PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesCardFace,
+            RoleItemType.NewPersonaliseButton => PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesNewPersonaliseButton,
+            RoleItemType.GloryAnnounce => PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesGloryAnnounce,
             _ => throw new InvalidOperationException($"Item type {ItemType} has no resource type"),
         }),
     };

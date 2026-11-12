@@ -253,6 +253,7 @@ public static class Server
         builder.Services.AddSingleton<NewbieDropRepository>();
         builder.Services.AddSingleton<BagRepository>();
         builder.Services.AddSingleton<PasterRepository>();
+        builder.Services.AddSingleton<CustomizeRepository>();
         builder.Services.AddSingleton<PokemonUsedRepository>();
         builder.Services.AddSingleton<HeldItemRepository>();
         builder.Services.AddSingleton<BadgeRepository>();
@@ -372,6 +373,7 @@ public static class Server
         builder.Services.AddSingleton<BadgeManager>();
         builder.Services.AddSingleton<TmpNameManager>();
         builder.Services.AddSingleton<PokemonAvatarManager>();
+        builder.Services.AddSingleton<CustomizeManager>();
         builder.Services.AddSingleton<ActivationCodeManager>();
         builder.Services.AddSingleton<GiftCodeManager>();
         builder.Services.AddSingleton<ActivitySchedule>();

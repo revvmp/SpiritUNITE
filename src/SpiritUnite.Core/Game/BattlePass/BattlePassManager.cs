@@ -5,6 +5,7 @@ using SpiritUnite.Databin;
 using SpiritUnite.Game.Activity;
 using SpiritUnite.Game.Mail;
 using SpiritUnite.Game.PokemonAvatar;
+using SpiritUnite.Game.Profile;
 using SpiritUnite.Game.Ranked;
 using SpiritUnite.Game.Recharge;
 using SpiritUnite.Game.Role;
@@ -30,6 +31,7 @@ public sealed class BattlePassManager(
     RankedManager ranked,
     MailManager mail,
     ActivityRewardNotices rewardNotices,
+    GameData gameData,
     TimeProvider clock,
     ILogger<BattlePassManager> logger)
 {
@@ -356,6 +358,7 @@ public sealed class BattlePassManager(
                     AvatarInfo = item.ToAvatarInfo(),
                 })),
             .. PokemonAvatarManager.BuildGainPushes(grant.Items),
+            .. ProfileGainPushes.Build(gameData, role, grant.Items),
             .. await rewardNotices.BuildAsync(role, rewardGroup),
             .. grant.Awards.Count > 0
                 ? [GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidResourcesAwardNotify, new pbSCResourcesAwardNotify

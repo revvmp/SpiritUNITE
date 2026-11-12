@@ -4,6 +4,7 @@ using SpiritUnite.Databin;
 using SpiritUnite.Game.Bag;
 using SpiritUnite.Game.Lobby;
 using SpiritUnite.Game.PokemonAvatar;
+using SpiritUnite.Game.Profile;
 using SpiritUnite.Game.Ranked;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Game.Wallet;
@@ -264,6 +265,11 @@ public sealed class RankedMatchHandlers(
         if (PokemonAvatarManager.BuildGainNtf(grant.Items) is { } pokemonAvatarNtf)
         {
             yield return request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdatePokemonAvatarNtf, pokemonAvatarNtf);
+        }
+
+        foreach (var profileGain in ProfileGainPushes.Build(gameData, role, grant.Items))
+        {
+            yield return profileGain;
         }
 
         if (grant.Items.Any(item => item.ItemType == RoleItemType.LobbyBg))

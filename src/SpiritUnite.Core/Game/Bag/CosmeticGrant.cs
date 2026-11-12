@@ -52,6 +52,11 @@ public sealed record CosmeticGrant(
             RoleItemType.SkillEffectsExpandPack,
         PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesHeadFrame when gameData.PersonStyleHeadFrame.Contains(resID) =>
             RoleItemType.PersonStyleHeadFrame,
+        PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesCardFace when gameData.CardFace.Contains(resID) => RoleItemType.CardFace,
+        PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesCanopy when gameData.CanopyBase.Contains(resID) => RoleItemType.Canopy,
+        PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesNewPersonaliseButton when gameData.PersonaliseButton.Contains(resID) =>
+            RoleItemType.NewPersonaliseButton,
+        PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesGloryAnnounce when gameData.GloryAnnounce.Contains(resID) => RoleItemType.GloryAnnounce,
         _ => null,
     };
 
@@ -63,6 +68,10 @@ public sealed record CosmeticGrant(
         RoleItemType.ContestantCardDecoration => gameData.ContestantCardDecoration.Find(itemId) is { } row ? new(row.Transmuteid, row.TransmuteNum) : null,
         RoleItemType.SkillEffectsExpandPack => gameData.SkillEffectExpandPackBase.Find(itemId) is { } row ? new(row.Transmuteid, row.TransmuteNum) : null,
         RoleItemType.PersonStyleHeadFrame => gameData.PersonStyleHeadFrame.Find(itemId) is { } row ? new(row.Transmuteid, row.TransmuteNum) : null,
+        RoleItemType.CardFace => gameData.CardFace.Find(itemId) is { } row ? new(row.TransmuteID, row.TransmuteNum) : null,
+        RoleItemType.Canopy => gameData.CanopyBase.Find(itemId) is { } row ? new(row.Transmuteid, row.TransmuteNum) : null,
+        RoleItemType.NewPersonaliseButton => gameData.PersonaliseButton.Find(itemId) is { } row ? new(row.Transmuteid, row.TransmuteNum) : null,
+        RoleItemType.GloryAnnounce => gameData.GloryAnnounce.Find(itemId) is { } row ? new(row.Transmuteid, row.TransmuteNum) : null,
         _ => null,
     };
 

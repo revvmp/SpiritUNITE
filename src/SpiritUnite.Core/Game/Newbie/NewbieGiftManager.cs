@@ -5,6 +5,7 @@ using SpiritUnite.Game.Bag;
 using SpiritUnite.Game.Lobby;
 using SpiritUnite.Game.Pokemon;
 using SpiritUnite.Game.PokemonAvatar;
+using SpiritUnite.Game.Profile;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Game.StarRoad;
 using SpiritUnite.Game.Tasks;
@@ -162,6 +163,7 @@ public sealed class NewbieGiftManager(
         }
 
         grants.AddRange(PokemonAvatarManager.BuildGainPushes(grant.Items));
+        grants.AddRange(ProfileGainPushes.Build(gameData, role, grant.Items));
         grants.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidResourcesAwardNotify, new pbSCResourcesAwardNotify
         {
             ResultInfo = new pbResultInfo(),

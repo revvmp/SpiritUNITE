@@ -11,6 +11,8 @@ public enum RoleItemType
     Badge = 10,
     Canopy = 11,
     SkillEffectsExpandPack = 13,
+    NewPersonaliseButton = 20,
+    GloryAnnounce = 21,
     PersonStyleHeadFrame = 24,
     CardFace = 27,
 }

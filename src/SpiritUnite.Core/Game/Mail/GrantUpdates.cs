@@ -2,6 +2,7 @@ using SpiritUnite.Databin;
 using SpiritUnite.Game.Badge;
 using SpiritUnite.Game.Bag;
 using SpiritUnite.Game.PokemonAvatar;
+using SpiritUnite.Game.Profile;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Game.StarRoad;
 using SpiritUnite.Game.Wallet;
@@ -33,6 +34,8 @@ public sealed class GrantUpdates(GameData gameData, StarRoadManager starRoad, Ba
         {
             packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUpdatePokemonAvatarNtf, pokemonAvatarNtf));
         }
+
+        packets.AddRange(ProfileGainPushes.Build(gameData, role, claims.SelectMany(claim => claim.Grant.Items)));
 
         if (claims.SelectMany(claim => claim.ChangedBagItems).ToArray() is { Length: > 0 } changedBagItems)
         {

@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using SpiritUnite.Database.Repositories;
 using SpiritUnite.Game.Bag;
 using SpiritUnite.Databin;
+using SpiritUnite.Game.Pokemon;
 using SpiritUnite.Game.PokemonAvatar;
 using SpiritUnite.Tools;
 using SpiritUnite.Game.Recharge;
@@ -334,6 +335,16 @@ public sealed class ShopManager(
             return AddPasterGrant(role, shopItem, num, gainTime, items);
         }
 
+        if (IsProfileCosmetic(shopItem.ShopResID))
+        {
+            return AddProfileCosmeticGrant(role, shopItem, num, gainTime, items);
+        }
+
+        if (CustomizeGrant.AddShopGrant(gameData, role, shopItem.ShopResID, num, gainTime, items) is { } customizeResult)
+        {
+            return customizeResult;
+        }
+
         var (avatarIDs, lobbyBgId, pokemonId) = ResolveShopRes(shopItem);
         if (avatarIDs.Length == 0 && lobbyBgId is null && pokemonId is null)
         {
@@ -387,6 +398,30 @@ public sealed class ShopManager(
         return AddItemGrant(role, RoleItemType.Paster, shopItem.ShopResID, gainTime, items)
             ? PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc
             : PB_ENUM_RES_ERROR_CODE.PbErrShopItemExist;
+    }
+
+    private bool IsProfileCosmetic(int shopResID) =>
+        CosmeticGrant.FindItemType(gameData, shopResID) is RoleItemType.ContestantCardDecoration or RoleItemType.CardFace or RoleItemType.Canopy;
+
+    private PB_ENUM_RES_ERROR_CODE AddProfileCosmeticGrant(
+        LMNRoleInfo role,
+        pbShop shopItem,
+        int num,
+        long gainTime,
+        List<RoleItemInfo> items)
+    {
+        if (num != PermanentItemBuyNum)
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrShopBuyNumFail;
+        }
+
+        if (CosmeticGrant.Plan(gameData, bag, role, shopItem.ShopResID, num, gainTime, items) is not { Item: { } item })
+        {
+            return PB_ENUM_RES_ERROR_CODE.PbErrShopItemExist;
+        }
+
+        items.Add(item);
+        return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
     private PB_ENUM_RES_ERROR_CODE AddOutSideItemGrant(pbShop shopItem, int num, List<BagGrant> outSideItems)
