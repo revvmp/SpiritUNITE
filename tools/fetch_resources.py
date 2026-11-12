@@ -839,7 +839,10 @@ def resolve_resource_directory(argument):
         return argument.resolve()
     configured = DEFAULT_RESOURCE_DIRECTORY
     if APPSETTINGS_PATH.is_file():
-        section = read_json_file(APPSETTINGS_PATH).get("ResourceArchive")
+        settings = read_json_file(APPSETTINGS_PATH)
+        if not isinstance(settings, dict):
+            raise FetchError(f"{APPSETTINGS_PATH} is not a JSON object")
+        section = settings.get("ResourceArchive")
         if isinstance(section, dict) and isinstance(section.get("Directory"), str) and section["Directory"].strip():
             configured = section["Directory"]
     return (REPOSITORY_ROOT / configured).resolve()
@@ -865,9 +868,9 @@ def parse_arguments():
 
 def main():
     arguments = parse_arguments()
-    resource_directory = resolve_resource_directory(arguments.resources)
-    print(f"Resource directory: {resource_directory}", flush=True)
     try:
+        resource_directory = resolve_resource_directory(arguments.resources)
+        print(f"Resource directory: {resource_directory}", flush=True)
         if arguments.command == "archives":
             platforms = list(PLATFORMS.values()) if arguments.platform == "all" else [PLATFORMS[arguments.platform]]
             fetch_archives(platforms, resource_directory)
