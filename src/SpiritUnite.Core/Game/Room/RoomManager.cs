@@ -249,6 +249,11 @@ public sealed class RoomManager(
                 return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrStillInOtherRoom);
             }
 
+            if (!lobbyRoles.IsOnline(uid))
+            {
+                return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrRoomAcntInvalid);
+            }
+
             if (plan.SettleRoom is { } settleRoom && roomsById.GetValueOrDefault(settleRoom.RoomID) == settleRoom)
             {
                 return Join(
@@ -1088,7 +1093,6 @@ public sealed class RoomManager(
     {
         lock (gate)
         {
-            settleRoomsByUid.Remove(uid);
             return roomsByUid.TryGetValue(uid, out var room)
                 ? Leave(room, room.FindMember(uid)!, PB_ENUM_ENM_MATCHTEAM_DESTORY_REASON.PbEnmMatchteamDestoryReasonAcntleave)
                 : new RoomOutcome();

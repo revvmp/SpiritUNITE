@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Text;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
+using SpiritUnite.Battle;
 using SpiritUnite.Database.Models;
 using SpiritUnite.Database.Repositories;
 using SpiritUnite.Game.Friend;
@@ -25,6 +26,8 @@ public sealed class ChatManager
     private const int FriendChatFastContent = (int)PB_ENUM_ENM_CHAT_CONTENT_TYPE.PbEnmChatContentTypeFast;
     private const int RoomChatStr = (int)PB_ENUM_ENM_CHAT_ROOM_CHAT_TYPE.PbEnmChatRoomChatTypeStr;
     private const int RoomChatId = (int)PB_ENUM_ENM_CHAT_ROOM_CHAT_TYPE.PbEnmChatRoomChatTypeId;
+    private const int BattleChatStr = (int)PB_ENUM_ENM_CHAT_BATTLE_CHAT_TYPE.PbEnmChatBattleChatTypeStr;
+    private const int BattleChatId = (int)PB_ENUM_ENM_CHAT_BATTLE_CHAT_TYPE.PbEnmChatBattleChatTypeId;
     private const int BannedChat = 1;
 
     private static readonly TimeSpan ChatCoolDown = TimeSpan.FromMilliseconds(500);
@@ -32,6 +35,7 @@ public sealed class ChatManager
     private readonly ChatRepository repository;
     private readonly FriendRepository friendRepository;
     private readonly RoomManager rooms;
+    private readonly DeskManager desks;
     private readonly LobbyRoles lobbyRoles;
     private readonly TimeProvider clock;
     private readonly ILogger<ChatManager> logger;
@@ -41,6 +45,7 @@ public sealed class ChatManager
         ChatRepository repository,
         FriendRepository friendRepository,
         RoomManager rooms,
+        DeskManager desks,
         LobbyRoles lobbyRoles,
         TimeProvider clock,
         ILogger<ChatManager> logger)
@@ -48,6 +53,7 @@ public sealed class ChatManager
         this.repository = repository;
         this.friendRepository = friendRepository;
         this.rooms = rooms;
+        this.desks = desks;
         this.lobbyRoles = lobbyRoles;
         this.clock = clock;
         this.logger = logger;
@@ -70,12 +76,11 @@ public sealed class ChatManager
                 await ChatToFriendAsync(role, privateChat, now),
             PB_ENUM_RES_CHAT_MSG_TYPE.PbResChatMsgTypeRoom when chatMsg.ChatInfo?.Room is { } room =>
                 await ChatToRoomAsync(role, room, now),
+            PB_ENUM_RES_CHAT_MSG_TYPE.PbResChatMsgTypeBattle when chatMsg.ChatInfo?.Battle is { } battle =>
+                await ChatToHeroSelectionAsync(role, battle, now),
             _ => new(PB_ENUM_RES_ERROR_CODE.PbErrCommonParamInvalid),
         };
     }
-
-    public async Task<int> GetAcceptChatConventionAsync(ulong uid) =>
-        (await friendRepository.GetSocialAsync(uid)).AcceptChatConvention;
 
     public Task AcceptChatConventionAsync(ulong uid) =>
         friendRepository.SaveAcceptChatConventionAsync(uid, AcceptedChatConvention);
@@ -198,6 +203,52 @@ public sealed class ChatManager
         }
 
         logger.LogInformation("Room chat from uid {Uid} to {Count} room members", uid, memberUids.Length);
+        return new(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, chatMsg);
+    }
+
+    private async Task<ChatOutcome> ChatToHeroSelectionAsync(LMNRoleInfo role, pbCOMDT_CHAT_MSG_BATTLE battle, DateTimeOffset now)
+    {
+        var uid = role.GameUlongUID;
+        var contentRefusal = ValidateContent(
+            battle.Type,
+            battle.ChatInfo?.StrChat?.Content ?? string.Empty,
+            battle.ChatInfo?.IdChat?.TextID ?? 0,
+            BattleChatStr,
+            BattleChatId);
+        if (contentRefusal != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+        {
+            return new(contentRefusal);
+        }
+
+        if (desks.FindPickingCampmateUids(uid) is not { } campmateUids)
+        {
+            return new(PB_ENUM_RES_ERROR_CODE.PbErrAccountNotInDesk);
+        }
+
+        var chatMsg = new pbCOMDT_CHAT_MSG
+        {
+            Type = (int)PB_ENUM_RES_CHAT_MSG_TYPE.PbResChatMsgTypeBattle,
+            ChatInfo = new pbCOMDT_CHAT_MSG_UNION
+            {
+                Battle = new pbCOMDT_CHAT_MSG_BATTLE
+                {
+                    From = RoleBrief.BuildChatPlayerInfo(role),
+                    Type = battle.Type,
+                    ChatInfo = battle.Type == BattleChatId
+                        ? new pbCOMDT_CHAT_BATTLE_MSG_UNION { IdChat = new pbCOMDT_CHAT_BATTLE_CHAT_ID { TextID = battle.ChatInfo!.IdChat!.TextID } }
+                        : new pbCOMDT_CHAT_BATTLE_MSG_UNION { StrChat = new pbCOMDT_CHAT_BATTLE_CHAT_STR { Content = battle.ChatInfo!.StrChat!.Content } },
+                },
+            },
+        };
+        var notify = GamePacket.Create(
+            PB_ENUM_CS_MSGID_DEF.PbScidChatMsgNtf,
+            new pbSCChatMsgNtf { ChatMsg = { chatMsg }, TimeStamp = now.ToUnixTimeSeconds() });
+        foreach (var campmateUid in campmateUids)
+        {
+            await lobbyRoles.PushAsync(campmateUid, notify);
+        }
+
+        logger.LogInformation("Hero selection chat from uid {Uid} to {Count} campmates", uid, campmateUids.Length);
         return new(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, chatMsg);
     }
 

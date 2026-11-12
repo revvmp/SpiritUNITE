@@ -31,7 +31,7 @@ public sealed class GuildHandlers(
     {
         roles.Require(request.Uid);
         pbCSGuildQueryReq.Parser.ParseFrom(request.PkgData);
-        return [request.Reply(PbScidGuildQueryRsp, await guilds.QueryAsync(request.Uid))];
+        return Send(request, PbScidGuildQueryRsp, await guilds.QueryAsync(request.Uid));
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PbCsidGuildMemberListReq)]

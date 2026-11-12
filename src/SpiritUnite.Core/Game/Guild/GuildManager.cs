@@ -148,7 +148,7 @@ public sealed class GuildManager(
             [BuildInfoChgNtf(guild, member)]);
     }
 
-    public async Task<pbSCGuildQueryRsp> QueryAsync(ulong uid)
+    public async Task<GuildOutcome<pbSCGuildQueryRsp>> QueryAsync(ulong uid)
     {
         if (await FindMembershipAsync(uid) is not { } membership)
         {
@@ -165,7 +165,13 @@ public sealed class GuildManager(
             GuildActivityInfo = await activities.BuildActivityInfoAsync(uid, guildID),
         });
         response.GuildInfo = guildInfo;
-        return response;
+        return new GuildOutcome<pbSCGuildQueryRsp>(response, [])
+        {
+            Leading = [GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidRedDotClearNtf, new pbSCRedDotClearNtf
+            {
+                RedDotID = (int)PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdGuildActivityTeam,
+            })],
+        };
     }
 
     public async Task<pbSCGuildMemberListRsp?> MemberListAsync(ulong uid)

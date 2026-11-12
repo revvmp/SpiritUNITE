@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using SpiritUnite.Battle;
+using SpiritUnite.Database.Repositories;
 using SpiritUnite.Databin;
 using SpiritUnite.Game.Friend;
 using SpiritUnite.Game.Ranked;
@@ -14,6 +15,8 @@ public sealed class RoomInvites(
     RoomManager rooms,
     FriendManager friends,
     FriendPresence presence,
+    GuildRepository guilds,
+    TenGamesRepository tenGames,
     RoleInfoStore roles,
     RankedManager ranked,
     ObserveManager observes,
@@ -31,7 +34,7 @@ public sealed class RoomInvites(
 
     public async Task<RoomOutcome> InviteAsync(ulong uid, ulong targetUid, int inviteType, int inviterType)
     {
-        if (await CheckFriendAsync(uid, targetUid) is { } refusal)
+        if (await CheckInviterRelationAsync(uid, targetUid, inviterType) is { } refusal)
         {
             return refusal;
         }
@@ -90,7 +93,7 @@ public sealed class RoomInvites(
 
     public async Task<RoomOutcome> RequestJoinAsync(ulong uid, ulong friendUid, int inviterType)
     {
-        if (await CheckFriendAsync(uid, friendUid) is { } refusal)
+        if (await CheckInviterRelationAsync(uid, friendUid, inviterType) is { } refusal)
         {
             return refusal;
         }
@@ -151,7 +154,7 @@ public sealed class RoomInvites(
         });
     }
 
-    private async Task<RoomOutcome?> CheckFriendAsync(ulong uid, ulong otherUid)
+    private async Task<RoomOutcome?> CheckInviterRelationAsync(ulong uid, ulong otherUid, int inviterType)
     {
         if (otherUid == uid || otherUid == 0)
         {
@@ -163,10 +166,29 @@ public sealed class RoomInvites(
             return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrFriendNotOnline);
         }
 
-        return await friends.FindFriendAsync(uid, otherUid) is null
-            ? RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrFriendNotFriend)
-            : null;
+        return (PB_ENUM_ENM_FRIEND_INVITER_TYPE)inviterType switch
+        {
+            PB_ENUM_ENM_FRIEND_INVITER_TYPE.PbEnmFriendInviterTypeGuild => await AreInOneGuildAsync(uid, otherUid)
+                ? null
+                : RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrGuildMemberNotExist),
+            PB_ENUM_ENM_FRIEND_INVITER_TYPE.PbEnmFriendInviterTypeTengames => await AreInOneTenGamesTeamAsync(uid, otherUid)
+                ? null
+                : RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrTenGamesOhterNotInTeam),
+            _ => await friends.FindFriendAsync(uid, otherUid) is null
+                ? RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrFriendNotFriend)
+                : null,
+        };
     }
+
+    private async Task<bool> AreInOneGuildAsync(ulong uid, ulong otherUid) =>
+        await guilds.FindMemberAsync(uid) is { } member
+        && await guilds.FindMemberAsync(otherUid) is { } otherMember
+        && member.GuildID == otherMember.GuildID;
+
+    private async Task<bool> AreInOneTenGamesTeamAsync(ulong uid, ulong otherUid) =>
+        await tenGames.FindMemberAsync(uid) is { } member
+        && await tenGames.FindMemberAsync(otherUid) is { } otherMember
+        && member.TeamID == otherMember.TeamID;
 
     private pbCOMDT_ROLE_INVITE_INFO BuildInviteInfo(ulong uid)
     {

@@ -6,8 +6,8 @@ using SpiritUnite.Game.Bag;
 using SpiritUnite.Game.Badge;
 using SpiritUnite.Game.BattlePass;
 using SpiritUnite.Databin;
+using SpiritUnite.Database.Repositories;
 using SpiritUnite.Game.Energy;
-using SpiritUnite.Game.Chat;
 using SpiritUnite.Game.Credit;
 using SpiritUnite.Game.Friend;
 using SpiritUnite.Game.Guild;
@@ -47,7 +47,7 @@ public sealed class LoginManager(
     MegaEvolutionManager megaEvolution,
     BagManager bag,
     BadgeManager badges,
-    ChatManager chat,
+    FriendRepository friendRepository,
     HeldItemManager heldItems,
     PokemonManager pokemon,
     ProfileManager profiles,
@@ -206,7 +206,7 @@ public sealed class LoginManager(
             SpecialCoin = wallet.BuildSpecialCoinInfo(),
             SpecialSaleInfo = ShopBuyRecord.BuildSpecialSaleInfo(buyRecords),
             HeldItemSlotUnlockInfo = await heldItems.BuildHeldItemSlotUnlockInfoAsync(role),
-            AcceptChatConvention = await chat.GetAcceptChatConventionAsync(role.GameUlongUID),
+            AcceptChatConvention = (await friendRepository.GetSocialAsync(role.GameUlongUID)).AcceptChatConvention,
             HeadIconInfo = profiles.BuildHeadIconInfo(role, style),
             PlayerContestantInfo = profiles.BuildLoginPlayerContestantInfo(role, style),
             IsAnonymity = style.IsAnonymity,
@@ -304,6 +304,7 @@ public sealed class LoginManager(
 
     private async Task<GamePacket[]> BuildReturningLoginAsync(GamePacket request, LMNRoleInfo role, bool offingRestart)
     {
+        await StoreMailRedDotsAsync(role.GameUlongUID);
         await StoreFourteenDayRedDotAsync(role);
         await StoreEeveeChallengeRedDotAsync(role);
         var clientSettings = await settings.LoadAsync(role.GameUlongUID);
@@ -348,6 +349,7 @@ public sealed class LoginManager(
     private async Task<GamePacket[]> BuildColdLoginAsync(GamePacket request, LMNRoleInfo role, bool isFirstLoginInToday)
     {
         var uid = role.GameUlongUID;
+        await StoreMailRedDotsAsync(uid);
         await StoreFourteenDayRedDotAsync(role);
         await StoreEeveeChallengeRedDotAsync(role);
         var creditPointTaskInfo = isFirstLoginInToday
@@ -522,6 +524,16 @@ public sealed class LoginManager(
 
     private static pbCOMDT_RED_DOT_DETAIL[] BuildRedDot(PB_ENUM_RES_RED_DOT_ID redDotID, int redDotBadgeNum) =>
         redDotBadgeNum > 0 ? [new pbCOMDT_RED_DOT_DETAIL { RedDotID = (int)redDotID, RedDotBadgeNum = redDotBadgeNum }] : [];
+
+    private async Task StoreMailRedDotsAsync(ulong uid)
+    {
+        var mailRedDots = await mail.BuildAllUnreadRedDotCountsAsync(uid);
+        await settings.ReplaceRedDotsAsync(uid, [.. mailRedDots.Where(redDot => redDot.RedDotBadgeNum > 0)]);
+        foreach (var unreadRedDot in mailRedDots.Where(redDot => redDot.RedDotBadgeNum == 0))
+        {
+            await settings.ClearRedDotAsync(uid, unreadRedDot.RedDotID);
+        }
+    }
 
     private async Task StoreFourteenDayRedDotAsync(LMNRoleInfo role)
     {
