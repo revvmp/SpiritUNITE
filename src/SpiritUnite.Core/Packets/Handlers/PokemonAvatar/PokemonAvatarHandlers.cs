@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SpiritUnite.Battle;
 using SpiritUnite.Game.Bag;
 using SpiritUnite.Game.PokemonAvatar;
 using SpiritUnite.Game.Role;
@@ -9,6 +10,7 @@ namespace SpiritUnite.Packets.Handlers.PokemonAvatar;
 public sealed class PokemonAvatarHandlers(
     RoleInfoStore roles,
     PokemonAvatarManager pokemonAvatars,
+    DeskManager desks,
     ILogger<PokemonAvatarHandlers> logger)
 {
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidUseSkillEffectsExpandPackReq)]
@@ -18,8 +20,12 @@ public sealed class PokemonAvatarHandlers(
         var packID = pbCSUseSkillEffectsExpandPackReq.Parser.ParseFrom(request.PkgData).SkillEffectsExpandPackID;
         var use = await pokemonAvatars.UseSkillEffectsExpandPackAsync(role, packID);
         logger.LogInformation("Skill effect pack {PackID} use by uid {Uid}: {Result}", packID, role.GameUlongUID, use.Result);
+        var pickNotices = use.Result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc
+            ? await desks.DeliverAsync(request.Uid, await desks.ChangeCosmeticsAsync(role, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroSelectPackChg))
+            : [];
         return
         [
+            .. pickNotices.Select(message => request.Reply(message.MsgID, message.Message)),
             .. use.UpdateNtf is { } ntf ? [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdateSkillEffectsExpandPackNtf, ntf)] : Array.Empty<GamePacket>(),
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUseSkillEffectsExpandPackRsp, new pbSCUseSkillEffectsExpandPackRsp
             {
@@ -152,8 +158,12 @@ public sealed class PokemonAvatarHandlers(
             use.PasterID,
             role.GameUlongUID,
             spray.Result);
+        var pickNotices = spray.Result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc
+            ? await desks.DeliverAsync(request.Uid, await desks.ChangeCosmeticsAsync(role, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroPasterChg))
+            : [];
         return
         [
+            .. pickNotices.Select(message => request.Reply(message.MsgID, message.Message)),
             .. spray.UpdateNtf is { } ntf ? [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdatePokemonAvatarNtf, ntf)] : Array.Empty<GamePacket>(),
             request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidBattlePasterUseSprayerRsp, new pbSCBattlePasterUseSprayerRsp
             {

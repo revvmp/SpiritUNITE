@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SpiritUnite.Battle;
 using SpiritUnite.Game.Lobby;
 using SpiritUnite.Game.Pokemon;
 using SpiritUnite.Game.Role;
@@ -6,7 +7,7 @@ using SpiritUnite.Packets.Messages;
 
 namespace SpiritUnite.Packets.Handlers.Pokemon;
 
-public sealed class CustomizeHandlers(RoleInfoStore roles, CustomizeManager customize, ILogger<CustomizeHandlers> logger)
+public sealed class CustomizeHandlers(RoleInfoStore roles, CustomizeManager customize, DeskManager desks, ILogger<CustomizeHandlers> logger)
 {
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetPersonaliseButtonReq)]
     public async Task<GamePacket[]> OnGetPersonaliseButtonReq(GamePacket request)
@@ -36,6 +37,10 @@ public sealed class CustomizeHandlers(RoleInfoStore roles, CustomizeManager cust
             logger.LogInformation("Personalise button {ButtonID} set on {Count} holowear for uid {Uid}", selection.ButtonID, outcome.PasterIds.Length, request.Uid);
         }
 
+        var pickNotices = outcome.Result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc
+            ? await desks.DeliverAsync(request.Uid, await desks.ChangeCosmeticsAsync(role, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoicePersonaliseButtonChg))
+            : [];
+
         var response = new pbSCSetPersonaliseButtonRsp
         {
             ResultInfo = new pbResultInfo { ResultId = (int)outcome.Result },
@@ -43,7 +48,11 @@ public sealed class CustomizeHandlers(RoleInfoStore roles, CustomizeManager cust
             ButtonID = selection.ButtonID,
             PasterList = selection.PasterList ?? new pbCOMDT_PASTERID_LIST(),
         };
-        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidSetPersonaliseButtonRsp, response)];
+        return
+        [
+            .. pickNotices.Select(message => request.Reply(message.MsgID, message.Message)),
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidSetPersonaliseButtonRsp, response),
+        ];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetGloryAnnounceListReq)]
@@ -92,12 +101,20 @@ public sealed class CustomizeHandlers(RoleInfoStore roles, CustomizeManager cust
                 request.Uid);
         }
 
+        var pickNotices = result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc
+            ? await desks.DeliverAsync(request.Uid, await desks.ChangeCosmeticsAsync(role, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceGloryAnnounceChg))
+            : [];
+
         var response = new pbSCSetGloryAnnounceRsp
         {
             ResultInfo = new pbResultInfo { ResultId = (int)result },
             GloryAnnounceInfo = announce,
         };
-        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidSetGloryAnnounceRsp, response)];
+        return
+        [
+            .. pickNotices.Select(message => request.Reply(message.MsgID, message.Message)),
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidSetGloryAnnounceRsp, response),
+        ];
     }
 
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGloryAnnounceClearNewTagReq)]

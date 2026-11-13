@@ -141,6 +141,31 @@ public sealed class PokemonAvatarManager(
         };
     }
 
+    public async Task<BattleCosmetics> LoadBattleCosmeticsAsync(LMNRoleInfo role, IReadOnlyDictionary<int, int> wearCardFaceIDs)
+    {
+        var owned = OwnedSkillEffectsExpandPacks(role);
+        var usingPacks = ResolveUsingSkillEffectsExpandPacks(owned, await repository.LoadUsingSkillEffectsExpandPacksAsync(role.GameUlongUID));
+        var sprayBuffIDs = (await LoadWornSpraysAsync(role))
+            .Where(worn => role.OwnsItem(RoleItemType.Paster, worn.Key))
+            .Select(worn => (PasterID: worn.Key, Spray: gameData.PasterSpray.Find(worn.Value)))
+            .Where(worn => worn.Spray is { SprayBuffID: not 0 })
+            .ToDictionary(worn => worn.PasterID, worn => worn.Spray!.SprayBuffID);
+        var packsByPaster = usingPacks
+            .Select(packID => gameData.SkillEffectExpandPackBase.Find(packID))
+            .OfType<pbSkillEffectExpandPack_Base>()
+            .GroupBy(pack => pack.PokemonAvatarId)
+            .ToDictionary(group => group.Key, group => group.OrderBy(pack => pack.SkillEffectsExpandPackType).Select(pack => pack.SkillEffectsExpandPackID).ToArray());
+        var announces = (await customizeRepository.LoadUsedGloryAnnouncesAsync(role.GameUlongUID))
+            .GroupBy(use => use.UsedResID)
+            .ToDictionary(group => group.Key, group => group.First().AnnounceID);
+        return new BattleCosmetics(
+            await customizeRepository.LoadUsedPersonaliseButtonsAsync(role.GameUlongUID),
+            sprayBuffIDs,
+            packsByPaster,
+            announces,
+            wearCardFaceIDs);
+    }
+
     public async Task<PB_ENUM_RES_ERROR_CODE> ValidateWearAsync(LMNRoleInfo role, int pokemonId, int pasterID)
     {
         if (pasterID == PokemonManager.NoPaster)

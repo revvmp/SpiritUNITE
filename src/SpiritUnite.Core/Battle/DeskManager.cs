@@ -48,6 +48,7 @@ public sealed class DeskManager
     private const int TrainerItemType = (int)PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypeTraineritem;
     private const int ForeverShowIcon = (int)PB_ENUM_ENM_PICK_POKEMON_SHOW_ICON_TYPE.PbEnmPickPokemonShowIconTypeForever;
     private const int FreeShowIcon = (int)PB_ENUM_ENM_PICK_POKEMON_SHOW_ICON_TYPE.PbEnmPickPokemonShowIconTypeFree;
+    private const int TimeLimitedShowIcon = (int)PB_ENUM_ENM_PICK_POKEMON_SHOW_ICON_TYPE.PbEnmPickPokemonShowIconTypeTimelimited;
     private const int LastEffectUpdReason = (int)PB_ENUM_ENM_PICK_UPD_TIME_REASON.PbEnmPickUpdTimeLasteffect;
     private const int RandomTeamPickMode = 1;
     private const int ShownInBox = 0;
@@ -333,6 +334,7 @@ public sealed class DeskManager
 
             foreach (var human in GvoiceRoomHumans(desk))
             {
+                battleVoice.GrantGvoiceRoom(human.Uid, CampGvoiceRoom(desk, human.CampClient));
                 outcome.Push(human.Uid, PB_ENUM_CS_MSGID_DEF.PbScidJoinGvoiceRoomNtf, RoomNotices.JoinGvoiceRoom());
             }
         }
@@ -537,11 +539,57 @@ public sealed class DeskManager
         ChangeHeroLoadout(uid, pokemonId, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON.PbEnmChoiceHeroPasterChg, (player, choice) =>
         {
             choice.WearPasterID = pasterID;
+            player.Cosmetics.ApplyTo(choice, pokemonId);
             foreach (var detail in player.CampPlayerInfo.UsableHero.HeroDetail.Where(detail => detail.HeroID == choice.HeroID))
             {
                 detail.WearPasterID = pasterID;
             }
         });
+
+    public async Task<RoomOutcome> ChangeCosmeticsAsync(LMNRoleInfo role, PB_ENUM_ENM_CHOICE_HERO_CHG_REASON chgReason)
+    {
+        var uid = role.GameUlongUID;
+        IReadOnlyDictionary<int, int> wearCardFaceIDs;
+        lock (gate)
+        {
+            if (FindPickingHuman(uid, out _, out var picker) is not null)
+            {
+                return new RoomOutcome();
+            }
+
+            wearCardFaceIDs = picker.Cosmetics.WearCardFaceIDs;
+        }
+
+        var cosmetics = await pokemon.LoadBattleCosmeticsAsync(role, wearCardFaceIDs);
+        lock (gate)
+        {
+            var outcome = new RoomOutcome();
+            if (FindPickingHuman(uid, out var desk, out var player) is not null)
+            {
+                return outcome;
+            }
+
+            player.Cosmetics = cosmetics;
+            foreach (var (heroID, template) in player.UsableHeroes)
+            {
+                if (pokemonByHeroID.GetValueOrDefault(heroID) is { } hero)
+                {
+                    cosmetics.ApplyTo(template, hero.PokemonId);
+                }
+            }
+
+            if (pokemonByHeroID.GetValueOrDefault(player.ChosenHeroID) is not { } chosen)
+            {
+                return outcome;
+            }
+
+            var before = player.ChoiceHero.Clone();
+            cosmetics.ApplyTo(player.ChoiceHero, chosen.PokemonId);
+            return player.ChoiceHero.Equals(before)
+                ? outcome
+                : outcome.PushAll(desk.HumanUidsOf(player.CampClient), PB_ENUM_CS_MSGID_DEF.PbScidChoiceHeroChgNtf, BuildChoiceHeroChgNtf(player, chgReason));
+        }
+    }
 
     public FriendlyRoomRules? FindPickRoomRules(ulong uid)
     {
@@ -781,7 +829,7 @@ public sealed class DeskManager
     {
         lock (gate)
         {
-            if (FindLockableHero(uid, heroID, out _, out _) is { } refusal)
+            if (FindConfirmableHero(uid, heroID) is { } refusal)
             {
                 return refusal;
             }
@@ -979,9 +1027,10 @@ public sealed class DeskManager
         var style = await profiles.LoadAsync(role.GameUlongUID);
         var usedPokemon = (await pokemon.LoadUsedPokemonAsync(role)).ToDictionary(used => used.PokemonId);
         var ownedItems = await bag.GetOwnedOutSideItemsAsync(role.GameUlongUID);
+        var now = clock.GetUtcNow().ToUnixTimeSeconds();
         var heldItemLevels = ownedItems
             .Where(item => gameData.OutSideItemBase.Find(item.ItemId)?.OutSideItemCategory == BagManager.HeldItemCategory)
-            .ToDictionary(item => item.ItemId, item => item.Level);
+            .ToDictionary(item => item.ItemId, item => item.BattleLevelAt(now));
         if (roomRules.IsFullHeldItem)
         {
             foreach (var heldItem in gameData.OutSideItemBase.Rows.Where(item => item.OutSideItemCategory == BagManager.HeldItemCategory))
@@ -1008,23 +1057,29 @@ public sealed class DeskManager
                 .Distinct()
                 .Order(),
         ];
-        var loadout = new HumanLoadout(heldItemLevels, trainerItemIDs, showsWayTip);
+        var cosmetics = await pokemon.LoadBattleCosmeticsAsync(
+            role,
+            pokemonByHeroID.Values.ToDictionary(hero => hero.PokemonId, hero => style.GetWearCardFaceID(hero.PokemonId)));
+        var loadout = new HumanLoadout(heldItemLevels, trainerItemIDs, showsWayTip, cosmetics);
         var heroDetails = new List<pbCOMDT_ACNT_USABLE_HERO_DETAIL>();
         var usableHeroes = new Dictionary<int, pbCOMDT_CHOICEHERO>();
-        var ownedPokemonIds = role.BuildPokemonList().Select(owned => owned.PokemonId).ToArray();
-        foreach (var pokemonId in ownedPokemonIds)
+        var ownedPokemon = role.BuildPokemonList().ToArray();
+        var ownedPokemonIds = ownedPokemon.Select(owned => owned.PokemonId).ToArray();
+        foreach (var owned in ownedPokemon)
         {
-            if (HeroIDOf(pokemonId) is not (> NoHeroID and var heroID) || usableHeroes.ContainsKey(heroID))
+            if (HeroIDOf(owned.PokemonId) is not (> NoHeroID and var heroID) || usableHeroes.ContainsKey(heroID))
             {
                 continue;
             }
 
-            var used = usedPokemon.GetValueOrDefault(pokemonId);
+            var used = usedPokemon.GetValueOrDefault(owned.PokemonId);
+            var timeLimited = owned.TimeLimited != RolePokemonInfo.Permanent;
             heroDetails.Add(new pbCOMDT_ACNT_USABLE_HERO_DETAIL
             {
                 HeroID = heroID,
                 WearPasterID = used?.WearPasterID ?? PokemonManager.NoPaster,
-                PokemonShowIcon = ForeverShowIcon,
+                TimeLimited = owned.TimeLimited,
+                PokemonShowIcon = timeLimited ? TimeLimitedShowIcon : ForeverShowIcon,
                 PokemonTotalPoint = used?.PokemonTotalPoint ?? 0,
                 PokemonSeasonPoint = used?.PokemonSeasonPoint ?? 0,
             });
@@ -1281,6 +1336,7 @@ public sealed class DeskManager
         {
             IsGuestAccount = room.FindMember(acnt.Uid)?.Profile.IsGuestAccount == true,
             RecentlyUsedPokemonList = profile.RecentlyUsedPokemonList,
+            Cosmetics = profile.Loadout.Cosmetics,
         };
     }
 
@@ -1339,7 +1395,7 @@ public sealed class DeskManager
         var trainerItemID = loadout.TrainerItemIDs.Contains(lastTrainerItemID)
             ? lastTrainerItemID
             : loadout.TrainerItemIDs.FirstOrDefault(PokemonManager.NoTrainerItem);
-        return new pbCOMDT_CHOICEHERO
+        var choice = new pbCOMDT_CHOICEHERO
         {
             HeroID = heroID,
             HeldItemList = BuildHeldItemList(used?.HeldItemID ?? [], loadout.HeldItemLevels),
@@ -1352,6 +1408,12 @@ public sealed class DeskManager
             PokemonSeasonPoint = used?.PokemonSeasonPoint ?? 0,
             CarryBadge = BuildEmptyCarryBadge(),
         };
+        if (pokemonByHeroID.GetValueOrDefault(heroID) is { } hero)
+        {
+            loadout.Cosmetics.ApplyTo(choice, hero.PokemonId);
+        }
+
+        return choice;
     }
 
     private pbCOMDT_CHOICEHERO BuildNpcChoiceHero(int heroID, pbAiInfoConfig? npcConfig, NpcHeldItemLoadout heldItemLoadout, bool showsWayTip, long now)
@@ -1686,11 +1748,16 @@ public sealed class DeskManager
             return refusal;
         }
 
-        if (player.IsHeroLocked)
-        {
-            return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrHadLockHero);
-        }
+        return player.IsHeroLocked
+            ? RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrHadLockHero)
+            : FindChosenHeroRefusal(player, heroID);
+    }
 
+    private RoomOutcome? FindConfirmableHero(ulong uid, int heroID) =>
+        FindPickingHuman(uid, out _, out var player) ?? FindChosenHeroRefusal(player, heroID);
+
+    private static RoomOutcome? FindChosenHeroRefusal(DeskPlayer player, int heroID)
+    {
         if (player.ChosenHeroID == NoHeroID)
         {
             return RoomOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrHasNotChoosePokemon);
@@ -1762,6 +1829,7 @@ public sealed class DeskManager
             else
             {
                 releasedUids = Forget(desk);
+                RevokeGvoiceRooms(desk);
                 outcome = AbortAll(desk.HumanUids, PB_ENUM_RES_ERROR_CODE.PbErrHasNotChoosePokemon);
             }
         }
@@ -1955,6 +2023,7 @@ public sealed class DeskManager
                     else if (result == BanPickTickResult.NoHeroLeft)
                     {
                         releasedUids = Forget(desk);
+                        RevokeGvoiceRooms(desk);
                         outcome = AbortAll(desk.HumanUids, PB_ENUM_RES_ERROR_CODE.PbErrBanPickPokemonNumInSuff);
                     }
                 }
@@ -2012,6 +2081,7 @@ public sealed class DeskManager
             }
 
             releasedUids = Forget(desk);
+            CloseGvoiceRooms(desk);
         }
 
         logger.LogInformation("Desk {DeskID} finished", desk.DeskID);
@@ -2075,6 +2145,11 @@ public sealed class DeskManager
         }
 
         desksByUid.Remove(uid);
+        if (desk.FindAttendee(uid) is { } attendee)
+        {
+            battleVoice.RevokeGvoiceRoom(uid, CampGvoiceRoom(desk, attendee.CampClient));
+        }
+
         if (desk.FindAttendee(uid) is { RelayTicket: { } ticket } human)
         {
             relayTickets.Revoke(ticket.ZSDCode);
@@ -2088,6 +2163,7 @@ public sealed class DeskManager
     private ulong[] CloseBeforeRelay(BattleDesk desk, ulong leavingUid, RoomOutcome outcome)
     {
         ulong[] others = [.. Forget(desk).Where(other => other != leavingUid)];
+        RevokeGvoiceRooms(desk);
         outcome.PushAll(others, PB_ENUM_CS_MSGID_DEF.PbScidMultGameAbortNtf, BuildAbortNtf(PB_ENUM_RES_ERROR_CODE.PbErrMatchAbort));
         return others;
     }
@@ -2114,6 +2190,31 @@ public sealed class DeskManager
         }
 
         return releasedUids;
+    }
+
+    public bool IsGvoiceRoomEntitled(BattleDesk desk, DeskPlayer player) =>
+        battleVoice.IsGvoiceRoomEntitled(player.Uid, CampGvoiceRoom(desk, player.CampClient));
+
+    private static GVoiceRoomName CampGvoiceRoom(BattleDesk desk, int campClient) =>
+        GVoiceRoomName.Of(desk.DeskID, desk.DeskCrtSeq, desk.RelayEntity, campClient);
+
+    private IEnumerable<GVoiceRoomName> GvoiceRoomsOf(BattleDesk desk) =>
+        desk.Attendees.Select(attendee => CampGvoiceRoom(desk, attendee.CampClient)).Distinct();
+
+    private void RevokeGvoiceRooms(BattleDesk desk)
+    {
+        foreach (var room in GvoiceRoomsOf(desk))
+        {
+            battleVoice.RevokeGvoiceRoom(room);
+        }
+    }
+
+    private void CloseGvoiceRooms(BattleDesk desk)
+    {
+        foreach (var room in GvoiceRoomsOf(desk))
+        {
+            battleVoice.CloseGvoiceRoom(room);
+        }
     }
 
     private Task RaiseDeskClosedAsync(IEnumerable<ulong> releasedUids) =>
@@ -2145,7 +2246,7 @@ public sealed class DeskManager
     {
         BanPickInfo = desk.Draft?.BuildBanPickInfo(),
         DeskInfo = desk.DeskInfo.Clone(),
-        PlayerInfo = new pbCSDT_DESK_PLAYERINFO { CampPlayerInfo = { desk.Players.Concat(recipient.IsJudge ? desk.Judges : []).Select(player => BuildCampPlayerInfoFor(player, recipient)) } },
+        PlayerInfo = new pbCSDT_DESK_PLAYERINFO { CampPlayerInfo = { desk.Players.Concat(recipient.IsJudge ? desk.Judges : []).Select(player => BuildCampPlayerInfoFor(player, recipient, desk.Draft is not null)) } },
         LeftSec = desk.PickTimeOut,
         GVoiceInfo = gVoice.BuildGVoiceInfo(),
         OBDeskInfo = desk.BuildOBDesk(),
@@ -2156,12 +2257,13 @@ public sealed class DeskManager
         PveChallengeSelectNode = desk.PveChallengeSelectNode?.Clone() ?? new pbCOMDT_PVE_CHALLENGE_SELECT_BATTLE(),
     };
 
-    private static pbCSDT_CAMPPLAYERINFO BuildCampPlayerInfoFor(DeskPlayer player, DeskPlayer recipient)
+    private static pbCSDT_CAMPPLAYERINFO BuildCampPlayerInfoFor(DeskPlayer player, DeskPlayer recipient, bool isDraft)
     {
         var campPlayerInfo = player.CampPlayerInfo.Clone();
         if (!player.IsNpc && player != recipient)
         {
-            campPlayerInfo.UsableHero = null;
+            var draftCampmateSwapsHeroes = isDraft && player.CampClient == recipient.CampClient;
+            campPlayerInfo.UsableHero = draftCampmateSwapsHeroes ? campPlayerInfo.UsableHero : null;
             campPlayerInfo.UsablePasterList = null;
             campPlayerInfo.UsableTrainerItemList = null;
         }
@@ -2256,7 +2358,11 @@ public sealed class DeskManager
         public static NpcHeldItemLoadout None { get; } = new(NoHeldItemLevel, 0);
     }
 
-    private sealed record HumanLoadout(IReadOnlyDictionary<int, int> HeldItemLevels, IReadOnlyList<int> TrainerItemIDs, bool ShowsWayTip);
+    private sealed record HumanLoadout(
+        IReadOnlyDictionary<int, int> HeldItemLevels,
+        IReadOnlyList<int> TrainerItemIDs,
+        bool ShowsWayTip,
+        BattleCosmetics Cosmetics);
 
     private sealed record HumanProfile(
         pbCOMDT_TRAINER_IMAGE_INFO TrainerImageInfo,
@@ -2272,17 +2378,5 @@ public sealed class DeskManager
         public pbCOMDT_PVE_CHALLENGE_BUFF_INFO PveChallengeBuffInfo { get; init; } = new();
 
         public pbCOMDT_RECENTLY_USED_POKEMON_SORT_LIST_INFO RecentlyUsedPokemonList { get; init; } = new();
-    }
-
-    public bool IsGVoiceCampMember(ulong uid, int deskID, int deskCrtSeq, int relayEntity, int campClient)
-    {
-        lock (gate)
-        {
-            return desksById.TryGetValue(deskID, out var desk)
-                && unchecked((int)desk.DeskCrtSeq) == deskCrtSeq
-                && desk.RelayEntity == relayEntity
-                && desk.FindAttendee(uid) is { } attendee
-                && attendee.CampClient == campClient;
-        }
     }
 }
