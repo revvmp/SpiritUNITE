@@ -259,6 +259,7 @@ public sealed class GuildHandlers(
                 ResultInfo = GuildManager.Result(change.Result),
                 RewardID = change.RewardID,
             }),
+            .. change.RedDots,
         ];
     }
 
@@ -277,6 +278,7 @@ public sealed class GuildHandlers(
                 ResultInfo = GuildManager.Result(change.Result),
                 RewardID = change.RewardID,
             }),
+            .. change.RedDots,
         ];
     }
 

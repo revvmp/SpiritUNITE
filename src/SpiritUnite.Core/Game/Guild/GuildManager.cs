@@ -75,9 +75,14 @@ public sealed class GuildManager(
             return GuildInfoBuilder.BuildAcntGuildInfo(null, null);
         }
 
-        await activities.MailUnclaimedGearsAsync(membership.Member, pushMailNew: false);
+        await activities.MailUnclaimedGearsAsync(membership.Member);
         return GuildInfoBuilder.BuildAcntGuildInfo(membership.Guild, membership.Member);
     }
+
+    public async Task<pbCOMDT_ACNT_GUILD_INFO> FindAcntGuildInfoAsync(ulong uid) =>
+        await FindMembershipAsync(uid) is { } membership
+            ? GuildInfoBuilder.BuildAcntGuildInfo(membership.Guild, membership.Member)
+            : GuildInfoBuilder.BuildAcntGuildInfo(null, null);
 
     public async Task<(string GuildName, int GuildOffice)> FindProfileGuildAsync(ulong uid) =>
         await FindMembershipAsync(uid) is { } membership
@@ -146,7 +151,7 @@ public sealed class GuildManager(
                 ResultInfo = new pbResultInfo(),
                 GuildInfo = GuildInfoBuilder.BuildCreatedGuildInfo(guild, role),
             },
-            [BuildInfoChgNtf(guild, member)]);
+            [BuildInfoChgNtf(guild, member), .. activities.BuildCreatedGuildRedDots()]);
     }
 
     public async Task<GuildOutcome<pbSCGuildQueryRsp>> QueryAsync(ulong uid)
@@ -157,7 +162,7 @@ public sealed class GuildManager(
         }
 
         var guildID = membership.Guild.GuildID;
-        await activities.MailUnclaimedGearsAsync(membership.Member, pushMailNew: true);
+        await activities.PushUnclaimedGearMailsAsync(await activities.MailUnclaimedGearsAsync(membership.Member));
         var guildInfo = await BuildGuildInfoAsync(membership.Guild);
         var response = EmptyChildren.Fill(new pbSCGuildQueryRsp
         {
@@ -646,6 +651,7 @@ public sealed class GuildManager(
     {
         var response = new pbSCGuildKickMemberRsp { ResultInfo = new pbResultInfo(), Uid = targetUid };
         GuildEntity guild;
+        IReadOnlyList<RoleMail> gearMails;
         await gate.WaitAsync();
         try
         {
@@ -670,13 +676,15 @@ public sealed class GuildManager(
                 return response;
             }
 
-            await activities.MailUnclaimedGearsAsync(target, pushMailNew: true);
+            gearMails = await activities.MailUnclaimedGearsAsync(target);
             await repository.RemoveMemberAsync(targetUid);
         }
         finally
         {
             gate.Release();
         }
+
+        await activities.PushUnclaimedGearMailsAsync(gearMails);
 
         logger.LogInformation("Guild {GuildID} master {Uid} removed uid {TargetUid}", guild.GuildID, uid, targetUid);
         await lobbyRoles.PushAsync(
@@ -698,6 +706,7 @@ public sealed class GuildManager(
     {
         var uid = role.GameUlongUID;
         GuildEntity guild;
+        IReadOnlyList<RoleMail> gearMails;
         var disbanded = false;
         await gate.WaitAsync();
         try
@@ -714,7 +723,7 @@ public sealed class GuildManager(
                 return new pbSCGuildMemberQuitRsp { ResultInfo = Result(PB_ENUM_RES_ERROR_CODE.PbErrGuildHasMember) };
             }
 
-            await activities.MailUnclaimedGearsAsync(membership.Member, pushMailNew: true);
+            gearMails = await activities.MailUnclaimedGearsAsync(membership.Member);
             if (members.Length > 1)
             {
                 await repository.RemoveMemberAsync(uid);
@@ -731,6 +740,8 @@ public sealed class GuildManager(
         {
             gate.Release();
         }
+
+        await activities.PushUnclaimedGearMailsAsync(gearMails);
 
         if (disbanded)
         {

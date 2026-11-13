@@ -87,15 +87,9 @@ public sealed class RankedRewards(GameData gameData, BagManager bag)
 
     private (RoleItemType ItemType, int ItemId)[]? FindPermanentItems(int resID)
     {
-        if (gameData.AvatarSuit.Find(resID) is { } avatarSuit)
+        if (RoleAvatar.FindSuitParts(gameData, resID) is { } suitParts)
         {
-            return
-            [
-                .. avatarSuit.ContianAvatarID
-                    .Where(avatarID => gameData.AvatarItem.Contains(avatarID))
-                    .Distinct()
-                    .Select(avatarID => (RoleItemType.AvatarItem, avatarID)),
-            ];
+            return [.. suitParts.Select(avatarID => (RoleItemType.AvatarItem, avatarID))];
         }
 
         return gameData.LobbyBg.Contains(resID) && resID != gameData.DefaultLobbyBgId

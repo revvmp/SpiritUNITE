@@ -818,10 +818,10 @@ public sealed class TenGamesManager(
         var attachments = BuildAttachments(dropID);
         foreach (var uid in team.MemberUids)
         {
-            foreach (var chunk in attachments.Chunk(MailBox.MaxMailAccess))
-            {
-                await mail.SendSystemMailAsync(uid, new SystemMail(text, text, chunk, MailID: mailID));
-            }
+            await mail.SendSystemMailBatchAsync(
+                uid,
+                MailBox.Sys,
+                [.. attachments.Chunk(MailBox.MaxMailAccess).Select(chunk => new SystemMail(text, text, chunk, MailID: mailID))]);
         }
     }
 

@@ -22,6 +22,10 @@ public sealed record BattleTaskEvent(
     public bool IsEeveelution { get; init; }
     public IReadOnlyList<int> CampPokemonIDs { get; init; } = [];
     public bool PlayedWithFriend { get; init; }
+    public int KillCnt { get; init; }
+    public int AssistCnt { get; init; }
+    public int Score { get; init; }
+    public int UltimateSkillCnt { get; init; }
     public IReadOnlyList<BattleReportCondition> ReportConditions { get; init; } = [];
 }
 
@@ -72,6 +76,14 @@ public static class BattleTasks
         PB_ENUM_RES_CONDITION_ID.PbResConditionIdPkmListSameCampPktypeForbidManmachine,
     };
 
+    private static readonly IReadOnlySet<PB_ENUM_RES_CONDITION_ID> StatisticConditions = new HashSet<PB_ENUM_RES_CONDITION_ID>
+    {
+        PB_ENUM_RES_CONDITION_ID.PbResConditionIdTotalKillCnt,
+        PB_ENUM_RES_CONDITION_ID.PbResConditionIdTotalAssistCnt,
+        PB_ENUM_RES_CONDITION_ID.PbResConditionIdTotalScore,
+        PB_ENUM_RES_CONDITION_ID.PbResConditionIdSceneUltimateSkill,
+    };
+
     private static readonly IReadOnlySet<PB_ENUM_RES_CONDITION_ID> PokemonListConditions = new HashSet<PB_ENUM_RES_CONDITION_ID>
     {
         PB_ENUM_RES_CONDITION_ID.PbResConditionIdPkmListSameCampPktypeAny,
@@ -94,6 +106,27 @@ public static class BattleTasks
 
     public static bool IsBattleCondition(pbFinishCondition condition) =>
         BattleConditions.Contains((PB_ENUM_RES_CONDITION_ID)condition.ID) && !IsLimitedToOtherGames(condition);
+
+    public static bool IsActivityBattleCondition(pbFinishCondition condition) =>
+        IsBattleCondition(condition) || IsStatisticCondition(condition);
+
+    private static bool IsStatisticCondition(pbFinishCondition condition) =>
+        StatisticConditions.Contains((PB_ENUM_RES_CONDITION_ID)condition.ID)
+        && condition.ParamA.All(param => param == NoCondition)
+        && condition.ParamB.All(param => param == NoCondition);
+
+    private static int? MeasureStatistic(pbFinishCondition condition, BattleTaskEvent battle) => !IsStatisticCondition(condition)
+        ? null
+        : (PB_ENUM_RES_CONDITION_ID)condition.ID switch
+        {
+            PB_ENUM_RES_CONDITION_ID.PbResConditionIdTotalKillCnt => PositiveOrNone(battle.KillCnt),
+            PB_ENUM_RES_CONDITION_ID.PbResConditionIdTotalAssistCnt => PositiveOrNone(battle.AssistCnt),
+            PB_ENUM_RES_CONDITION_ID.PbResConditionIdTotalScore => PositiveOrNone(battle.Score),
+            PB_ENUM_RES_CONDITION_ID.PbResConditionIdSceneUltimateSkill => PositiveOrNone(battle.UltimateSkillCnt),
+            _ => null,
+        };
+
+    private static int? PositiveOrNone(int value) => value > 0 ? value : null;
 
     public static int? MeasureBattle(GameData gameData, pbFinishCondition condition, BattleTaskEvent battle) => !IsBattleCondition(condition)
         ? null
@@ -151,7 +184,7 @@ public static class BattleTasks
         task.FinishCondition
             .Select((condition, conditionIndex) => (Condition: condition, ConditionIndex: conditionIndex))
             .Where(pair => pair.Condition.ID != NoCondition)
-            .Select(pair => MeasureBattle(gameData, pair.Condition, battle) is { } delta
+            .Select(pair => (MeasureBattle(gameData, pair.Condition, battle) ?? MeasureStatistic(pair.Condition, battle)) is { } delta
                 ? new TaskProcessIncrement(
                     task.TaskID,
                     periodStart,

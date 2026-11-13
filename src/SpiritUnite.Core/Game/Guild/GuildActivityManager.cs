@@ -12,7 +12,10 @@ using SpiritUnite.Tools;
 
 namespace SpiritUnite.Game.Guild;
 
-public sealed record GuildActivityRewardChange(PB_ENUM_RES_ERROR_CODE Result, int RewardID);
+public sealed record GuildActivityRewardChange(PB_ENUM_RES_ERROR_CODE Result, int RewardID)
+{
+    public IReadOnlyList<GamePacket> RedDots { get; init; } = [];
+}
 
 public sealed class GuildActivityManager(
     GuildRepository repository,
@@ -26,6 +29,8 @@ public sealed class GuildActivityManager(
     private const int NoRewardID = 0;
     private const int Rewarded = 1;
     private const int NoMemberScore = 0;
+    private const int MasterSelectAwardRedDotID = (int)PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdGuildMasterSelectAward;
+    private const int MasterSelectAwardRedDotBadgeNum = 1;
     private const int UnclaimedGearMailID = (int)PB_ENUM_RES_MAILID_TYPE.PbResMailidTypeGuildActivity;
     private const string UnclaimedGearMailSubject = "Guild_Notice_Email_Subject_6172_001";
     private const string UnclaimedGearMailContent = "System_Email_Content_Reward_7346_001";
@@ -34,6 +39,21 @@ public sealed class GuildActivityManager(
 
     public GuildActivityPeriod CurrentPeriod() =>
         GuildActivityPeriod.Find(gameData, UTCTimeUtil.ServerTime2CfgTime(clock.GetUtcNow()));
+
+    public IReadOnlyList<GamePacket> BuildCreatedGuildRedDots() =>
+        CurrentPeriod().IsPrepare ? [BuildMasterSelectAwardRedDot()] : [];
+
+    private static GamePacket BuildMasterSelectAwardRedDot() =>
+        GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidRedDotReplaceNtf, new pbSCRedDotReplaceNtf
+        {
+            RedDotInfo = new pbCOMDT_RED_DOT_INFO
+            {
+                RedDotDetail = { new pbCOMDT_RED_DOT_DETAIL { RedDotID = MasterSelectAwardRedDotID, RedDotBadgeNum = MasterSelectAwardRedDotBadgeNum } },
+            },
+        });
+
+    private static GamePacket BuildMasterSelectAwardRedDotClear() =>
+        GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidRedDotClearNtf, new pbSCRedDotClearNtf { RedDotID = MasterSelectAwardRedDotID });
 
     public async Task<pbCOMDT_GUILD_ACTIVITY_BRIEF_INFO> BuildBriefInfoAsync(ulong guildID)
     {
@@ -113,7 +133,10 @@ public sealed class GuildActivityManager(
             ResultInfo = new pbResultInfo(),
             RewardID = rewardID,
         }));
-        return new GuildActivityRewardChange(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, rewardID);
+        return new GuildActivityRewardChange(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, rewardID)
+        {
+            RedDots = [BuildMasterSelectAwardRedDotClear()],
+        };
     }
 
     public async Task<GuildActivityRewardChange> CancelRewardAsync(GuildMember member, int rewardID)
@@ -157,7 +180,10 @@ public sealed class GuildActivityManager(
             ResultInfo = new pbResultInfo(),
             RewardID = rewardID,
         }));
-        return new GuildActivityRewardChange(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, rewardID);
+        return new GuildActivityRewardChange(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, rewardID)
+        {
+            RedDots = [BuildMasterSelectAwardRedDot()],
+        };
     }
 
     public async Task<GuildRewardClaim> GetScoreRewardAsync(LMNRoleInfo role, GuildMember member, int rewardGear)
@@ -211,8 +237,11 @@ public sealed class GuildActivityManager(
         return GuildRewardClaim.Granted(grant, commit);
     }
 
-    public async Task MailUnclaimedGearsAsync(GuildMember member, bool pushMailNew)
+    public Task PushUnclaimedGearMailsAsync(IReadOnlyList<RoleMail> mails) => mail.PushNewMailsAsync(mails);
+
+    public async Task<IReadOnlyList<RoleMail>> MailUnclaimedGearsAsync(GuildMember member)
     {
+        var mailed = new List<RoleMail>();
         var now = clock.GetUtcNow();
         var svrCfgTime = UTCTimeUtil.ServerTime2CfgTime(now);
         var endedPeriods = gameData.GuildActivityBase.Rows
@@ -221,7 +250,7 @@ public sealed class GuildActivityManager(
             .ToArray();
         if (endedPeriods.Length == 0)
         {
-            return;
+            return mailed;
         }
 
         foreach (var activity in await repository.GetScoredActivitiesAsync(member.GuildID, endedPeriods))
@@ -260,14 +289,10 @@ public sealed class GuildActivityManager(
 
             logger.LogInformation("Uid {Uid} was mailed {GearCount} unclaimed gears of guild {GuildID} activity period {PeriodID}",
                 member.GameUlongUID, gears.Length, member.GuildID, activity.PeriodID);
-            if (pushMailNew)
-            {
-                foreach (var saved in mails)
-                {
-                    await mail.PushMailNewAsync(saved);
-                }
-            }
+            mailed.AddRange(mails);
         }
+
+        return mailed;
     }
 
     public static void GrantItemsInMemory(LMNRoleInfo role, GuildRewardGrant grant)

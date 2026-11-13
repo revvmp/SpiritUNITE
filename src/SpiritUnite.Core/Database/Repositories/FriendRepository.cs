@@ -27,10 +27,10 @@ public sealed class FriendRepository(DataOptions options)
     public async Task SaveLastLogoutTimeAsync(ulong gameUlongUID, long lastLogoutTime)
     {
         await using var database = new DataConnection(options);
-        await database.GetTable<RoleSocial>()
-            .InsertOrUpdateAsync(
-                () => new RoleSocial { GameUlongUID = gameUlongUID, LastLogoutTime = lastLogoutTime },
-                social => new RoleSocial { LastLogoutTime = lastLogoutTime });
+        await database.ExecuteAsync(
+            "INSERT INTO role_social (game_ulong_uid, last_logout_time) SELECT game_ulong_uid, @logout FROM role WHERE game_ulong_uid=@uid ON DUPLICATE KEY UPDATE last_logout_time=VALUES(last_logout_time)",
+            new DataParameter("uid", gameUlongUID),
+            new DataParameter("logout", lastLogoutTime));
     }
 
     public async Task SaveDenyAllRequestFlagAsync(ulong gameUlongUID, int denyAllRequestFlag)
