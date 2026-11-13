@@ -61,23 +61,19 @@ SpiritUNITE is a C# server emulator for the [Pokemon UNITE](https://en.wikipedia
 
 ## Download the Game Resources
 
-Your server hands players the files the game downloads on first launch: one resource archive per platform and the shop, outfit and event images. Get them from the official servers while they are still up (until March 23, 2027). No APK is needed.
+Your server hands players the files the game downloads: one resource archive per platform, the shop, outfit and event images, and the manga pages. Get them from the official servers while they are still up (until March 23, 2027).
 
 ```powershell
 # Windows
-python tools/fetch_resources.py archives
-python tools/fetch_resources.py images
-python tools/fetch_resources.py gallery
+python tools/fetch_resources.py
 ```
 ```sh
 # Linux
-python3 tools/fetch_resources.py archives
-python3 tools/fetch_resources.py images
-python3 tools/fetch_resources.py gallery
+python3 tools/fetch_resources.py
 ```
 
-- `archives` downloads the Android (about 9.3 GB) and iOS (about 9.2 GB) archives into `resources/1169/` and `resources/1170/`. Use `--platform android` or `--platform ios` for just one.
-- `images` downloads about 1.3 GB of images into `resources/images/`.
+- Downloads about 20 GB: the Android and iOS archives into `resources/1169/` and `resources/1170/`, plus `resources/images/` and `resources/gallery/`.
+- Add `archives`, `images` or `gallery` to download only one part, and `--platform android` or `--platform ios` after `archives` for one platform.
 - If a download stops, run the same command again to continue.
 
 Files go in the folder set by `ResourceArchive.Directory` in `appsettings.json` (`resources/` by default). See [resources/README.md](resources/README.md) for the layout.

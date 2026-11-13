@@ -921,7 +921,10 @@ def parse_arguments():
         type=Path,
         help="Resource directory; defaults to ResourceArchive.Directory from appsettings.json against the repository root, else resources/",
     )
-    commands = parser.add_subparsers(dest="command", required=True)
+    commands = parser.add_subparsers(dest="command")
+    everything = commands.add_parser("all", help="Download the archives, the image CDN mirror and the Gallery site (the default)")
+    everything.add_argument("--platform", choices=[*PLATFORMS, "all"], default="all")
+    everything.add_argument("--workers", type=int, default=IMAGE_MAX_WORKERS)
     archives = commands.add_parser("archives", help="Download the about 9.3 GB resource archive for each platform")
     archives.add_argument("--platform", choices=[*PLATFORMS, "all"], default="all")
     images = commands.add_parser("images", help="Download the about 1.3 GB image CDN mirror")
@@ -929,9 +932,39 @@ def parse_arguments():
     gallery = commands.add_parser("gallery", help="Download the about 0.4 GB Menu > Gallery manga site")
     gallery.add_argument("--workers", type=int, default=IMAGE_MAX_WORKERS)
     arguments = parser.parse_args()
-    if arguments.command in ("images", "gallery") and not 1 <= arguments.workers <= IMAGE_MAX_WORKERS:
+    if arguments.command is None:
+        arguments = parser.parse_args([*sys.argv[1:], "all"])
+    if arguments.command in ("all", "images", "gallery") and not 1 <= arguments.workers <= IMAGE_MAX_WORKERS:
         parser.error(f"--workers must be between 1 and {IMAGE_MAX_WORKERS}")
     return arguments
+
+
+DOWNLOADS_IN_ORDER = ("archives", "images", "gallery")
+
+
+def run_download(download, arguments, resource_directory):
+    if download == "archives":
+        platforms = list(PLATFORMS.values()) if arguments.platform == "all" else [PLATFORMS[arguments.platform]]
+        fetch_archives(platforms, resource_directory)
+    elif download == "gallery":
+        fetch_gallery(resource_directory, arguments.workers)
+    else:
+        fetch_images(resource_directory, arguments.workers)
+
+
+def fetch_everything(arguments, resource_directory):
+    failed_downloads = []
+    for download in DOWNLOADS_IN_ORDER:
+        print(f"== {download} ==", flush=True)
+        try:
+            run_download(download, arguments, resource_directory)
+        except (FetchError, OSError) as error:
+            print(f"error: {error}", file=sys.stderr, flush=True)
+            failed_downloads.append(download)
+    if failed_downloads:
+        print(f"Failed: {', '.join(failed_downloads)}; run the same command to retry", file=sys.stderr)
+        return 1
+    return 0
 
 
 def main():
@@ -939,13 +972,9 @@ def main():
     try:
         resource_directory = resolve_resource_directory(arguments.resources)
         print(f"Resource directory: {resource_directory}", flush=True)
-        if arguments.command == "archives":
-            platforms = list(PLATFORMS.values()) if arguments.platform == "all" else [PLATFORMS[arguments.platform]]
-            fetch_archives(platforms, resource_directory)
-        elif arguments.command == "gallery":
-            fetch_gallery(resource_directory, arguments.workers)
-        else:
-            fetch_images(resource_directory, arguments.workers)
+        if arguments.command == "all":
+            return fetch_everything(arguments, resource_directory)
+        run_download(arguments.command, arguments, resource_directory)
     except (FetchError, OSError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 1

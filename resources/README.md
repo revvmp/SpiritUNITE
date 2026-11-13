@@ -1,6 +1,6 @@
 # Resources
 
-The game downloads about 8.4 GB of resources on first launch (about 40 MB before the title screen, the rest in the background), and loads shop, outfit, banner, event and notice pictures while it runs. Both are served from this folder.
+The game downloads about 8.4 GB of resources on first launch (about 40 MB before the title screen, the rest in the background), loads shop, outfit, banner, event and notice pictures while it runs, and opens the manga pages. All of them are served from this folder. Download them with `python tools/fetch_resources.py` (see the main README).
 
 ```
 resources/
@@ -9,6 +9,7 @@ resources/
   images/   cdn_hash_md5_size.bytes                          image index
             Default/<uri>/<name>.bytes                       images for every language
             En/<uri>/<name>.bytes                            images for one language (Chs, Jp, Ko, Fr, ...)
+  gallery/  index.html, page.html, index.css, js/, ossweb-img/  manga pages
 ```
 
 To keep everything somewhere else, set `ResourceArchive.Directory` in `appsettings.json` to an absolute path. A relative path is resolved against the folder you start the server from.
@@ -32,3 +33,12 @@ Put the image mirror in `images/` with the image CDN's own layout.
 - An image that is not here gets a 404, and the game shows its default picture instead. The game still works.
 
 The images are served at `/cdn/...` on the HTTP server. `tools/build_apk.py` points the client there, on the same address as the login pages.
+
+## Gallery
+
+Put the manga pages in `gallery/`, with `index.html` directly inside it.
+
+- Keep every file exactly as the official site sent it.
+- Without it the server logs a warning at startup, and the in-game Gallery shows a "Webpage not available" page instead of the manga. The rest of the game still works.
+
+The pages are served at `/gallery/` on the HTTP server. The server points the game's Gallery button there through the resource archive it serves, on the same address as the login pages. The address must be https, or the game's web view refuses it.
