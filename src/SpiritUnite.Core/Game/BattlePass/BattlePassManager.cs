@@ -482,10 +482,7 @@ public sealed class BattlePassManager(
                     progress.SeasonID, uid, savedMails.Count);
             }
 
-            foreach (var saved in savedMails)
-            {
-                await mail.PushMailNewAsync(saved);
-            }
+            await mail.PushNewMailsAsync(savedMails);
         }
     }
 

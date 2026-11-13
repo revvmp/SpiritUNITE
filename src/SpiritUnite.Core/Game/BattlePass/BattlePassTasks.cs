@@ -101,7 +101,19 @@ public sealed class BattlePassTasks(
                 [.. state.Conditions.Select(condition => BattleTasks.IsBattleCondition(condition) ? 0 : -1)], SettlementTaskCompleteTime.Stored))]);
     }
 
-    public async Task<pbCOMDT_TASK_INFO[]> RecordBattleAsync(LMNRoleInfo role, BattleTaskEvent battle)
+    public Task<pbCOMDT_TASK_INFO[]> RecordBattleAsync(LMNRoleInfo role, BattleTaskEvent battle) =>
+        RecordProgressAsync(role, "Battle", state => FindBattleIncrement(state, battle));
+
+    public Task<pbCOMDT_TASK_INFO[]> RecordConditionAsync(LMNRoleInfo role, PB_ENUM_RES_CONDITION_ID conditionId, int delta) =>
+        RecordProgressAsync(role, conditionId.ToString(), state =>
+            state.Conditions is [var condition] && condition.ID == (int)conditionId
+                ? new TaskProcessIncrement(state.Task.TaskID, state.PeriodStart, delta, condition.TargetProcess)
+                : null);
+
+    private async Task<pbCOMDT_TASK_INFO[]> RecordProgressAsync(
+        LMNRoleInfo role,
+        string progressSource,
+        Func<BattlePassTaskState, TaskProcessIncrement?> findIncrement)
     {
         var now = clock.GetUtcNow();
         var current = seasons.FindCurrentSeason(now);
@@ -113,7 +125,7 @@ public sealed class BattlePassTasks(
         var states = await EvaluateAsync(role, current, now);
         var increments = states
             .Where(state => state.Status == PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusRecved && !state.Locked && !state.Expired)
-            .Select(state => FindBattleIncrement(state, battle))
+            .Select(findIncrement)
             .OfType<TaskProcessIncrement>()
             .ToArray();
         if (increments.Length == 0)
@@ -123,7 +135,7 @@ public sealed class BattlePassTasks(
 
         if (!await taskProcesses.AddAsync(role.GameUlongUID, increments, now.ToUnixTimeSeconds()))
         {
-            logger.LogWarning("Battle pass task progress of uid {Uid} was not stored: the role row is missing", role.GameUlongUID);
+            logger.LogWarning("{ProgressSource} battle pass task progress of uid {Uid} was not stored: the role row is missing", progressSource, role.GameUlongUID);
             return [];
         }
 
@@ -256,12 +268,15 @@ public sealed class BattlePassTasks(
         (PB_ENUM_RES_CONDITION_ID)condition.ID switch
         {
             PB_ENUM_RES_CONDITION_ID.PbResConditionIdEverydayLogin => loginDayCount,
+            PB_ENUM_RES_CONDITION_ID.PbResConditionIdEnergeDraw => storedProcess,
             _ when BattleTasks.IsBattleCondition(condition) => storedProcess,
             _ => UntrackedProcess,
         };
 
     private static bool IsMeasured(pbFinishCondition condition) =>
-        condition.ID == (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdEverydayLogin || BattleTasks.IsBattleCondition(condition);
+        condition.ID == (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdEverydayLogin
+        || condition.ID == (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdEnergeDraw
+        || BattleTasks.IsBattleCondition(condition);
 
     private static long FindPeriodStart(pbTask_Base task, BattlePassSeasonState current, DateTimeOffset now)
     {
