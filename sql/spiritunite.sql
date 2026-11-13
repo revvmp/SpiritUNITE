@@ -15,10 +15,9 @@ CREATE TABLE IF NOT EXISTS `account` (
     UNIQUE KEY uq_account_email (email),
     UNIQUE KEY uq_account_guest_id (guest_id_hash),
     CONSTRAINT ck_account_kind CHECK (
-        (guest_id_hash IS NULL AND user_name IS NOT NULL AND email IS NOT NULL AND password_hash IS NOT NULL
-            AND password_salt IS NOT NULL)
-        OR (guest_id_hash IS NOT NULL AND user_name IS NULL AND email IS NULL AND password_hash IS NULL
-            AND password_salt IS NULL))
+        ((user_name IS NOT NULL AND email IS NOT NULL AND password_hash IS NOT NULL AND password_salt IS NOT NULL)
+            OR (user_name IS NULL AND email IS NULL AND password_hash IS NULL AND password_salt IS NULL))
+        AND (guest_id_hash IS NOT NULL OR user_name IS NOT NULL))
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `account_token` (
@@ -141,6 +140,8 @@ CREATE TABLE IF NOT EXISTS `role_item` (
     new_tag INT NOT NULL DEFAULT 0,
     item_cnt INT NOT NULL DEFAULT 1,
     item_level INT NOT NULL DEFAULT 0,
+    held_item_experience_level INT NOT NULL DEFAULT 0,
+    held_item_experience_expire_time BIGINT NOT NULL DEFAULT 0,
     grid_unique_id BIGINT UNSIGNED NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (game_ulong_uid, item_type, item_id),
@@ -185,6 +186,17 @@ CREATE TABLE IF NOT EXISTS `role_rename` (
     CONSTRAINT fk_role_rename_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS `role_multi_buff` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    multi_buff_type INT NOT NULL,
+    multi_buff_sub_type INT NOT NULL,
+    multiple_value INT NOT NULL,
+    last_use_multi_buff_res_id INT NOT NULL,
+    time_type_buf_end_time_stamp BIGINT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, multi_buff_type),
+    CONSTRAINT fk_role_multi_buff_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS `role_login_day` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL,
     login_day DATE NOT NULL,
@@ -208,6 +220,16 @@ CREATE TABLE IF NOT EXISTS `role_activity_task_finish` (
     finish_time BIGINT NOT NULL,
     PRIMARY KEY (game_ulong_uid, task_id, period_start),
     CONSTRAINT fk_role_activity_task_finish_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_show_serial_reward` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    activity_id INT NOT NULL,
+    reward_seq INT NOT NULL,
+    reward_time BIGINT NOT NULL,
+    mailed TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_ulong_uid, activity_id, reward_seq),
+    CONSTRAINT fk_role_show_serial_reward_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `role_activity_exchange` (
@@ -650,10 +672,24 @@ CREATE TABLE IF NOT EXISTS `role_fight_history` (
 CREATE TABLE IF NOT EXISTS `role_energy` (
     game_ulong_uid BIGINT UNSIGNED NOT NULL,
     energy INT NOT NULL,
+    raffle_ticket INT NOT NULL,
     energy_free_capacity INT NOT NULL,
     next_flush_time BIGINT NOT NULL,
+    today_draw_num INT NOT NULL,
+    daily_free_draw_use_num INT NOT NULL,
+    next_draw_reset_time BIGINT NOT NULL,
+    energy_pay_capacity INT NOT NULL,
+    energy_accelerate_ratio INT NOT NULL,
     PRIMARY KEY (game_ulong_uid),
     CONSTRAINT fk_role_energy_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `role_energy_accelerate` (
+    game_ulong_uid BIGINT UNSIGNED NOT NULL,
+    energy_accelerate_ratio INT NOT NULL,
+    energy_accelerate_capacity INT NOT NULL,
+    PRIMARY KEY (game_ulong_uid, energy_accelerate_ratio),
+    CONSTRAINT fk_role_energy_accelerate_role FOREIGN KEY (game_ulong_uid) REFERENCES `role` (game_ulong_uid) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS `role_held_item_slot` (
@@ -1281,24 +1317,24 @@ WHERE NOT EXISTS (SELECT 1 FROM `msdk_notice`);
 
 INSERT INTO `server_list` (list_name, list_index, item_id)
 SELECT list_name, list_index, item_id FROM (
-    SELECT 'FreePokemonList' AS list_name, 0 AS list_index, 77 AS item_id
-    UNION ALL SELECT 'FreePokemonList', 1, 557
-    UNION ALL SELECT 'FreePokemonList', 2, 845
-    UNION ALL SELECT 'FreePokemonList', 3, 957
+    SELECT 'FreePokemonList' AS list_name, 0 AS list_index, 443 AS item_id
+    UNION ALL SELECT 'FreePokemonList', 1, 661
+    UNION ALL SELECT 'FreePokemonList', 2, 820
+    UNION ALL SELECT 'FreePokemonList', 3, 9150
 ) AS seed
 WHERE NOT EXISTS (SELECT 1 FROM `server_list` WHERE list_name = 'FreePokemonList');
 
 INSERT INTO `server_list` (list_name, list_index, item_id)
 SELECT list_name, list_index, item_id FROM (
-    SELECT 'SubscriptionFreePokemonList' AS list_name, 0 AS list_index, 54 AS item_id
-    UNION ALL SELECT 'SubscriptionFreePokemonList', 1, 816
+    SELECT 'SubscriptionFreePokemonList' AS list_name, 0 AS list_index, 39 AS item_id
+    UNION ALL SELECT 'SubscriptionFreePokemonList', 1, 280
 ) AS seed
 WHERE NOT EXISTS (SELECT 1 FROM `server_list` WHERE list_name = 'SubscriptionFreePokemonList');
 
 INSERT INTO `server_list` (list_name, list_index, item_id)
 SELECT list_name, list_index, item_id FROM (
-    SELECT 'SubscriptionFreePasterList' AS list_name, 0 AS list_index, 1006005403 AS item_id
-    UNION ALL SELECT 'SubscriptionFreePasterList', 1, 1006081803
+    SELECT 'SubscriptionFreePasterList' AS list_name, 0 AS list_index, 1006004002 AS item_id
+    UNION ALL SELECT 'SubscriptionFreePasterList', 1, 1006028204
 ) AS seed
 WHERE NOT EXISTS (SELECT 1 FROM `server_list` WHERE list_name = 'SubscriptionFreePasterList');
 
