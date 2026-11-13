@@ -54,7 +54,7 @@ public sealed class RoleRepository(DataOptions options, TimeProvider clock)
     {
         await using var database = new DataConnection(options);
         await using var transaction = await database.BeginTransactionAsync();
-        if (await database.UpdateAsync(ToEntity(role)) != OneRow)
+        if (await UpdateLobbyOwnedColumnsAsync(database, role) != OneRow)
         {
             throw new InvalidOperationException("Cannot save a role that does not exist");
         }
@@ -265,17 +265,28 @@ public sealed class RoleRepository(DataOptions options, TimeProvider clock)
         NewTag = item.NewTag,
     };
 
-    private static Role ToEntity(LMNRoleInfo role) => new()
+    internal static async Task<int?> AddRoleTotalExpAsync(DataConnection database, ulong gameUlongUID, int chgExp)
     {
-        GameUlongUID = role.GameUlongUID,
-        InGameUsrName = role.InGameUsrName,
-        Gender = role.Gender,
-        RoleTotalExp = role.RoleTotalExp,
-        RoleHistoryMaxTotalExp = role.RoleHistoryMaxTotalExp,
-        RoleAvatarInfo = role.RoleAvatarInfo.ToByteArray(),
-        NewbieState = role.BuildNewbieState().ToByteArray(),
-        FollowPokemonId = role.FollowPokemonId,
-        UsingLobbyBgId = role.UsingLobbyBgId,
-        FirstPokemonId = role.FirstPokemonId,
-    };
+        ArgumentOutOfRangeException.ThrowIfNegative(chgExp);
+        var updated = await database.GetTable<Role>()
+            .Where(role => role.GameUlongUID == gameUlongUID)
+            .Set(role => role.RoleHistoryMaxTotalExp, role => role.RoleHistoryMaxTotalExp > role.RoleTotalExp + chgExp
+                ? role.RoleHistoryMaxTotalExp
+                : role.RoleTotalExp + chgExp)
+            .Set(role => role.RoleTotalExp, role => role.RoleTotalExp + chgExp)
+            .UpdateAsync();
+        return updated == OneRow
+            ? await database.GetTable<Role>().Where(role => role.GameUlongUID == gameUlongUID).Select(role => role.RoleTotalExp).SingleAsync()
+            : null;
+    }
+
+    private static Task<int> UpdateLobbyOwnedColumnsAsync(DataConnection database, LMNRoleInfo role) => database.GetTable<Role>()
+        .Where(saved => saved.GameUlongUID == role.GameUlongUID)
+        .Set(saved => saved.Gender, role.Gender)
+        .Set(saved => saved.RoleAvatarInfo, role.RoleAvatarInfo.ToByteArray())
+        .Set(saved => saved.NewbieState, role.BuildNewbieState().ToByteArray())
+        .Set(saved => saved.FollowPokemonId, role.FollowPokemonId)
+        .Set(saved => saved.UsingLobbyBgId, role.UsingLobbyBgId)
+        .Set(saved => saved.FirstPokemonId, role.FirstPokemonId)
+        .UpdateAsync();
 }

@@ -2,6 +2,7 @@ using Google.Protobuf;
 using LinqToDB;
 using LinqToDB.Async;
 using LinqToDB.Data;
+using LinqToDB.Linq;
 using MySqlConnector;
 using SpiritUnite.Database.Models;
 using SpiritUnite.Game.Pokemon;
@@ -12,6 +13,8 @@ namespace SpiritUnite.Database.Repositories;
 
 public sealed class PokemonUsedRepository(DataOptions options)
 {
+    private const int NoRow = 0;
+
     public async Task<IReadOnlyList<UsedPokemonInfo>> LoadAsync(ulong gameUlongUID)
     {
         await using var database = new DataConnection(options);
@@ -30,10 +33,40 @@ public sealed class PokemonUsedRepository(DataOptions options)
         return row is null ? UsedPokemonInfo.Unused(pokemonId) : ToUsedPokemonInfo(row);
     }
 
-    public async Task SaveAsync(ulong gameUlongUID, UsedPokemonInfo used)
+    public Task<UsedPokemonInfo> SaveHeldItemIDAsync(ulong gameUlongUID, int pokemonId, IReadOnlyList<int> heldItemID)
     {
-        await using var database = new DataConnection(options);
-        await database.InsertOrReplaceAsync(NewRow(gameUlongUID, used));
+        var heldItemDesignInfo = new pbCOMDT_HELDITEM_DESIGN_INFO { HeldItemID = { heldItemID } }.ToByteArray();
+        return SaveLobbyChoiceAsync(
+            gameUlongUID,
+            UsedPokemonInfo.Unused(pokemonId) with { HeldItemID = [.. heldItemID] },
+            used => used.Set(row => row.HeldItemDesignInfo, heldItemDesignInfo));
+    }
+
+    public Task<UsedPokemonInfo> SaveLastCarryTrainerItemIDAsync(ulong gameUlongUID, int pokemonId, int lastCarryTrainerItemID) =>
+        SaveLobbyChoiceAsync(
+            gameUlongUID,
+            UsedPokemonInfo.Unused(pokemonId) with { LastCarryTrainerItemID = lastCarryTrainerItemID },
+            used => used.Set(row => row.LastCarryTrainerItemID, lastCarryTrainerItemID));
+
+    public Task<UsedPokemonInfo> SaveBadgeSchedueAsync(ulong gameUlongUID, int pokemonId, int lastSchedueId, int battleNotUseBadge) =>
+        SaveLobbyChoiceAsync(
+            gameUlongUID,
+            UsedPokemonInfo.Unused(pokemonId) with { LastSchedueId = lastSchedueId, BattleNotUseBadge = battleNotUseBadge },
+            used => used.Set(row => row.LastSchedueId, lastSchedueId).Set(row => row.BattleNotUseBadge, battleNotUseBadge));
+
+    public Task<UsedPokemonInfo> SaveWearPasterIDAsync(ulong gameUlongUID, int pokemonId, int wearPasterID) =>
+        SaveLobbyChoiceAsync(
+            gameUlongUID,
+            UsedPokemonInfo.Unused(pokemonId) with { WearPasterID = wearPasterID },
+            used => used.Set(row => row.WearPasterID, wearPasterID));
+
+    public Task<UsedPokemonInfo> SaveSkillRecommendInfoAsync(ulong gameUlongUID, int pokemonId, pbCOMDT_SKILLRECOMMENDINFO skillRecommendInfo)
+    {
+        var savedSkillRecommendInfo = skillRecommendInfo.ToByteArray();
+        return SaveLobbyChoiceAsync(
+            gameUlongUID,
+            UsedPokemonInfo.Unused(pokemonId) with { SkillRecommendInfo = skillRecommendInfo.Clone() },
+            used => used.Set(row => row.SkillRecommendInfo, savedSkillRecommendInfo));
     }
 
     public async Task<bool> CreateAsync(ulong gameUlongUID, int pokemonId)
@@ -73,6 +106,33 @@ public sealed class PokemonUsedRepository(DataOptions options)
             .FirstAsync(used => used.GameUlongUID == gameUlongUID && used.PokemonId == pokemonId);
         await transaction.CommitAsync();
         return ToUsedPokemonInfo(row);
+    }
+
+    private async Task<UsedPokemonInfo> SaveLobbyChoiceAsync(
+        ulong gameUlongUID,
+        UsedPokemonInfo firstUse,
+        Func<IQueryable<RolePokemonUsed>, IUpdatable<RolePokemonUsed>> setLobbyChoice)
+    {
+        await using var database = new DataConnection(options);
+        if (await UpdateLobbyChoiceAsync() == NoRow)
+        {
+            try
+            {
+                await database.InsertAsync(NewRow(gameUlongUID, firstUse));
+            }
+            catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
+            {
+                await UpdateLobbyChoiceAsync();
+            }
+        }
+
+        var row = await database.GetTable<RolePokemonUsed>()
+            .FirstAsync(used => used.GameUlongUID == gameUlongUID && used.PokemonId == firstUse.PokemonId);
+        return ToUsedPokemonInfo(row);
+
+        Task<int> UpdateLobbyChoiceAsync() => setLobbyChoice(database.GetTable<RolePokemonUsed>()
+                .Where(used => used.GameUlongUID == gameUlongUID && used.PokemonId == firstUse.PokemonId))
+            .UpdateAsync();
     }
 
     internal static UsedPokemonInfo ToUsedPokemonInfo(RolePokemonUsed row) => new(

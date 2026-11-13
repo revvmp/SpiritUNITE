@@ -34,6 +34,11 @@ public sealed class HeldItemManager(
     private const int Enabled = 1;
     private const int NoNewTag = 0;
     private const int ShowNewTag = 1;
+    private const int FirstHeldItemLevel = 1;
+    private const int SingleLevelUpCard = 1;
+    private const int LevelUpCardReachLevelParam = 0;
+    private const int ExperienceCardLevelParam = 0;
+    private const int ExperienceCardDurationParam = 1;
 
     private static readonly PB_ENUM_RES_SYSTEM_UNLOCK_TYPE[] HeldItemSlotUnlockTypes =
     [
@@ -191,8 +196,7 @@ public sealed class HeldItemManager(
             return (result, used);
         }
 
-        used = used with { HeldItemID = [.. heldItemIds] };
-        await usedPokemon.SaveAsync(role.GameUlongUID, used);
+        used = await usedPokemon.SaveHeldItemIDAsync(role.GameUlongUID, pokemonId, heldItemIds);
         return (result, used);
     }
 
@@ -232,13 +236,126 @@ public sealed class HeldItemManager(
         var change = new BagChange
         {
             Costs = design.LevelUpCost > 0 ? [new BagCost(RoleItemType.OutSideItem, consumableId, design.LevelUpCost)] : [],
-            LevelUp = new BagLevelUp(resID, heldItem.Level),
+            LevelUp = new BagLevelUp(resID, heldItem.Level, heldItem.Level + 1),
         };
         return BagOutcome.From(await bagRepository.CommitAsync(
             role.GameUlongUID,
             change,
             clock.GetUtcNow().ToUnixTimeSeconds()));
     }
+
+    public bool IsHeldItemLevelUpCard(int resID) =>
+        gameData.OutSideItemBase.Find(resID)?.OutSideItemType == (int)PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypeHelditemlevelup;
+
+    public async Task<BagOutcome> UseHeldItemLevelUpCardAsync(LMNRoleInfo role, int resID, ulong gridUniqueID, int resCnt, int heldItemID)
+    {
+        var (validation, card) = await bag.ValidateUseAsync(role.GameUlongUID, resID, gridUniqueID, resCnt);
+        if (card is null)
+        {
+            return BagOutcome.Refused(validation);
+        }
+
+        if (resCnt != SingleLevelUpCard)
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemInvalidNum);
+        }
+
+        if (gameData.OutSideItemBase.Find(heldItemID) is not { OutSideItemCategory: BagManager.HeldItemCategory } config)
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemIdnotExistInCfg);
+        }
+
+        if (config.IsCanLevelUp != Enabled || config.OutSideItemTypeParam.Count <= GroupIdTypeParam)
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemCanNotBeLevelUp);
+        }
+
+        if (await bag.FindOwnedOutSideItemAsync(role.GameUlongUID, heldItemID) is not { } heldItem)
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemNotFoundResInAcnt);
+        }
+
+        var groupId = config.OutSideItemTypeParam[GroupIdTypeParam];
+        var reachLevel = card.ItemParam.ElementAtOrDefault(LevelUpCardReachLevelParam);
+        if (heldItem.Level >= reachLevel || !levelUpDesigns.ContainsKey((groupId, reachLevel)))
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemLevelMax);
+        }
+
+        var change = new BagChange
+        {
+            Costs = [new BagCost(RoleItemType.OutSideItem, resID, resCnt)],
+            Grants = SpentLevelUpCostRefunds(groupId, heldItem.Level),
+            LevelUp = new BagLevelUp(heldItemID, heldItem.Level, reachLevel),
+        };
+        return BagOutcome.From(await bagRepository.CommitAsync(
+            role.GameUlongUID,
+            change,
+            clock.GetUtcNow().ToUnixTimeSeconds()));
+    }
+
+    public bool IsHeldItemExperienceCard(int resID) =>
+        gameData.OutSideItemBase.Find(resID)?.OutSideItemType == (int)PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypeHelditemleveltimelimit;
+
+    public async Task<BagOutcome> UseHeldItemExperienceCardAsync(LMNRoleInfo role, int resID, ulong gridUniqueID, int resCnt, int heldItemID)
+    {
+        var (validation, card) = await bag.ValidateUseAsync(role.GameUlongUID, resID, gridUniqueID, resCnt);
+        if (card is null)
+        {
+            return BagOutcome.Refused(validation);
+        }
+
+        if (resCnt != SingleLevelUpCard)
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemInvalidNum);
+        }
+
+        if (gameData.OutSideItemBase.Find(heldItemID) is not { OutSideItemCategory: BagManager.HeldItemCategory } config)
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemIdnotExistInCfg);
+        }
+
+        if (config.IsCanLevelUp != Enabled || config.OutSideItemTypeParam.Count <= GroupIdTypeParam)
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemCanNotBeLevelUp);
+        }
+
+        if (await bag.FindOwnedOutSideItemAsync(role.GameUlongUID, heldItemID) is not { } heldItem)
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemNotFoundResInAcnt);
+        }
+
+        var experienceLevel = card.ItemParam.ElementAtOrDefault(ExperienceCardLevelParam);
+        var experienceSeconds = card.ItemParam.ElementAtOrDefault(ExperienceCardDurationParam);
+        if (experienceSeconds <= 0 || !levelUpDesigns.ContainsKey((config.OutSideItemTypeParam[GroupIdTypeParam], experienceLevel)))
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemIdnotExistInCfg);
+        }
+
+        var now = clock.GetUtcNow().ToUnixTimeSeconds();
+        if (heldItem.Level >= experienceLevel || heldItem.HeldItemExperienceLevelAt(now) >= experienceLevel)
+        {
+            return BagOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemLevelMax);
+        }
+
+        var change = new BagChange
+        {
+            Costs = [new BagCost(RoleItemType.OutSideItem, resID, resCnt)],
+            HeldItemExperience = new BagHeldItemExperience(heldItemID, experienceLevel, now + experienceSeconds),
+        };
+        return BagOutcome.From(await bagRepository.CommitAsync(role.GameUlongUID, change, now));
+    }
+
+    private BagGrant[] SpentLevelUpCostRefunds(int groupId, int currentLevel) =>
+    [
+        .. Enumerable.Range(FirstHeldItemLevel, currentLevel - FirstHeldItemLevel)
+            .Select(level => levelUpDesigns.GetValueOrDefault((groupId, level)))
+            .OfType<pbHeldItemLevelUpDesign>()
+            .Where(design => design.LevelUpCost > 0)
+            .GroupBy(design => design.LevelUpCostID != 0 ? design.LevelUpCostID : HeldItemLevelUpConsumableId)
+            .Select(spent => bag.CreateOutSideItemGrant(spent.Key, spent.Sum(design => design.LevelUpCost)))
+            .OfType<BagGrant>(),
+    ];
 
     private static bool IsUsableBy(pbOutSideItem_Base config, int pokemonId)
     {

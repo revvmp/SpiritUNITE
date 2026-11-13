@@ -128,6 +128,9 @@ public sealed class PokemonManager(
     public Task<pbCOMDT_POKEMON_PASTER_LIST> BuildUsablePasterListAsync(LMNRoleInfo role) =>
         pokemonAvatars.BuildUsablePasterListAsync(role);
 
+    public Task<BattleCosmetics> LoadBattleCosmeticsAsync(LMNRoleInfo role, IReadOnlyDictionary<int, int> wearCardFaceIDs) =>
+        pokemonAvatars.LoadBattleCosmeticsAsync(role, wearCardFaceIDs);
+
     public Task<UsedPokemonInfo> FindUsedPokemonAsync(LMNRoleInfo role, int pokemonId) =>
         usedPokemon.FindAsync(role.GameUlongUID, pokemonId);
 
@@ -155,8 +158,7 @@ public sealed class PokemonManager(
             }
         }
 
-        used = used with { LastCarryTrainerItemID = trainerItemID };
-        await usedPokemon.SaveAsync(role.GameUlongUID, used);
+        used = await usedPokemon.SaveLastCarryTrainerItemIDAsync(role.GameUlongUID, pokemonId, trainerItemID);
         return (PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, used);
     }
 
@@ -207,8 +209,7 @@ public sealed class PokemonManager(
             return (PB_ENUM_RES_ERROR_CODE.PbErrPokemonUnexists, used);
         }
 
-        used = used with { SkillRecommendInfo = skillRecommendInfo };
-        await usedPokemon.SaveAsync(role.GameUlongUID, used);
+        used = await usedPokemon.SaveSkillRecommendInfoAsync(role.GameUlongUID, used.PokemonId, skillRecommendInfo);
         return (PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, used);
     }
 
@@ -229,8 +230,7 @@ public sealed class PokemonManager(
             return (result, used);
         }
 
-        used = used with { WearPasterID = pasterID };
-        await usedPokemon.SaveAsync(role.GameUlongUID, used);
+        used = await usedPokemon.SaveWearPasterIDAsync(role.GameUlongUID, pokemonId, pasterID);
         return (PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, used);
     }
 
@@ -246,8 +246,7 @@ public sealed class PokemonManager(
             return (PB_ENUM_RES_ERROR_CODE.PbErrPokemonUnexists, used);
         }
 
-        used = used with { LastSchedueId = badgeSchedueId, BattleNotUseBadge = notUseBadge };
-        await usedPokemon.SaveAsync(role.GameUlongUID, used);
+        used = await usedPokemon.SaveBadgeSchedueAsync(role.GameUlongUID, pokemonId, badgeSchedueId, notUseBadge);
         return (PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, used);
     }
 }

@@ -140,7 +140,7 @@ public sealed class NewbieManager(
 
         foreach (var drop in drops.Where(drop => !CoinID.IsSpecialCoin(drop.ResID)))
         {
-            grants.AddRange(await GrantDropAsync(role, drop));
+            grants.AddRange(await GrantDropAsync(role, drop, archive));
         }
 
         return grants;
@@ -196,11 +196,11 @@ public sealed class NewbieManager(
         return grants;
     }
 
-    private async Task<IEnumerable<GamePacket>> GrantDropAsync(LMNRoleInfo role, pbDrop_Static drop)
+    private async Task<IEnumerable<GamePacket>> GrantDropAsync(LMNRoleInfo role, pbDrop_Static drop, NewbieArchive archive)
     {
         if (drop.ResID == AcntExpResID)
         {
-            return await GrantAcntExpAsync(role, drop);
+            return await GrantAcntExpAsync(role, drop, archive);
         }
 
         if (gameData.OutSideItemBase.Find(drop.ResID) is { OutSideItemType: (int)PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypeEos } license
@@ -258,11 +258,22 @@ public sealed class NewbieManager(
         ];
     }
 
-    private async Task<IEnumerable<GamePacket>> GrantAcntExpAsync(LMNRoleInfo role, pbDrop_Static drop)
+    private async Task<IEnumerable<GamePacket>> GrantAcntExpAsync(LMNRoleInfo role, pbDrop_Static drop, NewbieArchive archive)
     {
         var levelBefore = RoleProfile.GetLevel(gameData, role);
         var slotUnlockNumBefore = heldItems.GetHeldItemSlotUnlockNum(role);
-        var curToTalExp = role.AddRoleTotalExp(drop.ResNum);
+        if (await newbieDrops.ArchiveWithRoleTotalExpAsync(role.GameUlongUID, archive.NewbieStateAfter, drop.ResNum) is not { } committedTotalExp)
+        {
+            logger.LogError(
+                "Newbie drop {SDropID} trainer exp for uid {Uid} is not granted: newbie {Newbie} has no stored role to archive into",
+                drop.SDropID,
+                role.GameUlongUID,
+                archive.Newbie);
+            return [];
+        }
+
+        role.ApplyCommittedRoleTotalExp(committedTotalExp);
+        var curToTalExp = role.RoleTotalExp;
         var levelChanged = RoleProfile.GetLevel(gameData, role) != levelBefore;
         logger.LogInformation(
             "Newbie drop {SDropID} gives uid {Uid} {ChgExp} trainer exp, total {CurToTalExp}",
