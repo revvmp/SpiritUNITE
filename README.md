@@ -67,11 +67,13 @@ Your server hands players the files the game downloads on first launch: one reso
 # Windows
 python tools/fetch_resources.py archives
 python tools/fetch_resources.py images
+python tools/fetch_resources.py gallery
 ```
 ```sh
 # Linux
 python3 tools/fetch_resources.py archives
 python3 tools/fetch_resources.py images
+python3 tools/fetch_resources.py gallery
 ```
 
 - `archives` downloads the Android (about 9.3 GB) and iOS (about 9.2 GB) archives into `resources/1169/` and `resources/1170/`. Use `--platform android` or `--platform ios` for just one.
