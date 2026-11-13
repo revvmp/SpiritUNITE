@@ -72,6 +72,19 @@ public sealed class BagRepository(DataOptions options)
     {
         await using var database = new DataConnection(options);
         await using var transaction = await database.BeginTransactionAsync();
+        var commit = await ApplyAndReadAsync(database, gameUlongUID, change, now);
+        if (commit.Result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+        {
+            await transaction.RollbackAsync();
+            return commit;
+        }
+
+        await transaction.CommitAsync();
+        return commit;
+    }
+
+    internal static async Task<BagCommit> ApplyAndReadAsync(DataConnection database, ulong gameUlongUID, BagChange change, long now)
+    {
         var beforeCoinNums = new Dictionary<int, long>();
         foreach (var coinID in change.CoinGrants.Keys)
         {
@@ -81,7 +94,6 @@ public sealed class BagRepository(DataOptions options)
         var result = await ApplyAsync(database, gameUlongUID, change, now);
         if (result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
         {
-            await transaction.RollbackAsync();
             return BagCommit.Refused(result);
         }
 
@@ -91,7 +103,6 @@ public sealed class BagRepository(DataOptions options)
             database,
             gameUlongUID,
             change.PasterTimeLimits.Select(grant => grant.PasterId));
-        await transaction.CommitAsync();
         return new BagCommit(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, changedItems, wallet)
         {
             BeforeCoinNums = beforeCoinNums,
@@ -195,9 +206,25 @@ public sealed class BagRepository(DataOptions options)
                     && item.ItemId == levelUp.ItemId
                     && item.ItemCnt > 0
                     && item.ItemLevel == levelUp.FromLevel)
-                .Set(item => item.ItemLevel, levelUp.FromLevel + 1)
+                .Set(item => item.ItemLevel, levelUp.ToLevel)
                 .UpdateAsync();
             if (raised != OneRow)
+            {
+                return PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemNotFoundResInAcnt;
+            }
+        }
+
+        if (change.HeldItemExperience is { } experience)
+        {
+            var tried = await database.GetTable<RoleItem>()
+                .Where(item => item.GameUlongUID == gameUlongUID
+                    && item.ItemType == (int)RoleItemType.OutSideItem
+                    && item.ItemId == experience.ItemId
+                    && item.ItemCnt > 0)
+                .Set(item => item.HeldItemExperienceLevel, experience.Level)
+                .Set(item => item.HeldItemExperienceExpireTime, experience.ExpireTime)
+                .UpdateAsync();
+            if (tried != OneRow)
             {
                 return PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemNotFoundResInAcnt;
             }
@@ -249,7 +276,8 @@ public sealed class BagRepository(DataOptions options)
         IEnumerable<BagGrant> grants,
         long now)
     {
-        foreach (var grant in grants)
+        var grantList = grants.ToArray();
+        foreach (var grant in grantList.Where(grant => !grant.InstallsIntoEnergyCenter))
         {
             if (grant.Cnt <= 0 || grant.Cnt > grant.StackSize)
             {
@@ -300,6 +328,18 @@ public sealed class BagRepository(DataOptions options)
             }
         }
 
+        foreach (var grant in grantList.Where(grant => grant.InstallsIntoEnergyCenter))
+        {
+            var accelerator = grant.Accelerator!;
+            var capacity = (long)accelerator.EnergyAccelerateCapacity * grant.Cnt;
+            if (grant.Cnt <= 0 || capacity > int.MaxValue)
+            {
+                return PB_ENUM_RES_ERROR_CODE.PbErrOutSideItemInvalidNum;
+            }
+
+            await EnergyRepository.AddAcceleratorAsync(database, gameUlongUID, accelerator.EnergyAccelerateRatio, (int)capacity);
+        }
+
         return PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc;
     }
 
@@ -332,5 +372,9 @@ public sealed class BagRepository(DataOptions options)
         row.ItemCnt,
         row.ItemLevel,
         row.GainTime,
-        row.NewTag);
+        row.NewTag)
+    {
+        HeldItemExperienceLevel = row.HeldItemExperienceLevel,
+        HeldItemExperienceExpireTime = row.HeldItemExperienceExpireTime,
+    };
 }

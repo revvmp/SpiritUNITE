@@ -1,5 +1,6 @@
 using SpiritUnite.Database.Repositories;
 using SpiritUnite.Databin;
+using SpiritUnite.Game.Energy;
 using SpiritUnite.Game.Pokemon;
 using SpiritUnite.Game.PokemonAvatar;
 using SpiritUnite.Game.Role;
@@ -39,6 +40,13 @@ public sealed record BagOutcome(PB_ENUM_RES_ERROR_CODE Result, IReadOnlyList<Bag
 }
 
 public sealed record ChestDrop(int ResID, int ResCnt);
+
+public sealed record ResourceGrantPlan(
+    IReadOnlyList<BagGrant> Grants,
+    IReadOnlyDictionary<int, long> CoinGrants,
+    IReadOnlyList<pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO> Awards,
+    IReadOnlyList<int> PokemonIds,
+    IReadOnlyList<RoleItemInfo> Items);
 
 public sealed class BagManager(GameData gameData, BagRepository repository, TimeProvider clock)
 {
@@ -117,6 +125,13 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
 
         var stackSize = config.OutSideItemStackSize > 0 ? config.OutSideItemStackSize : UnlimitedStackSize;
         var isHeldItem = config.OutSideItemCategory == HeldItemCategory;
+        if (config.OutSideItemType == (int)PB_ENUM_RES_OUTSIDEITEM_TYPE.PbResOutsideitemTypeEnergyaccelerate)
+        {
+            return EnergyCenter.FindAccelerator(config) is { } accelerator
+                ? new BagGrant(RoleItemType.OutSideItem, outSideItemId, cnt, stackSize, NoItemLevel) { Accelerator = accelerator }
+                : null;
+        }
+
         return new BagGrant(
             RoleItemType.OutSideItem,
             outSideItemId,
@@ -651,7 +666,7 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
         || (gameData.BadgeBase.Contains(resID)
             && await repository.FindAsync(role.GameUlongUID, RoleItemType.Badge, resID) is { IsOwned: true });
 
-    private ResourceGrantPlan? PlanResourceGrants(LMNRoleInfo role, IReadOnlyDictionary<int, long> resCnts)
+    public ResourceGrantPlan? PlanResourceGrants(LMNRoleInfo role, IEnumerable<KeyValuePair<int, long>> resCnts)
     {
         var coinGrants = new Dictionary<int, long>();
         var grants = new List<BagGrant>();
@@ -712,20 +727,27 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
     private async Task<BagOutcome> CommitGrantsAsync(LMNRoleInfo role, BagCost cost, ResourceGrantPlan plan, int reason)
     {
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
-        var change = new BagChange
-        {
-            Costs = [cost],
-            Grants = plan.Grants,
-            CoinGrants = plan.CoinGrants,
-            PokemonGrants = [.. plan.PokemonIds.Select(pokemonId => new RolePokemonInfo(pokemonId, now, reason, RolePokemonInfo.HasNewTag))],
-            ItemGrants = plan.Items,
-        };
+        var change = ToBagChange(plan, now, reason) with { Costs = [cost] };
         var outcome = BagOutcome.From(await repository.CommitAsync(role.GameUlongUID, change, now));
         if (!outcome.Succeeded)
         {
             return outcome;
         }
 
+        GrantToRole(role, plan, now, reason);
+        return outcome with { Awards = plan.Awards, GrantedPokemonIds = plan.PokemonIds, GrantedItems = plan.Items, AwardReason = reason };
+    }
+
+    public static BagChange ToBagChange(ResourceGrantPlan plan, long now, int reason) => new()
+    {
+        Grants = plan.Grants,
+        CoinGrants = plan.CoinGrants,
+        PokemonGrants = [.. plan.PokemonIds.Select(pokemonId => new RolePokemonInfo(pokemonId, now, reason, RolePokemonInfo.HasNewTag))],
+        ItemGrants = plan.Items,
+    };
+
+    public static void GrantToRole(LMNRoleInfo role, ResourceGrantPlan plan, long now, int reason)
+    {
         foreach (var pokemonId in plan.PokemonIds)
         {
             role.GrantPokemon(pokemonId, now, reason);
@@ -735,16 +757,7 @@ public sealed class BagManager(GameData gameData, BagRepository repository, Time
         {
             role.GrantItem(item.ItemType, item.ItemId, item.GainTime, item.TimeLimited, item.NewTag);
         }
-
-        return outcome with { Awards = plan.Awards, GrantedPokemonIds = plan.PokemonIds, GrantedItems = plan.Items, AwardReason = reason };
     }
-
-    private sealed record ResourceGrantPlan(
-        IReadOnlyList<BagGrant> Grants,
-        IReadOnlyDictionary<int, long> CoinGrants,
-        IReadOnlyList<pbCOMDT_ONE_RESOURCE_AWARD_REPLACE_INFO> Awards,
-        IReadOnlyList<int> PokemonIds,
-        IReadOnlyList<RoleItemInfo> Items);
 
     private List<int> FindDropPackIDs(int dropID)
     {

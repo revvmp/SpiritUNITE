@@ -32,6 +32,12 @@ public sealed class RoleItem
     [Column("item_level")]
     public int ItemLevel { get; set; }
 
+    [Column("held_item_experience_level")]
+    public int HeldItemExperienceLevel { get; set; }
+
+    [Column("held_item_experience_expire_time")]
+    public long HeldItemExperienceExpireTime { get; set; }
+
     [Column("grid_unique_id")]
     public ulong? GridUniqueID { get; set; }
 }

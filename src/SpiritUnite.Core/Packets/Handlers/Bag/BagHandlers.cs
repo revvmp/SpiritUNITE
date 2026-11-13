@@ -2,6 +2,8 @@ using Microsoft.Extensions.Logging;
 using SpiritUnite.Databin;
 using SpiritUnite.Game.Badge;
 using SpiritUnite.Game.Bag;
+using SpiritUnite.Game.Energy;
+using SpiritUnite.Game.HeldItem;
 using SpiritUnite.Game.PokemonAvatar;
 using SpiritUnite.Game.Profile;
 using SpiritUnite.Game.Ranked;
@@ -16,7 +18,10 @@ namespace SpiritUnite.Packets.Handlers.Bag;
 public sealed class BagHandlers(
     RoleInfoStore roles,
     BagManager bag,
+    MultiBuffManager multiBuffs,
+    EnergyManager energies,
     BadgeManager badges,
+    HeldItemManager heldItems,
     RankedManager ranked,
     StarRoadManager starRoad,
     TaskUpdates taskUpdates,
@@ -68,7 +73,21 @@ public sealed class BagHandlers(
             return await UseFreeTicketCardAsync(request, role, use);
         }
 
-        var outcome = await bag.UseOutSideItemAsync(role, use.ResID, use.GridUniqueID, use.ResCnt);
+        if (energies.IsPayCapacityItem(use.ResID))
+        {
+            return await UsePayCapacityItemAsync(request, role, use);
+        }
+
+        if (multiBuffs.IsMultiBuffCard(use.ResID))
+        {
+            return await UseMultiBuffCardAsync(request, role, use);
+        }
+
+        var outcome = heldItems.IsHeldItemLevelUpCard(use.ResID)
+            ? await heldItems.UseHeldItemLevelUpCardAsync(role, use.ResID, use.GridUniqueID, use.ResCnt, use.ChooseResID)
+            : heldItems.IsHeldItemExperienceCard(use.ResID)
+                ? await heldItems.UseHeldItemExperienceCardAsync(role, use.ResID, use.GridUniqueID, use.ResCnt, use.ChooseResID)
+                : await bag.UseOutSideItemAsync(role, use.ResID, use.GridUniqueID, use.ResCnt);
         logger.LogInformation(
             "Use of {ResCnt} outside item {ResID} by uid {Uid}: {Result}",
             use.ResCnt,
@@ -83,6 +102,78 @@ public sealed class BagHandlers(
             ResCnt = use.ResCnt,
         });
         return outcome.Succeeded ? [.. await BuildUseAwardPacketsAsync(request, role, outcome, use.ResID), reply] : [reply];
+    }
+
+    private async Task<GamePacket[]> UsePayCapacityItemAsync(GamePacket request, LMNRoleInfo role, pbCSUseOutSideItemReq use)
+    {
+        var outcome = await energies.UsePayCapacityItemAsync(role.GameUlongUID, use.ResID, use.GridUniqueID, use.ResCnt);
+        logger.LogInformation(
+            "Use of {ResCnt} extra-energy tank {ResID} by uid {Uid}: {Result}, pay capacity {EnergyPayCapacity}",
+            use.ResCnt,
+            use.ResID,
+            role.GameUlongUID,
+            outcome.Result,
+            outcome.Energy.EnergyPayCapacity);
+        var reply = request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUseOutSideItemRsp, new pbSCUseOutSideItemRsp
+        {
+            ResultInfo = new pbResultInfo { ResultId = (int)outcome.Result },
+            ResID = use.ResID,
+            GridUniqueID = use.GridUniqueID,
+            ResCnt = use.ResCnt,
+        });
+        return outcome.Succeeded
+            ?
+            [
+                request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidOutSideItemUpdateNotify, BagManager.BuildOutSideItemUpdateNotify(outcome.ChangedItems)),
+                request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidEnergyInfoNtf, EnergyCenter.BuildEnergyInfoNtf(outcome.Energy)),
+                reply,
+            ]
+            : [reply];
+    }
+
+    private async Task<GamePacket[]> UseMultiBuffCardAsync(GamePacket request, LMNRoleInfo role, pbCSUseOutSideItemReq use)
+    {
+        var buffUse = await multiBuffs.UseMultiBuffCardAsync(role.GameUlongUID, use.ResID, use.GridUniqueID, use.ResCnt);
+        logger.LogInformation(
+            "Use of {ResCnt} boost card {ResID} by uid {Uid}: {Result}",
+            use.ResCnt,
+            use.ResID,
+            role.GameUlongUID,
+            buffUse.Result);
+        var reply = request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUseOutSideItemRsp, new pbSCUseOutSideItemRsp
+        {
+            ResultInfo = new pbResultInfo { ResultId = (int)buffUse.Result },
+            ResID = use.ResID,
+            GridUniqueID = use.GridUniqueID,
+            ResCnt = use.ResCnt,
+        });
+        if (!buffUse.Succeeded)
+        {
+            return [reply];
+        }
+
+        foreach (var buff in buffUse.Buffs.Where(buff => buff.IsActiveAt(buffUse.Now)))
+        {
+            logger.LogInformation(
+                "Uid {Uid} boost {MultiBuffType} x{MultipleValue} from card {LastUseMultiBuffResID} ends at {TimeTypeBufEndTimeStamp}",
+                role.GameUlongUID,
+                buff.MultiBuffType,
+                buff.MultipleValue,
+                buff.LastUseMultiBuffResID,
+                buff.TimeTypeBufEndTimeStamp);
+        }
+
+        return
+        [
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidOutSideItemUpdateNotify, BagManager.BuildOutSideItemUpdateNotify(buffUse.ChangedItems)),
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidUpdateTaskInfoNtf, await taskUpdates.BuildOwnershipUpdateTaskInfoNtfAsync(role)),
+            request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidMultiBufInfoUpdateNtf, new pbSCMultiBufInfoUpdateNtf
+            {
+                MultiBuffDetail = MultiBuffManager.BuildMultiBuffInfo(buffUse.Buffs, buffUse.Now),
+                CurTimeStamp = buffUse.Now,
+            }),
+            reply,
+        ];
     }
 
     private async Task<GamePacket[]> UseFreeTicketCardAsync(GamePacket request, LMNRoleInfo role, pbCSUseOutSideItemReq use)
