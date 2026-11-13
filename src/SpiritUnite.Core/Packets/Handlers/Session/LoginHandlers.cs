@@ -27,6 +27,7 @@ public sealed class LoginHandlers(
         }
 
         login.RememberRelayMD5(uid, acntLogin.RelayMD5);
+        await login.ReleaseEarlierSessionsAsync(uid);
         var role = await roles.FindAsync(uid);
         if (role is null)
         {
@@ -107,6 +108,7 @@ public sealed class LoginHandlers(
             return [OffingRestartSucceeded(session)];
         }
 
+        await login.ReleaseEarlierSessionsAsync(uid);
         var isFirstLoginInToday = await login.RecordLoginDayAsync(uid);
         return
         [

@@ -12,11 +12,14 @@ public sealed class VideoPlayback
 
     public VideoPlayback(LobbyRoles lobbyRoles)
     {
-        lobbyRoles.RoleOffline += uid =>
-        {
-            playingRoles.TryRemove(uid, out _);
-            return Task.CompletedTask;
-        };
+        lobbyRoles.RoleOffline += ForgetGoneSessionAsync;
+        lobbyRoles.FreshLogin += ForgetGoneSessionAsync;
+    }
+
+    private Task ForgetGoneSessionAsync(ulong uid)
+    {
+        playingRoles.TryRemove(uid, out _);
+        return Task.CompletedTask;
     }
 
     public bool IsPlayingVideo(ulong uid) => playingRoles.ContainsKey(uid);

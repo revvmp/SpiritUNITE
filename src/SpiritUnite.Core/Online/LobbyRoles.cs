@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Net;
 using Microsoft.Extensions.Logging;
 using SpiritUnite.Network.Gcp;
 using SpiritUnite.Packets;
@@ -15,10 +16,14 @@ public sealed class LobbyRoles(ILogger<LobbyRoles> logger)
     private readonly ConcurrentDictionary<ulong, GcpSession> sessions = new();
     private readonly SessionOwnership ownership = new();
     private readonly ConcurrentDictionary<ulong, int> closedNextSvrPkgSeqs = new();
+    private readonly Lock presenceTurnGate = new();
+    private readonly Dictionary<ulong, Task> presenceTurns = [];
 
     public event Func<ulong, Task>? RoleOnline;
 
     public event Func<ulong, Task>? RoleOffline;
+
+    public event Func<ulong, Task>? FreshLogin;
 
     public event Func<ulong, IReadOnlyList<GamePacket>, Task>? PacketsSending;
 
@@ -27,6 +32,8 @@ public sealed class LobbyRoles(ILogger<LobbyRoles> logger)
     public IReadOnlyList<ulong> OnlineUids => [.. sessions.Keys];
 
     public TimeSpan? Rtt(ulong uid) => sessions.TryGetValue(uid, out var session) ? session.Rtt : null;
+
+    public IPAddress? RemoteAddress(ulong uid) => sessions.TryGetValue(uid, out var session) ? session.RemoteAddress : null;
 
     public async Task<bool> PushAsync(ulong uid, params GamePacket[] packets)
     {
@@ -74,7 +81,9 @@ public sealed class LobbyRoles(ILogger<LobbyRoles> logger)
         return true;
     }
 
-    internal async Task AttachAsync(ulong uid, GcpSession session)
+    internal Task AttachAsync(ulong uid, GcpSession session) => InPresenceTurnAsync(uid, () => AttachInTurnAsync(uid, session));
+
+    private async Task AttachInTurnAsync(ulong uid, GcpSession session)
     {
         if (!ownership.TryUse(uid, session, () => sessions[uid] = session))
         {
@@ -94,6 +103,8 @@ public sealed class LobbyRoles(ILogger<LobbyRoles> logger)
         }
     }
 
+    public Task BeginFreshLoginAsync(ulong uid) => InPresenceTurnAsync(uid, () => RaiseAsync(FreshLogin, uid));
+
     private async Task PushKickOffAsync(ulong uid, GcpSession session, PB_ENUM_RES_ERROR_CODE result)
     {
         var kickOff = GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbCsidKickOffPlayerNtf, new pbCSKickOffPlayerNtf
@@ -111,7 +122,9 @@ public sealed class LobbyRoles(ILogger<LobbyRoles> logger)
         }
     }
 
-    internal async Task ReleaseAsync(ulong uid, GcpSession session)
+    internal Task ReleaseAsync(ulong uid, GcpSession session) => InPresenceTurnAsync(uid, () => ReleaseInTurnAsync(uid, session));
+
+    private async Task ReleaseInTurnAsync(ulong uid, GcpSession session)
     {
         if (ownership.Release(uid, session)
             && sessions.TryGetValue(uid, out var abandoned)
@@ -119,6 +132,7 @@ public sealed class LobbyRoles(ILogger<LobbyRoles> logger)
             && sessions.TryRemove(new KeyValuePair<ulong, GcpSession>(uid, abandoned)))
         {
             closedNextSvrPkgSeqs[uid] = abandoned.NextSvrPkgSeq;
+            logger.LogInformation("Uid {Uid} is offline", uid);
             await RaiseAsync(RoleOffline, uid);
         }
     }
@@ -128,7 +142,9 @@ public sealed class LobbyRoles(ILogger<LobbyRoles> logger)
         : closedNextSvrPkgSeqs.TryGetValue(uid, out var closedNextSvrPkgSeq) ? closedNextSvrPkgSeq
         : null;
 
-    internal async Task DetachAsync(ulong uid, GcpSession session)
+    internal Task DetachAsync(ulong uid, GcpSession session) => InPresenceTurnAsync(uid, () => DetachInTurnAsync(uid, session));
+
+    private async Task DetachInTurnAsync(ulong uid, GcpSession session)
     {
         if (!ownership.IsCurrent(uid, session) || !sessions.TryRemove(new KeyValuePair<ulong, GcpSession>(uid, session)))
         {
@@ -157,6 +173,35 @@ public sealed class LobbyRoles(ILogger<LobbyRoles> logger)
             {
                 logger.LogError(exception, "Sending handler failed for uid {Uid}", uid);
             }
+        }
+    }
+
+    private async Task InPresenceTurnAsync(ulong uid, Func<Task> transition)
+    {
+        var turn = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        Task previousTurn;
+        lock (presenceTurnGate)
+        {
+            previousTurn = presenceTurns.GetValueOrDefault(uid, Task.CompletedTask);
+            presenceTurns[uid] = turn.Task;
+        }
+
+        try
+        {
+            await previousTurn;
+            await transition();
+        }
+        finally
+        {
+            lock (presenceTurnGate)
+            {
+                if (presenceTurns.GetValueOrDefault(uid) == turn.Task)
+                {
+                    presenceTurns.Remove(uid);
+                }
+            }
+
+            turn.SetResult();
         }
     }
 

@@ -49,11 +49,8 @@ public sealed class ObserveManager
         relays.GameCreated += Record;
         relays.IsObserverSession = IsRelayWatcher;
         relays.FindObservedGame = FindRelayWatchedGame;
-        lobbyRoles.RoleOffline += uid =>
-        {
-            Quit(uid);
-            return Task.CompletedTask;
-        };
+        lobbyRoles.RoleOffline += QuitGoneSessionAsync;
+        lobbyRoles.FreshLogin += QuitGoneSessionAsync;
     }
 
     public bool IsOnRelayDesk(ulong uid) => desks.FindRelayDesk(uid) is not null;
@@ -178,6 +175,12 @@ public sealed class ObserveManager
         {
             return watchers.GetValueOrDefault(uid) is { } watcher ? StateOf(watcher) : PB_ENUM_ENM_OBSERVE_STATE.PbEnmObserveNull;
         }
+    }
+
+    private Task QuitGoneSessionAsync(ulong uid)
+    {
+        Quit(uid);
+        return Task.CompletedTask;
     }
 
     public PB_ENUM_ENM_OBSERVE_STATE Quit(ulong uid)

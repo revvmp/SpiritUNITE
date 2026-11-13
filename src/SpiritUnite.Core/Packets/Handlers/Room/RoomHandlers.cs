@@ -81,6 +81,7 @@ public sealed class RoomHandlers
         this.clock = clock;
         this.logger = logger;
         lobbyRoles.RoleOffline += OnRoleOfflineAsync;
+        lobbyRoles.FreshLogin += OnFreshLoginAsync;
         desks.DeskClosed += presence.LeaveGameAsync;
         relays.RelayFinished += presence.LeaveGameAsync;
     }
@@ -632,6 +633,18 @@ public sealed class RoomHandlers
         }
 
         logger.LogInformation("Uid {Uid} went offline and left the room", uid);
+        await PushAllAsync(outcome);
+    }
+
+    private async Task OnFreshLoginAsync(ulong uid)
+    {
+        var outcome = rooms.LeaveOnDisconnect(uid);
+        if (outcome.Pushes.Count == 0)
+        {
+            return;
+        }
+
+        logger.LogInformation("Uid {Uid} logged in afresh and left the room of its earlier session", uid);
         await PushAllAsync(outcome);
     }
 

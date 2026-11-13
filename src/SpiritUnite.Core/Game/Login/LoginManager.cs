@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using SpiritUnite.Auth;
 using SpiritUnite.Game.Activity;
@@ -44,6 +45,7 @@ public sealed class LoginManager(
     EeveeChallengeManager eeveeChallengeManager,
     RallyChallengeManager rallyChallenge,
     AllPkmChallengeManager allPkmChallenges,
+    ShowSerialRewardManager showSerialRewards,
     MegaEvolutionManager megaEvolution,
     BagManager bag,
     BadgeManager badges,
@@ -126,11 +128,13 @@ public sealed class LoginManager(
 
     private readonly ConcurrentDictionary<ulong, ulong> relayMD5ByUid = new();
 
-    public Func<ulong, GamePacket?>? ConnRelayRecover { get; set; }
+    public Func<ulong, IReadOnlyList<GamePacket>>? ConnRelayRecover { get; set; }
 
     public void RememberRelayMD5(ulong uid, ulong relayMD5) => relayMD5ByUid[uid] = relayMD5;
 
     public ulong FindRelayMD5(ulong uid) => relayMD5ByUid.GetValueOrDefault(uid);
+
+    public Task ReleaseEarlierSessionsAsync(ulong uid) => lobbyRoles.BeginFreshLoginAsync(uid);
 
     public async Task<bool> RecordAcntLoginAsync(ulong uid, int loginCountryCode)
     {
@@ -155,16 +159,40 @@ public sealed class LoginManager(
 
     public async Task<pbSCAcntLoginRsp> BuildAcntLoginRspAsync(LMNRoleInfo role, bool isFirstLoginInToday)
     {
-        logger.LogInformation("Login from uid {Uid} as {Name}", role.GameUlongUID, role.InGameUsrName);
+        var uid = role.GameUlongUID;
+        logger.LogInformation("Login from uid {Uid} as {Name}", uid, role.InGameUsrName);
+        var wallet = await wallets.LoadAsync(uid);
+        await trainerExpGiftManager.LoadAsync(uid);
+        await ranked.LoadAsync(uid, reload: true);
+        await warmBattles.LoadAsync(uid);
+        var guildInfo = await guilds.BuildAcntGuildInfoAsync(uid);
+        await rallyChallenge.MailUnclaimedRewardsAsync(uid, pushMailNew: false);
+        var acntLoginRsp = await BuildAcntLoginStateAsync(role, isFirstLoginInToday, wallet, guildInfo);
+        await allPkmChallenges.MailUnclaimedRewardsAsync(role);
+        await showSerialRewards.MailUnclaimedRewardsAsync(role);
+        return acntLoginRsp;
+    }
 
-        var wallet = await wallets.LoadAsync(role.GameUlongUID);
+    public async Task<pbSCAcntLoginDataRsp> BuildAcntLoginDataRspAsync(LMNRoleInfo role)
+    {
+        var uid = role.GameUlongUID;
+        var wallet = await wallets.FindAsync(uid);
+        await ranked.LoadAsync(uid);
+        var guildInfo = await guilds.FindAcntGuildInfoAsync(uid);
+        var acntLoginState = await BuildAcntLoginStateAsync(role, isFirstLoginInToday: false, wallet, guildInfo);
+        return pbSCAcntLoginDataRsp.Parser.ParseFrom(acntLoginState.ToByteArray());
+    }
+
+    private async Task<pbSCAcntLoginRsp> BuildAcntLoginStateAsync(
+        LMNRoleInfo role,
+        bool isFirstLoginInToday,
+        RoleWallet wallet,
+        pbCOMDT_ACNT_GUILD_INFO guildInfo)
+    {
         var buyRecords = await shop.GetBuyRecordsAsync(role.GameUlongUID);
         var style = await profiles.LoadAsync(role.GameUlongUID);
         var clientSettings = await settings.LoadAsync(role.GameUlongUID);
-        await trainerExpGiftManager.LoadAsync(role.GameUlongUID);
         var registerTime = await newbies.GetRegisterTimeAsync(role);
-        await ranked.LoadAsync(role.GameUlongUID, reload: true);
-        await warmBattles.LoadAsync(role.GameUlongUID);
 
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
         var acntLoginRsp = new pbSCAcntLoginRsp
@@ -225,7 +253,7 @@ public sealed class LoginManager(
             LoginCountryCode = clientSettings.CountryCode,
             RegisterCountryCode = clientSettings.CountryCode,
             AntiAdditionInfo = new pbCOMDT_ANTIADDITION_INFO(),
-            GuildInfo = await guilds.BuildAcntGuildInfoAsync(role.GameUlongUID),
+            GuildInfo = guildInfo,
             NewbiChallengeUnlockInfo = await newbieChallenges.BuildUnlockInfoAsync(role),
             PrivilePlatInfo = new pbCOMDT_PRIVILE_PLAT_INFO(),
             GroupInfo = new pbCOMDT_GROUP_INFO(),
@@ -237,7 +265,6 @@ public sealed class LoginManager(
             PersonaliseButtonInfo = await customize.BuildPersonaliseButtonListAsync(role),
         };
         await rallyChallenge.FillAcntLoginRspAsync(role.GameUlongUID, acntLoginRsp);
-        await allPkmChallenges.MailUnclaimedRewardsAsync(role);
         return acntLoginRsp;
     }
 
@@ -324,7 +351,7 @@ public sealed class LoginManager(
 
         if (ConnRelayRecover?.Invoke(role.GameUlongUID) is { } connRelayRecover)
         {
-            replies.Add(connRelayRecover);
+            replies.AddRange(connRelayRecover);
         }
 
         replies.Add(PbScidNewbieGiftInfoNtf, await newbieGifts.BuildNewbieGiftInfoNtfAsync(role));
@@ -335,9 +362,9 @@ public sealed class LoginManager(
             replies.Add(PbScidClientGameSettingNtf, clientGameSettingNtf);
         }
 
-        replies.Add(PbScidActivityLoginShowNtf, new pbSCActivityLoginShowNtf());
+        replies.Add(PbScidActivityLoginShowNtf, await showSerialRewards.BuildLoginShowNtfAsync(role));
         replies.AddRange(await megaEvolution.BuildLoginNtfsAsync(role.GameUlongUID));
-        AddRedDots(replies, clientSettings);
+        await AddRedDotsAsync(replies, role.GameUlongUID, clientSettings);
         replies.Add(await tenGames.BuildInviteRedDotAsync(role.GameUlongUID));
         return replies.ToArray();
     }
@@ -394,13 +421,13 @@ public sealed class LoginManager(
         await AddLobbyStateAsync(replies, role, canopyList);
         if (ConnRelayRecover?.Invoke(uid) is { } connRelayRecover)
         {
-            replies.Add(connRelayRecover);
+            replies.AddRange(connRelayRecover);
         }
 
         replies.Add(PbScidWeeklySettleCookieNtf, LobbyNotices.BuildWeeklySettleCookieNtf());
-        replies.Add(PbScidActivityLoginShowNtf, new pbSCActivityLoginShowNtf());
+        replies.Add(PbScidActivityLoginShowNtf, await showSerialRewards.BuildLoginShowNtfAsync(role));
         replies.AddRange(await megaEvolution.BuildLoginNtfsAsync(uid));
-        AddRedDots(replies, clientSettings);
+        await AddRedDotsAsync(replies, uid, clientSettings);
         replies.AddRange(notices.BuildCouponsRefreshPackets((await wallets.LoadAsync(uid)).BuildAcntCouponsRsp(), grantSubscriptionOpen: false));
         replies.Add(PbScidGetBindChannelRsp, BuildGetBindChannelRsp(await accounts.FindBoundChannelsAsync(uid)));
         replies.Add(await tenGames.BuildInviteRedDotAsync(uid));
@@ -448,9 +475,9 @@ public sealed class LoginManager(
 
         replies.Add(PbScidUpdateTaskInfoNtf, ownershipTasks);
         replies.Add(PbScidWeeklySettleCookieNtf, LobbyNotices.BuildWeeklySettleCookieNtf());
-        replies.Add(PbScidActivityLoginShowNtf, new pbSCActivityLoginShowNtf());
+        replies.Add(PbScidActivityLoginShowNtf, await showSerialRewards.BuildLoginShowNtfAsync(role));
         replies.AddRange(await megaEvolution.BuildLoginNtfsAsync(role.GameUlongUID));
-        AddRedDots(replies, clientSettings);
+        await AddRedDotsAsync(replies, role.GameUlongUID, clientSettings);
         replies.AddRange(await BuildCouponsRefreshPacketsAsync(uid));
         replies.Add(await tenGames.BuildInviteRedDotAsync(uid));
         if (HasOnlyGuestChannels(boundChannels))
@@ -486,6 +513,7 @@ public sealed class LoginManager(
         replies.Add(PbScidGetCardFaceInfoNtf, BuildGetCardFaceInfoNtf(role));
         replies.Add(LobbyNotices.PbScidPasterSprayerListNtf, LobbyNotices.BuildPasterSprayerListNtf());
         replies.Add(LobbyNotices.PbScidPasterSprayerAcntInfoNtf, notices.BuildPasterSprayerAcntInfoNtf(role, await newbies.GetRegisterTimeAsync(role)));
+        replies.Add(PbScidShowSerialRewardActivityStatusNtf, await showSerialRewards.BuildStatusNtfAsync(role));
     }
 
     private async Task<StarRoadRoute> SyncStarRoadAsync(LMNRoleInfo role) =>
@@ -591,9 +619,21 @@ public sealed class LoginManager(
         ChannelList = { boundChannels.Select(channel => (int)channel) },
     };
 
-    private static void AddRedDots(ReplyList replies, RoleSettings clientSettings)
+    private async Task AddRedDotsAsync(ReplyList replies, ulong gameUlongUID, RoleSettings clientSettings)
     {
-        replies.Add(PbScidRedDotInfoNtf, SettingsManager.BuildRedDotInfoNtf(clientSettings));
+        var redDots = SettingsManager.BuildRedDotInfoNtf(clientSettings);
+        var details = redDots.RedDotInfo.RedDotDetail;
+        var energyDrawIndex = details.ToList().FindIndex(detail => detail.RedDotID == (int)PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdEnergyDraw);
+        if (energyDrawIndex >= 0)
+        {
+            details[energyDrawIndex] = new pbCOMDT_RED_DOT_DETAIL
+            {
+                RedDotID = (int)PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdEnergyDraw,
+                RedDotBadgeNum = (await energies.LoadAsync(gameUlongUID)).CountDrawRedDot(energies.Rules.DailyFreeDrawCount),
+            };
+        }
+
+        replies.Add(PbScidRedDotInfoNtf, redDots);
         replies.Add(PbScidBubTipInfoNtf, SettingsManager.BuildBubTipInfoNtf(clientSettings));
     }
 
