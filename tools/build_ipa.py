@@ -16,6 +16,9 @@ from pathlib import Path, PurePosixPath
 REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
 APPSETTINGS_PATH = REPOSITORY_ROOT / "src/SpiritUnite.Core/appsettings.json"
 DEFAULT_WORK_DIR = REPOSITORY_ROOT / "ipa-build"
+SUPPORTED_BUNDLE_VERSION = "1198241"
+SUPPORTED_CLIENT_BUILD = f"iOS build {SUPPORTED_BUNDLE_VERSION} (1.25.1.1)"
+UNSUPPORTED_BUILD_HINT = f"build_ipa supports only {SUPPORTED_CLIENT_BUILD}; another build needs its metadata, framework hashes and offsets added to the tool"
 
 PAYLOAD_FOLDER = "Payload"
 APP_BUNDLE_SUFFIX = ".app"
@@ -38,6 +41,8 @@ LOCAL_NETWORK_USAGE_TEXT = "Connects to your SpiritUNITE development server."
 MACH_O_MAGICS_LITTLE_ENDIAN = (0xFEEDFACE, 0xFEEDFACF)
 FAT_MAGICS_BIG_ENDIAN = (0xCAFEBABE, 0xCAFEBABF)
 MACH_O_64_MAGIC = 0xFEEDFACF
+CPU_TYPE_ARM64 = 0x0100000C
+CPU_SUBTYPE_ARM64_ALL = 0
 MACH_O_HEADER_32 = struct.Struct("<IiiIIII")
 MACH_O_HEADER_64_SIZE = MACH_O_HEADER_32.size + 4
 FAT_ARCH_32 = struct.Struct(">iiIII")
@@ -77,21 +82,32 @@ DEFAULT_VOICE_PORT = 8700
 CLIENT_ADDRESS_SERVICE_PORTS = (8085, 8080)
 DIR_NODE_NAME = "trunk_global_dist"
 CLOUD_CONTROL_REPLACEMENT_HOST = "spiritunite.invalid"
+NEVER_CONFIG_TIME = "0"
+OFFICIAL_SERVICE_END_TIMES = ("20270630050000", "20270323000000")
+FIELD_DEFAULT_LENGTH = struct.Struct("<I")
 GCLOUD_FRAMEWORK_EXECUTABLE = "Frameworks/GCloud.framework/GCloud"
-GCLOUD_FRAMEWORK_SHA256 = (
-    "3f946c4618cdf6e411cc4f0b83605751a00604e5cd3e1828dc613418afdb7978"
+GCLOUD_ARM64_UNSIGNED_SHA256 = (
+    "f6b80164515d3a88f78228999c081ed30bce553c0fe00934659bd53958f527d1"
 )
 UNITY_FRAMEWORK_EXECUTABLE = "Frameworks/UnityFramework.framework/UnityFramework"
-UNITY_FRAMEWORK_SHA256 = (
-    "546c615cf2f3738f46e9431e9b6c74b078c1f272c0992a103c50188ad7998a89"
+UNITY_UNENCRYPTED_SHA256 = (
+    "b567354a7bb326cfe333d3c062d84a30c258502add9fb1e8f3ff24817697173c"
 )
 ACE_FRAMEWORK_EXECUTABLE = "Frameworks/anogs.framework/anogs"
-ACE_FRAMEWORK_SHA256 = (
-    "476a26c43481094c3914f22f823193ac31443eab91e1aeee8733a90b6664e704"
+ACE_ARM64_UNSIGNED_SHA256 = (
+    "6f185b2bcfdc2d4efd7b1d5ab1ef71c76938b7890e01c42e0878e798ecfdb8ab"
 )
-METADATA_SHA256 = "ab3ab88e1ca85a73b06d88165dc8dc14e434383a4f440bf27b828ee8bb9e5a86"
-INIT_TSS_MODULE = 0x67AEC44
-INIT_TSS_MODULE_PROLOGUE = bytes.fromhex("f44fbea9")
+FRAMEWORK_SIGNATURE_OFFSETS = {
+    GCLOUD_FRAMEWORK_EXECUTABLE: 0x1CE14E0,
+    UNITY_FRAMEWORK_EXECUTABLE: 0x9992000,
+    ACE_FRAMEWORK_EXECUTABLE: 0x363D80,
+}
+UNITY_ENCRYPTED_RANGE = (0x4000, 0x7F58000)
+UNITY_SDK_MODULE_NAME = 0x7BA9C40
+UNITY_SDK_MODULE_NAME_BYTES = b"ThirdPartySdkInterface.dll\x00"
+METADATA_SHA256 = "203f1bc6c098cccaa15e3b0f403f58d45bd2ca1a1ab7445d7b7eb337430187ee"
+INIT_TSS_MODULE = 0x67FBC70
+INIT_TSS_MODULE_PROLOGUE = bytes.fromhex("f44fbea9fd7b01a9fd430091f30300aa")
 ACE_DID_FINISH_LAUNCHING = 0x3AD1C
 ACE_DID_FINISH_LAUNCHING_PROLOGUE = bytes.fromhex("f657bda9f44f01a9")
 ARM64_RETURN = bytes.fromhex("c0035fd6")
@@ -236,6 +252,23 @@ LITERAL_PATCHES = (
         LiteralPatch(update_host, lambda target: target.host)
         for update_host in OFFICIAL_UPDATE_HOSTS
     ),
+    *(
+        LiteralPatch(service_end_time, lambda target: NEVER_CONFIG_TIME)
+        for service_end_time in OFFICIAL_SERVICE_END_TIMES
+    ),
+)
+
+
+@dataclass(frozen=True)
+class MetadataFieldDefault:
+    data_offset: int
+    original: str
+
+
+SERVICE_END_TIME_FIELD_DEFAULTS = (
+    MetadataFieldDefault(0x11370F5, "20270323000000"),
+    MetadataFieldDefault(0x1137107, "20270630050000"),
+    MetadataFieldDefault(0x1137119, "20270323000000"),
 )
 
 
@@ -528,6 +561,8 @@ class EncryptionState:
     path: str
     encrypted_slices: int
     slices: int
+    arm64_slices: int
+    encrypted_arm64_slices: int
 
 
 @dataclass
@@ -664,8 +699,28 @@ def encryption_states(
         slices = mach_o_slices(archive, info)
         if not slices:
             continue
-        encrypted = sum(slice_is_encrypted(archive, info, offset) for offset in slices)
-        states.append(EncryptionState(info.filename, encrypted, len(slices)))
+        encrypted = 0
+        arm64_slices = 0
+        encrypted_arm64 = 0
+        for offset in slices:
+            header = read_entry_range(archive, info, offset, MACH_O_HEADER_32.size)
+            if len(header) != MACH_O_HEADER_32.size:
+                raise BuildError(f"Truncated Mach-O header in {info.filename}.")
+            magic, cpu, subtype, *_ = MACH_O_HEADER_32.unpack(header)
+            arm64 = (magic, cpu, subtype) == (
+                MACH_O_64_MAGIC,
+                CPU_TYPE_ARM64,
+                CPU_SUBTYPE_ARM64_ALL,
+            )
+            is_encrypted = slice_is_encrypted(archive, info, offset)
+            encrypted += is_encrypted
+            arm64_slices += arm64
+            encrypted_arm64 += arm64 and is_encrypted
+        states.append(
+            EncryptionState(
+                info.filename, encrypted, len(slices), arm64_slices, encrypted_arm64
+            )
+        )
     return states
 
 
@@ -685,7 +740,7 @@ def locate_literal_table(metadata: bytes, originals: list[str]) -> LiteralTable:
     present = [original for original, found in data_positions.items() if found]
     if not present:
         raise BuildError(
-            f"{METADATA_NAME} holds none of the official addresses; it is not a supported client build."
+            f"{METADATA_NAME} holds none of the official addresses; it is not a supported client build. {UNSUPPORTED_BUILD_HINT}."
         )
     originals_by_data_offset: dict[int, set[str]] = defaultdict(set)
     entries_by_data_offset: dict[int, dict[str, list[int]]] = defaultdict(
@@ -777,10 +832,32 @@ def write_literal(
     struct.pack_into("<I", metadata, entry, len(encoded))
 
 
+def write_field_default(
+    metadata: bytearray, field_default: MetadataFieldDefault, value: str
+) -> None:
+    original = field_default.original.encode("utf-8")
+    length = FIELD_DEFAULT_LENGTH.unpack_from(metadata, field_default.data_offset)[0]
+    data_offset = field_default.data_offset + FIELD_DEFAULT_LENGTH.size
+    if (
+        length != len(original)
+        or bytes(metadata[data_offset : data_offset + length]) != original
+    ):
+        raise BuildError(
+            f"{METADATA_NAME} does not hold the {field_default.original!r} field default where {SUPPORTED_CLIENT_BUILD} keeps it."
+        )
+    encoded = value.encode("utf-8")
+    if len(encoded) > length:
+        raise BuildError(
+            f"{value!r} is {len(encoded)} bytes; the field default {field_default.original!r} holds at most {length}."
+        )
+    metadata[data_offset : data_offset + length] = encoded.ljust(length, bytes(1))
+    FIELD_DEFAULT_LENGTH.pack_into(metadata, field_default.data_offset, len(encoded))
+
+
 def patch_metadata(metadata: bytes, target: HostTarget) -> bytes:
     if hashlib.sha256(metadata).hexdigest() != METADATA_SHA256:
         raise BuildError(
-            "Unsupported global-metadata.dat: SDK defaults cannot be patched safely."
+            f"Unsupported global-metadata.dat: SDK defaults cannot be patched safely. {UNSUPPORTED_BUILD_HINT}."
         )
     originals = [patch.original for patch in LITERAL_PATCHES]
     table = locate_literal_table(metadata, originals)
@@ -797,6 +874,8 @@ def patch_metadata(metadata: bytes, target: HostTarget) -> bytes:
             write_literal(
                 patched, table, entry, patch.original, patch.replacement(target)
             )
+    for field_default in SERVICE_END_TIME_FIELD_DEFAULTS:
+        write_field_default(patched, field_default, NEVER_CONFIG_TIME)
     content = silence_host(bytes(patched), TDM_ROUTE_HOST, 1)
     return silence_host(content, CRASHSIGHT_HOST, 1)
 
@@ -949,8 +1028,13 @@ def inspect(ipa: Path) -> None:
 
         log("\nMach-O encryption (FairPlay cryptid):")
         for state in encryption_states(archive, bundle):
-            status = "ENCRYPTED" if state.encrypted_slices else "decrypted"
-            log(f"  {status:<10} {state.path} ({state.slices} slice(s))")
+            status = "ENCRYPTED" if state.encrypted_arm64_slices else "decrypted"
+            if state.arm64_slices != 1:
+                status = "unsupported"
+            ignored = state.encrypted_slices - state.encrypted_arm64_slices
+            log(
+                f"  {status:<11} {state.path} (arm64: {state.arm64_slices}, total: {state.slices}; ignored encrypted non-arm64: {ignored})"
+            )
 
         log("\nClient files:")
         for name in (
@@ -994,17 +1078,72 @@ def inspect(ipa: Path) -> None:
 
 
 def address_any_update_host(content: bytes) -> bytes:
-    if hashlib.sha256(content).hexdigest() != GCLOUD_FRAMEWORK_SHA256:
-        raise BuildError(
-            "Unsupported GCloud framework: cannot locate the update address service's domain check safely."
-        )
-    if struct.unpack_from("<I", content, IS_DOMAIN_NAME_STORES_DOMAIN)[0] != MOV_W9_ONE:
+    base, arm64 = validated_framework(
+        content, GCLOUD_FRAMEWORK_EXECUTABLE, GCLOUD_ARM64_UNSIGNED_SHA256
+    )
+    if struct.unpack_from("<I", arm64, IS_DOMAIN_NAME_STORES_DOMAIN)[0] != MOV_W9_ONE:
         raise BuildError(
             "The GCloud framework does not hold the expected domain check instruction."
         )
     patched = bytearray(content)
-    struct.pack_into("<I", patched, IS_DOMAIN_NAME_STORES_DOMAIN, MOV_W9_ZERO)
+    struct.pack_into("<I", patched, base + IS_DOMAIN_NAME_STORES_DOMAIN, MOV_W9_ZERO)
     return bytes(patched)
+
+
+def validated_framework(
+    content: bytes, executable: str, expected_sha256: str
+) -> tuple[int, bytes]:
+    candidates = [(0, len(content))]
+    if (
+        len(content) >= 8
+        and struct.unpack_from(">I", content)[0] in FAT_MAGICS_BIG_ENDIAN
+    ):
+        magic, count = struct.unpack_from(">II", content)
+        arch = FAT_ARCH_64 if magic == FAT_MAGICS_BIG_ENDIAN[1] else FAT_ARCH_32
+        if count > (len(content) - 8) // arch.size:
+            raise BuildError(f"Invalid architecture table in {executable}.")
+        candidates = []
+        for index in range(count):
+            cpu, subtype, offset, size, *_ = arch.unpack_from(
+                content, 8 + index * arch.size
+            )
+            if offset > len(content) or size > len(content) - offset:
+                raise BuildError(f"Invalid architecture range in {executable}.")
+            if cpu == CPU_TYPE_ARM64 and subtype == CPU_SUBTYPE_ARM64_ALL:
+                candidates.append((offset, size))
+    if len(candidates) != 1:
+        raise BuildError(f"Expected one arm64 slice in {executable}.")
+    base, size = candidates[0]
+    arm64 = content[base : base + size]
+    signature = FRAMEWORK_SIGNATURE_OFFSETS[executable]
+    if len(arm64) < signature or struct.unpack_from("<III", arm64) != (
+        MACH_O_64_MAGIC,
+        CPU_TYPE_ARM64,
+        CPU_SUBTYPE_ARM64_ALL,
+    ):
+        raise BuildError(
+            f"Unsupported arm64 layout in {executable}. {UNSUPPORTED_BUILD_HINT}."
+        )
+    original = arm64[:signature]
+    if executable == UNITY_FRAMEWORK_EXECUTABLE:
+        start, end = UNITY_ENCRYPTED_RANGE
+        original = original[:start] + original[end:]
+    if hashlib.sha256(original).hexdigest() != expected_sha256:
+        raise BuildError(
+            f"Unsupported {executable}: original arm64 bytes do not match the validated build. {UNSUPPORTED_BUILD_HINT}."
+        )
+    if (
+        executable == UNITY_FRAMEWORK_EXECUTABLE
+        and arm64[
+            UNITY_SDK_MODULE_NAME : UNITY_SDK_MODULE_NAME
+            + len(UNITY_SDK_MODULE_NAME_BYTES)
+        ]
+        != UNITY_SDK_MODULE_NAME_BYTES
+    ):
+        raise BuildError(
+            f"UnityFramework does not identify the expected InitTssModule method; confirm the decrypted {SUPPORTED_BUNDLE_VERSION} method mapping."
+        )
+    return base, arm64
 
 
 def patch_framework_instruction(
@@ -1015,33 +1154,35 @@ def patch_framework_instruction(
     original: bytes,
     replacement: bytes,
 ) -> bytes:
-    if hashlib.sha256(content).hexdigest() != expected_sha256:
+    base, arm64 = validated_framework(content, executable, expected_sha256)
+    if len(original) < len(replacement):
         raise BuildError(
-            f"Unsupported {executable}: ACE startup cannot be patched safely."
+            f"Replacement at {executable}+0x{offset:X} exceeds its guarded instruction span."
         )
-    if (
-        len(original) != len(replacement)
-        or content[offset : offset + len(original)] != original
-    ):
+    if arm64[offset : offset + len(original)] != original:
         raise BuildError(
-            f"{executable} does not hold the expected ACE startup instructions."
+            f"{executable} does not hold the expected original instructions at arm64 offset 0x{offset:X}; confirm the decrypted {SUPPORTED_BUNDLE_VERSION} instructions before porting this patch."
         )
     patched = bytearray(content)
-    patched[offset : offset + len(original)] = replacement
+    patched[base + offset : base + offset + len(replacement)] = replacement
     return bytes(patched)
 
 
 def build_replacements(
     archive: zipfile.ZipFile, bundle: AppBundle, target: HostTarget
 ) -> dict[str, bytes]:
-    encrypted = [
-        state.path
-        for state in encryption_states(archive, bundle)
-        if state.encrypted_slices
-    ]
+    if bundle.info_plist.get("CFBundleVersion") != SUPPORTED_BUNDLE_VERSION:
+        raise BuildError(f"Unsupported CFBundleVersion. {UNSUPPORTED_BUILD_HINT}.")
+    states = encryption_states(archive, bundle)
+    unsupported = [state.path for state in states if state.arm64_slices != 1]
+    if unsupported:
+        raise BuildError(
+            "Expected one arm64 slice in each executable: " + ", ".join(unsupported)
+        )
+    encrypted = [state.path for state in states if state.encrypted_arm64_slices]
     if encrypted:
         raise BuildError(
-            "These executables are still FairPlay encrypted and will not launch once re-signed; use a decrypted IPA: "
+            "These arm64 slices are still FairPlay encrypted; use an IPA with decrypted arm64 executables (unused non-arm64 slices may remain encrypted): "
             + ", ".join(encrypted)
         )
     replacements: dict[str, bytes] = {}
@@ -1094,14 +1235,14 @@ def build_replacements(
     for executable, digest, offset, original, replacement in (
         (
             UNITY_FRAMEWORK_EXECUTABLE,
-            UNITY_FRAMEWORK_SHA256,
+            UNITY_UNENCRYPTED_SHA256,
             INIT_TSS_MODULE,
             INIT_TSS_MODULE_PROLOGUE,
             ARM64_RETURN,
         ),
         (
             ACE_FRAMEWORK_EXECUTABLE,
-            ACE_FRAMEWORK_SHA256,
+            ACE_ARM64_UNSIGNED_SHA256,
             ACE_DID_FINISH_LAUNCHING,
             ACE_DID_FINISH_LAUNCHING_PROLOGUE,
             ARM64_RETURN_TRUE,
@@ -1189,7 +1330,7 @@ def build(arguments: argparse.Namespace) -> None:
     log(
         f"Sign it with your own Apple provisioning for {target.bundle_identifier} (for example Sideloadly, AltStore or zsign); it installs next to the official app."
     )
-    log("Not handled yet:")
+    log("Installation and runtime checks:")
     for change in PENDING_CLIENT_CHANGES:
         log(f"  - {change}")
 
@@ -1202,7 +1343,7 @@ def parse_arguments() -> argparse.Namespace:
         "--ipa",
         type=Path,
         required=True,
-        help="official IPA; encrypted input supports --inspect, builds require decryption",
+        help=f"official IPA of {SUPPORTED_CLIENT_BUILD}; encrypted input supports --inspect, builds require decryption",
     )
     parser.add_argument(
         "--inspect",

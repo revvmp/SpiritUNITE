@@ -36,9 +36,9 @@ RESOURCES_ARCHIVE_ENTRY = "lib/arm64-v8a/libResources.so"
 METADATA_ARCHIVE_PATH = "Managed/Metadata/global-metadata.dat"
 IL2CPP_ARCHIVE_PATH = "arm64-v8a/libil2cpp.so"
 IL2CPP_LIBRARY_SHA256 = (
-    "d57a6e89e10563ee7557a39a35259ec29e64b68f01102d3da0cee39f887595c7"
+    "f2b19c465107370ffe5055dca0e33e6136c1ff616b2eb6e7e42cce3ee4cdf6c0"
 )
-INIT_TSS_MODULE = 0x431241C
+INIT_TSS_MODULE = 0x463BCC0
 INIT_TSS_MODULE_PROLOGUE = bytes.fromhex("f44fbea9")
 ARM64_RETURN = bytes.fromhex("c0035fd6")
 GVOICE_CONFIG_ENTRY = "assets/GCloudVoice/config.json"
@@ -50,17 +50,24 @@ SOURCE_STAMP_ENTRY = "stamp-cert-sha256"
 SPLIT_ONLY_ENTRIES = frozenset({MANIFEST_ENTRY, SOURCE_STAMP_ENTRY})
 RESOURCE_TABLE_ENTRY = "resources.arsc"
 SHELL_DEX_ENTRY = "classes2.dex"
-SHELL_DEX_SHA256 = "0424acd386cc14745c209ccae1662259777889b026c04f60e71953855095d7d7"
+SHELL_DEX_SHA256 = "07109a75a686d437994cf58f45ad69e61e46ae8c4a0236cb6acf3350bab7f6f9"
 SDK_DEX_ENTRY = "classes.dex"
-SDK_DEX_SHA256 = "f2309ccfcf822bded1ec9017b5778efc9d7e34bd34baffcb8039b7a8aca203dc"
-ACE_JAVA_LIBRARY_LOAD = 0x349F14
-ACE_JAVA_LIBRARY_LOAD_INSTRUCTION = bytes.fromhex("7110a1f90000")
+SDK_DEX_SHA256 = "41b0e6e90ea3cd989b095858be6204727b63dc5398e9aaa9a090ab12647e7f2c"
+ACE_JAVA_LIBRARY_LOAD = 0x37620C
+ACE_JAVA_LIBRARY_LOAD_INSTRUCTION = bytes.fromhex("711059f80000")
 ACE_SHELL_LIBRARY_LOADS = (
-    (0x308150, bytes.fromhex("71109e6f0000")),
-    (0x30815A, bytes.fromhex("71109e6f0000")),
-    (0x3ACE2C, bytes.fromhex("711063230000")),
+    (0x36862C, bytes.fromhex("7110c8830000")),
+    (0x368636, bytes.fromhex("7110c8830000")),
+    (0x45F68C, bytes.fromhex("7110c6370000")),
 )
-ATTACH_BASE_CONTEXT_SHELL_INSTRUCTIONS = 0x3081B8
+ATTACH_BASE_CONTEXT_SHELL_INSTRUCTIONS = 0x368694
+ATTACH_BASE_CONTEXT_SHELL_FIRST_INSTRUCTION = bytes.fromhex("1205")
+DEX_RETURN_VOID = bytes.fromhex("0e00")
+CRASHLYTICS_HOSTS = (
+    ("firebase-settings.crashlytics.com", 1),
+    ("reports.crashlytics.com", 2),
+    ("update.crashlytics.com", 2),
+)
 GCLOUD_LIBRARY_ENTRY = "lib/arm64-v8a/libgcloud.so"
 GCLOUD_LIBRARY_SHA256 = (
     "f2932b84be1cbf5f59eb8126ad8427428c76990d21b76f8d927f78e2f87b3ce0"
@@ -105,6 +112,11 @@ DEFAULT_VOICE_PORT = 8700
 GVOICE_SERVER_SCHEME = "udp://"
 DIR_NODE_NAME = "trunk_global_dist"
 CLOUD_CONTROL_REPLACEMENT_HOST = "spiritunite.invalid"
+NEVER_CONFIG_TIME = "0"
+FIELD_DEFAULT_LENGTH = struct.Struct("<I")
+UNITY_BOOT_CONFIG_ENTRY = "assets/bin/Data/boot.config"
+UNITY_BUILD_DATE_KEY = b"buildDate="
+DOTNET_TICKS_PER_DAY = 864_000_000_000
 UNREACHABLE_ORIGIN = "https://spiritunite.invalid"
 POKEMON_REDIRECT_URI = f"{UNREACHABLE_ORIGIN}/pokemon/loginSuccess"
 NINTENDO_REDIRECT_URI = f"{UNREACHABLE_ORIGIN}/nintendo/loginSuccess"
@@ -209,6 +221,12 @@ class MetadataLiteral:
 
 
 @dataclass(frozen=True)
+class MetadataFieldDefault:
+    data_offset: int
+    original: str
+
+
+@dataclass(frozen=True)
 class ClientBuild:
     version_code: int
     string_literal_data_offset: int
@@ -218,33 +236,46 @@ class ClientBuild:
     gvoice_server_url: MetadataLiteral
     update_hosts: tuple[MetadataLiteral, ...]
     telemetry_addresses: tuple[MetadataLiteral, ...]
+    service_end_times: tuple[MetadataLiteral, ...]
+    service_end_time_defaults: tuple[MetadataFieldDefault, ...]
+    unity_build_date: int
 
 
 CLIENT_BUILDS_BY_METADATA_MD5 = {
-    "22a544b07aa748118d7bae025dd3fbef": ClientBuild(
-        version_code=1192039,
-        string_literal_data_offset=0x53C10,
+    "c3f3d2e6677bd2b54fb553158eca4208": ClientBuild(
+        version_code=1198241,
+        string_literal_data_offset=0x54458,
         dir_address=MetadataLiteral(
-            0x16238, "trunk_global_dist|dirsvr.pokemon-unitepgame.com:10001"
+            0x16350, "trunk_global_dist|dirsvr.pokemon-unitepgame.com:10001"
         ),
-        cloud_control_host=MetadataLiteral(0x5768, "gcloudctrl.iegcom.com"),
+        cloud_control_host=MetadataLiteral(0x5810, "gcloudctrl.iegcom.com"),
         image_cdn_address=MetadataLiteral(
-            0x3F730, "https://image.pokemon-unitepgame.com/Encrypt"
+            0x3FE10, "https://image.pokemon-unitepgame.com/Encrypt"
         ),
-        gvoice_server_url=MetadataLiteral(0x11380, "udp://sg.voice.gcloudcs.com:8700"),
+        gvoice_server_url=MetadataLiteral(0x11488, "udp://sg.voice.gcloudcs.com:8700"),
         update_hosts=(
-            MetadataLiteral(0x3E8F8, "puffer.6.669535640.nishikigcloud.iegcom.com"),
-            MetadataLiteral(0x3E8F0, "pre-puffer.5.669535640.nishikigcloud.iegcom.com"),
-            MetadataLiteral(0x50A68, "download.2.669535640.nishikigcloud.iegcom.com"),
+            MetadataLiteral(0x3EFD0, "puffer.6.669535640.nishikigcloud.iegcom.com"),
+            MetadataLiteral(0x3EFC8, "pre-puffer.5.669535640.nishikigcloud.iegcom.com"),
+            MetadataLiteral(0x51280, "download.2.669535640.nishikigcloud.iegcom.com"),
             MetadataLiteral(
-                0x50A60, "pre-download.1.669535640.nishikigcloud.iegcom.com"
+                0x51278, "pre-download.1.669535640.nishikigcloud.iegcom.com"
             ),
         ),
         telemetry_addresses=(
-            MetadataLiteral(0x53B0, "https://android.crashsight.wetest.net/pb/async"),
-            MetadataLiteral(0x187A0, "qqcollect.pgame.cn.qq.com:31010"),
-            MetadataLiteral(0x18840, "qqcollect.pgame.cn.qq.com"),
+            MetadataLiteral(0x5450, "https://android.crashsight.wetest.net/pb/async"),
+            MetadataLiteral(0x188B8, "qqcollect.pgame.cn.qq.com:31010"),
+            MetadataLiteral(0x18958, "qqcollect.pgame.cn.qq.com"),
         ),
+        service_end_times=(
+            MetadataLiteral(0x5750, "20270630050000"),
+            MetadataLiteral(0x43348, "20270323000000"),
+        ),
+        service_end_time_defaults=(
+            MetadataFieldDefault(0x113551C, "20270323000000"),
+            MetadataFieldDefault(0x113552E, "20270630050000"),
+            MetadataFieldDefault(0x1135540, "20270323000000"),
+        ),
+        unity_build_date=639294094893914812,
     ),
 }
 
@@ -941,6 +972,32 @@ def patch_res_data(content: bytes, digests: dict[str, tuple[str, str]]) -> bytes
     return (json.dumps(entries, indent=4) + "\n").encode("utf-8")
 
 
+def stamp_unity_build_date(
+    content: bytes, build: ClientBuild, patched_metadata_md5: str
+) -> bytes:
+    lines = content.split(b"\n")
+    build_date_lines = [
+        index for index, line in enumerate(lines) if line.startswith(UNITY_BUILD_DATE_KEY)
+    ]
+    if len(build_date_lines) != 1:
+        raise BuildError(
+            f"{UNITY_BOOT_CONFIG_ENTRY} has {len(build_date_lines)} buildDate lines; expected exactly one."
+        )
+    line_index = build_date_lines[0]
+    official = lines[line_index][len(UNITY_BUILD_DATE_KEY) :]
+    if official != str(build.unity_build_date).encode("ascii"):
+        raise BuildError(
+            f"{UNITY_BOOT_CONFIG_ENTRY} does not hold buildDate {build.unity_build_date} where build {build.version_code} keeps it."
+        )
+    metadata_build_date = (
+        build.unity_build_date
+        + 1
+        + int(patched_metadata_md5, 16) % (DOTNET_TICKS_PER_DAY - 1)
+    )
+    lines[line_index] = UNITY_BUILD_DATE_KEY + str(metadata_build_date).encode("ascii")
+    return b"\n".join(lines)
+
+
 def read_metadata_literal(
     metadata: bytearray, build: ClientBuild, literal: MetadataLiteral
 ) -> tuple[int, int]:
@@ -967,15 +1024,43 @@ def write_metadata_literal(
     struct.pack_into("<I", metadata, literal.entry_offset, len(encoded))
 
 
+def write_metadata_field_default(
+    metadata: bytearray,
+    build: ClientBuild,
+    field_default: MetadataFieldDefault,
+    value: str,
+) -> None:
+    original = field_default.original.encode("utf-8")
+    length = FIELD_DEFAULT_LENGTH.unpack_from(metadata, field_default.data_offset)[0]
+    data_offset = field_default.data_offset + FIELD_DEFAULT_LENGTH.size
+    if (
+        length != len(original)
+        or bytes(metadata[data_offset : data_offset + length]) != original
+    ):
+        raise BuildError(
+            f"global-metadata.dat does not hold the {field_default.original!r} field default where build {build.version_code} keeps it."
+        )
+    encoded = value.encode("utf-8")
+    if len(encoded) > length:
+        raise BuildError(
+            f"{value!r} is {len(encoded)} bytes; the field default {field_default.original!r} holds at most {length}."
+        )
+    metadata[data_offset : data_offset + length] = encoded.ljust(length, b"\x00")
+    FIELD_DEFAULT_LENGTH.pack_into(metadata, field_default.data_offset, len(encoded))
+
+
+def supported_version_codes() -> str:
+    return ", ".join(
+        str(known.version_code) for known in CLIENT_BUILDS_BY_METADATA_MD5.values()
+    )
+
+
 def client_build_for(metadata: bytes) -> ClientBuild:
     metadata_md5 = hashlib.md5(metadata).hexdigest()
     build = CLIENT_BUILDS_BY_METADATA_MD5.get(metadata_md5)
     if build is None:
-        supported = ", ".join(
-            str(known.version_code) for known in CLIENT_BUILDS_BY_METADATA_MD5.values()
-        )
         raise BuildError(
-            f"Unsupported client build (global-metadata.dat md5 {metadata_md5}). Supported versionCodes: {supported}."
+            f"Unsupported client build (global-metadata.dat md5 {metadata_md5}). Supported versionCodes: {supported_version_codes()}."
         )
     return build
 
@@ -1006,6 +1091,10 @@ def patch_metadata(metadata: bytes, target: HostTarget) -> bytes:
                 "qqcollect.pgame.cn.qq.com", CLOUD_CONTROL_REPLACEMENT_HOST
             ),
         )
+    for service_end_time in build.service_end_times:
+        write_metadata_literal(patched, build, service_end_time, NEVER_CONFIG_TIME)
+    for field_default in build.service_end_time_defaults:
+        write_metadata_field_default(patched, build, field_default, NEVER_CONFIG_TIME)
     return bytes(patched)
 
 
@@ -1882,10 +1971,16 @@ def sign_apk(
 def disable_signature_shell(content: bytes) -> bytes:
     if hashlib.sha256(content).hexdigest() != SHELL_DEX_SHA256:
         raise BuildError(
-            "Unsupported classes2.dex: cannot locate AnoApplication.attachBaseContextShell safely."
+            f"Unsupported classes2.dex: cannot locate AnoApplication.attachBaseContextShell safely. Supported versionCodes: {supported_version_codes()}."
+        )
+    shell_start = ATTACH_BASE_CONTEXT_SHELL_INSTRUCTIONS
+    shell_end = shell_start + len(ATTACH_BASE_CONTEXT_SHELL_FIRST_INSTRUCTION)
+    if content[shell_start:shell_end] != ATTACH_BASE_CONTEXT_SHELL_FIRST_INSTRUCTION:
+        raise BuildError(
+            "classes2.dex does not hold the expected attachBaseContextShell first instruction."
         )
     patched = bytearray(content)
-    struct.pack_into("<H", patched, ATTACH_BASE_CONTEXT_SHELL_INSTRUCTIONS, 0x000E)
+    patched[shell_start:shell_end] = DEX_RETURN_VOID
     for offset, original in ACE_SHELL_LIBRARY_LOADS:
         if content[offset : offset + len(original)] != original:
             raise BuildError(
@@ -1893,6 +1988,8 @@ def disable_signature_shell(content: bytes) -> bytes:
             )
         patched[offset : offset + len(original)] = bytes(len(original))
     patched = bytearray(silence_host(bytes(patched), CRASHSIGHT_HOST, 1))
+    for host, count in CRASHLYTICS_HOSTS:
+        patched = bytearray(silence_host(bytes(patched), host, count))
     return repair_dex_checksums(patched)
 
 
@@ -1905,7 +2002,7 @@ def repair_dex_checksums(patched: bytearray) -> bytes:
 def patch_sdk_dex(content: bytes) -> bytes:
     if hashlib.sha256(content).hexdigest() != SDK_DEX_SHA256:
         raise BuildError(
-            "Unsupported classes.dex: cannot locate AnoSdk library load safely."
+            f"Unsupported classes.dex: cannot locate AnoSdk library load safely. Supported versionCodes: {supported_version_codes()}."
         )
     offset = ACE_JAVA_LIBRARY_LOAD
     original = ACE_JAVA_LIBRARY_LOAD_INSTRUCTION
@@ -1913,12 +2010,6 @@ def patch_sdk_dex(content: bytes) -> bytes:
         raise BuildError("classes.dex does not hold the expected AnoSdk library load.")
     patched = bytearray(content)
     patched[offset : offset + len(original)] = bytes(len(original))
-    for host, count in (
-        ("firebase-settings.crashlytics.com", 1),
-        ("reports.crashlytics.com", 2),
-        ("update.crashlytics.com", 2),
-    ):
-        patched = bytearray(silence_host(bytes(patched), host, count))
     for host, replacement, count in ADJUST_HOSTS:
         patched = bytearray(replace_host(bytes(patched), host, replacement, count))
     return repair_dex_checksums(patched)
@@ -1968,7 +2059,7 @@ def patch_gvoice_config(content: bytes, target: HostTarget) -> bytes:
 def disable_ace_startup(content: bytes) -> bytes:
     if hashlib.sha256(content).hexdigest() != IL2CPP_LIBRARY_SHA256:
         raise BuildError(
-            "Unsupported libil2cpp.so: cannot locate InitTssModule safely."
+            f"Unsupported libil2cpp.so: cannot locate InitTssModule safely. Supported versionCodes: {supported_version_codes()}."
         )
     if content[INIT_TSS_MODULE : INIT_TSS_MODULE + 4] != INIT_TSS_MODULE_PROLOGUE:
         raise BuildError(
@@ -1983,6 +2074,7 @@ def build_base_replacements(
     splits: dict[str, Path],
     target: HostTarget,
     digests: dict[str, tuple[str, str]],
+    client_build: ClientBuild,
 ) -> dict[str, bytes]:
     with zipfile.ZipFile(splits[BASE_APK]) as base:
         replacements = {
@@ -1991,6 +2083,11 @@ def build_base_replacements(
                 base.read(CENTAURI_CONFIG_ENTRY), target
             ),
             RES_DATA_ENTRY: patch_res_data(base.read(RES_DATA_ENTRY), digests),
+            UNITY_BOOT_CONFIG_ENTRY: stamp_unity_build_date(
+                base.read(UNITY_BOOT_CONFIG_ENTRY),
+                client_build,
+                digests[METADATA_ARCHIVE_PATH][1],
+            ),
             GVOICE_CONFIG_ENTRY: patch_gvoice_config(
                 base.read(GVOICE_CONFIG_ENTRY), target
             ),
@@ -2016,7 +2113,7 @@ def build_base_replacements(
 def address_any_update_host(content: bytes) -> bytes:
     if hashlib.sha256(content).hexdigest() != GCLOUD_LIBRARY_SHA256:
         raise BuildError(
-            "Unsupported libgcloud.so: cannot locate the update address service's domain check safely."
+            f"Unsupported libgcloud.so: cannot locate the update address service's domain check safely. Supported versionCodes: {supported_version_codes()}."
         )
     if (
         struct.unpack_from("<I", content, IS_DOMAIN_NAME_RETURNS_DOMAIN)[0]
@@ -2075,13 +2172,16 @@ def build(arguments: argparse.Namespace) -> None:
         f"Building a {kind} for {target.web_origin} (directory {target.host}:{target.dir_port})"
     )
     log(
-        f"Patching the directory, update, image CDN ({target.image_cdn_address}) and voice server ({target.gvoice_server_url}) addresses in global-metadata.dat"
+        f"Patching the directory, update, image CDN ({target.image_cdn_address}) and voice server ({target.gvoice_server_url}) addresses and the service end dates in global-metadata.dat"
     )
     native_replacements, digests, client_build = build_native_replacements(
         splits, target
     )
     log(f"  Client build {client_build.version_code}")
     log("Patching MSDKConfig.ini, the Centauri pay config and res.data")
+    log(
+        "Stamping the Unity buildDate from the patched global-metadata.dat so an installed client re-extracts files/il2cpp"
+    )
     log("Disabling AnoApplication signature-shell initialization")
     log(
         "Disabling ACE startup and redirecting analytics, crash and voice reporting hosts to .invalid"
@@ -2095,7 +2195,7 @@ def build(arguments: argparse.Namespace) -> None:
     parts = [
         MergedApkPart(
             splits[BASE_APK],
-            build_base_replacements(splits, target, digests),
+            build_base_replacements(splits, target, digests, client_build),
         ),
         MergedApkPart(splits[NATIVE_APK], native_replacements, SPLIT_ONLY_ENTRIES),
         MergedApkPart(splits[ASSET_PACK_APK], {}, SPLIT_ONLY_ENTRIES),
@@ -2175,7 +2275,7 @@ def parse_arguments() -> argparse.Namespace:
         "--apks",
         type=Path,
         required=True,
-        help=f"folder holding the official {', '.join(SPLIT_APKS)}",
+        help=f"folder holding the official {', '.join(SPLIT_APKS)} of versionCode {supported_version_codes()}",
     )
     parser.add_argument(
         "--host",
