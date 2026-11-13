@@ -85,7 +85,7 @@ public sealed class AccountManager(AccountRepository repository)
 
     public async Task<LoginPlatform[]> FindBoundChannelsAsync(ulong accountId) =>
         await repository.FindByIdAsync(accountId) is { } account
-            ? [account.IsGuest ? LoginPlatform.GUEST : LoginPlatform.POKEMON]
+            ? account.IsGuest ? [LoginPlatform.GUEST] : [LoginPlatform.POKEMON, LoginPlatform.Nintendo_Unite]
             : [];
 
     private async Task<StoredAccount?> FindAsync(string login)

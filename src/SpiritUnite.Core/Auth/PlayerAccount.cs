@@ -1,6 +1,6 @@
 namespace SpiritUnite.Auth;
 
-public sealed record PlayerAccount(ulong AccountId, string? UserName)
+public sealed record PlayerAccount(ulong AccountId, string? UserName, bool HasGuestId)
 {
     public bool IsGuest => UserName is null;
 }

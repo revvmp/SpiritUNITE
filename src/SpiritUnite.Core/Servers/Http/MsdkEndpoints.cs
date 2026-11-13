@@ -20,6 +20,8 @@ public static class MsdkEndpoints
     private const string CheckAndLoginPath = "/v2/auth/check_and_login";
     private const string AutoLoginPath = "/v2/auth/auto_login";
     private const string LogoutPath = "/v2/auth/logout";
+    private const string CheckLoginPath = "/v2/auth/check_login";
+    private const string BindWithConfirmCodePath = "/v2/auth/bind_with_confirm_code";
     private const string GetConfPath = "/v2/conf/get_conf";
     private const string GetNoticePath = "/v2/notice/get_notice";
     private const string UnsupportedPath = "/v2/{**action}";
@@ -28,6 +30,8 @@ public static class MsdkEndpoints
     private const int Refused = 1;
     private const int FirstLogin = 1;
     private const int ReturningLogin = 0;
+    private const int NotRegistered = 0;
+    private const int Registered = 1;
     private const string ChannelInfoKey = "channel_info";
     private const string GuestIdKey = "uuid";
     private const string GuestDisplayName = "guest";
@@ -40,6 +44,8 @@ public static class MsdkEndpoints
         app.MapPost(CheckAndLoginPath, LoginAsync).DisableAntiforgery();
         app.MapPost(AutoLoginPath, AutoLoginAsync).DisableAntiforgery();
         app.MapPost(LogoutPath, LogoutAsync).DisableAntiforgery();
+        app.MapPost(CheckLoginPath, CheckLoginAsync).DisableAntiforgery();
+        app.MapPost(BindWithConfirmCodePath, BindWithConfirmCodeAsync).DisableAntiforgery();
         app.MapPost(GetConfPath, GetConf).DisableAntiforgery();
         app.MapPost(GetNoticePath, GetNotice).DisableAntiforgery();
         app.Map(UnsupportedPath, Unsupported);
@@ -118,7 +124,7 @@ public static class MsdkEndpoints
         var token = body is null ? null : ReadString(body.RootElement, "token");
         if (!IsLoginChannel(query.ChannelId) || openId is null || token is null ||
             await sessions.ResumeAsync(openId, token) is not { } session ||
-            session.Account.IsGuest != (query.ChannelId == GuestChannelId))
+            !CanLogInOnChannel(session.Account, query.ChannelId))
         {
             logger.LogInformation("MSDK auto login refused for channel {ChannelId}", query.ChannelId);
             return Refuse(query, "login expired");
@@ -127,6 +133,73 @@ public static class MsdkEndpoints
         logger.LogInformation("MSDK auto login renewed account {AccountId} ({UserName})",
             session.Account.AccountId, session.Account.UserName ?? GuestDisplayName);
         return Succeed(query, session);
+    }
+
+    private static async Task<IResult> CheckLoginAsync(HttpRequest request, AccountLinkManager links, ILoggerFactory loggers)
+    {
+        var logger = loggers.CreateLogger(typeof(MsdkEndpoints));
+        var query = MsdkQuery.Read(request);
+        if (query.ChannelId is not (PokemonChannelId or Nintendo_Unite))
+        {
+            logger.LogInformation("MSDK link check refused: channel {ChannelId} cannot be linked", query.ChannelId);
+            return Refuse(query, "channel not supported");
+        }
+
+        using var body = await ReadBodyAsync(request);
+        var channelInfo = body is null ? null : ReadObject(body.RootElement, ChannelInfoKey);
+        if ((channelInfo is { } info ? ReadString(info, "code") : null) is not { } code)
+        {
+            logger.LogInformation("MSDK link check refused: no authorization code");
+            return Refuse(query, "missing code");
+        }
+
+        if (await links.CheckAsync(code, ReadString(channelInfo!.Value, "code_verifier"), (LoginPlatform)query.ChannelId) is not { } check)
+        {
+            logger.LogInformation("MSDK link check refused on channel {ChannelId}: authorization code is invalid, used or expired", query.ChannelId);
+            return Refuse(query, "invalid code");
+        }
+
+        logger.LogInformation("MSDK link check on channel {ChannelId} for account {AccountId}: registered {IsRegistered}",
+            query.ChannelId, check.AccountId, check.IsRegistered);
+        return Results.Json(new MsdkCheckLoginReply
+        {
+            Ret = Succeeded,
+            Msg = "success",
+            Seq = query.Seq,
+            ChannelId = query.ChannelId,
+            IsRegistered = check.IsRegistered ? Registered : NotRegistered,
+            ConfirmCode = check.ConfirmCode,
+            ConfirmCodeExpireTime = check.ConfirmCodeExpireTime,
+            ChannelInfo = query.ChannelId == PokemonChannelId ? PokemonAdultChannelInfo : EmptyChannelInfo,
+        });
+    }
+
+    private static async Task<IResult> BindWithConfirmCodeAsync(HttpRequest request, AccountLinkManager links, ILoggerFactory loggers)
+    {
+        var logger = loggers.CreateLogger(typeof(MsdkEndpoints));
+        var query = MsdkQuery.Read(request);
+        using var body = await ReadBodyAsync(request);
+        var openId = body is null ? null : ReadString(body.RootElement, "openid");
+        var token = body is null ? null : ReadString(body.RootElement, "token");
+        var bindChannelId = body is null ? null : ReadInt(body.RootElement, "bind_channelid");
+        var bindChannelInfo = body is null ? null : ReadObject(body.RootElement, "bind_channel_info");
+        var confirmCode = bindChannelInfo is { } info ? ReadString(info, "confirm_code") : null;
+        if (openId is null || token is null || confirmCode is null || bindChannelId is not (PokemonChannelId or Nintendo_Unite))
+        {
+            logger.LogInformation("MSDK link refused: incomplete request for bind channel {BindChannelId}", bindChannelId);
+            return Refuse(query, "invalid request");
+        }
+
+        var (result, linkedAccountId) = await links.BindWithConfirmCodeAsync(openId, token, confirmCode, (LoginPlatform)bindChannelId.Value);
+        if (result != GuestLinkResult.Linked)
+        {
+            logger.LogInformation("MSDK link of account {OpenId} on channel {BindChannelId} refused: {Result}", openId, bindChannelId, result);
+            return Refuse(query, "bind failed");
+        }
+
+        logger.LogInformation("MSDK link: guest account {OpenId} took over account {LinkedAccountId} on channel {BindChannelId}",
+            openId, linkedAccountId, bindChannelId);
+        return Results.Json(new MsdkBindReply { Ret = Succeeded, Msg = "success", Seq = query.Seq });
     }
 
     private static async Task<IResult> LogoutAsync(HttpRequest request, AccountSessionManager sessions, ILoggerFactory loggers)
@@ -172,6 +245,9 @@ public static class MsdkEndpoints
         loggers.CreateLogger(typeof(MsdkEndpoints)).LogInformation("MSDK call {Method} {Path} is not supported", request.Method, request.Path);
         return Refuse(MsdkQuery.Read(request), "not supported");
     }
+
+    private static bool CanLogInOnChannel(PlayerAccount account, int channelId) =>
+        channelId == GuestChannelId ? account.HasGuestId : !account.IsGuest;
 
     private static bool IsLoginChannel(int channelId) => channelId is GuestChannelId or PokemonChannelId or Nintendo_Unite;
 
@@ -272,6 +348,11 @@ public static class MsdkEndpoints
             ? text
             : null;
 
+    private static int? ReadInt(JsonElement parent, string name) =>
+        parent.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var number)
+            ? number
+            : null;
+
     private readonly record struct MsdkQuery(int ChannelId, string Seq)
     {
         public static MsdkQuery Read(HttpRequest request) => new(
@@ -336,6 +417,50 @@ public static class MsdkEndpoints
         public string BindList { get; init; } = string.Empty;
 
         private static readonly JsonElement EmptyObject = JsonDocument.Parse("{}").RootElement.Clone();
+    }
+
+    private static readonly JsonElement PokemonAdultChannelInfo =
+        JsonDocument.Parse("""{"ext":{"consent_age":"over","over16":true,"country_code":""}}""").RootElement.Clone();
+
+    private static readonly JsonElement EmptyChannelInfo = JsonDocument.Parse("{}").RootElement.Clone();
+
+    private sealed class MsdkCheckLoginReply
+    {
+        [JsonPropertyName("ret")]
+        public int Ret { get; init; }
+
+        [JsonPropertyName("msg")]
+        public string Msg { get; init; } = string.Empty;
+
+        [JsonPropertyName("seq")]
+        public string Seq { get; init; } = string.Empty;
+
+        [JsonPropertyName("channelid")]
+        public int ChannelId { get; init; }
+
+        [JsonPropertyName("is_registered")]
+        public int IsRegistered { get; init; }
+
+        [JsonPropertyName("confirm_code")]
+        public string ConfirmCode { get; init; } = string.Empty;
+
+        [JsonPropertyName("confirm_code_expire_time")]
+        public long ConfirmCodeExpireTime { get; init; }
+
+        [JsonPropertyName("channel_info")]
+        public JsonElement ChannelInfo { get; init; }
+    }
+
+    private sealed class MsdkBindReply
+    {
+        [JsonPropertyName("ret")]
+        public int Ret { get; init; }
+
+        [JsonPropertyName("msg")]
+        public string Msg { get; init; } = string.Empty;
+
+        [JsonPropertyName("seq")]
+        public string Seq { get; init; } = string.Empty;
     }
 
     private sealed class MsdkConfReply
