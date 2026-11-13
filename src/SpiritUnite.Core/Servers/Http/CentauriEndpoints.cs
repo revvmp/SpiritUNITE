@@ -8,13 +8,19 @@ namespace SpiritUnite.Servers.Http;
 public static class CentauriEndpoints
 {
     private const string MpInfoPath = "/v1/r/{offerID}/mobile_mp_info";
+    private const string LogDataPath = "/cgi-bin/log_data.fcg";
+    private const string HeartbeatPath = "/heartbeat/overseas_common_android";
     private const int Succeeded = 0;
     private const string NoErrorCode = "0";
 
     public static void Map(WebApplication app)
     {
         app.Map(MpInfoPath, MpInfo).DisableAntiforgery();
+        app.MapPost(LogDataPath, Acknowledge).DisableAntiforgery();
+        app.MapPost(HeartbeatPath, Acknowledge).DisableAntiforgery();
     }
+
+    private static IResult Acknowledge() => Results.Json(new CentauriAck { Ret = Succeeded });
 
     private static IResult MpInfo(ILoggerFactory loggers)
     {
@@ -29,5 +35,11 @@ public static class CentauriEndpoints
 
         [JsonPropertyName("err_code")]
         public required string ErrCode { get; init; }
+    }
+
+    private sealed class CentauriAck
+    {
+        [JsonPropertyName("ret")]
+        public required int Ret { get; init; }
     }
 }

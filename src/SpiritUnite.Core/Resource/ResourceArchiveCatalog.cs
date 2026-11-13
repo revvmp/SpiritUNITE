@@ -38,7 +38,7 @@ public sealed class ResourceArchiveCatalog(
         var tablePatches = ClientTablePatches.For(httpServer.Value.WebOrigin(lobbyAddress.Value.Host));
         var found = new Dictionary<int, ResourceArchive>();
         var productFolders = new DirectoryInfo(root).EnumerateDirectories()
-            .Where(folder => folder.Name != ImageCdnFolder.FolderName)
+            .Where(folder => folder.Name is not (ImageCdnFolder.FolderName or GalleryFolder.FolderName))
             .OrderBy(folder => folder.Name, StringComparer.Ordinal);
         foreach (var productFolder in productFolders)
         {
@@ -161,7 +161,7 @@ public sealed class ResourceArchiveCatalog(
 
             var (url, secureUrl) = ResourceArchiveOptions.ArchiveUrls(servedBase, productId, servedName);
             logger.LogInformation(
-                "Resource archive for product {ProductId}: {File} patched as {ServedName} (generation {Generation}, {Tables} table values for the host web pages), {Length} bytes, md5 {Md5}, served at {Url}",
+                "Resource archive for product {ProductId}: {File} patched as {ServedName} (generation {Generation}, {Tables} client table values), {Length} bytes, md5 {Md5}, served at {Url}",
                 productId, file.Name, servedName, generation, tablePatches.Count, layout.Length, md5, url);
             return new ResourceArchive(productId, version, md5, url, secureUrl, servedName, layout.Length, layout.OpenRead);
         }

@@ -13,6 +13,7 @@ public sealed class UpdateServiceReplies(
     IOptions<UpdateServerOptions> updateServer,
     IOptions<LobbyAddressOptions> lobbyAddress,
     ResourceArchiveCatalog catalog,
+    AppUpdatePackages appUpdatePackages,
     ILogger<UpdateServiceReplies> logger)
 {
     public const string QueryAddrSvr = "QueryAddrSvr";
@@ -22,11 +23,12 @@ public sealed class UpdateServiceReplies(
     public const int kUpdateSuccess = 0;
     public const int kUpdatePackageNotFound = 20002;
     public const int kUpdateTypeNot = 0;
+    public const int kUpdateTypeOptional = 1;
 
     private const int QueryAddrMinCompressSize = 1024;
     private const int UpdateMinCompressSize = 512;
     private const string PufferAppId = "6.53.1";
-    private const string VersionUpdateAppId = "2.51.4";
+    private const string VersionUpdateAppId = "2.51.1";
     private const int VersionUpdateRegionId = 7001;
 
     private static readonly IReadOnlyDictionary<string, TuapService> Services = new Dictionary<string, TuapService>(StringComparer.Ordinal)
@@ -92,7 +94,8 @@ public sealed class UpdateServiceReplies(
             ]);
         }
 
-        logger.LogInformation("GetUpdateInfo from {RemoteEndPoint} for product {ProductId}: version {Version} md5 {Md5} at {Url}", remoteEndPoint, productId, archive.Version, archive.Md5, archive.Url);
+        var dolphinAppVersion = comm.FindInteger(UpdateCommInfoField.dolphin_app_version, ThriftType.I64) ?? 0;
+        logger.LogInformation("GetUpdateInfo from {RemoteEndPoint} for product {ProductId} app version {AppVersion}: version {Version} md5 {Md5} at {Url}", remoteEndPoint, productId, AppUpdatePackages.VersionName(dolphinAppVersion), AppUpdatePackages.VersionName(archive.Version), archive.Md5, archive.Url);
         var updateInfo = new ThriftStruct([
             new ThriftField(UpdateInfoField.url, ThriftBinary.String(archive.Url)),
             new ThriftField(UpdateInfoField.md5, ThriftBinary.String(archive.Md5)),
@@ -117,16 +120,40 @@ public sealed class UpdateServiceReplies(
             return null;
         }
 
-        logger.LogInformation("ReqUpdateVersion from {RemoteEndPoint} for apk version {ApkVersion}: kUpdateTypeNot", remoteEndPoint, apkVersion);
-        var packageInfo = new ThriftStruct([
-            new ThriftField(VersionPackageInfoField.version, ThriftInteger.I64(apkVersion)),
-            new ThriftField(VersionPackageInfoField.description, ThriftBinary.String(string.Empty)),
-            new ThriftField(VersionPackageInfoField.custom_str, ThriftBinary.String(string.Empty)),
-            new ThriftField(VersionPackageInfoField.attr, NormalVersionAttr()),
-        ]);
+        var dolphinProductId = commInfo.FindInteger(VersionCommInfoField.product_id, ThriftType.I32) ?? 0;
+        if (!appUpdatePackages.TryGetNewest(dolphinProductId, out var package))
+        {
+            logger.LogInformation("ReqUpdateVersion from {RemoteEndPoint} for product {ProductId} apk version {ApkVersion}: no archive, kUpdateTypeNot", remoteEndPoint, dolphinProductId, AppUpdatePackages.VersionName(apkVersion));
+            return VersionUpdateReply(commInfo, PackageInfo(apkVersion, []), kUpdateTypeNot);
+        }
+
+        var updateType = apkVersion < package.Version ? kUpdateTypeOptional : kUpdateTypeNot;
+        logger.LogInformation("ReqUpdateVersion from {RemoteEndPoint} for product {ProductId} apk version {ApkVersion}: newest app version {NewestAppVersion}, update type {UpdateType}", remoteEndPoint, dolphinProductId, AppUpdatePackages.VersionName(apkVersion), AppUpdatePackages.VersionName(package.Version), updateType);
+        return VersionUpdateReply(commInfo, PackageInfo(package.Version, [
+            new ThriftField(VersionPackageInfoField.name, ThriftBinary.String(package.FileName)),
+            new ThriftField(VersionPackageInfoField.http_url, ThriftBinary.String(package.Url)),
+            new ThriftField(VersionPackageInfoField.md5sum, ThriftBinary.String(package.Md5)),
+        ]), updateType);
+    }
+
+    private static ThriftStruct PackageInfo(long version, IReadOnlyList<ThriftField> packageFile)
+    {
+        var fields = new List<ThriftField>
+        {
+            new(VersionPackageInfoField.version, ThriftInteger.I64(version)),
+            new(VersionPackageInfoField.description, ThriftBinary.String(string.Empty)),
+            new(VersionPackageInfoField.custom_str, ThriftBinary.String(string.Empty)),
+            new(VersionPackageInfoField.attr, NormalVersionAttr()),
+        };
+        fields.AddRange(packageFile);
+        return new ThriftStruct([.. fields.OrderBy(field => field.Id)]);
+    }
+
+    private static ThriftStruct VersionUpdateReply(ThriftStruct commInfo, ThriftStruct packageInfo, int updateType)
+    {
         var updateInfo = new ThriftStruct([
             new ThriftField(VersionUpdateInfoField.package_info, packageInfo),
-            new ThriftField(VersionUpdateInfoField.update_type, ThriftInteger.I32(kUpdateTypeNot)),
+            new ThriftField(VersionUpdateInfoField.update_type, ThriftInteger.I32(updateType)),
         ]);
         return new ThriftStruct([
             new ThriftField(ResVersionUpdateField.result, ThriftInteger.I32(kUpdateSuccess)),
@@ -184,6 +211,7 @@ public sealed class UpdateServiceReplies(
     private static class UpdateCommInfoField
     {
         public const short product_id = 3;
+        public const short dolphin_app_version = 8;
     }
 
     private static class PufferUpdateRspField
@@ -211,6 +239,7 @@ public sealed class UpdateServiceReplies(
 
     private static class VersionCommInfoField
     {
+        public const short product_id = 2;
         public const short apk_version = 5;
         public const short gameid = 8;
     }
@@ -234,7 +263,10 @@ public sealed class UpdateServiceReplies(
     private static class VersionPackageInfoField
     {
         public const short version = 1;
+        public const short name = 2;
         public const short description = 3;
+        public const short http_url = 4;
+        public const short md5sum = 5;
         public const short custom_str = 6;
         public const short attr = 7;
     }

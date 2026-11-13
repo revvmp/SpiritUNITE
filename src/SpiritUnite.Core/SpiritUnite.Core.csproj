@@ -21,6 +21,7 @@
     <None Update="gamesettings.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Databin/Tables/*.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Databin/Names/*.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Databin/ServerSync/*.bytes" CopyToOutputDirectory="PreserveNewest" />
     <Protobuf Include="Protobuf/*.proto" ProtoRoot="Protobuf" GrpcServices="None" />
     <EmbeddedResource Include="Servers/Http/Admin/Page/*" LogicalName="AdminPage.%(Filename)%(Extension)" />
   </ItemGroup>

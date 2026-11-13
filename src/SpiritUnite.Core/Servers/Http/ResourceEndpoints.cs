@@ -3,19 +3,37 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using SpiritUnite.Resource;
+using SpiritUnite.Servers.Update;
 
 namespace SpiritUnite.Servers.Http;
 
 public static class ResourceEndpoints
 {
     private const string ArchivePath = ResourceArchiveOptions.RoutePrefix + "/{productId:int}/{file}";
+    private const string AppUpdatePath = ResourceArchiveOptions.RoutePrefix + "/" + AppUpdatePackages.RouteSegment + "/{productId:int}/{file}";
     private const string ArchiveContentType = "application/octet-stream";
+    private const string AppUpdateContentType = "application/json";
     private const string FullFile = "full";
     private const string UnreadableRange = "unreadable range";
 
     public static void Map(WebApplication app)
     {
         app.MapMethods(ArchivePath, [HttpMethods.Get, HttpMethods.Head], ServeArchive);
+        app.MapMethods(AppUpdatePath, [HttpMethods.Get, HttpMethods.Head], ServeAppUpdate);
+    }
+
+    private static IResult ServeAppUpdate(int productId, string file, HttpRequest request, AppUpdatePackages packages, ILoggerFactory loggers)
+    {
+        var logger = loggers.CreateLogger(typeof(ResourceEndpoints));
+        var clientAddress = request.HttpContext.Connection.RemoteIpAddress;
+        if (!packages.TryGetNewest(productId, out var package) || !string.Equals(package.FileName, file, StringComparison.Ordinal))
+        {
+            logger.LogInformation("App update file request refused: product {ProductId}, file {File}, from {Address}", productId, Uri.EscapeDataString(file), clientAddress);
+            return Results.NotFound();
+        }
+
+        logger.LogInformation("App update file {Method} product {ProductId}, file {File}, from {Address}", request.Method, productId, file, clientAddress);
+        return Results.Bytes(package.Content, AppUpdateContentType, entityTag: new EntityTagHeaderValue($"\"{package.Md5}\""), enableRangeProcessing: true);
     }
 
     private static IResult ServeArchive(int productId, string file, HttpRequest request, ResourceArchiveCatalog catalog, ILoggerFactory loggers)

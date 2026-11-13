@@ -9,9 +9,9 @@ public sealed class ClientReportHandlers(ILogger<ClientReportHandlers> logger)
     public GamePacket[] OnClientCDNReq(GamePacket request)
     {
         var report = pbCSClientCDNReq.Parser.ParseFrom(request.PkgData);
-        var host = Uri.TryCreate(report.Url, UriKind.Absolute, out var url) ? url.Host : string.Empty;
-        logger.LogInformation("Client CDN download failed for uid {Uid}: host {Host}, error {ErrCode}, {DownloadedLength} bytes downloaded",
-            request.Uid, host, report.ErrCode, report.DownloadedLength);
+        var url = Uri.TryCreate(report.Url, UriKind.Absolute, out var parsed) ? parsed : null;
+        logger.LogInformation("Client CDN download failed for uid {Uid}: host {Host}, path {Path}, error {ErrCode}, {DownloadedLength} bytes downloaded",
+            request.Uid, url?.Host ?? string.Empty, url?.AbsolutePath ?? string.Empty, report.ErrCode, report.DownloadedLength);
         return [];
     }
 
