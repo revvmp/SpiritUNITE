@@ -17,9 +17,9 @@ public static class GVoiceReplies
     private const string WeixinSttUrl = "http://127.0.0.1/cgi-bin/wxvoicereco";
     private const int BitRate = 16000;
     private const int Fec = 0;
-    private const string OfflineVoiceHost = "sg-offline.voice.gcloudcs.com";
-    private const string SpeechTranslateUrl = "https://sg.api.translator.voice.gcloudsdk.com:443";
-    private const string VoiceReportUrl = "https://report_complaint_pubgm.iegcom.com:443";
+    private const string OfflineVoiceHost = "spiritunite.invalid";
+    private const string SpeechTranslateUrl = "https://spiritunite.invalid:443";
+    private const string VoiceReportUrl = "https://spiritunite.invalid:443";
     private const int Svryys = 1;
     private const string AccessScheme = "udp://";
 

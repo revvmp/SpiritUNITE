@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Net;
 using System.Security.Cryptography;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -65,6 +66,8 @@ public sealed class GcpSession(
     public Func<TimeSpan?>? MeasureRtt { get; init; }
 
     public TimeSpan? Rtt => MeasureRtt?.Invoke();
+
+    public IPAddress? RemoteAddress { get; init; }
 
     public GcpSessionStyle Style
     {

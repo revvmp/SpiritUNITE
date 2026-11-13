@@ -496,6 +496,7 @@ public sealed class RoomManager(
                 {
                     room.Remove(member);
                     roomsByUid.Remove(member.Uid);
+                    battleVoice.RevokeGvoiceRoom(member.Uid, LobbyGvoiceRoom(room));
                     PushDeparture(room, member, outcome);
                 }
 
@@ -1200,14 +1201,19 @@ public sealed class RoomManager(
         foreach (var member in voiceMembers.Where(member => !member.IsInGvoiceRoom))
         {
             member.IsInGvoiceRoom = true;
+            battleVoice.GrantGvoiceRoom(member.Uid, LobbyGvoiceRoom(room));
             outcome.Push(member.Uid, PB_ENUM_CS_MSGID_DEF.PbScidJoinGvoiceRoomNtf, RoomNotices.JoinGvoiceRoom());
         }
 
         return outcome;
     }
 
-    private static void QuitGvoiceRoom(RoomMember member, RoomOutcome outcome)
+    private static GVoiceRoomName LobbyGvoiceRoom(MatchRoom room) =>
+        GVoiceRoomName.Of(room.RoomID, room.RoomSeq, MatchRoom.RoomEntity, GVoiceRoomName.LobbyClient);
+
+    private void QuitGvoiceRoom(MatchRoom room, RoomMember member, RoomOutcome outcome)
     {
+        battleVoice.RevokeGvoiceRoom(member.Uid, LobbyGvoiceRoom(room));
         if (!member.IsInGvoiceRoom)
         {
             return;
@@ -1263,7 +1269,7 @@ public sealed class RoomManager(
         room.Remove(member);
         roomsByUid.Remove(member.Uid);
         var outcome = new RoomOutcome();
-        QuitGvoiceRoom(member, outcome);
+        QuitGvoiceRoom(room, member, outcome);
         if (wasSearching)
         {
             matchmaker.Remove(room);
@@ -1278,6 +1284,7 @@ public sealed class RoomManager(
         {
             roomsById.Remove(room.RoomID);
             roomsByShowId.Remove(room.RoomShowId);
+            battleVoice.RevokeGvoiceRoom(LobbyGvoiceRoom(room));
             room.ResetMatch();
             return outcome;
         }
@@ -1700,6 +1707,7 @@ public sealed class RoomManager(
 
         roomsById.Remove(room.RoomID);
         roomsByShowId.Remove(room.RoomShowId);
+        battleVoice.RevokeGvoiceRoom(LobbyGvoiceRoom(room));
     }
 
     private static pbCOMDT_CHAT_PLAYER_INFO BuildRoomChatSender(LMNRoleInfo role, RoomMember member) => new()
@@ -1903,17 +1911,5 @@ public sealed class RoomManager(
         while (roomsByShowId.ContainsKey(showId));
 
         return showId;
-    }
-
-    public bool IsGVoiceRoomMember(ulong uid, int roomID, int roomSeq, int roomEntity, int campClient)
-    {
-        lock (gate)
-        {
-            return roomsById.TryGetValue(roomID, out var room)
-                && unchecked((int)room.RoomSeq) == roomSeq
-                && roomEntity is MatchRoom.RoomEntity or MatchRoom.MatchRoomEntity
-                && room.Members.FirstOrDefault(member => member.Uid == uid) is { } member
-                && (campClient == 0 || campClient == member.CampClient);
-        }
     }
 }

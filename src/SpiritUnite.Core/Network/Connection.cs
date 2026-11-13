@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Sockets;
 using Microsoft.Extensions.Logging;
 using SpiritUnite.Network.Gcp;
@@ -38,6 +39,9 @@ public sealed class Connection(
                 logger)
             {
                 MeasureRtt = () => TcpRtt.Measure(socket),
+                RemoteAddress = socket.RemoteEndPoint is IPEndPoint remote
+                    ? remote.Address.IsIPv4MappedToIPv6 ? remote.Address.MapToIPv4() : remote.Address
+                    : null,
             };
             var remoteEndPoint = socket.RemoteEndPoint;
             logger.LogInformation("Connected {RemoteEndPoint}", remoteEndPoint);

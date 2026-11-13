@@ -3,12 +3,13 @@ using Google.Protobuf;
 
 namespace SpiritUnite.Game.BattleVoice;
 
-public sealed class GVoiceMember(ulong uid, string openId, ushort memberId, uint clientNetType, long joinedAtMs)
+public sealed class GVoiceMember(ulong uid, string openId, ushort memberId, uint clientNetType, IPAddress joinAddress, long joinedAtMs)
 {
     public ulong Uid { get; } = uid;
     public string OpenId { get; } = openId;
     public ushort MemberId { get; } = memberId;
     public uint ClientNetType { get; set; } = clientNetType;
+    public IPAddress JoinAddress { get; set; } = joinAddress;
     public IPEndPoint? AccessEndPoint { get; set; }
     public bool IsReady { get; set; }
     public bool IsReceiving { get; set; } = true;
@@ -57,7 +58,7 @@ public sealed class GVoiceRoom(string name, ulong roomId, ulong roomKey)
 
     public GVoiceMember? FindByUid(ulong uid) => members.Values.FirstOrDefault(member => member.Uid == uid);
 
-    public GVoiceMember Add(ulong uid, string openId, uint clientNetType, long nowMs)
+    public GVoiceMember Add(ulong uid, string openId, uint clientNetType, IPAddress joinAddress, long nowMs)
     {
         var memberId = FirstMemberId;
         while (members.ContainsKey(memberId))
@@ -65,7 +66,7 @@ public sealed class GVoiceRoom(string name, ulong roomId, ulong roomKey)
             memberId++;
         }
 
-        var member = new GVoiceMember(uid, openId, memberId, clientNetType, nowMs);
+        var member = new GVoiceMember(uid, openId, memberId, clientNetType, joinAddress, nowMs);
         members[memberId] = member;
         return member;
     }

@@ -5,27 +5,32 @@ using System.Buffers.Binary;
 using System.Security.Cryptography;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
-using SpiritUnite.Battle;
-using SpiritUnite.Game.Room;
 using SpiritUnite.Network.GVoice;
 using SpiritUnite.Network.GVoice.Messages;
+using SpiritUnite.Online;
+using SpiritUnite.Tools;
 
 namespace SpiritUnite.Game.BattleVoice;
 
 public sealed record GVoiceSend(IPEndPoint Target, byte[] Datagram);
 
-public sealed record GVoiceJoinOutcome(uint ErrCode, string ErrMsg, GVoiceRoom? Room, GVoiceMember? Member, IReadOnlyList<GVoiceSend> Pushes)
+public sealed record GVoiceJoinOutcome(uint ErrCode, string ErrMsg, GVoiceRoom? Room, GVoiceMember? Member, IReadOnlyList<GVoiceSend> Pushes, bool IsAnswered = true)
 {
     public static GVoiceJoinOutcome Refused(uint errCode, string errMsg) => new(errCode, errMsg, null, null, []);
+
+    public static GVoiceJoinOutcome Unanswered(uint errCode, string errMsg) => new(errCode, errMsg, null, null, [], IsAnswered: false);
 }
 
-public sealed class GVoiceRoomManager(RoomManager rooms, DeskManager desks, ILogger<GVoiceRoomManager> logger)
+public sealed class GVoiceRoomManager
 {
     public const uint JoinRefusedNotRoomMember = 1;
     public const uint JoinRefusedRoomFull = 2;
+    public const uint JoinUnansweredLiveElsewhere = 3;
     public const int MaxRooms = 4096;
     public const int MaxMembersPerRoom = 16;
     public const long MemberTimeoutMs = 60_000;
+    public const long ClientStatPeriodMs = 3_000;
+    public const long LiveEndpointQuietMs = 7_000;
     public const int MaxPrivateInfoLength = 256;
     public const int MaxAppIdentityLength = 128;
 
@@ -36,44 +41,150 @@ public sealed class GVoiceRoomManager(RoomManager rooms, DeskManager desks, ILog
     private const uint ClientActionQuit = 2;
     private const uint LossRateScale = 10_000;
 
+    private const int RefusalLogBurst = 5;
+    private const long RefusalLogRefillMs = 10_000;
+    private const int AllRefusalLogsBurst = 20;
+    private const long AllRefusalLogsRefillMs = 50;
+    private const int AnySource = 0;
+    private const long PerUidLogRefillMs = 60_000;
+    private const int MaxTrackedSources = 16_384;
+    private const int IPv6RateLimitPrefixBytes = 8;
+
     private readonly Lock gate = new();
     private readonly Dictionary<string, GVoiceRoom> roomsByName = [];
     private readonly Dictionary<ulong, GVoiceRoom> roomsById = [];
+    private readonly List<GVoiceSend> pendingSends = [];
+    private readonly KeyedTokenBuckets<IPAddress> refusalLogs = new(RefusalLogBurst, RefusalLogRefillMs, MaxTrackedSources);
+    private readonly KeyedTokenBuckets<int> allRefusalLogs = new(AllRefusalLogsBurst, AllRefusalLogsRefillMs, 1);
+    private readonly KeyedTokenBuckets<ulong> lobbyAddressMismatchLogs = new(1, PerUidLogRefillMs, MaxTrackedSources);
+    private readonly KeyedTokenBuckets<ulong> liveElsewhereLogs = new(1, PerUidLogRefillMs, MaxTrackedSources);
+    private readonly KeyedTokenBuckets<ulong> takeoverLogs = new(1, PerUidLogRefillMs, MaxTrackedSources);
+    private readonly BattleVoiceManager battleVoice;
+    private readonly LobbyRoles lobbyRoles;
+    private readonly ILogger<GVoiceRoomManager> logger;
+    private long suppressedRefusalLogs;
 
-    public GVoiceJoinOutcome Join(string openId, string roomName, uint clientNetType, long nowMs)
+    public GVoiceRoomManager(BattleVoiceManager battleVoice, LobbyRoles lobbyRoles, ILogger<GVoiceRoomManager> logger)
+    {
+        this.battleVoice = battleVoice;
+        this.lobbyRoles = lobbyRoles;
+        this.logger = logger;
+        battleVoice.GvoiceRoomRevoked += Revoke;
+    }
+
+    public static IPAddress SourceAddressOf(IPEndPoint source) =>
+        source.Address.IsIPv4MappedToIPv6 ? source.Address.MapToIPv4() : source.Address;
+
+    public static IPAddress RateLimitKeyOf(IPEndPoint source)
+    {
+        var address = SourceAddressOf(source);
+        if (address.AddressFamily != AddressFamily.InterNetworkV6)
+        {
+            return address;
+        }
+
+        var bytes = address.GetAddressBytes();
+        bytes.AsSpan(IPv6RateLimitPrefixBytes).Clear();
+        return new IPAddress(bytes);
+    }
+
+    public bool ShouldLogRefusal(IPEndPoint source, long nowMs)
+    {
+        if (refusalLogs.TryTake(RateLimitKeyOf(source), nowMs) && allRefusalLogs.TryTake(AnySource, nowMs))
+        {
+            return true;
+        }
+
+        Interlocked.Increment(ref suppressedRefusalLogs);
+        return false;
+    }
+
+    public long TakeSuppressedRefusalLogs() => Interlocked.Exchange(ref suppressedRefusalLogs, 0);
+
+    public void ForgetQuietSources(long nowMs)
+    {
+        refusalLogs.ForgetFull(nowMs);
+        lobbyAddressMismatchLogs.ForgetFull(nowMs);
+        liveElsewhereLogs.ForgetFull(nowMs);
+        takeoverLogs.ForgetFull(nowMs);
+    }
+
+    public IReadOnlyList<GVoiceSend> TakePendingSends()
+    {
+        lock (gate)
+        {
+            GVoiceSend[] sends = [.. pendingSends];
+            pendingSends.Clear();
+            return sends;
+        }
+    }
+
+    public GVoiceJoinOutcome Join(string openId, string roomName, uint clientNetType, IPEndPoint source, long nowMs)
     {
         if (!ulong.TryParse(openId, NumberStyles.None, CultureInfo.InvariantCulture, out var uid) || uid == 0
-            || !GVoiceRoomName.TryParse(roomName, out var name)
-            || !name.AdmitsMember(uid, rooms, desks))
+            || !GVoiceRoomName.TryParse(roomName, out var name))
         {
-            logger.LogWarning("Refused voice join of openid {OpenId} to room {RoomName}: not a member of that lobby room or desk camp", openId, roomName);
+            LogUnparsedJoin(openId, roomName, source, nowMs);
             return GVoiceJoinOutcome.Refused(JoinRefusedNotRoomMember, "not a member of this room");
         }
 
+        var canonicalName = name.ToString();
+        var sourceAddress = SourceAddressOf(source);
         lock (gate)
         {
+            if (!battleVoice.IsGvoiceRoomEntitled(uid, name))
+            {
+                LogNotEntitled(uid, canonicalName, source, nowMs);
+                return GVoiceJoinOutcome.Refused(JoinRefusedNotRoomMember, "not a member of this room");
+            }
+
+            roomsByName.TryGetValue(canonicalName, out var room);
+            var lobbyAddress = lobbyRoles.RemoteAddress(uid);
+            var fromLobbyAddress = sourceAddress.Equals(lobbyAddress);
+            if (room?.FindByUid(uid) is { } existing && !existing.JoinAddress.Equals(sourceAddress))
+            {
+                var isLive = existing.AccessEndPoint is not null && nowMs - existing.LastHeardMs < LiveEndpointQuietMs;
+                if (isLive && !fromLobbyAddress)
+                {
+                    LogLiveElsewhere(uid, canonicalName, existing, source, nowMs);
+                    return GVoiceJoinOutcome.Unanswered(JoinUnansweredLiveElsewhere, "member is live at another address");
+                }
+
+                if (isLive)
+                {
+                    LogEvictedElsewhere(uid, canonicalName, existing, source, nowMs);
+                }
+
+                Rebind(existing, sourceAddress);
+            }
+
+            if (!fromLobbyAddress)
+            {
+                LogLobbyAddressMismatch(uid, source, lobbyAddress, nowMs);
+            }
+
             var pushes = new List<GVoiceSend>();
             foreach (var other in roomsByName.Values.ToArray())
             {
-                if (other.Name != roomName && other.FindByUid(uid) is { } stale)
+                if (other.Name != canonicalName && other.FindByUid(uid) is { } stale)
                 {
-                    logger.LogInformation("Voice member {MemberId} (uid {Uid}) left room {RoomName} to join {NewRoom}", stale.MemberId, uid, other.Name, roomName);
+                    logger.LogInformation("Voice member {MemberId} (uid {Uid}) left room {RoomName} to join {NewRoom}", stale.MemberId, uid, other.Name, canonicalName);
                     pushes.AddRange(RemoveLocked(other, stale, MemberActionQuit));
                 }
             }
 
-            if (!roomsByName.TryGetValue(roomName, out var room))
+            if (room is null)
             {
                 if (roomsByName.Count >= MaxRooms)
                 {
-                    logger.LogWarning("Refused voice join of uid {Uid} to room {RoomName}: {MaxRooms} voice rooms are open", uid, roomName, MaxRooms);
+                    logger.LogWarning("Refused voice join of uid {Uid} to room {RoomName}: {MaxRooms} voice rooms are open", uid, canonicalName, MaxRooms);
                     return new GVoiceJoinOutcome(JoinRefusedRoomFull, "too many voice rooms", null, null, pushes);
                 }
 
-                room = new GVoiceRoom(roomName, NewRoomId(), RandomNonZeroUInt64());
-                roomsByName[roomName] = room;
+                room = new GVoiceRoom(canonicalName, NewRoomId(), RandomNonZeroUInt64());
+                roomsByName[canonicalName] = room;
                 roomsById[room.RoomId] = room;
-                logger.LogInformation("Opened voice room {RoomName} as room_id {RoomId}", roomName, room.RoomId);
+                logger.LogInformation("Opened voice room {RoomName} as room_id {RoomId}", canonicalName, room.RoomId);
             }
 
             var member = room.FindByUid(uid);
@@ -81,12 +192,12 @@ public sealed class GVoiceRoomManager(RoomManager rooms, DeskManager desks, ILog
             {
                 if (room.Members.Count >= MaxMembersPerRoom)
                 {
-                    logger.LogWarning("Refused voice join of uid {Uid} to room {RoomName}: {MaxMembers} members already", uid, roomName, MaxMembersPerRoom);
+                    logger.LogWarning("Refused voice join of uid {Uid} to room {RoomName}: {MaxMembers} members already", uid, canonicalName, MaxMembersPerRoom);
                     return new GVoiceJoinOutcome(JoinRefusedRoomFull, "voice room is full", null, null, pushes);
                 }
 
-                member = room.Add(uid, openId, clientNetType, nowMs);
-                logger.LogInformation("Voice join: uid {Uid} is member {MemberId} of room {RoomName}", uid, member.MemberId, roomName);
+                member = room.Add(uid, openId, clientNetType, sourceAddress, nowMs);
+                logger.LogInformation("Voice join: uid {Uid} is member {MemberId} of room {RoomName}", uid, member.MemberId, canonicalName);
             }
             else
             {
@@ -105,9 +216,14 @@ public sealed class GVoiceRoomManager(RoomManager rooms, DeskManager desks, ILog
             if (!roomsById.TryGetValue(signal.Head.RoomId, out var room)
                 || signal.Head.MemberId > ushort.MaxValue
                 || room.Find((ushort)signal.Head.MemberId) is not { } member
-                || member.OpenId != signal.Head.OpenId)
+                || member.OpenId != signal.Head.OpenId
+                || !MaySignalFrom(member, source))
             {
-                logger.LogWarning("Refused voice signal {Cmd} from {Source}: room_id, member_id and open_id do not name a joined member", signal.Cmd, source);
+                if (ShouldLogRefusal(source, nowMs))
+                {
+                    logger.LogWarning("Refused voice signal {Cmd} from {Source}: room_id, member_id and open_id do not name a member joined from that address", signal.Cmd, source);
+                }
+
                 return [];
             }
 
@@ -157,6 +273,7 @@ public sealed class GVoiceRoomManager(RoomManager rooms, DeskManager desks, ILog
             sender.CountMedia(head.Sequence);
             return [.. room.ReadyMembers
                 .Where(member => member != sender && member.IsReceiving && member.AccessEndPoint is not null)
+                .Where(member => head.Audience.Length == 0 || head.Audience.Contains(member.MemberId))
                 .Select(member => new GVoiceSend(member.AccessEndPoint!, datagram))];
         }
     }
@@ -179,6 +296,72 @@ public sealed class GVoiceRoomManager(RoomManager rooms, DeskManager desks, ILog
         }
     }
 
+    private void Revoke(ulong uid, GVoiceRoomName name)
+    {
+        lock (gate)
+        {
+            if (!roomsByName.TryGetValue(name.ToString(), out var room) || room.FindByUid(uid) is not { } member)
+            {
+                return;
+            }
+
+            logger.LogInformation("Voice member {MemberId} (uid {Uid}) of room {RoomName} lost its lobby entitlement and was removed", member.MemberId, uid, room.Name);
+            pendingSends.AddRange(RemoveLocked(room, member, MemberActionQuit));
+        }
+    }
+
+    private void LogUnparsedJoin(string openId, string roomName, IPEndPoint source, long nowMs)
+    {
+        if (ShouldLogRefusal(source, nowMs))
+        {
+            logger.LogWarning("Refused voice join from {Source}: openid ({OpenIdLength} chars) is not a uid or room name ({RoomNameLength} chars) is not a voice room", source, openId.Length, roomName.Length);
+        }
+    }
+
+    private void LogNotEntitled(ulong uid, string canonicalName, IPEndPoint source, long nowMs)
+    {
+        if (ShouldLogRefusal(source, nowMs))
+        {
+            logger.LogWarning("Refused voice join of uid {Uid} to room {RoomName} from {Source}: not entitled to that lobby room or desk camp voice room", uid, canonicalName, source);
+        }
+    }
+
+    private void LogLiveElsewhere(ulong uid, string canonicalName, GVoiceMember live, IPEndPoint source, long nowMs)
+    {
+        if (liveElsewhereLogs.TryTake(uid, nowMs))
+        {
+            logger.LogWarning("Left a voice join of uid {Uid} to room {RoomName} from {Source} unanswered: member {MemberId} is live from {LiveAddress}, heard {QuietMs} ms ago, and the join is not from the lobby address", uid, canonicalName, source, live.MemberId, live.JoinAddress, nowMs - live.LastHeardMs);
+        }
+    }
+
+    private void LogEvictedElsewhere(ulong uid, string canonicalName, GVoiceMember live, IPEndPoint source, long nowMs)
+    {
+        if (takeoverLogs.TryTake(uid, nowMs))
+        {
+            logger.LogWarning("Voice join of uid {Uid} to room {RoomName} from its lobby address {Source} took member {MemberId} over from {LiveAddress}, heard {QuietMs} ms ago", uid, canonicalName, source, live.MemberId, live.JoinAddress, nowMs - live.LastHeardMs);
+        }
+    }
+
+    private void LogLobbyAddressMismatch(ulong uid, IPEndPoint source, IPAddress? lobbyAddress, long nowMs)
+    {
+        if (lobbyAddress is not null && lobbyAddressMismatchLogs.TryTake(uid, nowMs))
+        {
+            logger.LogInformation("Voice join of uid {Uid} comes from {Source} while its lobby connection is from {LobbyAddress}; admitted", uid, source, lobbyAddress);
+        }
+    }
+
+    private bool MaySignalFrom(GVoiceMember member, IPEndPoint source)
+    {
+        var sourceAddress = SourceAddressOf(source);
+        return member.JoinAddress.Equals(sourceAddress) || sourceAddress.Equals(lobbyRoles.RemoteAddress(member.Uid));
+    }
+
+    private static void Rebind(GVoiceMember member, IPAddress joinAddress)
+    {
+        member.JoinAddress = joinAddress;
+        member.AccessEndPoint = null;
+    }
+
     private List<GVoiceSend> CheckIn(GVoiceRoom room, GVoiceMember member, CDNVProtoSignal signal, IPEndPoint source, long nowMs)
     {
         if (!signal.TryReadBody(room.RoomKey, VoipCheckInReq.Parser, out var request))
@@ -187,7 +370,7 @@ public sealed class GVoiceRoomManager(RoomManager rooms, DeskManager desks, ILog
             return [];
         }
 
-        Heard(member, signal, source, nowMs);
+        Heard(room, member, signal, source, nowMs);
         var clientIp = ClientIpOf(source);
         var clientPort = (uint)source.Port;
         if (request.ClientIp != clientIp || request.ClientPort != clientPort)
@@ -216,7 +399,7 @@ public sealed class GVoiceRoomManager(RoomManager rooms, DeskManager desks, ILog
             return [];
         }
 
-        Heard(member, signal, source, nowMs);
+        Heard(room, member, signal, source, nowMs);
         return [Signal(room, member, VOIP_CMD.VOIP_CMD_STAT_RSP, new VoipStatRsp { UpRate = member.TakeUpLossRate(LossRateScale) })];
     }
 
@@ -228,7 +411,7 @@ public sealed class GVoiceRoomManager(RoomManager rooms, DeskManager desks, ILog
             return [];
         }
 
-        Heard(member, signal, source, nowMs);
+        Heard(room, member, signal, source, nowMs);
         if (!member.IsReceiving)
         {
             logger.LogInformation("Voice member {MemberId} of room {RoomName} opened its speaker", member.MemberId, room.Name);
@@ -246,7 +429,7 @@ public sealed class GVoiceRoomManager(RoomManager rooms, DeskManager desks, ILog
             return [];
         }
 
-        Heard(member, signal, source, nowMs);
+        Heard(room, member, signal, source, nowMs);
         logger.LogInformation("Voice member {MemberId} of room {RoomName} closed its speaker", member.MemberId, room.Name);
         member.IsReceiving = false;
         return [Signal(room, member, VOIP_CMD.VOIP_CMD_AUDIO_CLOSE_RSP, new CloseVoiceRsp { ClientIp = request.ClientIp, ClientPort = request.ClientPort })];
@@ -284,7 +467,11 @@ public sealed class GVoiceRoomManager(RoomManager rooms, DeskManager desks, ILog
             || memberInfo.OpenId.ToStringUtf8() != member.OpenId
             || !roomsById.TryGetValue(roomInfo.RoomId, out var room))
         {
-            logger.LogWarning("Refused voice member report from {Source}: it does not name a ready member at that address", source);
+            if (ShouldLogRefusal(source, nowMs))
+            {
+                logger.LogWarning("Refused voice member report from {Source}: it does not name a ready member at that address", source);
+            }
+
             return [];
         }
 
@@ -405,8 +592,15 @@ public sealed class GVoiceRoomManager(RoomManager rooms, DeskManager desks, ILog
         return new GVoiceSend(recipient.AccessEndPoint!, CDNVProtoSignal.Build(head, body, room.RoomKey));
     }
 
-    private static void Heard(GVoiceMember member, CDNVProtoSignal signal, IPEndPoint source, long nowMs)
+    private void Heard(GVoiceRoom room, GVoiceMember member, CDNVProtoSignal signal, IPEndPoint source, long nowMs)
     {
+        var sourceAddress = SourceAddressOf(source);
+        if (!member.JoinAddress.Equals(sourceAddress))
+        {
+            logger.LogInformation("Voice member {MemberId} (uid {Uid}) of room {RoomName} moved from {OldAddress} to its lobby address {Source}", member.MemberId, member.Uid, room.Name, member.JoinAddress, source);
+            member.JoinAddress = sourceAddress;
+        }
+
         member.AccessEndPoint = source;
         member.LastHeardMs = nowMs;
         if (signal.Head.HasClientNetType)

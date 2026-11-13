@@ -2,12 +2,13 @@ using System.Buffers.Binary;
 
 namespace SpiritUnite.Network.GVoice;
 
-public readonly record struct CDNVDataHead(ulong RoomId, ushort MemberId, uint Sequence, int VoiceLength);
+public readonly record struct CDNVDataHead(ulong RoomId, ushort MemberId, uint Sequence, ushort[] Audience, int VoiceLength);
 
 public static class CDNVProtoData
 {
     public const ushort Magic = 0x2929;
     public const int DataHeadSize = 16;
+    public const int MaxAudienceMembers = 100;
 
     private const byte DataVersion = 1;
     private const int VersionOffset = CDNVProtoSignal.PrefixSize;
@@ -15,6 +16,7 @@ public static class CDNVProtoData
     private const int MemberIdOffset = RoomIdOffset + sizeof(ulong);
     private const int SequenceOffset = MemberIdOffset + sizeof(ushort);
     private const int CrcCoveredLength = sizeof(ulong) + sizeof(ushort);
+    private const int AudienceOffset = CDNVProtoSignal.PrefixSize + DataHeadSize;
 
     public static bool TryParse(ReadOnlySpan<byte> datagram, out CDNVDataHead head, out string refusal)
     {
@@ -32,6 +34,13 @@ public static class CDNVProtoData
             return false;
         }
 
+        var audienceCount = (headLength - DataHeadSize) / sizeof(ushort);
+        if (audienceCount > MaxAudienceMembers)
+        {
+            refusal = $"media audience of {audienceCount} members is over {MaxAudienceMembers}";
+            return false;
+        }
+
         if (datagram[VersionOffset] != DataVersion)
         {
             refusal = $"media head version {datagram[VersionOffset]}";
@@ -44,10 +53,18 @@ public static class CDNVProtoData
             return false;
         }
 
+        ushort[] audience = audienceCount == 0 ? [] : new ushort[audienceCount];
+        var audienceBytes = datagram.Slice(AudienceOffset, audienceCount * sizeof(ushort));
+        for (var index = 0; index < audienceCount; index++)
+        {
+            audience[index] = BinaryPrimitives.ReadUInt16BigEndian(audienceBytes[(index * sizeof(ushort))..]);
+        }
+
         head = new CDNVDataHead(
             BinaryPrimitives.ReadUInt64BigEndian(datagram[RoomIdOffset..]),
             BinaryPrimitives.ReadUInt16BigEndian(datagram[MemberIdOffset..]),
             BinaryPrimitives.ReadUInt32BigEndian(datagram[SequenceOffset..]),
+            audience,
             datagram.Length - CDNVProtoSignal.PrefixSize - headLength);
         refusal = string.Empty;
         return true;

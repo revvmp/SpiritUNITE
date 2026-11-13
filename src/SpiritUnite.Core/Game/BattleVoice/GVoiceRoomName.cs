@@ -1,13 +1,15 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
-using SpiritUnite.Battle;
-using SpiritUnite.Game.Room;
 
 namespace SpiritUnite.Game.BattleVoice;
 
 public readonly record struct GVoiceRoomName(int RoomId, int Seq, int Entity, int Client)
 {
+    public const int LobbyClient = 0;
+
     private static readonly Regex NameParts = new(@"^(-?\d{1,11})-(-?\d{1,11})-(-?\d{1,11})-(-?\d{1,11})$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(50));
+
+    public static GVoiceRoomName Of(int roomId, long seq, int entity, int client) => new(roomId, unchecked((int)seq), entity, client);
 
     public static bool TryParse(string roomName, out GVoiceRoomName name)
     {
@@ -26,7 +28,5 @@ public readonly record struct GVoiceRoomName(int RoomId, int Seq, int Entity, in
         return true;
     }
 
-    public bool AdmitsMember(ulong uid, RoomManager rooms, DeskManager desks) =>
-        rooms.IsGVoiceRoomMember(uid, RoomId, Seq, Entity, Client)
-        || desks.IsGVoiceCampMember(uid, RoomId, Seq, Entity, Client);
+    public override string ToString() => string.Create(CultureInfo.InvariantCulture, $"{RoomId}-{Seq}-{Entity}-{Client}");
 }
