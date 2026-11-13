@@ -49,7 +49,7 @@ SpiritUNITE is a C# server emulator for the [Pokemon UNITE](https://en.wikipedia
    cp src/SpiritUnite.Core/appsettings.example.json src/SpiritUnite.Core/appsettings.json
    ```
 
-3. Download the game resources (see [Download the Game Resources](#download-the-game-resources)). The game downloads about 7 GB from your server on first launch and checks it on every start, so players cannot get past "Checking update data" without it.
+3. Download the game resources (see [Download the Game Resources](#download-the-game-resources)). The game downloads about 40 MB from your server on first launch, then about 8.4 GB in the background, and checks it on every start, so players cannot get past "Checking update data" without it.
 
 
 4. Build and start the server from the root directory.
@@ -74,7 +74,7 @@ python3 tools/fetch_resources.py archives
 python3 tools/fetch_resources.py images
 ```
 
-- `archives` downloads the Android (about 7.8 GB) and iOS (about 7.7 GB) archives into `resources/1169/` and `resources/1170/`. Use `--platform android` or `--platform ios` for just one.
+- `archives` downloads the Android (about 9.3 GB) and iOS (about 9.2 GB) archives into `resources/1169/` and `resources/1170/`. Use `--platform android` or `--platform ios` for just one.
 - `images` downloads about 1.3 GB of images into `resources/images/`.
 - If a download stops, run the same command again to continue.
 
@@ -82,7 +82,7 @@ Files go in the folder set by `ResourceArchive.Directory` in `appsettings.json` 
 
 ## Build the APK
 
-1. Put your own official `base.apk`, `split_ab.apk` and `split_config.arm64_v8a.apk` in one folder. Build `1192039` is currently supported.
+1. Put your own official `base.apk`, `split_ab.apk` and `split_config.arm64_v8a.apk` in one folder. Build `1198241` (1.25.1.1) is currently supported, for both the APK and the IPA.
 2. For local development, set `RelayServer.Host` and `VoiceServer.Host` in `appsettings.json` to your PC's local network IP and `TcpServer.BindAddress` to `0.0.0.0`. `adb reverse` cannot forward UDP, so the device reaches these two servers directly.
    ```json
    "RelayServer": {
@@ -152,12 +152,12 @@ For friends to connect, use a domain pointing to your server and a publicly trus
 
 
 4. Choose where players download the resource archive. In `appsettings.json`:
-   - Leave `"BaseUrl": ""` for local development.
-   - For hosting, set it to your domain (or CDN). Serve `/resources/` over plain HTTP on port 80, not redirected to HTTPS:
+   - Leave `"BaseUrl": ""` for local development and for hosting on your own domain: Keep `/resources/` on plain HTTP.
+   - Set it only when another address serves `/resources/`, such as a CDN (recommended for large scale):
    ```json
    "ResourceArchive": {
      "Directory": "resources",
-     "BaseUrl": "http://play.example.com"
+     "BaseUrl": "http://cdn.example.com"
    }
    ```
 

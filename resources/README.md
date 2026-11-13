@@ -1,6 +1,6 @@
 # Resources
 
-The game downloads about 7 GB of resources on first launch, and loads shop, outfit, banner, event and notice pictures while it runs. Both are served from this folder.
+The game downloads about 8.4 GB of resources on first launch (about 40 MB before the title screen, the rest in the background), and loads shop, outfit, banner, event and notice pictures while it runs. Both are served from this folder.
 
 ```
 resources/
