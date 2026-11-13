@@ -171,3 +171,5 @@ For friends to connect, use a domain pointing to your server and a publicly trus
    python3 tools/build_apk.py --apks "path/to/splits" --host play.example.com
    python3 tools/build_ipa.py --ipa "path/to/decrypted.ipa" --host play.example.com
    ```
+
+   Give players the built APK. IPAs must be sideloaded.
