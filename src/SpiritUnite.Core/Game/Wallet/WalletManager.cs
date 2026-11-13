@@ -11,6 +11,8 @@ public sealed class WalletManager(WalletRepository repository, GameData gameData
 {
     public Task<RoleWallet> LoadAsync(ulong gameUlongUID) => repository.LoadAsync(gameUlongUID, options.CurrentValue.StartingBalances());
 
+    public Task<RoleWallet> FindAsync(ulong gameUlongUID) => repository.FindAsync(gameUlongUID);
+
     public async Task<GamePacket[]> GrantFirstLoginSpecialCoinsAsync(ulong gameUlongUID)
     {
         var grants = NewPlayerDefaultGrants.RowsOf(gameData, PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesResattr)

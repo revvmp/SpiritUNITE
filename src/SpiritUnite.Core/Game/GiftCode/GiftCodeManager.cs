@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using SpiritUnite.Database.Models;
 using SpiritUnite.Database.Repositories;
 using SpiritUnite.Game.Mail;
-using SpiritUnite.Online;
 using SpiritUnite.Packets.Messages;
 using SpiritUnite.Tools;
 
@@ -36,7 +35,6 @@ public sealed record GiftCodeUseEntry(ulong GameUlongUID, long UseTime, int Mail
 public sealed class GiftCodeManager(
     GiftCodeRepository repository,
     MailManager mail,
-    LobbyRoles lobbyRoles,
     TimeProvider clock,
     ILogger<GiftCodeManager> logger)
 {
@@ -189,10 +187,6 @@ public sealed class GiftCodeManager(
         logger.LogInformation("Gift code {GiftCode} redeemed by uid {Uid}", giftCode, gameUlongUID);
         mail.LogSystemMailSent(saved, sent);
         await mail.PushMailNewAsync(saved);
-        foreach (var packet in await mail.BuildUnreadRedDotPacketsAsync(gameUlongUID, saved.MailType))
-        {
-            await lobbyRoles.PushAsync(gameUlongUID, packet);
-        }
 
         return GiftCodeRedeemResult.Redeemed;
     }

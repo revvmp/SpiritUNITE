@@ -94,7 +94,6 @@ public sealed class FriendGiftManager(
         }
 
         await mail.PushMailNewAsync(saved);
-        await lobbyRoles.PushAsync(friendUid, await mail.BuildNewMailRedDotPacketsAsync(friendUid, saved.MailType));
     }
 
     private pbCOMDT_ONE_RESOURCE_AWARD_INFO? FindGiftCoinAward()

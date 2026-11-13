@@ -1,6 +1,7 @@
 using SpiritUnite.Database.Repositories;
 using SpiritUnite.Databin;
 using SpiritUnite.Game.Bag;
+using SpiritUnite.Game.Energy;
 using SpiritUnite.Game.Pokemon;
 using SpiritUnite.Game.PveChallenge;
 using SpiritUnite.Game.Recharge;
@@ -23,7 +24,9 @@ public sealed class ActivityExchangeManager(
     ActivitySchedule schedule,
     ActivityExchangeRepository repository,
     PveChallengeManager pveChallenge,
-    BagManager bag,
+    ActivityManager activityManager,
+    ActivityRewardNotices rewardNotices,
+    EnergyManager energies,
     TimeProvider clock)
 {
     private const int NoExchangeGroup = 0;
@@ -32,8 +35,12 @@ public sealed class ActivityExchangeManager(
     private const int NoPvePrivilege = 0;
     private const int CustomTimeExchange = 1;
     private const int SingleBuffLevel = 1;
+    private const int SingleBuffReward = 1;
     private const int NotifyOff = 0;
     private const int NotifyOn = 1;
+    private const int MaxExchangeInfoNum = (int)PB_MACRO_MAX_EXCHANGE_INFO_NUM.PbMaxExchangeInfoNum;
+
+    private static readonly ActivityTaskGrant BuffOnlyGrant = new([], [], new BagChange(), [], new Dictionary<int, int>());
 
     private readonly ILookup<int, pbActivityExchange> exchangesByGroup = gameData.ActivityExchange.Rows.ToLookup(exchange => exchange.ExchangeGroupID);
 
@@ -55,7 +62,8 @@ public sealed class ActivityExchangeManager(
                         ExchangeID = exchange.ExchangeID,
                         DoneCount = states[exchange.ExchangeID].DoneCount,
                         Notify = states[exchange.ExchangeID].Notify,
-                    }),
+                    })
+                    .Take(MaxExchangeInfoNum),
             },
         };
     }
@@ -85,7 +93,13 @@ public sealed class ActivityExchangeManager(
             return ActivityExchangeOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrNoActivePvePrivilege);
         }
 
-        if (BuildTrade(exchange, activity, doExchangeNum, MaxDoneNum(exchange, isPrivilegeActive), now) is not { } trade)
+        var rewards = FindRewards(exchange, doExchangeNum);
+        if (rewards.Any(reward => OwnsUnrepeatableReward(role, reward.ResID)))
+        {
+            return ActivityExchangeOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrActivityExchangeCheckFail);
+        }
+
+        if (BuildTrade(role, exchange, activity, rewards, doExchangeNum, MaxDoneNum(exchange, isPrivilegeActive), now) is not { } trade)
         {
             return ActivityExchangeOutcome.Refused(PB_ENUM_RES_ERROR_CODE.PbErrActivityExchangeDelAddOpFail);
         }
@@ -96,7 +110,8 @@ public sealed class ActivityExchangeManager(
             return ActivityExchangeOutcome.Refused(ToExchangeResult(commit.Result));
         }
 
-        return new ActivityExchangeOutcome(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, commit.DoneCount, BuildPushes(trade, commit));
+        ActivityManager.GrantToRole(role, trade.Grant, trade.Now, PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonActivityexchange);
+        return new ActivityExchangeOutcome(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, commit.DoneCount, await BuildPushesAsync(role, trade, commit));
     }
 
     public async Task<ActivityExchangeNotifyOutcome> SetNotifyAsync(LMNRoleInfo role, int activityID, int exchangeID, int notify)
@@ -135,7 +150,38 @@ public sealed class ActivityExchangeManager(
     private static bool IsInValidTime(pbActivityExchange exchange, DateTimeOffset now) =>
         ActivitySchedule.ParseConfigTime(exchange.ValidStartTime) <= now && now <= ActivitySchedule.ParseConfigTime(exchange.ValidEndTime);
 
-    private ActivityExchangeTrade? BuildTrade(pbActivityExchange exchange, ScheduledActivity activity, int doExchangeNum, int maxDoneNum, DateTimeOffset now)
+    private static (int ResID, long ResNum)[] FindRewards(pbActivityExchange exchange, int doExchangeNum)
+    {
+        IEnumerable<(int ResID, int ResNum)> rewards =
+        [
+            (exchange.ToResID, exchange.ToResNum),
+            .. exchange.ToDst.Select(extra => (extra.ResID, extra.ResNum)),
+        ];
+        return
+        [
+            .. rewards
+                .Where(reward => reward.ResID != NoResID && reward.ResNum > 0)
+                .Select(reward => (reward.ResID, (long)reward.ResNum * doExchangeNum)),
+        ];
+    }
+
+    private bool OwnsUnrepeatableReward(LMNRoleInfo role, int resID) =>
+        CosmeticGrant.FindItemType(gameData, resID) is { } itemType
+            ? role.OwnsItem(itemType, resID)
+            : RoleAvatar.FindSuitParts(gameData, resID) is { } suitParts
+                ? suitParts.All(avatarID => role.OwnsItem(RoleItemType.AvatarItem, avatarID))
+            : gameData.LobbyBg.Contains(resID)
+                ? role.OwnsLobbyBg(gameData, resID)
+                : UniteLicense.FindPokemonId(gameData, resID) is { } pokemonId && role.OwnsPokemon(pokemonId);
+
+    private ActivityExchangeTrade? BuildTrade(
+        LMNRoleInfo role,
+        pbActivityExchange exchange,
+        ScheduledActivity activity,
+        (int ResID, long ResNum)[] rewards,
+        int doExchangeNum,
+        int maxDoneNum,
+        DateTimeOffset now)
     {
         var coinCosts = new Dictionary<int, long>();
         var itemCosts = new List<BagCost>();
@@ -156,38 +202,24 @@ public sealed class ActivityExchangeManager(
             }
         }
 
-        var coinGrants = new Dictionary<int, long>();
-        var grants = new List<BagGrant>();
-        PveChallengeBuff? buff = null;
-        IEnumerable<(int ResID, int ResNum)> rewards =
-        [
-            (exchange.ToResID, exchange.ToResNum),
-            .. exchange.ToDst.Select(extra => (extra.ResID, extra.ResNum)),
-        ];
-        foreach (var (resID, resNum) in rewards.Where(reward => reward.ResID != NoResID && reward.ResNum > 0))
+        if (rewards.Any(reward => reward.ResNum > int.MaxValue))
         {
-            var amount = (long)resNum * doExchangeNum;
-            if (pveChallenge.FindBuffOfItem(resID) is { } itemBuff)
-            {
-                if (buff is not null || amount != SingleBuffLevel)
-                {
-                    return null;
-                }
+            return null;
+        }
 
-                buff = itemBuff;
-            }
-            else if (CoinID.IsGrantableCoin(resID))
-            {
-                coinGrants[resID] = coinGrants.GetValueOrDefault(resID) + amount;
-            }
-            else if (amount <= int.MaxValue && IsPlainBagItem(resID) && bag.CreateOutSideItemGrant(resID, (int)amount) is { } grant)
-            {
-                grants.Add(grant);
-            }
-            else
-            {
-                return null;
-            }
+        var buffs = rewards.Select(reward => pveChallenge.FindBuffOfItem(reward.ResID)).OfType<PveChallengeBuff>().ToArray();
+        if (buffs.Length > 0 && (rewards.Length != SingleBuffReward || rewards[0].ResNum != SingleBuffLevel))
+        {
+            return null;
+        }
+
+        var rewardTime = now.ToUnixTimeSeconds();
+        var grant = buffs.Length > 0
+            ? BuffOnlyGrant
+            : activityManager.PlanResourcesGrant(role, rewards.Select(reward => (reward.ResID, (int)reward.ResNum)), rewardTime);
+        if (grant is null)
+        {
+            return null;
         }
 
         var couponsFlow = CouponsFlow.Spend(coinCosts.GetValueOrDefault(CoinID.Coupons), now, CouponsFlow.ActivitySystemType, new pbCOMDT_COUPONS_FLOW_EXTRA_INFO_UNION
@@ -202,14 +234,12 @@ public sealed class ActivityExchangeManager(
             exchange.ExchangeID,
             doExchangeNum,
             maxDoneNum,
-            new BagChange { Costs = itemCosts, Grants = grants, CoinCosts = coinCosts, CoinGrants = coinGrants },
-            buff,
+            grant.Change with { Costs = itemCosts, CoinCosts = coinCosts },
+            grant,
+            buffs.FirstOrDefault(),
             couponsFlow,
-            now.ToUnixTimeSeconds());
+            rewardTime);
     }
-
-    private bool IsPlainBagItem(int resID) =>
-        !UniteLicense.IsUniteLicense(gameData, resID) && CosmeticGrant.FindItemType(gameData, resID) is null;
 
     private static PB_ENUM_RES_ERROR_CODE ToExchangeResult(PB_ENUM_RES_ERROR_CODE result) => result switch
     {
@@ -220,7 +250,7 @@ public sealed class ActivityExchangeManager(
         _ => PB_ENUM_RES_ERROR_CODE.PbErrActivityExchangeDelAddOpFail,
     };
 
-    private IReadOnlyList<GamePacket> BuildPushes(ActivityExchangeTrade trade, ActivityExchangeCommit commit)
+    private async Task<IReadOnlyList<GamePacket>> BuildPushesAsync(LMNRoleInfo role, ActivityExchangeTrade trade, ActivityExchangeCommit commit)
     {
         var packets = new List<GamePacket>();
         var changedCoinIDs = trade.Change.CoinCosts.Keys.Concat(trade.Change.CoinGrants.Keys).Distinct().ToArray();
@@ -237,22 +267,26 @@ public sealed class ActivityExchangeManager(
             packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidOutSideItemUpdateNotify, BagManager.BuildOutSideItemUpdateNotify(commit.ChangedItems)));
         }
 
+        if (commit.Wallet is { } grantWallet && (trade.Grant.Items.Count > 0 || trade.Grant.PokemonIds.Count > 0))
+        {
+            packets.AddRange(await rewardNotices.BuildAsync(
+                role,
+                new ActivityRewardGroup(grantWallet, [], new Dictionary<int, long>(), [], trade.Grant.PokemonIds, []) { Items = trade.Grant.Items }));
+        }
+
         if (commit.BuffState is { } buffState)
         {
             packets.Add(PveChallengeManager.BuildBuffShopNtf(pveChallenge.BuildBuffInfo(buffState), buffState));
         }
 
-        var awards = trade.Change.Grants
-            .Select(grant => BagManager.BuildAward(grant.ItemId, grant.Cnt, PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem))
-            .Concat(trade.Change.CoinGrants.Select(coin => BagManager.BuildAward(coin.Key, (int)Math.Min(coin.Value, int.MaxValue), CoinID.GetCoinResourceType(coin.Key))))
-            .ToArray();
-        if (awards.Length > 0)
+        packets.AddRange(await energies.BuildAcceleratorGainPushesAsync(role.GameUlongUID, trade.Change.Grants));
+        if (trade.Grant.Awards.Count > 0)
         {
             packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidResourcesAwardNotify, new pbSCResourcesAwardNotify
             {
                 ResultInfo = new pbResultInfo(),
                 AwardReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonActivityexchange,
-                ResourcesList = { awards },
+                ResourcesList = { trade.Grant.Awards },
             }));
         }
 

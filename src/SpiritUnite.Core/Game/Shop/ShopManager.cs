@@ -465,10 +465,9 @@ public sealed class ShopManager(
             return ([shopResID], null, null);
         }
 
-        if (gameData.AvatarSuit.Find(shopResID) is { } avatarSuit)
+        if (RoleAvatar.FindSuitParts(gameData, shopResID) is { } suitParts)
         {
-            int[] contained = [.. avatarSuit.ContianAvatarID.Where(avatarID => gameData.AvatarItem.Contains(avatarID)).Distinct()];
-            return (contained, null, null);
+            return (suitParts, null, null);
         }
 
         if (gameData.LobbyBg.Contains(shopResID) && shopResID != gameData.DefaultLobbyBgId)

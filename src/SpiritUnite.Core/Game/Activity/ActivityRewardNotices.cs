@@ -38,6 +38,15 @@ public sealed class ActivityRewardNotices(GameData gameData, StarRoadManager sta
 
         packets.AddRange(PokemonAvatarManager.BuildGainPushes(rewards.Items));
         packets.AddRange(ProfileGainPushes.Build(gameData, role, rewards.Items));
+        if (rewards.Items.Any(item => item.ItemType == RoleItemType.LobbyBg))
+        {
+            packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidGetLobbyBackgroundInfoRsp, new pbSCGetLobbyBackgroundInfoRsp
+            {
+                ResultInfo = new pbResultInfo(),
+                LobbyBackgroundInfo = role.BuildLobbyBackgroundInfo(gameData),
+            }));
+        }
+
         foreach (var pokemonId in rewards.PokemonIds)
         {
             packets.Add(GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidUpdatePokemonNtf, new pbSCUpdatePokemonNtf

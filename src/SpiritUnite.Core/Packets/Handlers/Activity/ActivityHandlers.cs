@@ -41,6 +41,16 @@ public sealed class ActivityHandlers(
         var reply = new ReplyList(request);
         reply.Add(PB_ENUM_CS_MSGID_DEF.PbScidClickTaskButtonRsp, new pbSCClickTaskButtonRsp { ResultInfo = new pbResultInfo() });
         reply.AddRange(await activityProgressPushes.BuildAsync(role, progress));
+        if (progress.AutoClaim is { Awards.Count: > 0 } autoClaim)
+        {
+            reply.Add(PB_ENUM_CS_MSGID_DEF.PbScidResourcesAwardNotify, new pbSCResourcesAwardNotify
+            {
+                ResultInfo = new pbResultInfo(),
+                AwardReason = (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonTaskaward,
+                ResourcesList = { autoClaim.Awards },
+            });
+        }
+
         return reply.ToArray();
     }
 

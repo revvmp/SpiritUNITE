@@ -42,6 +42,14 @@ public sealed partial class ActivityManager(
         PB_ENUM_RES_RED_DOT_ID.PbResRedDotIdRecallRechargeAward,
     ];
 
+    private static readonly HashSet<PB_ENUM_RES_ACTIVITY_TYPE> ClaimlessClickActivityTypes =
+    [
+        PB_ENUM_RES_ACTIVITY_TYPE.PbResActivityTypeClickTaskButton,
+        PB_ENUM_RES_ACTIVITY_TYPE.PbResActivityTypeClickTaskButtonAssembly,
+        PB_ENUM_RES_ACTIVITY_TYPE.PbResActivityTypeForumClickButton,
+        PB_ENUM_RES_ACTIVITY_TYPE.PbResActivityTypeBigIconTaskClick,
+    ];
+
     public static pbSCRedDotClearNtf[] BuildRefreshRedDotClears() =>
         [.. RecallRedDotsClearedOnRefresh.Select(redDotID => new pbSCRedDotClearNtf { RedDotID = (int)redDotID })];
 
@@ -97,6 +105,9 @@ public sealed partial class ActivityManager(
     public Task<ActivityBattleProgress> RecordClientActionAsync(LMNRoleInfo role, Func<pbFinishCondition, bool> isCountedAction) =>
         RecordProgressAsync(role, "Client action", (task, now) => FindClientActionIncrement(task, isCountedAction, now));
 
+    public Task<ActivityBattleProgress> RecordConditionAsync(LMNRoleInfo role, PB_ENUM_RES_CONDITION_ID conditionId, int delta) =>
+        RecordProgressAsync(role, conditionId.ToString(), (task, now) => FindConditionIncrement(task, conditionId, delta, now));
+
     private async Task<ActivityBattleProgress> RecordProgressAsync(
         LMNRoleInfo role,
         string progressSource,
@@ -124,7 +135,7 @@ public sealed partial class ActivityManager(
 
         var after = await LoadProgressAsync(role, tasks, now);
         var completeCountAfter = tasks.Count(task => after.Evaluate(task).Status == PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusComplete);
-        var autoClaim = await ClaimCompletedAutoClaimTasksAsync(role, tasks.Where(IsAutoClaimed).Select(after.Evaluate), now);
+        var autoClaim = await ClaimCompletedAutoClaimTasksAsync(role, tasks.Where(ClaimsOnCompletion).Select(after.Evaluate), now);
         var final = autoClaim is null ? after : await LoadProgressAsync(role, tasks, now);
         var touchedTaskIds = increments.Select(increment => increment.TaskId).ToHashSet();
         return new ActivityBattleProgress(
@@ -153,6 +164,9 @@ public sealed partial class ActivityManager(
 
     private static bool IsAutoClaimed(ActiveActivityTask task) =>
         task.Activity.Row.ActivityType == (int)PB_ENUM_RES_ACTIVITY_TYPE.PbResActivityTypeCatchTask;
+
+    private static bool ClaimsOnCompletion(ActiveActivityTask task) =>
+        IsAutoClaimed(task) || ClaimlessClickActivityTypes.Contains((PB_ENUM_RES_ACTIVITY_TYPE)task.Activity.Row.ActivityType);
 
     private async Task<ActiveActivityTask[]> FindRoleTasksAsync(LMNRoleInfo role, DateTimeOffset now)
     {
@@ -189,6 +203,16 @@ public sealed partial class ActivityManager(
             ? [new TaskProcessIncrement(task.Task.TaskID, FindPeriodStart(task, now).ToUnixTimeSeconds(), ActivityClientActions.ActionCount, condition.TargetProcess)]
             : [];
     }
+
+    private static IEnumerable<TaskProcessIncrement> FindConditionIncrement(
+        ActiveActivityTask task,
+        PB_ENUM_RES_CONDITION_ID conditionId,
+        int delta,
+        DateTimeOffset now) =>
+        task.Task.FinishCondition.Where(condition => condition.ID != NoCondition).ToArray() is [var condition]
+            && condition.ID == (int)conditionId
+            ? [new TaskProcessIncrement(task.Task.TaskID, FindPeriodStart(task, now).ToUnixTimeSeconds(), delta, condition.TargetProcess)]
+            : [];
 
     public async Task<UnclaimedActivityTask[]> FindUnclaimedTasksAtEndAsync(LMNRoleInfo role, ScheduledActivity activity)
     {
@@ -472,7 +496,10 @@ public sealed partial class ActivityManager(
         BuildGrant(role, [.. schedule.FindDrops(sDropID)], rewardTime);
 
     public ActivityTaskGrant? PlanResourceGrant(LMNRoleInfo role, int resID, int resNum, long rewardTime) =>
-        BuildGrant(role, [new pbDrop_Static { ResID = resID, ResNum = resNum }], rewardTime);
+        PlanResourcesGrant(role, [(resID, resNum)], rewardTime);
+
+    public ActivityTaskGrant? PlanResourcesGrant(LMNRoleInfo role, IEnumerable<(int ResID, int ResNum)> resources, long rewardTime) =>
+        BuildGrant(role, [.. resources.Select(resource => new pbDrop_Static { ResID = resource.ResID, ResNum = resource.ResNum })], rewardTime);
 
     public static void GrantToRole(LMNRoleInfo role, ActivityTaskGrant grant, long rewardTime, PB_ENUM_ENM_RESOURCE_CHG_REASON reason)
     {
@@ -550,6 +577,21 @@ public sealed partial class ActivityManager(
 
                 cosmetic.AddTo(items, bagGrants, coins, awards);
             }
+            else if (RoleAvatar.FindSuitParts(gameData, drop.ResID) is { } suitParts)
+            {
+                if (drop.ResNum != GrantableRewardCount)
+                {
+                    return null;
+                }
+
+                foreach (var avatarID in suitParts.Where(avatarID => !role.OwnsItem(RoleItemType.AvatarItem, avatarID)
+                    && !items.Any(item => item.ItemType == RoleItemType.AvatarItem && item.ItemId == avatarID)))
+                {
+                    var part = new RoleItemInfo(RoleItemType.AvatarItem, avatarID, rewardTime, RoleItemInfo.Permanent, RoleItemInfo.ShowNewTag);
+                    items.Add(part);
+                    awards.Add(part.ToAwardReplaceInfo());
+                }
+            }
             else if (drop.ResNum == GrantableRewardCount && gameData.LobbyBg.Contains(drop.ResID))
             {
                 if (role.OwnsLobbyBg(gameData, drop.ResID))
@@ -557,7 +599,9 @@ public sealed partial class ActivityManager(
                     return null;
                 }
 
-                items.Add(new RoleItemInfo(RoleItemType.LobbyBg, drop.ResID, rewardTime, RoleItemInfo.Permanent, RoleItemInfo.ShowNewTag));
+                var lobbyBg = new RoleItemInfo(RoleItemType.LobbyBg, drop.ResID, rewardTime, RoleItemInfo.Permanent, RoleItemInfo.ShowNewTag);
+                items.Add(lobbyBg);
+                awards.Add(lobbyBg.ToAwardReplaceInfo());
             }
             else if (bag.CreateOutSideItemGrant(drop.ResID, drop.ResNum) is { } bagGrant)
             {
@@ -695,8 +739,9 @@ public sealed partial class ActivityManager(
                 PB_ENUM_RES_CONDITION_ID.PbResConditionTypeTrainerLevelReach => trainerLevel,
                 PB_ENUM_RES_CONDITION_ID.PbResConditionIdAddResId => storedProcess,
                 PB_ENUM_RES_CONDITION_ID.PbResConditionIdUseSpecPokemonWin => storedProcess,
+                PB_ENUM_RES_CONDITION_ID.PbResConditionIdEnergeDraw => storedProcess,
                 PB_ENUM_RES_CONDITION_ID.PbResConditionIdBindingAccount => bindingAccount ? BoundAccount : NoBoundAccount,
-                _ when BattleTasks.IsBattleCondition(condition) => storedProcess,
+                _ when BattleTasks.IsActivityBattleCondition(condition) => storedProcess,
                 _ when ActivityClientActions.IsClientAction(condition) => storedProcess,
                 _ => UntrackedProcess,
             };
@@ -718,8 +763,9 @@ public sealed partial class ActivityManager(
             || condition.ID == (int)PB_ENUM_RES_CONDITION_ID.PbResConditionTypeTrainerLevelReach
             || condition.ID == (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdAddResId
             || condition.ID == (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdUseSpecPokemonWin
+            || condition.ID == (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdEnergeDraw
             || IsBindingAccount(condition)
-            || BattleTasks.IsBattleCondition(condition)
+            || BattleTasks.IsActivityBattleCondition(condition)
             || ActivityClientActions.IsClientAction(condition);
 
         private static bool IsEverydayLogin(pbFinishCondition condition) =>

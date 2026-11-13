@@ -2,6 +2,7 @@ using LinqToDB;
 using LinqToDB.Async;
 using LinqToDB.Data;
 using SpiritUnite.Database.Models;
+using SpiritUnite.Game.Activity;
 using SpiritUnite.Game.Bag;
 using SpiritUnite.Game.Wallet;
 using SpiritUnite.Packets.Messages;
@@ -13,6 +14,7 @@ public sealed record ActivityExchangeTrade(
     int DoExchangeNum,
     int MaxDoneNum,
     BagChange Change,
+    ActivityTaskGrant Grant,
     PveChallengeBuff? Buff,
     CouponsFlowEntry? CouponsFlow,
     long Now);
@@ -89,11 +91,17 @@ public sealed class ActivityExchangeRepository(DataOptions options)
             beforeCoinNums[coinID] = await WalletRepository.ReadCoinValAsync(database, gameUlongUID, coinID);
         }
 
-        var applied = await BagRepository.ApplyAsync(database, gameUlongUID, trade.Change, trade.Now);
-        if (applied != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+        var applied = await ActivityRepository.ApplyRewardChangeAsync(
+            database,
+            gameUlongUID,
+            new ActivityRewardChange(trade.Grant.Items, trade.Grant.PokemonIds, trade.Change, []),
+            trade.Now,
+            PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonActivityexchange,
+            PB_ENUM_RES_ERROR_CODE.PbErrActivityExchangeCheckFail);
+        if (applied.Result != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
         {
             await transaction.RollbackAsync();
-            return ActivityExchangeCommit.Refused(applied);
+            return ActivityExchangeCommit.Refused(applied.Result);
         }
 
         var newDoneCount = doneCount + trade.DoExchangeNum;
@@ -110,10 +118,8 @@ public sealed class ActivityExchangeRepository(DataOptions options)
             await CouponsFlowRepository.AddAsync(database, gameUlongUID, couponsFlow);
         }
 
-        var changedItems = await BagRepository.ReadItemsAsync(database, gameUlongUID, trade.Change.TouchedItems);
-        var wallet = trade.Change.ChangesCoins ? await WalletRepository.ReadAsync(database, gameUlongUID) : null;
         var buffState = trade.Buff is not null ? await PveChallengeRepository.ReadShopStateAsync(database, gameUlongUID) : null;
         await transaction.CommitAsync();
-        return new ActivityExchangeCommit(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, newDoneCount, changedItems, wallet, beforeCoinNums, buffState);
+        return new ActivityExchangeCommit(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, newDoneCount, applied.ChangedItems, applied.Wallet, beforeCoinNums, buffState);
     }
 }

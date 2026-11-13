@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using SpiritUnite.Game.Bag;
 using SpiritUnite.Databin;
+using SpiritUnite.Game.Energy;
 using SpiritUnite.Game.Lobby;
 using SpiritUnite.Game.Newbie;
 using SpiritUnite.Game.PokemonAvatar;
@@ -17,6 +18,7 @@ public sealed class ShopHandlers(
     ShopManager shop,
     MysteryShopManager mysteryShop,
     NewbieChallengeTaskManager newbieChallengeTasks,
+    EnergyManager energies,
     GameData gameData,
     LobbyNotices notices,
     ILogger<ShopHandlers> logger)
@@ -74,6 +76,7 @@ public sealed class ShopHandlers(
         return
         [
             .. BuildPurchaseUpdates(request, role, purchase, wallet, buyRecords, bagItems),
+            .. await energies.BuildAcceleratorGainPushesAsync(role.GameUlongUID, purchase.OutSideItems),
             .. await BuildBeautyWearUpdatesAsync(request, role, outcome.WornRoleAvatarInfo),
             reply,
         ];

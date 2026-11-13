@@ -1,6 +1,7 @@
 using SpiritUnite.Databin;
 using SpiritUnite.Game.Badge;
 using SpiritUnite.Game.Bag;
+using SpiritUnite.Game.Energy;
 using SpiritUnite.Game.PokemonAvatar;
 using SpiritUnite.Game.Profile;
 using SpiritUnite.Game.Role;
@@ -11,7 +12,7 @@ using SpiritUnite.Packets.Messages;
 
 namespace SpiritUnite.Game.Mail;
 
-public sealed class GrantUpdates(GameData gameData, StarRoadManager starRoad, BadgeManager badges)
+public sealed class GrantUpdates(GameData gameData, StarRoadManager starRoad, BadgeManager badges, EnergyManager energies)
 {
     public async Task<GamePacket[]> BuildAsync(LMNRoleInfo role, IReadOnlyList<GrantOutcome> claims, bool withAwardNotify)
     {
@@ -54,6 +55,8 @@ public sealed class GrantUpdates(GameData gameData, StarRoadManager starRoad, Ba
                     await badges.BuildGainedBadgePictureNtfAsync(role.GameUlongUID)));
             }
         }
+
+        packets.AddRange(await energies.BuildAcceleratorGainPushesAsync(role.GameUlongUID, claims.SelectMany(claim => claim.Grant.BagGrants)));
 
         if (claims.SelectMany(claim => claim.Grant.Items).Any(item => item.ItemType == RoleItemType.LobbyBg))
         {

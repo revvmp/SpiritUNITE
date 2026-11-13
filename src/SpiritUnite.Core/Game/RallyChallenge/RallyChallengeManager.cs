@@ -99,17 +99,13 @@ public sealed class RallyChallengeManager(
                 uid, rewardIndexes.Length, periodId);
             if (pushMailNew)
             {
-                foreach (var saved in mails)
-                {
-                    await mail.PushMailNewAsync(saved);
-                }
+                await mail.PushNewMailsAsync(mails);
             }
         }
     }
 
     public async Task FillAcntLoginRspAsync(ulong uid, pbSCAcntLoginRsp rsp)
     {
-        await MailUnclaimedRewardsAsync(uid, pushMailNew: false);
         if (FindOpenConf() is not { } conf)
         {
             return;

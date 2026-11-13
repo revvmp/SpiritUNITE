@@ -35,6 +35,12 @@ public sealed class WalletRepository(DataOptions options)
         return await ReadAsync(database, gameUlongUID);
     }
 
+    public async Task<RoleWallet> FindAsync(ulong gameUlongUID)
+    {
+        await using var database = new DataConnection(options);
+        return await ReadAsync(database, gameUlongUID);
+    }
+
     public async Task<(IReadOnlyDictionary<int, long> BeforeCoinNums, RoleWallet Wallet)> CreditAsync(
         ulong gameUlongUID,
         IReadOnlyDictionary<int, long> grants)

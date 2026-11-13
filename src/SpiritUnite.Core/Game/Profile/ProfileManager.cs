@@ -233,7 +233,7 @@ public sealed class ProfileManager(
         var profileStatistics = await statistics.LoadAsync(role.GameUlongUID, seasonID);
         await ranked.LoadAsync(role.GameUlongUID);
         var rankedDivision = ranked.BuildRankedDivision(role.GameUlongUID);
-        var highestRankedDivision = await ranked.BuildHighestRankedDivisionInHistoryAsync(role.GameUlongUID);
+        var rankedHistory = await ranked.BuildRankedHistoryAsync(role.GameUlongUID);
         return new pbCSDT_PROFILE_DETAIL_NEW
         {
             OpenID = role.GameUlongUID.ToString(CultureInfo.InvariantCulture),
@@ -243,7 +243,7 @@ public sealed class ProfileManager(
             RoleCurExp = role.RoleTotalExp,
             RoleGender = role.Gender,
             RankedDivision = rankedDivision.RankedDivision,
-            HighestRankedDivisionInHistory = highestRankedDivision.RankedDivision,
+            HighestRankedDivisionInHistory = rankedHistory.HighestRankedDivisionInHistory.RankedDivision,
             FollowInfo = await pokemon.BuildFollowInfoAsync(role),
             PokemonList = { pokemonList.PokemonList },
             UsedPokemonList = { usedPokemonList },
@@ -257,6 +257,8 @@ public sealed class ProfileManager(
             SeasonStatisticInfo = profileStatistics.SeasonStatisticInfo,
             HeadIconInfo = BuildHeadIconInfo(role, style),
             IsHideInfo = style.IsHideInfo,
+            TotalMasterNum = rankedHistory.TotalMasterNum,
+            MaxContinuedMasterNum = rankedHistory.MaxContinuedMasterNum,
             LableInfo = style.BuildLableInfo(),
             RoleTotalPoint = usedPokemonList.Sum(info => info.PokemonTotalPoint),
             UserPlantInfo = style.BuildUserPlantInfo(),

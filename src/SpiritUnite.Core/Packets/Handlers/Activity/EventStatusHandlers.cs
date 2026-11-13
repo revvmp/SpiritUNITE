@@ -39,18 +39,6 @@ public sealed class EventStatusHandlers(
         return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidMysteryShopInfoRsp, response)];
     }
 
-    [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetAllMultiBufInfoReq)]
-    public GamePacket[] OnGetAllMultiBufInfoReq(GamePacket request)
-    {
-        pbCSGetAllMultiBufInfoReq.Parser.ParseFrom(request.PkgData);
-        var response = new pbSCGetAllMultiBufInfoRsp
-        {
-            MultiBuffDetail = new pbCOMDT_MULTIBUFF_INFO(),
-            CurTimeStamp = clock.GetUtcNow().ToUnixTimeSeconds(),
-        };
-        return [request.Reply(PB_ENUM_CS_MSGID_DEF.PbScidGetAllMultiBufInfoRsp, response)];
-    }
-
     [PacketHandler(eNetEventServerType.LobbyServer, PB_ENUM_CS_MSGID_DEF.PbCsidGetPvePrivilegeInfoReq)]
     public async Task<GamePacket[]> OnGetPvePrivilegeInfoReq(GamePacket request)
     {

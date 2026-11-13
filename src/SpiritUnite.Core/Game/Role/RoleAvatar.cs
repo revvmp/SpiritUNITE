@@ -12,6 +12,11 @@ public static class RoleAvatar
         .Count(slot => slot is not (PB_ENUM_RES_AVATAR_SLOT_TYPE.PbResAvatarSlotTypeInvalid
             or PB_ENUM_RES_AVATAR_SLOT_TYPE.PbResAvatarSlotTypeMax));
 
+    public static int[]? FindSuitParts(GameData gameData, int resID) =>
+        gameData.AvatarSuit.Find(resID) is { } avatarSuit
+            ? [.. avatarSuit.ContianAvatarID.Where(avatarID => gameData.AvatarItem.Contains(avatarID)).Distinct()]
+            : null;
+
     public static bool IsWearableList(IReadOnlyCollection<int> avatarIDList) =>
         avatarIDList.Count > 0 && avatarIDList.Count <= AvatarSlotCount && AreDistinctAvatarIDs(avatarIDList);
 
