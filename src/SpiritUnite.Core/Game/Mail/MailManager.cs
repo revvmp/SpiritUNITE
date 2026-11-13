@@ -55,8 +55,7 @@ public sealed class MailManager(
     public async Task<RoleMail> SendSystemMailAsync(ulong uid, SystemMail mail)
     {
         var saved = await InsertSystemMailAsync(uid, mail);
-        await PushMailNewAsync(saved);
-        await lobbyRoles.PushAsync(uid, await BuildNewMailRedDotPacketsAsync(uid, saved.MailType));
+        await PushNewMailsAsync([saved]);
         return saved;
     }
 
@@ -67,84 +66,135 @@ public sealed class MailManager(
             throw new ArgumentException($"Every mail of one batch has mail type {mailType}", nameof(mails));
         }
 
-        var unreadBefore = await repository.CountUnreadAsync(uid, clock.GetUtcNow().ToUnixTimeSeconds());
-        var items = new List<pbCOMDT_MAIL_ITEM>();
+        var savedMails = new List<RoleMail>();
         foreach (var mail in mails)
         {
-            var saved = await InsertSystemMailAsync(uid, mail);
-            var item = BuildMailItem(saved);
-            if (await FindSenderAsync(saved.FromUid) is { } sender)
-            {
-                item.UserPlantInfo = sender.Style.BuildUserPlantInfo();
-            }
-
-            items.Add(item);
+            savedMails.Add(await InsertSystemMailAsync(uid, mail));
         }
 
-        return await lobbyRoles.PushAsync(uid,
-        [
-            .. BuildOtherUnreadRedDotPackets(unreadBefore, mailType),
-            GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidMailNewNtf, new pbSCMailNewNtf
-            {
-                MailList = new pbCOMDT_MAIL_LIST { MailType = mailType, MailInfo = { items } },
-            }),
-            .. await BuildUnreadRedDotPacketsAsync(uid, mailType),
-        ]);
+        return await PushNewMailsAsync(savedMails);
     }
 
-    public async Task<bool> PushMailNewAsync(RoleMail saved)
-    {
-        var item = BuildMailItem(saved);
-        if (await FindSenderAsync(saved.FromUid) is { } sender)
-        {
-            item.UserPlantInfo = sender.Style.BuildUserPlantInfo();
-        }
-
-        return await lobbyRoles.PushAsync(saved.GameUlongUID, GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidMailNewNtf, new pbSCMailNewNtf
-        {
-            MailList = new pbCOMDT_MAIL_LIST { MailType = saved.MailType, MailInfo = { item } },
-        }));
-    }
+    public Task<bool> PushMailNewAsync(RoleMail saved) => PushNewMailsAsync([saved]);
 
     public async Task<bool> PushSystemMailBatchAsync(ulong uid, int mailType, IReadOnlyList<RoleMail> savedMails)
     {
-        var unread = await repository.CountUnreadAsync(uid, clock.GetUtcNow().ToUnixTimeSeconds());
-        var items = new List<pbCOMDT_MAIL_ITEM>();
-        foreach (var saved in savedMails)
+        if (savedMails.Any(saved => saved.GameUlongUID != uid || saved.MailType != mailType))
         {
-            if (saved.GameUlongUID != uid || saved.MailType != mailType)
-            {
-                throw new ArgumentException("Mail batch recipient or type does not match", nameof(savedMails));
-            }
-
-            var item = BuildMailItem(saved);
-            if (await FindSenderAsync(saved.FromUid) is { } sender)
-            {
-                item.UserPlantInfo = sender.Style.BuildUserPlantInfo();
-            }
-
-            items.Add(item);
+            throw new ArgumentException("Mail batch recipient or type does not match", nameof(savedMails));
         }
 
-        return await lobbyRoles.PushAsync(uid,
-        [
-            .. BuildOtherUnreadRedDotPackets(unread, mailType),
-            GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidMailNewNtf, new pbSCMailNewNtf
-            {
-                MailList = new pbCOMDT_MAIL_LIST { MailType = mailType, MailInfo = { items } },
-            }),
-            .. await BuildUnreadRedDotPacketsAsync(uid, mailType),
-        ]);
+        return await PushNewMailsAsync(savedMails);
     }
 
-    public async Task<GamePacket[]> BuildNewMailRedDotPacketsAsync(ulong uid, int mailType) =>
-        mailType == (int)PB_ENUM_RES_MAIL_TYPE.PbResMailTypePerson
+    public async Task<bool> PushNewMailsAsync(IReadOnlyList<RoleMail> savedMails)
+    {
+        var pushed = false;
+        foreach (var recipient in savedMails.GroupBy(saved => saved.GameUlongUID))
+        {
+            if (!lobbyRoles.IsOnline(recipient.Key))
+            {
+                continue;
+            }
+
+            try
+            {
+                pushed |= await PushRecipientNewMailsAsync(recipient.Key, [.. recipient]);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "New mail push to uid {Uid} failed; its {Count} committed mails show at the next mail red dot sync or login",
+                    recipient.Key, recipient.Count());
+            }
+        }
+
+        return pushed;
+    }
+
+    private async Task<bool> PushRecipientNewMailsAsync(ulong uid, IReadOnlyList<RoleMail> delivered)
+    {
+        var now = clock.GetUtcNow().ToUnixTimeSeconds();
+        var unread = await repository.CountUnreadAsync(uid, now);
+        var unannounced = new int[MailBox.MailTypeCount];
+        foreach (var saved in delivered.Where(saved => IsCountedUnread(saved, now)))
+        {
+            unannounced[saved.MailType]++;
+        }
+
+        var packets = new List<GamePacket>();
+        foreach (var delivery in delivered.GroupBy(saved => saved.MailType).OrderBy(delivery => delivery.Key))
+        {
+            var items = new List<pbCOMDT_MAIL_ITEM>();
+            foreach (var saved in delivery)
+            {
+                var item = BuildMailItem(saved);
+                if (await FindSenderAsync(saved.FromUid) is { } sender)
+                {
+                    item.UserPlantInfo = sender.Style.BuildUserPlantInfo();
+                }
+
+                items.Add(item);
+            }
+
+            var unreadBefore = Subtract(unread, unannounced);
+            if (MailBox.IsMailType(delivery.Key))
+            {
+                unannounced[delivery.Key] -= delivery.Count(saved => IsCountedUnread(saved, now));
+            }
+
+            var mailNewNtf = GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidMailNewNtf, new pbSCMailNewNtf
+            {
+                MailList = new pbCOMDT_MAIL_LIST { MailType = delivery.Key, MailInfo = { items } },
+            });
+            packets.AddRange(BuildNewMailPackets(unreadBefore, Subtract(unread, unannounced), delivery.Key, mailNewNtf));
+        }
+
+        return await lobbyRoles.PushAsync(uid, [.. packets]);
+    }
+
+    private static bool IsCountedUnread(RoleMail saved, long now) =>
+        saved.MailState == MailBox.Unread && saved.ExpireTime > now && MailBox.IsMailType(saved.MailType);
+
+    private static int[] Subtract(int[] unread, int[] unannounced) =>
+        [.. unread.Select((count, mailType) => Math.Max(0, count - unannounced[mailType]))];
+
+    public static GamePacket[] BuildNewMailPackets(int[] unreadBefore, int[] unreadAfter, int mailType, GamePacket mailNewNtf)
+    {
+        var packets = new List<GamePacket>();
+        for (var walkedType = 0; walkedType < MailBox.MailTypeCount; walkedType++)
+        {
+            if (walkedType == mailType)
+            {
+                packets.Add(mailNewNtf);
+                packets.AddRange(BuildMailTypeRedDotPackets(unreadAfter, walkedType));
+            }
+            else if ((walkedType < mailType ? unreadBefore : unreadAfter) is var walkedUnread && walkedUnread[walkedType] > 0)
+            {
+                packets.AddRange(BuildMailTypeRedDotPackets(walkedUnread, walkedType));
+            }
+        }
+
+        return [.. packets];
+    }
+
+    public static GamePacket[] BuildUnreadRedDotPackets(int[] unread) =>
+        [.. Enumerable.Range(0, MailBox.MailTypeCount).Where(mailType => unread[mailType] > 0).SelectMany(mailType => BuildMailTypeRedDotPackets(unread, mailType))];
+
+    public static GamePacket[] BuildUnreadRedDotStatePackets(int[] unread) =>
+    [
+        .. Enumerable.Range(0, MailBox.MailTypeCount).Select(MailBox.FindUnreadRedDotID).OfType<int>().Distinct()
+            .Select(redDotID => BuildUnreadRedDotPacket(redDotID, CountUnread(unread, redDotID))),
+        BuildUnreadRedDotPacket(MailBox.UnreadAllMailRedDotID, CountUnread(unread, MailBox.UnreadAllMailRedDotID)),
+    ];
+
+    private static IEnumerable<GamePacket> BuildMailTypeRedDotPackets(int[] unread, int mailType) =>
+        MailBox.FindUnreadRedDotID(mailType) is { } redDotID
             ?
             [
-                .. await BuildUnreadRedDotPacketsAsync(uid, mailType),
-                .. await BuildUnreadRedDotPacketsAsync(uid, (int)PB_ENUM_RES_MAIL_TYPE.PbResMailTypeAccusation),
+                BuildUnreadRedDotPacket(redDotID, CountUnread(unread, redDotID)),
+                BuildUnreadRedDotPacket(MailBox.UnreadAllMailRedDotID, CountUnread(unread, MailBox.UnreadAllMailRedDotID)),
             ]
-            : await BuildUnreadRedDotPacketsAsync(uid, mailType);
+            : [];
 
     public Task<RoleMail> SendWelcomeMailAsync(ulong uid) => InsertSystemMailAsync(uid, WelcomeMail);
 
@@ -177,13 +227,6 @@ public sealed class MailManager(
             ? unread.Sum()
             : Enumerable.Range(0, unread.Length).Where(mailType => MailBox.FindUnreadRedDotID(mailType) == redDotID).Sum(mailType => unread[mailType]);
 
-    private static IEnumerable<GamePacket> BuildOtherUnreadRedDotPackets(int[] unread, int mailType) =>
-        Enumerable.Range(0, unread.Length)
-            .Where(otherMailType => otherMailType != mailType && unread[otherMailType] > 0)
-            .SelectMany(otherMailType => (int?[])[MailBox.FindUnreadRedDotID(otherMailType), MailBox.UnreadAllMailRedDotID])
-            .OfType<int>()
-            .Select(redDotID => BuildUnreadRedDotPacket(redDotID, CountUnread(unread, redDotID)));
-
     private static GamePacket BuildUnreadRedDotPacket(int redDotID, int unreadCount) => unreadCount > 0
         ? GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidRedDotReplaceNtf, new pbSCRedDotReplaceNtf
         {
@@ -194,7 +237,7 @@ public sealed class MailManager(
         })
         : GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidRedDotClearNtf, new pbSCRedDotClearNtf { RedDotID = redDotID });
 
-    private async Task<RoleMail> InsertSystemMailAsync(ulong uid, SystemMail mail)
+    public async Task<RoleMail> InsertSystemMailAsync(ulong uid, SystemMail mail)
     {
         var saved = await repository.InsertAsync(CreateSystemMail(uid, mail));
         LogSystemMailSent(saved, mail);
@@ -529,6 +572,22 @@ public sealed class MailManager(
                 continue;
             }
 
+            if (IsAvatarSuitAward(award))
+            {
+                foreach (var avatarID in RoleAvatar.FindSuitParts(gameData, award.ResID) ?? [])
+                {
+                    if (!role.OwnsItem(RoleItemType.AvatarItem, avatarID)
+                        && items.All(item => item.ItemType != RoleItemType.AvatarItem || item.ItemId != avatarID))
+                    {
+                        var part = new RoleItemInfo(RoleItemType.AvatarItem, avatarID, now, RoleItemInfo.Permanent, RoleItemInfo.ShowNewTag);
+                        items.Add(part);
+                        awards.Add(part.ToAwardReplaceInfo());
+                    }
+                }
+
+                continue;
+            }
+
             if (IsCosmeticResourceType((PB_ENUM_RES_RESOURCES_TYPE)award.ResType))
             {
                 if (CosmeticGrant.Plan(gameData, bag, role, award.ResID, award.ResCnt, now, items) is not { } cosmetic)
@@ -636,7 +695,7 @@ public sealed class MailManager(
         {
             PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesCoin => award.ResID > 0,
             PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesResattr => CoinID.IsSpecialCoin(award.ResID),
-            var cosmeticType when IsCosmeticResourceType(cosmeticType) => CanAttachCosmetic(award),
+            var cosmeticType when IsCosmeticResourceType(cosmeticType) => CanAttachCosmetic(award) || IsAvatarSuitAward(award),
             PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesPaster =>
                 gameData.PokemonAvatarBase.Contains(award.ResID) && award.ResCnt == AwardedPokemonCount,
             PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesLobbyBackground =>
@@ -663,6 +722,11 @@ public sealed class MailManager(
         (int)CoinID.GetResIDType(award.ResID) == award.ResType
         && CosmeticGrant.FindItemType(gameData, award.ResID) is { } itemType
         && (award.ResCnt == ProbeItemCount || CosmeticGrant.FindTransmute(gameData, itemType, award.ResID) is { TransmuteNum: > 0 });
+
+    private bool IsAvatarSuitAward(pbCOMDT_ONE_RESOURCE_AWARD_INFO award) =>
+        (PB_ENUM_RES_RESOURCES_TYPE)award.ResType == PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesAvatar
+        && award.ResCnt == ProbeItemCount
+        && RoleAvatar.FindSuitParts(gameData, award.ResID) is { Length: > 0 };
 
     private bool IsBagOutSideItem(int outSideItemId) =>
         CoinID.GetResIDType(outSideItemId) == PB_ENUM_RES_RESOURCES_TYPE.PbResResourcesOutsideitem

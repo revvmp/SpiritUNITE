@@ -63,6 +63,28 @@ public sealed class MailRepository(DataOptions options)
         return counts;
     }
 
+    public async Task<Dictionary<ulong, int[]>> CountUnreadAsync(IReadOnlyCollection<ulong> gameUlongUIDs, long now)
+    {
+        await using var database = new DataConnection(options);
+        var unread = await database.GetTable<RoleMail>()
+            .Where(mail => gameUlongUIDs.Contains(mail.GameUlongUID) && mail.MailState == MailBox.Unread && mail.ExpireTime > now)
+            .GroupBy(mail => new { mail.GameUlongUID, mail.MailType })
+            .Select(group => new { group.Key.GameUlongUID, group.Key.MailType, Count = group.Count() })
+            .ToArrayAsync();
+        var counts = new Dictionary<ulong, int[]>();
+        foreach (var gameUlongUID in gameUlongUIDs)
+        {
+            counts[gameUlongUID] = new int[MailBox.MailTypeCount];
+        }
+
+        foreach (var type in unread.Where(type => type.MailType is >= 0 and < MailBox.MailTypeCount))
+        {
+            counts[type.GameUlongUID][type.MailType] = type.Count;
+        }
+
+        return counts;
+    }
+
     public async Task<RoleMail[]> GetMailsAsync(ulong gameUlongUID, int mailType, long now, int maxMailNum)
     {
         await using var database = new DataConnection(options);

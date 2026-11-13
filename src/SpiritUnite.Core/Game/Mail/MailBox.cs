@@ -34,6 +34,9 @@ public static class MailBox
         _ => null,
     };
 
+    public static bool IsUnreadRedDotID(int redDotID) =>
+        redDotID == UnreadAllMailRedDotID || Enumerable.Range(0, MailTypeCount).Any(mailType => FindUnreadRedDotID(mailType) == redDotID);
+
     public static bool IsMailType(int mailType) =>
         mailType > (int)PB_ENUM_RES_MAIL_TYPE.PbResMailTypeInvalid && mailType < (int)PB_ENUM_RES_MAIL_TYPE.PbResMailTypeMax;
 }
