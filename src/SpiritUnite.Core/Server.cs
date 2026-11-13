@@ -252,6 +252,7 @@ public static class Server
         builder.Services.AddSingleton<NewbieGiftRepository>();
         builder.Services.AddSingleton<NewbieDropRepository>();
         builder.Services.AddSingleton<BagRepository>();
+        builder.Services.AddSingleton<MultiBuffRepository>();
         builder.Services.AddSingleton<PasterRepository>();
         builder.Services.AddSingleton<CustomizeRepository>();
         builder.Services.AddSingleton<PokemonUsedRepository>();
@@ -264,6 +265,7 @@ public static class Server
         builder.Services.AddSingleton<StarRoadRepository>();
         builder.Services.AddSingleton<PveChallengeRepository>();
         builder.Services.AddSingleton<ActivityExchangeRepository>();
+        builder.Services.AddSingleton<ShowSerialRewardRepository>();
         builder.Services.AddSingleton<CouponsFlowRepository>();
         builder.Services.AddSingleton<FirstChargeRepository>();
         builder.Services.AddSingleton<TrainerExpGiftRepository>();
@@ -304,6 +306,7 @@ public static class Server
         CoinID.UseResIDTypeMatch(gameData.ResIDTypeMatchBase.Rows);
         builder.Services.AddSingleton(gameData);
         builder.Services.AddSingleton(GameNames.Load(Path.Combine(AppContext.BaseDirectory, GameNames.FilePath)));
+        builder.Services.AddSingleton(ServerSyncResources.Load(Path.Combine(AppContext.BaseDirectory, ServerSyncResources.DirectoryName)));
     }
 
     private static void AddGame(IHostApplicationBuilder builder)
@@ -334,6 +337,7 @@ public static class Server
         builder.Services.AddSingleton<RallyChallengeManager>();
         builder.Services.AddSingleton<AllPkmChallengeRepository>();
         builder.Services.AddSingleton<AllPkmChallengeManager>();
+        builder.Services.AddSingleton<ShowSerialRewardManager>();
         builder.Services.AddSingleton<TowerDefenseRepository>();
         builder.Services.AddSingleton<TowerDefenseManager>();
         builder.Services.AddSingleton<MegaEvolutionRepository>();
@@ -342,6 +346,7 @@ public static class Server
         builder.Services.AddSingleton<GuildActivityTasks>();
         builder.Services.AddSingleton<GuildManager>();
         builder.Services.AddSingleton<MailManager>();
+        builder.Services.AddSingleton<MailRedDotSync>();
         builder.Services.AddSingleton<GrantUpdates>();
         builder.Services.AddSingleton<CreditManager>();
         builder.Services.AddHostedService<CreditSettlementMailDelivery>();
@@ -368,6 +373,7 @@ public static class Server
         builder.Services.AddSingleton<ShopManager>();
         builder.Services.AddSingleton<MysteryShopManager>();
         builder.Services.AddSingleton<BagManager>();
+        builder.Services.AddSingleton<MultiBuffManager>();
         builder.Services.AddSingleton<HeldItemManager>();
         builder.Services.AddSingleton<PokemonManager>();
         builder.Services.AddSingleton<BadgeManager>();
@@ -401,6 +407,7 @@ public static class Server
         builder.Services.AddSingleton<AccountManager>();
         builder.Services.AddSingleton<AuthorizationCodeStore>();
         builder.Services.AddSingleton<AccountSessionManager>();
+        builder.Services.AddSingleton<AccountLinkManager>();
         builder.Services.AddSingleton<WebIdentity>();
         builder.Services.AddSingleton<AdminTokenManager>();
         builder.Services.AddSingleton<AdminAuditLog>();
@@ -453,9 +460,12 @@ public static class Server
         builder.Services.AddHostedService(services => services.GetRequiredService<ResourceArchiveCatalog>());
         builder.Services.AddSingleton<ImageCdnFolder>();
         builder.Services.AddHostedService(services => services.GetRequiredService<ImageCdnFolder>());
+        builder.Services.AddSingleton<GalleryFolder>();
+        builder.Services.AddHostedService(services => services.GetRequiredService<GalleryFolder>());
         builder.Services.AddHostedService<DirServer>();
         builder.Services.AddHostedService<LobbyServer>();
         builder.Services.AddHostedService<RelayServer>();
+        builder.Services.AddSingleton<AppUpdatePackages>();
         builder.Services.AddSingleton<UpdateServiceReplies>();
         builder.Services.AddHostedService<UpdateServer>();
         builder.Services.AddHostedService<VoiceServer>();

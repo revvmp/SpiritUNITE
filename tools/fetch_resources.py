@@ -19,12 +19,14 @@ from urllib.parse import urlsplit
 REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
 APPSETTINGS_PATH = REPOSITORY_ROOT / "src/SpiritUnite.Core/appsettings.json"
 IMAGE_FILE_LIST_PATH = Path(__file__).resolve().parent / "image_cdn_files.json"
+GALLERY_FILE_LIST_PATH = Path(__file__).resolve().parent / "gallery_files.json"
 DEFAULT_RESOURCE_DIRECTORY = "resources"
 IMAGE_FOLDER_NAME = "images"
+GALLERY_FOLDER_NAME = "gallery"
 
 GAME_ID = 669535640
 GAME_KEY = "fc4db4cb2a243e3248392496b7c939ba"
-CLIENT_APP_VERSION = "1.24.1.0"
+CLIENT_APP_VERSION = "1.25.1.0"
 ADDRESS_SERVICE_PORT = 8085
 TUAP_IV = bytes(range(16))
 MAX_TUAP_BODY = 65536
@@ -46,6 +48,10 @@ IMAGE_REQUEST_ATTEMPTS = 4
 IMAGE_MAX_WORKERS = 8
 IMAGE_PROGRESS_EVERY = 500
 IMAGE_RELATIVE_PATH = re.compile(r"[A-Za-z]+(/[A-Za-z0-9_\-]+)+/[A-Za-z0-9_\-.]+\.bytes")
+GALLERY_HOST = "www.pokemon-unitepgame.com"
+GALLERY_ROOT = "/gallery"
+GALLERY_USER_AGENT = "Mozilla/5.0"
+GALLERY_RELATIVE_PATH = re.compile(r"[A-Za-z0-9_\-]+(/[A-Za-z0-9_\-.]+)*\.(html|css|js|png|jpg)")
 MD5_HEX = re.compile(r"[0-9a-f]{32}")
 HASH_READ_BYTES = 4 * 1024 * 1024
 
@@ -719,7 +725,7 @@ def fetch_archives(platforms, resource_directory):
 
 
 @dataclass(frozen=True)
-class ImageFile:
+class MirrorFile:
     relative_path: str
     md5: str
     size: int
@@ -747,17 +753,19 @@ def load_image_file_list():
             or entry[2] <= 0
         ):
             raise FetchError(f"{IMAGE_FILE_LIST_PATH} has an invalid entry: {entry!r}")
-        files.append(ImageFile(*entry))
+        files.append(MirrorFile(*entry))
     return index["md5"], files
 
 
-class ImageCdnClient:
-    def __init__(self):
+class CdnClient:
+    def __init__(self, host, user_agent):
+        self.host = host
+        self.user_agent = user_agent
         self.connections = threading.local()
 
     def connection(self):
         if getattr(self.connections, "value", None) is None:
-            self.connections.value = http.client.HTTPSConnection(IMAGE_CDN_HOST, timeout=IMAGE_TIMEOUT_SECONDS)
+            self.connections.value = http.client.HTTPSConnection(self.host, timeout=IMAGE_TIMEOUT_SECONDS)
         return self.connections.value
 
     def reset(self):
@@ -770,7 +778,7 @@ class ImageCdnClient:
         for attempt in range(IMAGE_REQUEST_ATTEMPTS):
             try:
                 connection = self.connection()
-                connection.request("GET", path, headers={"User-Agent": IMAGE_USER_AGENT, "Connection": "keep-alive"})
+                connection.request("GET", path, headers={"User-Agent": self.user_agent, "Connection": "keep-alive"})
                 response = connection.getresponse()
                 body = response.read()
                 if response.status in (200, 403, 404):
@@ -811,7 +819,7 @@ def fetch_image(client, image_folder, image):
 def fetch_images(resource_directory, workers):
     snapshot_index_md5, files = load_image_file_list()
     image_folder = resource_directory / IMAGE_FOLDER_NAME
-    client = ImageCdnClient()
+    client = CdnClient(IMAGE_CDN_HOST, IMAGE_USER_AGENT)
     status, index = client.get(f"{IMAGE_CDN_ROOT}/{IMAGE_INDEX_FILE}")
     if status != 200:
         raise FetchError(f"The official image CDN did not send its index (status {status})")
@@ -834,6 +842,64 @@ def fetch_images(resource_directory, workers):
         raise FetchError(f"{len(outcomes['failed'])} images failed to download; run the same command to retry them")
 
 
+def load_gallery_file_list():
+    if not GALLERY_FILE_LIST_PATH.is_file():
+        raise FetchError(f"{GALLERY_FILE_LIST_PATH} is missing")
+    listing = read_json_file(GALLERY_FILE_LIST_PATH)
+    entries = listing.get("files") if isinstance(listing, dict) else None
+    if not isinstance(entries, list):
+        raise FetchError(f"{GALLERY_FILE_LIST_PATH} has an unknown layout")
+    files = []
+    for entry in entries:
+        if (
+            not isinstance(entry, list)
+            or len(entry) != 3
+            or not isinstance(entry[0], str)
+            or not GALLERY_RELATIVE_PATH.fullmatch(entry[0])
+            or ".." in entry[0]
+            or not isinstance(entry[1], str)
+            or not MD5_HEX.fullmatch(entry[1])
+            or not isinstance(entry[2], int)
+            or entry[2] <= 0
+        ):
+            raise FetchError(f"{GALLERY_FILE_LIST_PATH} has an invalid entry: {entry!r}")
+        files.append(MirrorFile(*entry))
+    return files
+
+
+def fetch_gallery_file(client, gallery_folder, file):
+    target = gallery_folder / file.relative_path
+    if target.is_file() and target.stat().st_size == file.size and file_md5(target) == file.md5:
+        return "present"
+    status, data = client.get(f"{GALLERY_ROOT}/{file.relative_path}")
+    if status in (403, 404):
+        return "missing"
+    if status != 200:
+        return "failed"
+    if len(data) != file.size or bytes_md5(data) != file.md5:
+        return "changed"
+    write_atomically(target, data)
+    return "downloaded"
+
+
+def fetch_gallery(resource_directory, workers):
+    files = load_gallery_file_list()
+    gallery_folder = resource_directory / GALLERY_FOLDER_NAME
+    client = CdnClient(GALLERY_HOST, GALLERY_USER_AGENT)
+    total_bytes = sum(file.size for file in files)
+    print(f"Fetching {len(files)} gallery files ({format_gigabytes(total_bytes)}) into {gallery_folder}", flush=True)
+    outcomes = {}
+    with concurrent.futures.ThreadPoolExecutor(workers) as pool:
+        for file, outcome in zip(files, pool.map(lambda file: fetch_gallery_file(client, gallery_folder, file), files)):
+            outcomes.setdefault(outcome, []).append(file.relative_path)
+    print(", ".join(f"{name} {len(paths)}" for name, paths in sorted(outcomes.items())), flush=True)
+    for outcome in ("changed", "missing", "failed"):
+        for path in outcomes.get(outcome, [])[:10]:
+            print(f"{outcome}: {path}", flush=True)
+    if outcomes.get("failed"):
+        raise FetchError(f"{len(outcomes['failed'])} gallery files failed to download; run the same command to retry them")
+
+
 def resolve_resource_directory(argument):
     if argument is not None:
         return argument.resolve()
@@ -849,19 +915,21 @@ def resolve_resource_directory(argument):
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Download the official UNITE resource archives and image CDN files a SpiritUNITE host serves.")
+    parser = argparse.ArgumentParser(description="Download the official UNITE resource archives, image CDN files and Gallery pages a SpiritUNITE host serves.")
     parser.add_argument(
         "--resources",
         type=Path,
         help="Resource directory; defaults to ResourceArchive.Directory from appsettings.json against the repository root, else resources/",
     )
     commands = parser.add_subparsers(dest="command", required=True)
-    archives = commands.add_parser("archives", help="Download the about 7.7 GB resource archive for each platform")
+    archives = commands.add_parser("archives", help="Download the about 9.3 GB resource archive for each platform")
     archives.add_argument("--platform", choices=[*PLATFORMS, "all"], default="all")
     images = commands.add_parser("images", help="Download the about 1.3 GB image CDN mirror")
     images.add_argument("--workers", type=int, default=IMAGE_MAX_WORKERS)
+    gallery = commands.add_parser("gallery", help="Download the about 0.4 GB Menu > Gallery manga site")
+    gallery.add_argument("--workers", type=int, default=IMAGE_MAX_WORKERS)
     arguments = parser.parse_args()
-    if arguments.command == "images" and not 1 <= arguments.workers <= IMAGE_MAX_WORKERS:
+    if arguments.command in ("images", "gallery") and not 1 <= arguments.workers <= IMAGE_MAX_WORKERS:
         parser.error(f"--workers must be between 1 and {IMAGE_MAX_WORKERS}")
     return arguments
 
@@ -874,6 +942,8 @@ def main():
         if arguments.command == "archives":
             platforms = list(PLATFORMS.values()) if arguments.platform == "all" else [PLATFORMS[arguments.platform]]
             fetch_archives(platforms, resource_directory)
+        elif arguments.command == "gallery":
+            fetch_gallery(resource_directory, arguments.workers)
         else:
             fetch_images(resource_directory, arguments.workers)
     except (FetchError, OSError) as error:

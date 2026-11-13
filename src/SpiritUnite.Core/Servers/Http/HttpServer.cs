@@ -69,6 +69,7 @@ public static class HttpServer
         CentauriEndpoints.Map(app);
         ResourceEndpoints.Map(app);
         ImageCdnEndpoints.Map(app);
+        GalleryEndpoints.Map(app);
         GiftCodeEndpoints.Map(app);
         AboutPage.Map(app);
         AdminEndpoints.Map(app);
@@ -207,7 +208,9 @@ public static class HttpServer
         headers.XFrameOptions = DenyFraming;
         headers.ContentSecurityPolicy = AdminEndpoints.IsAdminPath(context.Request.Path)
             ? AdminEndpoints.ContentSecurityPolicy
-            : AccountPages.ContentSecurityPolicy;
+            : GalleryEndpoints.IsGalleryPath(context.Request.Path)
+                ? GalleryEndpoints.ContentSecurityPolicy
+                : AccountPages.ContentSecurityPolicy;
         headers[ReferrerPolicyHeader] = NoReferrer;
         return next(context);
     }
