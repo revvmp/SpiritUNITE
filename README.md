@@ -48,6 +48,8 @@ SpiritUNITE is a C# server emulator for the [Pokemon UNITE](https://en.wikipedia
    # Linux
    cp src/SpiritUnite.Core/appsettings.example.json src/SpiritUnite.Core/appsettings.json
    ```
+   Set up for [local development or LAN play](#build-the-apk-local-development) or [hosting for others](#hosting-for-others-remote-play).
+
 
 3. Download the game resources (see [Download the Game Resources](#download-the-game-resources)). The game downloads about 40 MB from your server on first launch, then about 8.4 GB in the background, and checks it on every start, so players cannot get past "Checking update data" without it.
 
@@ -78,18 +80,24 @@ python3 tools/fetch_resources.py
 
 Files go in the folder set by `ResourceArchive.Directory` in `appsettings.json` (`resources/` by default). See [resources/README.md](resources/README.md) for the layout.
 
-## Build the APK
+## Build the APK (Local Development)
 
-1. Put your own official `base.apk`, `split_ab.apk` and `split_config.arm64_v8a.apk` in one folder. Build `1198241` (1.25.1.1) is currently supported, for both the APK and the IPA.
-2. For local development, set `RelayServer.Host` and `VoiceServer.Host` in `appsettings.json` to your PC's local network IP and `TcpServer.BindAddress` to `0.0.0.0`. `adb reverse` cannot forward UDP, so the device reaches these two servers directly.
+1. Put your own official `base.apk`, `split_ab.apk` and `split_config.arm64_v8a.apk` in one folder. For
+   iOS, use your own decrypted IPA. Build `1198241` (1.25.1.1) is currently supported, for both the APK and the IPA.
+2. For local development, set `LobbyServer.Host` in `appsettings.json` to your PC's local network IPv4 address, and set `TcpServer.BindAddress` and `HttpServer.BindAddress` to `0.0.0.0`.
    ```json
-   "RelayServer": {
-     "Host": "change-to-ipv4",
-     "Port": 10003
+   "TcpServer": {
+     "BindAddress": "0.0.0.0",
+     ...
    },
-   "VoiceServer": {
+   "LobbyServer": {
      "Host": "change-to-ipv4",
-     "Port": 8700
+     "Port": 10002
+   },
+   "HttpServer": {
+     "BindAddress": "0.0.0.0",
+     "Port": 10081,
+     ...
    }
    ```
 
@@ -97,17 +105,22 @@ Files go in the folder set by `ResourceArchive.Directory` in `appsettings.json` 
    ```powershell
    # Windows
    python tools/build_apk.py --apks "path/to/splits" --dev
+   python tools/build_ipa.py --ipa "path/to/decrypted.ipa" --dev
    ```
    ```sh
    # Linux
    python3 tools/build_apk.py --apks "path/to/splits" --dev
+   python3 tools/build_ipa.py --ipa "path/to/decrypted.ipa" --dev
    ```
    The script uses your server settings, creates a signing key and offers to download Android build tools if needed. Back up the signing key so future builds can update installed clients.
 
 
-4. Run the printed `adb install -g` command. The app shows up as **SpiritUNITE**; use `--label` to change the name.
-5. With the default local settings, run the printed `adb reverse` commands to connect your device to the server. Repeat these after restarting.
-6. Start the server and launch the game.
+4. Run the printed `adb install -g` command or download it directly from your device or emulator. The app shows up as **SpiritUNITE**; use `--label` to change the name. For iOS, the IPA has to be sideloaded.
+5. Start the server and launch the game. If Windows Firewall asks, allow access on private networks.
+
+**NOTE:** These settings can also be used for LAN play (For friends and family on the same network). Give the APK and IPA to people on the same network.
+
+**WARNING:** Passwords are sent unencrypted for LAN play. Only use them on a network you trust.
 
 
 ## Ports
@@ -123,7 +136,7 @@ Files go in the folder set by `ResourceArchive.Directory` in `appsettings.json` 
 
 All of these can be changed in `appsettings.json`, except the update server. The client only looks for it on port 8085 or 8080.
 
-### Hosting for Others (Remote Play)
+## Hosting for Others (Remote Play)
 
 For friends to connect, use a domain pointing to your server and a publicly trusted HTTPS certificate.
 
