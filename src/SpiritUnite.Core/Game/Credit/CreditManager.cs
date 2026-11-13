@@ -174,6 +174,9 @@ public sealed class CreditManager(
     public int ReduceHangupIncome(int income, PB_ENUM_ENM_HANGUP_TYPE hangupType) =>
         income - (income * HangupIncomeReduceRatioOf(hangupType) / HangupIncomeRatioBase);
 
+    public bool HangupForfeitsIncome(PB_ENUM_ENM_HANGUP_TYPE hangupType) =>
+        HangupIncomeReduceRatioOf(hangupType) == HangupIncomeRatioBase;
+
     public int HangupIncomeReduceRatioOf(PB_ENUM_ENM_HANGUP_TYPE hangupType) => Math.Clamp(
         hangupType switch
         {
@@ -371,6 +374,29 @@ public sealed class CreditManager(
         PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeMalicious => "ENM_HANGUP_TYPE_MALICIOUS",
         _ => throw new ArgumentOutOfRangeException(nameof(hangupType), hangupType, "Only an idle hang-up type has a punish mail"),
     };
+
+    public async Task<Func<pbSCCreditPointNtf?>> EnlistRecoverAfterBattleAsync(SettlementSharedEffects shared, ulong uid, int mapId, bool isManMachine, SettlementKey settlementKey, long settledAt, CreditSettlementPlan? prepared)
+    {
+        if (settlementKey.GameUlongUID != uid)
+        {
+            throw new ArgumentException("Settlement uid does not match credit uid", nameof(settlementKey));
+        }
+
+        var hangupSchemeID = HangupSchemeIDOf(mapId);
+        var recovery = prepared?.Recovery ?? Math.Max(0, SchemeValueOf(hangupSchemeID, isManMachine ? ManmachineResumeCreditKey : BattleResumeCreditKey));
+        var dailyLimit = prepared?.DailyLimit ?? gameData.GetGlobalIntData(PB_ENUM_RES_RESGLOBAL.PbResglobalCompleteResumeCreditDailyLimit);
+        var today = prepared?.Day ?? settledAt / SecondsPerDay;
+        var ran = false;
+        pbSCCreditPointNtf? creditPointNtf = null;
+        await shared.EnlistGatedAsync(
+            gates.GetOrAdd(uid, _ => new SemaphoreSlim(1, 1)),
+            async database =>
+            {
+                creditPointNtf = await CreditRepository.RecoverBattleAsync(database, uid, settlementKey, today, recovery, dailyLimit, MaxCreditPoint, StartingCreditPoint);
+                ran = true;
+            });
+        return () => ran ? creditPointNtf : throw new InvalidOperationException($"Credit recovery of uid {uid} was read before its settlement transaction ran");
+    }
 
     public async Task<pbSCCreditPointNtf?> RecoverAfterBattleAsync(ulong uid, int mapId, bool isManMachine, SettlementKey? settlementKey = null, long? settledAt = null, CreditSettlementPlan? prepared = null)
     {

@@ -20,6 +20,8 @@ public sealed record NewbieChallengeRewardCommit(
 
 public sealed record NewbieChallengeDayReceipt(IReadOnlyDictionary<int, long> RecvTimes, IReadOnlySet<int> ReceivedNow);
 
+public sealed record NewbieChallengeSettlementReceive(IReadOnlyCollection<int> TaskDays, long Now);
+
 public sealed class NewbieChallengeRepository(DataOptions options)
 {
     public async Task<(long? FirstDay, IReadOnlyDictionary<int, long> Days)> FindReceivedAsync(ulong uid)
@@ -31,6 +33,11 @@ public sealed class NewbieChallengeRepository(DataOptions options)
     public async Task<NewbieChallengeDayReceipt> ReceiveDaysAsync(ulong gameUlongUID, IReadOnlyCollection<int> taskDays, long now)
     {
         await using var database = new DataConnection(options);
+        return await ReceiveDaysAsync(database, gameUlongUID, taskDays, now);
+    }
+
+    internal static async Task<NewbieChallengeDayReceipt> ReceiveDaysAsync(DataConnection database, ulong gameUlongUID, IReadOnlyCollection<int> taskDays, long now)
+    {
         var recvTimes = await FindDayRecvTimesAsync(database, gameUlongUID);
         var receivedNow = new HashSet<int>();
         foreach (var taskDay in taskDays.Where(taskDay => !recvTimes.ContainsKey(taskDay)))
@@ -53,6 +60,17 @@ public sealed class NewbieChallengeRepository(DataOptions options)
     public async Task<long> ReceiveAsync(ulong gameUlongUID, long now)
     {
         await using var database = new DataConnection(options);
+        return await ReceiveAsync(database, gameUlongUID, now);
+    }
+
+    internal static async Task ReceiveSettlementAsync(DataConnection database, ulong gameUlongUID, NewbieChallengeSettlementReceive receive)
+    {
+        await ReceiveAsync(database, gameUlongUID, receive.Now);
+        await ReceiveDaysAsync(database, gameUlongUID, receive.TaskDays, receive.Now);
+    }
+
+    internal static async Task<long> ReceiveAsync(DataConnection database, ulong gameUlongUID, long now)
+    {
         if (await FindRecvTimeAsync(database, gameUlongUID) is { } recvTime)
         {
             return recvTime;

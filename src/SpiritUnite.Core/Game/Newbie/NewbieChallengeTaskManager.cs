@@ -54,17 +54,6 @@ public sealed class NewbieChallengeTaskManager(
     public async Task<pbCOMDT_TASK_INFO[]> BuildTaskInfoListAsync(LMNRoleInfo role) =>
         [.. (await LoadTasksAsync(role)).Select(task => task.Info)];
 
-    public async Task<pbCOMDT_TASK_INFO[]> ApplySettlementAsync(SettlementKey key, NewbieChallengeSettlementPlan plan)
-    {
-        if (plan.ReceiveChallenge)
-        {
-            await repository.ReceiveAsync(key.GameUlongUID, plan.Tasks.Now);
-            await repository.ReceiveDaysAsync(key.GameUlongUID, plan.TaskDays, plan.Tasks.Now);
-        }
-
-        return await taskProcesses.ApplySettlementAsync(key, plan.Tasks);
-    }
-
     public async Task<NewbieChallengeSettlementPlan> PrepareSettlementAsync(LMNRoleInfo role, BattleTaskEvent battle, DateTimeOffset now)
     {
         const string effect = "tasks.newbie";

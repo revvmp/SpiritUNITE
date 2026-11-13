@@ -1,3 +1,4 @@
+using System.Globalization;
 using LinqToDB;
 using LinqToDB.Async;
 using LinqToDB.Data;
@@ -30,15 +31,6 @@ public sealed record ActivityRewardChange(
 
 public sealed class ActivityRepository(DataOptions options)
 {
-    public async Task<ActivitySettlementReward?> FindSettlementRewardAsync(SettlementKey key, int taskId, long periodStart)
-    {
-        await using var database = new DataConnection(options);
-        var effect = SettlementRewardEffect(taskId, periodStart);
-        var row = await database.GetTable<SettlementEffectRecord>()
-            .FirstOrDefaultAsync(row => row.SettlementID == key.SettlementID && row.GameUlongUID == key.GameUlongUID && row.Effect == effect);
-        return row is null ? null : SettlementEffects.Deserialize<ActivitySettlementReward>(row.Output);
-    }
-
     public async Task<ActivitySettlementReward> CommitSettlementRewardAsync(
         SettlementKey key,
         ActivityTaskReward reward,
@@ -81,7 +73,24 @@ public sealed class ActivityRepository(DataOptions options)
         return receipt.Value;
     }
 
-    private static string SettlementRewardEffect(int taskId, long periodStart) => $"activity.reward.{taskId}.{periodStart}";
+    public async Task<Dictionary<(int TaskId, long PeriodStart), ActivitySettlementReward>> FindSettlementRewardsAsync(SettlementKey key)
+    {
+        await using var database = new DataConnection(options);
+        var rows = await database.GetTable<SettlementEffectRecord>()
+            .Where(row => row.SettlementID == key.SettlementID && row.GameUlongUID == key.GameUlongUID && row.Effect.StartsWith(SettlementRewardEffectPrefix))
+            .ToArrayAsync();
+        return rows.ToDictionary(row => ParseSettlementRewardEffect(row.Effect), row => SettlementEffects.Deserialize<ActivitySettlementReward>(row.Output));
+    }
+
+    private const string SettlementRewardEffectPrefix = "activity.reward.";
+
+    private static string SettlementRewardEffect(int taskId, long periodStart) => $"{SettlementRewardEffectPrefix}{taskId}.{periodStart}";
+
+    private static (int TaskId, long PeriodStart) ParseSettlementRewardEffect(string effect)
+    {
+        var parts = effect[SettlementRewardEffectPrefix.Length..].Split('.');
+        return (int.Parse(parts[0], CultureInfo.InvariantCulture), long.Parse(parts[1], CultureInfo.InvariantCulture));
+    }
 
     public async Task<bool> RecordLoginDayAsync(ulong gameUlongUID, DateOnly loginDay)
     {
@@ -239,6 +248,37 @@ public sealed class ActivityRepository(DataOptions options)
                 PeriodStart = reward.PeriodStart,
                 RewardTime = reward.RewardTime,
             });
+        }
+        catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
+        {
+            return ActivityRewardCommit.Refused(PB_ENUM_RES_ERROR_CODE.PbErrTaskRewardTaked);
+        }
+
+        var commit = await ApplyRewardChangeAsync(
+            database,
+            gameUlongUID,
+            rewardChange,
+            reward.RewardTime,
+            PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonTaskaward,
+            PB_ENUM_RES_ERROR_CODE.PbErrTaskRewardTaked);
+        if (commit.Result == PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
+        {
+            await TaskProcessRepository.ApplyAsync(database, gameUlongUID, rewardChange.ProcessIncrements, reward.RewardTime);
+        }
+
+        return commit;
+    }
+
+    public static async Task<ActivityRewardCommit> ApplyRewardChangeAsync(
+        DataConnection database,
+        ulong gameUlongUID,
+        ActivityRewardChange rewardChange,
+        long rewardTime,
+        PB_ENUM_ENM_RESOURCE_CHG_REASON pokemonGainReason,
+        PB_ENUM_RES_ERROR_CODE ownedItemResult)
+    {
+        try
+        {
             foreach (var item in rewardChange.Items)
             {
                 await database.InsertAsync(RoleRepository.ToEntity(gameUlongUID, item));
@@ -246,7 +286,7 @@ public sealed class ActivityRepository(DataOptions options)
         }
         catch (MySqlException exception) when (exception.ErrorCode == MySqlErrorCode.DuplicateKeyEntry)
         {
-            return ActivityRewardCommit.Refused(PB_ENUM_RES_ERROR_CODE.PbErrTaskRewardTaked);
+            return ActivityRewardCommit.Refused(ownedItemResult);
         }
 
         try
@@ -255,8 +295,8 @@ public sealed class ActivityRepository(DataOptions options)
             {
                 await database.InsertAsync(RoleRepository.ToEntity(gameUlongUID, new RolePokemonInfo(
                     pokemonId,
-                    reward.RewardTime,
-                    (int)PB_ENUM_ENM_RESOURCE_CHG_REASON.PbEnmResourceChgReasonTaskaward,
+                    rewardTime,
+                    (int)pokemonGainReason,
                     RolePokemonInfo.HasNewTag)));
             }
         }
@@ -271,13 +311,12 @@ public sealed class ActivityRepository(DataOptions options)
             specialCoinsBefore[coinID] = await WalletRepository.ReadCoinValAsync(database, gameUlongUID, coinID);
         }
 
-        var applied = await BagRepository.ApplyAsync(database, gameUlongUID, rewardChange.Change, reward.RewardTime);
+        var applied = await BagRepository.ApplyAsync(database, gameUlongUID, rewardChange.Change, rewardTime);
         if (applied != PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc)
         {
             return ActivityRewardCommit.Refused(applied);
         }
 
-        await TaskProcessRepository.ApplyAsync(database, gameUlongUID, rewardChange.ProcessIncrements, reward.RewardTime);
         var changedItems = await BagRepository.ReadItemsAsync(database, gameUlongUID, rewardChange.Change.TouchedItems);
         var wallet = await WalletRepository.ReadAsync(database, gameUlongUID);
         return new ActivityRewardCommit(PB_ENUM_RES_ERROR_CODE.PbErrCommonSucc, specialCoinsBefore, wallet, changedItems);

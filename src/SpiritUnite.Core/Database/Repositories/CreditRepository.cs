@@ -170,6 +170,18 @@ public sealed class CreditRepository(DataOptions options)
     {
         await using var database = new DataConnection(options);
         await using var transaction = await database.BeginTransactionAsync();
+        if (key is null)
+        {
+            await SettlementEffects.LockRoleAsync(database, uid);
+        }
+
+        var result = await RecoverBattleAsync(database, uid, key, day, recovery, dailyLimit, maxCredit, startingCredit);
+        await transaction.CommitAsync();
+        return result;
+    }
+
+    internal static async Task<pbSCCreditPointNtf?> RecoverBattleAsync(DataConnection database, ulong uid, SettlementKey? key, long day, int recovery, int dailyLimit, int maxCredit, int startingCredit)
+    {
         async Task<pbSCCreditPointNtf?> ApplyAsync()
         {
             var record = await FindAsync(database, uid) ?? new CreditRecord(startingCredit, 0, 0, 0, 0, 0);
@@ -200,14 +212,7 @@ public sealed class CreditRepository(DataOptions options)
             return new pbSCCreditPointNtf { CurrentCreditPoint = creditPoint };
         }
 
-        if (key is null)
-        {
-            await SettlementEffects.LockRoleAsync(database, uid);
-        }
-
-        var result = key is null ? await ApplyAsync() : (await SettlementEffects.RunAsync(database, key, "credit.recovery", ApplyAsync)).Value;
-        await transaction.CommitAsync();
-        return result;
+        return key is null ? await ApplyAsync() : (await SettlementEffects.RunAsync(database, key, "credit.recovery", ApplyAsync)).Value;
     }
 
     private static async Task SaveAsync(DataConnection database, ulong gameUlongUID, CreditRecord record, CreditReduceRecord? reduceRecord, int maxReduceRecordNum)

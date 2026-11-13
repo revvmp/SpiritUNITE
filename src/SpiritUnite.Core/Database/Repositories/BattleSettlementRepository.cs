@@ -42,13 +42,17 @@ public sealed record BattleSettlementChange(
 
 public sealed record BattleIntimacyGain(IReadOnlyList<ulong> FriendUids, int IntimacyValue);
 
-public sealed record BattleEnergyGrant(int EnergyGain, int WeeklyEnergyFreeCapacity);
+public sealed record BattleEnergyGrant(int EnergyGain, EnergyRules Rules);
 
 public sealed record ChallengeTrainerMapLevel(int MapId, int LevelType);
 
 public sealed record BattleEnergyChange(RoleEnergyInfo Before, RoleEnergyInfo After)
 {
-    public int EnergyGain => After.Energy - Before.Energy;
+    public int NormalGain => Before.CollectableCapacity - After.CollectableCapacity;
+
+    public int AcceleratedGain => Before.AcceleratorCapacityTotal - After.AcceleratorCapacityTotal;
+
+    public int EnergyGain => NormalGain + AcceleratedGain;
 }
 
 public sealed record BattleSettlementCommit(
@@ -264,10 +268,10 @@ public sealed class BattleSettlementRepository(DataOptions options)
 
     private static async Task<BattleEnergyChange> GainEnergyAsync(DataConnection database, ulong gameUlongUID, BattleEnergyGrant grant, DateTimeOffset now)
     {
-        var stored = await EnergyRepository.ReadOrCreateForUpdateAsync(database, gameUlongUID, EnergyCenter.Starting(now, grant.WeeklyEnergyFreeCapacity));
-        var before = stored.FlushedAt(now, grant.WeeklyEnergyFreeCapacity);
-        var after = before.Gain(grant.EnergyGain);
-        await EnergyRepository.SaveAsync(database, gameUlongUID, after);
+        var stored = await EnergyRepository.ReadOrCreateForUpdateAsync(database, gameUlongUID, EnergyCenter.Starting(now, grant.Rules));
+        var before = stored.FlushedAt(now, grant.Rules.WeeklyEnergyFreeCapacity);
+        var after = before.GainFromBattle(grant.EnergyGain, grant.Rules.EnergyTicketCostEnergy);
+        await EnergyRepository.SaveAsync(database, gameUlongUID, before, after);
         return new BattleEnergyChange(before, after);
     }
 

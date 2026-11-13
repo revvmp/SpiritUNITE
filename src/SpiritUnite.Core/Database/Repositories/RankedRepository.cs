@@ -255,7 +255,13 @@ public sealed class RankedRepository(DataOptions options)
     {
         await using var database = new DataConnection(options);
         await using var transaction = await database.BeginTransactionAsync();
-        var result = await SettlementEffects.RunAsync(database, key, "ranked.reminder", async () =>
+        var result = await TakeSettlementReminderAsync(database, key, day);
+        await transaction.CommitAsync();
+        return result;
+    }
+
+    internal static async Task<SettlementEffectResult<RankedReminderOutcome>> TakeSettlementReminderAsync(DataConnection database, SettlementKey key, long day) =>
+        await SettlementEffects.RunAsync(database, key, "ranked.reminder", async () =>
         {
             var row = await database.GetTable<RoleRanked>().FirstOrDefaultAsync(ranked => ranked.GameUlongUID == key.GameUlongUID);
             var before = row?.NoRemindedBuyProtectCardDay ?? 0;
@@ -273,9 +279,6 @@ public sealed class RankedRepository(DataOptions options)
 
             return new RankedReminderOutcome(before == day ? 1 : 0, Math.Max(before, day));
         });
-        await transaction.CommitAsync();
-        return result;
-    }
 
     private static async Task<RankedGrantCommit> ApplyGrantAndCommitAsync(
         DataConnection database,

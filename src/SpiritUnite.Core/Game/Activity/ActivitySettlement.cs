@@ -44,14 +44,11 @@ public sealed partial class ActivityManager
             templates.Count(task => task.Info.Status == (int)PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusComplete));
     }
 
-    public async Task<ActivityBattleProgress> ApplySettlementAsync(LMNRoleInfo role, SettlementKey key, ActivitySettlementPlan plan)
-    {
-        if (plan.Progress.Increments.Length == 0)
-        {
-            return new ActivityBattleProgress([], plan.CompleteCountBefore, plan.CompleteCountBefore);
-        }
+    public static bool StoresSettlementProgress(ActivitySettlementPlan plan) => plan.Progress.Increments.Length > 0;
 
-        var infos = await taskProcesses.ApplySettlementAsync(key, plan.Progress);
+    public async Task<ActivityBattleProgress> ClaimSettlementRewardsAsync(LMNRoleInfo role, SettlementKey key, ActivitySettlementPlan plan, pbCOMDT_TASK_INFO[] infos)
+    {
+        var storedRewards = await repository.FindSettlementRewardsAsync(key);
         var afterCount = infos.Count(info => info.Status == (int)PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusComplete);
         var initialCompleted = infos.Where(info => info.Status == (int)PB_ENUM_ENM_TASKSTATUS.PbEnmTaskstatusComplete)
             .Select(info => info.TaskId).ToHashSet();
@@ -104,7 +101,7 @@ public sealed partial class ActivityManager
 
         async Task<ActivityTaskGrantResult?> ClaimAsync(ActivitySettlementTask task)
         {
-            var existing = await repository.FindSettlementRewardAsync(key, task.Task.TaskID, task.PeriodStart);
+            var existing = storedRewards.GetValueOrDefault((task.Task.TaskID, task.PeriodStart));
             if (existing is null)
             {
                 var info = infos.First(info => info.TaskId == task.Task.TaskID);
@@ -125,6 +122,7 @@ public sealed partial class ActivityManager
                 existing = await repository.CommitSettlementRewardAsync(key,
                     new ActivityTaskReward(task.Task.TaskID, task.PeriodStart, plan.Progress.Now), grant,
                     new ActivityRewardChange(grant.Items, grant.PokemonIds, grant.Change, increments), plan.Progress);
+                storedRewards[(task.Task.TaskID, task.PeriodStart)] = existing;
             }
 
             settledIds.Add(task.Task.TaskID);
@@ -138,7 +136,7 @@ public sealed partial class ActivityManager
     }
 
     private static bool IsSettlementStoredCondition(pbFinishCondition condition) =>
-        BattleTasks.IsBattleCondition(condition) || ActivityClientActions.IsClientAction(condition)
+        BattleTasks.IsActivityBattleCondition(condition) || ActivityClientActions.IsClientAction(condition)
         || condition.ID == (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdAddResId
         || condition.ID == (int)PB_ENUM_RES_CONDITION_ID.PbResConditionIdUseSpecPokemonWin;
 

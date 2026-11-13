@@ -12,6 +12,7 @@ public sealed class TaskProcessRepository(DataOptions options)
 {
     private const int OneRow = 1;
     private const long NotCompleted = 0;
+    private const int RoleTaskProcessColumnCount = 6;
 
     public async Task<IReadOnlyDictionary<(int TaskId, long PeriodStart), StoredTaskProcess>> FindAsync(ulong gameUlongUID)
     {
@@ -44,10 +45,52 @@ public sealed class TaskProcessRepository(DataOptions options)
         return true;
     }
 
-    public async Task<pbCOMDT_TASK_INFO[]> ApplySettlementAsync(SettlementKey key, SettlementTaskPlan plan)
+    public async Task<pbCOMDT_TASK_INFO[]> ApplySettlementAsync(SettlementKey key, SettlementTaskPlan plan) =>
+        (await ApplySettlementsAsync(key, [plan]))[0];
+
+    public async Task<pbCOMDT_TASK_INFO[][]> ApplySettlementsAsync(
+        SettlementKey key,
+        IReadOnlyList<SettlementTaskPlan> plans,
+        NewbieChallengeSettlementReceive? newbieReceive = null,
+        SettlementSharedEffects? sharedEffects = null)
     {
         await using var database = new DataConnection(options);
         await using var transaction = await database.BeginTransactionAsync();
+        if (newbieReceive is not null || sharedEffects is { IsEmpty: false })
+        {
+            if (!await LockRoleAsync(database, key.GameUlongUID))
+            {
+                throw new InvalidDataException($"Settlement role {key.GameUlongUID} is missing");
+            }
+        }
+
+        if (sharedEffects is not null)
+        {
+            await sharedEffects.RunAsync(database);
+        }
+
+        if (newbieReceive is not null)
+        {
+            await NewbieChallengeRepository.ReceiveSettlementAsync(database, key.GameUlongUID, newbieReceive);
+        }
+
+        var applied = new pbCOMDT_TASK_INFO[plans.Count][];
+        for (var index = 0; index < plans.Count; index++)
+        {
+            applied[index] = await ApplySettlementAsync(database, key, plans[index]);
+        }
+
+        await transaction.CommitAsync();
+        if (sharedEffects is not null)
+        {
+            await sharedEffects.PublishAsync();
+        }
+
+        return applied;
+    }
+
+    private static async Task<pbCOMDT_TASK_INFO[]> ApplySettlementAsync(DataConnection database, SettlementKey key, SettlementTaskPlan plan)
+    {
         var effect = await SettlementEffects.RunAsync(database, key, plan.Effect, async () =>
         {
             if (!await LockRoleAsync(database, key.GameUlongUID))
@@ -58,7 +101,6 @@ public sealed class TaskProcessRepository(DataOptions options)
             await ApplyAsync(database, key.GameUlongUID, plan.Increments, plan.Now);
             return await ReadSettlementTasksAsync(database, key.GameUlongUID, plan);
         });
-        await transaction.CommitAsync();
         return effect.Value;
     }
 
@@ -121,6 +163,7 @@ public sealed class TaskProcessRepository(DataOptions options)
                 .Where(row => row.GameUlongUID == gameUlongUID && taskIds.Contains(row.TaskId))
                 .ToArrayAsync())
             .ToDictionary(row => (row.TaskId, row.PeriodStart, row.ConditionIndex));
+        var changed = new Dictionary<(int TaskId, long PeriodStart, int ConditionIndex), RoleTaskProcess>();
         foreach (var increment in increments)
         {
             if (increment.CountedValue is { } countedValue && !await CountValueOnceAsync(database, gameUlongUID, increment, countedValue))
@@ -128,36 +171,53 @@ public sealed class TaskProcessRepository(DataOptions options)
                 continue;
             }
 
-            if (stored.TryGetValue((increment.TaskId, increment.PeriodStart, increment.ConditionIndex), out var row))
+            var key = (increment.TaskId, increment.PeriodStart, increment.ConditionIndex);
+            if (!stored.TryGetValue(key, out var row))
             {
-                var taskProcess = BattleTasks.AddCounts(row.TaskProcess, increment.Delta);
-                var completeTime = FindCompleteTime(row.CompleteTime, taskProcess, increment, now);
-                await database.GetTable<RoleTaskProcess>()
-                    .Where(process => process.GameUlongUID == gameUlongUID
-                        && process.TaskId == increment.TaskId
-                        && process.PeriodStart == increment.PeriodStart
-                        && process.ConditionIndex == increment.ConditionIndex)
-                    .Set(process => process.TaskProcess, taskProcess)
-                    .Set(process => process.CompleteTime, completeTime)
-                    .UpdateAsync();
-                row.TaskProcess = taskProcess;
-                row.CompleteTime = completeTime;
-                continue;
+                row = new RoleTaskProcess
+                {
+                    GameUlongUID = gameUlongUID,
+                    TaskId = increment.TaskId,
+                    PeriodStart = increment.PeriodStart,
+                    ConditionIndex = increment.ConditionIndex,
+                    CompleteTime = NotCompleted,
+                };
+                stored[key] = row;
             }
 
-            var firstProcess = BattleTasks.AddCounts(0, increment.Delta);
-            var inserted = new RoleTaskProcess
-            {
-                GameUlongUID = gameUlongUID,
-                TaskId = increment.TaskId,
-                PeriodStart = increment.PeriodStart,
-                ConditionIndex = increment.ConditionIndex,
-                TaskProcess = firstProcess,
-                CompleteTime = FindCompleteTime(NotCompleted, firstProcess, increment, now),
-            };
-            await database.InsertAsync(inserted);
-            stored[(inserted.TaskId, inserted.PeriodStart, inserted.ConditionIndex)] = inserted;
+            row.TaskProcess = BattleTasks.AddCounts(row.TaskProcess, increment.Delta);
+            row.CompleteTime = FindCompleteTime(row.CompleteTime, row.TaskProcess, increment, now);
+            changed[key] = row;
         }
+
+        await UpsertAsync(database, changed.Values);
+    }
+
+    private static async Task UpsertAsync(DataConnection database, IReadOnlyCollection<RoleTaskProcess> rows)
+    {
+        if (rows.Count == 0)
+        {
+            return;
+        }
+
+        var parameters = new List<DataParameter>(rows.Count * RoleTaskProcessColumnCount);
+        var values = new List<string>(rows.Count);
+        foreach (var (row, index) in rows.Select((row, index) => (row, index)))
+        {
+            values.Add($"(@uid{index}, @task{index}, @period{index}, @condition{index}, @process{index}, @complete{index})");
+            parameters.Add(new DataParameter($"uid{index}", row.GameUlongUID));
+            parameters.Add(new DataParameter($"task{index}", row.TaskId));
+            parameters.Add(new DataParameter($"period{index}", row.PeriodStart));
+            parameters.Add(new DataParameter($"condition{index}", row.ConditionIndex));
+            parameters.Add(new DataParameter($"process{index}", row.TaskProcess));
+            parameters.Add(new DataParameter($"complete{index}", row.CompleteTime));
+        }
+
+        await database.ExecuteAsync(
+            "INSERT INTO role_task_process (game_ulong_uid, task_id, period_start, condition_index, task_process, complete_time) VALUES "
+                + string.Join(", ", values)
+                + " ON DUPLICATE KEY UPDATE task_process = VALUES(task_process), complete_time = VALUES(complete_time)",
+            [.. parameters]);
     }
 
     private static async Task<bool> CountValueOnceAsync(DataConnection database, ulong gameUlongUID, TaskProcessIncrement increment, int countedValue)

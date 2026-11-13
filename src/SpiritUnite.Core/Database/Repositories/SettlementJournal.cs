@@ -78,7 +78,8 @@ public sealed class SettlementJournal(DataOptions options, TimeProvider clock)
             .ToArrayAsync(cancellationToken);
     }
 
-    public Task<SettlementOwnership?> TryAcquireOwnershipAsync(ulong uid) => SettlementOwnership.TryAcquireAsync(options, uid);
+    public Task<(SettlementOwnership? Ownership, BattleSettlementRecord? Claimed)> TryAcquireOwnershipAndClaimAsync(SettlementKey key) =>
+        SettlementOwnership.TryAcquireAsync(options, key.GameUlongUID, database => ClaimAsync(database, key));
 
     public async Task<BattleSettlementRecord?> TryClaimAsync(SettlementKey key)
     {
@@ -86,6 +87,13 @@ public sealed class SettlementJournal(DataOptions options, TimeProvider clock)
         await using var transaction = await database.BeginTransactionAsync();
         await SettlementEffects.LockRoleAsync(database, key.GameUlongUID);
         await SettlementOwnership.VerifyAsync(database, key.GameUlongUID);
+        var claimed = await ClaimAsync(database, key);
+        await transaction.CommitAsync();
+        return claimed;
+    }
+
+    private async Task<BattleSettlementRecord?> ClaimAsync(DataConnection database, SettlementKey key)
+    {
         var requested = await Find(database, key).FirstOrDefaultAsync();
         if (requested is null || await database.GetTable<BattleSettlementRecord>().AnyAsync(row =>
             row.GameUlongUID == key.GameUlongUID
@@ -94,15 +102,23 @@ public sealed class SettlementJournal(DataOptions options, TimeProvider clock)
         {
             return null;
         }
+
+        var claimedAt = clock.GetUtcNow().ToUnixTimeSeconds();
         var claimed = await Find(database, key)
             .Where(row => row.State == (int)SettlementState.Pending || row.State == (int)SettlementState.Processing)
             .Set(row => row.State, (int)SettlementState.Processing)
             .Set(row => row.Attempts, row => row.Attempts + 1)
-            .Set(row => row.UpdatedAt, clock.GetUtcNow().ToUnixTimeSeconds())
+            .Set(row => row.UpdatedAt, claimedAt)
             .UpdateAsync();
-        var result = claimed == 1 ? await Find(database, key).FirstAsync() : null;
-        await transaction.CommitAsync();
-        return result;
+        if (claimed != 1)
+        {
+            return null;
+        }
+
+        requested.State = (int)SettlementState.Processing;
+        requested.Attempts++;
+        requested.UpdatedAt = claimedAt;
+        return requested;
     }
 
     public static async Task<bool> CompleteAsync(DataConnection database, SettlementKey key, long now) =>

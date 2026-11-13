@@ -24,7 +24,7 @@ public sealed class SettlementProcessor(
     private const int ShutdownJournalAttempts = 2;
     private const int LockRetryBaseDelayMilliseconds = 25;
     private const int LockRetryMaxDelayMilliseconds = 1000;
-    private const int MaxConcurrentSettlements = 16;
+    private const int MaxConcurrentSettlements = 32;
     private static readonly TimeSpan RecoveryInterval = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan RecoveryAge = TimeSpan.FromMinutes(1);
     private static readonly TimeSpan PersistenceRetryDelay = TimeSpan.FromSeconds(5);
@@ -149,7 +149,8 @@ public sealed class SettlementProcessor(
         await processingSlots.WaitAsync();
         try
         {
-            await using var ownership = await AcquireOwnershipAsync(key, delivery);
+            var (acquired, firstClaim) = await AcquireOwnershipAsync(key, delivery);
+            await using var ownership = acquired;
             if (ownership is null)
             {
                 logger.LogInformation("Settlement {SettlementID} for uid {Uid} waits for another settlement owner", key.SettlementID, key.GameUlongUID);
@@ -157,7 +158,7 @@ public sealed class SettlementProcessor(
             }
 
             using var execution = ownership.Enter();
-            return await ClaimAndSettleAsync(key, liveResult, delivery);
+            return await ClaimAndSettleAsync(key, liveResult, delivery, firstClaim);
         }
         finally
         {
@@ -166,13 +167,13 @@ public sealed class SettlementProcessor(
         }
     }
 
-    private async Task<SettlementOwnership?> AcquireOwnershipAsync(SettlementKey key, SettlementDelivery delivery)
+    private async Task<(SettlementOwnership? Ownership, BattleSettlementRecord? Claimed)> AcquireOwnershipAsync(SettlementKey key, SettlementDelivery delivery)
     {
         for (var attempt = 1; ; attempt++)
         {
             try
             {
-                return await journal.TryAcquireOwnershipAsync(key.GameUlongUID);
+                return await journal.TryAcquireOwnershipAndClaimAsync(key);
             }
             catch (Exception exception) when (DatabaseFaults.IsTransient(exception))
             {
@@ -183,7 +184,7 @@ public sealed class SettlementProcessor(
 
                 logger.LogWarning(exception, "Settlement {SettlementID} for uid {Uid} could not acquire ownership; the journal remains recoverable",
                     key.SettlementID, key.GameUlongUID);
-                return null;
+                return (null, null);
             }
         }
     }
@@ -215,11 +216,11 @@ public sealed class SettlementProcessor(
         }
     }
 
-    private async Task<SettlementState> ClaimAndSettleAsync(SettlementKey key, BattleResult? liveResult, SettlementDelivery delivery)
+    private async Task<SettlementState> ClaimAndSettleAsync(SettlementKey key, BattleResult? liveResult, SettlementDelivery delivery, BattleSettlementRecord? claimedWithOwnership)
     {
-        while (true)
+        for (var claimRound = 0; ; claimRound++)
         {
-            if (await TryClaimAsync(key, delivery) is not { } claimed)
+            if ((claimRound == 0 ? claimedWithOwnership : await TryClaimAsync(key, delivery)) is not { } claimed)
             {
                 return await CurrentStateAsync(key);
             }

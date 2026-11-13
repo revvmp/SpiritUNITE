@@ -2,6 +2,7 @@ using SpiritUnite.Database.Repositories;
 using SpiritUnite.Game.Achievement;
 using SpiritUnite.Game.Activity;
 using SpiritUnite.Game.BattlePass;
+using SpiritUnite.Game.Newbie;
 using SpiritUnite.Game.Role;
 using SpiritUnite.Packets;
 using SpiritUnite.Packets.Messages;
@@ -44,13 +45,31 @@ public sealed class TaskUpdates(ActivityManager activityManager, AchievementMana
         LMNRoleInfo role,
         SettlementKey key,
         BattleTaskSettlementPlan plan,
-        IReadOnlyCollection<pbCOMDT_TASK_INFO> otherBattleTasks)
+        NewbieChallengeSettlementPlan newbiePlan,
+        SettlementTaskPlan? guildTasks,
+        SettlementSharedEffects sharedEffects,
+        Func<pbCOMDT_TASK_INFO[], IReadOnlyCollection<pbCOMDT_TASK_INFO>> otherBattleTasks)
     {
-        var activity = await activityManager.ApplySettlementAsync(role, key, plan.Activity);
-        var achievements = await taskProcesses.ApplySettlementAsync(key, plan.Achievements);
-        var battlePass = await taskProcesses.ApplySettlementAsync(key, plan.BattlePass);
+        var storesActivity = ActivityManager.StoresSettlementProgress(plan.Activity);
+        List<SettlementTaskPlan> storedPlans = [newbiePlan.Tasks, plan.Achievements, plan.BattlePass];
+        if (guildTasks is not null)
+        {
+            storedPlans.Add(guildTasks);
+        }
+
+        if (storesActivity)
+        {
+            storedPlans.Add(plan.Activity.Progress);
+        }
+
+        var newbieReceive = newbiePlan.ReceiveChallenge ? new NewbieChallengeSettlementReceive(newbiePlan.TaskDays, newbiePlan.Tasks.Now) : null;
+        var stored = await taskProcesses.ApplySettlementsAsync(key, storedPlans, newbieReceive, sharedEffects);
+        var (newbieProgress, achievements, battlePass) = (stored[0], stored[1], stored[2]);
+        var activity = storesActivity
+            ? await activityManager.ClaimSettlementRewardsAsync(role, key, plan.Activity, stored[^1])
+            : new ActivityBattleProgress([], plan.Activity.CompleteCountBefore, plan.Activity.CompleteCountBefore);
         return new BattleTaskUpdate(
-            [.. activity.UpdatedTasks, .. achievements, .. battlePass, .. otherBattleTasks],
+            [.. activity.UpdatedTasks, .. achievements, .. battlePass, .. otherBattleTasks(newbieProgress)],
             activity.CompleteCountBefore,
             activity.CompleteCountAfter,
             activity.AutoClaim);

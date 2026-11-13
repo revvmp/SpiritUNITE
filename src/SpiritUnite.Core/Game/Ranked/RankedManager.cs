@@ -1,6 +1,8 @@
+using System.Collections.Frozen;
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SpiritUnite.Database.Models;
 using SpiritUnite.Database.Repositories;
 using SpiritUnite.Databin;
 using SpiritUnite.Game.Bag;
@@ -32,11 +34,19 @@ public sealed record RankedSessionRecord(int BattleCnt, int ContinuousWin, int C
         !won && !isDraw ? ContinuousLose + 1 : 0);
 }
 
+public sealed record RankedHistory(pbCOMDT_RANKED_DIVISION HighestRankedDivisionInHistory, int TotalMasterNum, int MaxContinuedMasterNum);
+
 public sealed record RankedStartRefusal(PB_ENUM_RES_ERROR_CODE Result, pbArgList? Args = null);
 
 public sealed record ExpiredProtectCard(int ItemId, int Cnt, int CoinId, long CoinCnt);
 
-public sealed record RankedBattle(bool Won, bool IsDraw, IReadOnlyList<pbCOMDT_SETTLE_MEDAlPOINT_INFO> Medals);
+public sealed record RankedBattle(
+    bool Won,
+    bool IsDraw,
+    IReadOnlyList<pbCOMDT_SETTLE_MEDAlPOINT_INFO> Medals,
+    PB_ENUM_ENM_HANGUP_TYPE HangUpType = PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeNone,
+    int HangUpReduceRatio = 0,
+    int PartnerCompensationRatio = 0);
 
 public sealed record RankedSettlement(pbCOMDT_CATCH_SETTLE_RESULT CatchSettleResult, pbSCRankedMatchInfoNtf InfoNtf);
 
@@ -78,7 +88,10 @@ public sealed class RankedManager
     private const int NoAwardGroupID = 0;
     private const int NoTicketConsume = 0;
     private const int NoMedalPoint = 0;
+    private const int UnknownSeasonOrder = int.MinValue;
     private const int NotHungUpPercent = 10000;
+    private const int HangUpPercentPerRatioPoint = 100;
+    private const int RatioBase = 100;
     private const int NoSeasonAwardID = 0;
     private const long NotBanned = 0;
     private const long NoRemindedDay = 0;
@@ -113,6 +126,7 @@ public sealed class RankedManager
     private readonly ConcurrentDictionary<ulong, RankedState> states = new();
     private readonly ConcurrentDictionary<ulong, SemaphoreSlim> gates = new();
     private readonly ConcurrentDictionary<ulong, RankedSessionRecord> sessions = new();
+    private readonly FrozenDictionary<int, int> seasonOrderBySeasonId;
 
     public RankedManager(
         RankedRepository repository,
@@ -136,6 +150,10 @@ public sealed class RankedManager
         rankedOptions = options;
         this.clock = clock;
         this.logger = logger;
+        seasonOrderBySeasonId = gameData.RankedMatchSeason.Rows
+            .OrderBy(season => UTCTimeUtil.CfgTime2ServerUnixTime(season.StartTime))
+            .Select((season, order) => (season.SeasonId, order))
+            .ToFrozenDictionary(pair => pair.SeasonId, pair => pair.order);
     }
 
     public RankedLadder Ladder => ladder;
@@ -221,6 +239,35 @@ public sealed class RankedManager
     public async Task<pbCOMDT_RANKED_DIVISION> BuildHighestRankedDivisionInHistoryAsync(ulong uid)
         => BuildHighestRankedDivisionInHistory(await repository.ListSeasonsAsync(uid));
 
+    public async Task<RankedHistory> BuildRankedHistoryAsync(ulong uid)
+    {
+        var seasons = await repository.ListSeasonsAsync(uid);
+        int[] masterSeasonOrders = [.. seasons
+            .Where(season => ladder.IsMaster(season.HighestRankedDivision))
+            .Select(season => seasonOrderBySeasonId.GetValueOrDefault(season.SeasonId, UnknownSeasonOrder))
+            .Order()];
+        return new RankedHistory(
+            BuildHighestRankedDivisionInHistory(seasons),
+            masterSeasonOrders.Length,
+            LongestConsecutiveRun(masterSeasonOrders));
+    }
+
+    private static int LongestConsecutiveRun(int[] ascendingSeasonOrders)
+    {
+        var longest = 0;
+        var run = 0;
+        for (var index = 0; index < ascendingSeasonOrders.Length; index++)
+        {
+            var followsPrevious = index > 0
+                && ascendingSeasonOrders[index] != UnknownSeasonOrder
+                && ascendingSeasonOrders[index] == ascendingSeasonOrders[index - 1] + 1;
+            run = followsPrevious ? run + 1 : 1;
+            longest = Math.Max(longest, run);
+        }
+
+        return longest;
+    }
+
     private pbCOMDT_RANKED_DIVISION BuildHighestRankedDivisionInHistory(IEnumerable<RankedSeasonRecord> seasons)
     {
         var highest = seasons
@@ -257,6 +304,7 @@ public sealed class RankedManager
     {
         var uid = role.GameUlongUID;
         RankedSeasonRollover? rollover = null;
+        var rolloverMails = new List<RoleMail>();
         await UpdateAsync(uid, async state =>
         {
             if (state.PendingSeason is not { } old || state.SeasonStored)
@@ -283,8 +331,8 @@ public sealed class RankedManager
             }
 
             rollover = new RankedSeasonRollover(ToDivision(old.Position, old.SeasonId), ToDivision(inherited, newSeasonId), seasonAward, commit);
-            await MailExpiredProtectCardsAsync(uid, expiredCards);
-            await MailUnclaimedSeasonTaskAwardsAsync(role, old, now);
+            rolloverMails.AddRange(await MailExpiredProtectCardsAsync(uid, expiredCards));
+            rolloverMails.AddRange(await MailUnclaimedSeasonTaskAwardsAsync(role, old, now));
             logger.LogInformation(
                 "Uid {Uid} ranked season {OldSeasonId} -> {NewSeasonId}: division {OldDivision} ({OldWinPoint} wp, {OldMasterPoint} mp, highest {HighestDivision}) inherits {NewDivision}; season award of {AwardCount} rewards",
                 uid,
@@ -298,6 +346,7 @@ public sealed class RankedManager
                 seasonAward.Awards.Count);
             return (state with { Season = newSeason, SeasonStored = true, PendingSeason = null, AwardedRankedDivisions = new HashSet<int>() }, true);
         });
+        await mail.PushNewMailsAsync(rolloverMails);
         return rollover;
     }
 
@@ -354,6 +403,26 @@ public sealed class RankedManager
         }
 
         return claim;
+    }
+
+    public async Task<Func<int>> EnlistIsTodaySetNoRemindedAsync(SettlementSharedEffects shared, ulong uid, SettlementKey settlementKey, long settledAt)
+    {
+        if (settlementKey.GameUlongUID != uid)
+        {
+            throw new ArgumentException("Settlement uid does not match ranked uid", nameof(settlementKey));
+        }
+
+        var today = settledAt / SecondsPerDay;
+        SettlementEffectResult<RankedReminderOutcome>? outcome = null;
+        await shared.EnlistGatedAsync(
+            gates.GetOrAdd(uid, _ => new SemaphoreSlim(1, 1)),
+            async database => outcome = await RankedRepository.TakeSettlementReminderAsync(database, settlementKey, today),
+            async () =>
+            {
+                states.TryRemove(uid, out _);
+                await LoadAsync(uid);
+            });
+        return () => outcome?.Value.IsTodaySetNoReminded ?? throw new InvalidOperationException($"Ranked reminder of uid {uid} was read before its settlement transaction ran");
     }
 
     public async Task<int> TakeIsTodaySetNoRemindedAsync(ulong uid, SettlementKey? settlementKey = null, long? settledAt = null)
@@ -722,9 +791,13 @@ public sealed class RankedManager
             : battle.Won ? Options.WinPointOf(big)
             : Options.LoseBasePointOf(big);
         var medals = ladder.RowOf((season.Entry?.Before ?? old).RankedDivision).MedalPoint > NoMedalPoint ? battle.Medals : [];
-        var medalPoint = medals.Sum(medal => medal.Score);
+        basePoint = KeepEarnedPoint(basePoint, battle.HangUpReduceRatio);
+        var medalPoint = KeepEarnedPoint(medals.Sum(medal => medal.Score), battle.HangUpReduceRatio);
         var battleAddSumPoint = basePoint + medalPoint;
-        var move = ladder.Move(old, battleAddSumPoint);
+        var partnerCompensationPoint = battle.HangUpType == PB_ENUM_ENM_HANGUP_TYPE.PbEnmHangupTypeNone
+            ? ticket * battle.PartnerCompensationRatio / RatioBase
+            : 0;
+        var move = ladder.Move(old, battleAddSumPoint + partnerCompensationPoint);
         var entryFallProtect = season.Entry is { } entry && ladder.Move(entry.Before, -entry.TicketConsume).DivisionFallProtect;
         var record = Advance(season, move.Position, battle.Won);
         var settlement = new RankedSettlement(
@@ -740,7 +813,9 @@ public sealed class RankedManager
                     BattleAddSumPoint = battleAddSumPoint,
                     BasePoint = basePoint,
                     MedalPoint = medalPoint,
-                    HangUpPercent = NotHungUpPercent,
+                    HangUpPercent = NotHungUpPercent - battle.HangUpReduceRatio * HangUpPercentPerRatioPoint,
+                    HangUpType = (int)battle.HangUpType,
+                    PartnerCompensationPoint = partnerCompensationPoint,
                     MedalPointList = new pbCOMDT_SETTLE_MEDAlPOINT_LIST { MedalList = { medals.Select(medal => medal.Clone()) } },
                 },
             },
@@ -751,6 +826,9 @@ public sealed class RankedManager
             BuildHighestRankedDivisionInHistory(allSeasons));
         return new RankedSettlementPlan(uid, season, new RankedBattleOutcome(record, settlement), battle.Won, battle.IsDraw, when.ToUnixTimeSeconds());
     }
+
+    private static int KeepEarnedPoint(int point, int hangUpReduceRatio) =>
+        point > 0 ? point * (RatioBase - hangUpReduceRatio) / RatioBase : point;
 
     public async Task<pbSCGetRankedMatchHistoryInfoRsp> BuildHistoryAsync(ulong uid)
     {
@@ -854,11 +932,12 @@ public sealed class RankedManager
         return expired;
     }
 
-    private async Task MailExpiredProtectCardsAsync(ulong uid, IReadOnlyList<ExpiredProtectCard> expiredCards)
+    private async Task<IReadOnlyList<RoleMail>> MailExpiredProtectCardsAsync(ulong uid, IReadOnlyList<ExpiredProtectCard> expiredCards)
     {
+        var mailed = new List<RoleMail>();
         foreach (var card in expiredCards)
         {
-            await mail.SendSystemMailAsync(uid, new SystemMail(
+            mailed.Add(await mail.InsertSystemMailAsync(uid, new SystemMail(
                 Subject: ItemExpiredMailSubject,
                 Content: ItemExpiredMailContent,
                 Attachments:
@@ -877,7 +956,7 @@ public sealed class RankedManager
                     MailContentParam.Number(card.Cnt),
                     MailContentParam.Number(card.CoinCnt),
                     MailContentParam.Item(card.CoinId),
-                ]));
+                ])));
             logger.LogInformation(
                 "Uid {Uid} ranked season ended: protection card {ItemId}x{Cnt} expired and {CoinCnt} of coin {CoinId} mailed",
                 uid,
@@ -886,6 +965,8 @@ public sealed class RankedManager
                 card.CoinCnt,
                 card.CoinId);
         }
+
+        return mailed;
     }
 
     private static RankedGrant WithCosts(RankedGrant grant, IReadOnlyList<ExpiredProtectCard> expiredCards) => grant with
@@ -896,12 +977,13 @@ public sealed class RankedManager
         },
     };
 
-    private async Task MailUnclaimedSeasonTaskAwardsAsync(LMNRoleInfo role, RankedSeasonRecord old, long now)
+    private async Task<IReadOnlyList<RoleMail>> MailUnclaimedSeasonTaskAwardsAsync(LMNRoleInfo role, RankedSeasonRecord old, long now)
     {
         var uid = role.GameUlongUID;
+        var mailed = new List<RoleMail>();
         if (gameData.RankedMatchSeason.Find(old.SeasonId) is not { } season)
         {
-            return;
+            return mailed;
         }
 
         var awarded = (await repository.FindTaskAwardsAsync(uid, old.SeasonId)).ToHashSet();
@@ -928,12 +1010,12 @@ public sealed class RankedManager
 
         foreach (var chunk in attachments.Chunk(MailBox.MaxMailAccess))
         {
-            await mail.SendSystemMailAsync(uid, new SystemMail(
+            mailed.Add(await mail.InsertSystemMailAsync(uid, new SystemMail(
                 Subject: RankedUngetAwardMailSubject,
                 Content: RankedUngetAwardMailContent,
                 Attachments: chunk,
                 MailID: RankedUngetAwardMailID,
-                ContentParams: [MailContentParam.Text(season.ExplicitID)]));
+                ContentParams: [MailContentParam.Text(season.ExplicitID)])));
         }
 
         if (attachments.Count > 0)
@@ -945,6 +1027,8 @@ public sealed class RankedManager
                 string.Join(", ", unclaimed.Select(row => row.RankedDivision)),
                 attachments.Count);
         }
+
+        return mailed;
     }
 
     private RankedGrant PlanSeasonAward(LMNRoleInfo role, RankedSeasonRecord old, long now)

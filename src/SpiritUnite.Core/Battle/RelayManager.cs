@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using SpiritUnite.Databin;
 using SpiritUnite.Game.Login;
 using SpiritUnite.Game.Match;
+using SpiritUnite.Game.Room;
 using SpiritUnite.Online;
 using SpiritUnite.Packets;
 using SpiritUnite.Packets.Messages;
@@ -1557,8 +1558,25 @@ public sealed class RelayManager
             agreed?.BattleParam.WinCampClient,
             game.GameoverOrder.Count,
             game.Seats.Count);
-        return completions;
+        return WithCampmateHangupSeconds(completions);
     }
+
+    private static List<SeatCompletion> WithCampmateHangupSeconds(List<SeatCompletion> completions) =>
+    [
+        .. completions.Select(completion => completion with
+        {
+            Result = completion.Result with
+            {
+                CampmateHangupSeconds = completions
+                    .Where(other => other.Result.Human.Uid != completion.Result.Human.Uid
+                        && other.Result.Human.CampClient == completion.Result.Human.CampClient
+                        && !other.Result.QuitByExitButton)
+                    .Select(other => other.Result.TotalHangupSeconds)
+                    .DefaultIfEmpty(0)
+                    .Max(),
+            },
+        }),
+    ];
 
     private static ulong[] EndTimedOutFight(RelayGame game)
     {
@@ -2095,11 +2113,11 @@ public sealed class RelayManager
     private Task RaiseRelayFinishedAsync(IEnumerable<ulong> releasedUids) =>
         UidEvents.RaiseEachAsync(RelayFinished, releasedUids, logger, nameof(RelayFinished));
 
-    private GamePacket? BuildConnRelayRecover(ulong uid)
+    private IReadOnlyList<GamePacket> BuildConnRelayRecover(ulong uid)
     {
         if (desks.FindRelayDesk(uid) is not { } desk || desk.FindAttendee(uid) is not { } human || desk.HumanUids.Length < 2)
         {
-            return null;
+            return [];
         }
 
         RelayGame? game;
@@ -2114,13 +2132,16 @@ public sealed class RelayManager
             {
                 if (game.Finished || game.Phase == RelayGamePhase.Over)
                 {
-                    return null;
+                    return [];
                 }
             }
         }
 
         logger.LogInformation("Uid {Uid} logged in while its desk {DeskID} is on the relay; it is offered the rejoin", uid, desk.DeskID);
-        return GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidConnRelayRecoverNtf, desks.BuildConnRelayRecoverNtf(desk, human));
+        var recover = GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidConnRelayRecoverNtf, desks.BuildConnRelayRecoverNtf(desk, human));
+        return desks.IsGvoiceRoomEntitled(desk, human)
+            ? [recover, GamePacket.Create(PB_ENUM_CS_MSGID_DEF.PbScidJoinGvoiceRoomNtf, RoomNotices.JoinGvoiceRoom())]
+            : [recover];
     }
 
     private RelayGame CreateGame(BattleDesk desk)

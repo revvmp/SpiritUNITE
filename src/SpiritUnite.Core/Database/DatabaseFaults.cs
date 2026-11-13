@@ -7,7 +7,7 @@ public static class DatabaseFaults
 {
     public static bool IsLockConflict(Exception exception) => exception switch
     {
-        MySqlException mysql => mysql.ErrorCode is MySqlErrorCode.LockDeadlock or MySqlErrorCode.LockWaitTimeout,
+        MySqlException mysql => mysql.ErrorCode is MySqlErrorCode.LockDeadlock or MySqlErrorCode.LockWaitTimeout or MySqlErrorCode.CheckRead,
         AggregateException aggregate => aggregate.InnerExceptions.Count > 0 && aggregate.InnerExceptions.All(IsLockConflict),
         _ => exception.InnerException is { } inner && IsLockConflict(inner),
     };
@@ -26,6 +26,7 @@ public static class DatabaseFaults
         or MySqlErrorCode.ConnectionCountError
         or MySqlErrorCode.LockDeadlock
         or MySqlErrorCode.LockWaitTimeout
+        or MySqlErrorCode.CheckRead
         or MySqlErrorCode.QueryInterrupted
         or MySqlErrorCode.ServerShutdown;
 }

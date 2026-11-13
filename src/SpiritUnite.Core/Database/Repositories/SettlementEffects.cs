@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Google.Protobuf;
@@ -5,6 +6,7 @@ using LinqToDB;
 using LinqToDB.Async;
 using LinqToDB.Data;
 using LinqToDB.DataProvider.MySql;
+using MySqlConnector;
 using SpiritUnite.Database.Models;
 using SpiritUnite.Game.Wallet;
 
@@ -14,14 +16,50 @@ public sealed record SettlementEffectResult<T>(T Value, bool Applied);
 
 public static class SettlementEffects
 {
+    private const int CompressionThreshold = 1024;
+
+    private const string LockRoleStatement = "SELECT game_ulong_uid FROM role WHERE game_ulong_uid = @uid FOR UPDATE;";
+
+    private const string ClaimReceiptStatements =
+        "INSERT INTO battle_settlement_effect (settlement_id, game_ulong_uid, effect, output) VALUES (@settlement, @uid, @effect, '') ON DUPLICATE KEY UPDATE effect = VALUES(effect);"
+        + "SELECT output FROM battle_settlement_effect WHERE settlement_id = @settlement AND game_ulong_uid = @uid AND effect = @effect FOR UPDATE;";
+
+    private const string ReadFenceStatement = "SELECT fence FROM battle_settlement_owner WHERE game_ulong_uid = @uid FOR UPDATE;";
+
     private static readonly JsonSerializerOptions Serialization = new()
     {
         Converters = { new ProtobufConverterFactory(), new RoleWalletConverter() },
     };
 
-    public static byte[] Serialize<T>(T value) => JsonSerializer.SerializeToUtf8Bytes(value, Serialization);
+    public static byte[] Serialize<T>(T value)
+    {
+        var json = JsonSerializer.SerializeToUtf8Bytes(value, Serialization);
+        if (json.Length < CompressionThreshold)
+        {
+            return json;
+        }
 
-    public static T Deserialize<T>(byte[] value) => JsonSerializer.Deserialize<T>(value, Serialization)!;
+        using var compressed = new MemoryStream();
+        using (var gzip = new GZipStream(compressed, CompressionLevel.Fastest, leaveOpen: true))
+        {
+            gzip.Write(json);
+        }
+
+        return compressed.ToArray();
+    }
+
+    public static T Deserialize<T>(byte[] value)
+    {
+        if (!IsCompressed(value))
+        {
+            return JsonSerializer.Deserialize<T>(value, Serialization)!;
+        }
+
+        using var gzip = new GZipStream(new MemoryStream(value), CompressionMode.Decompress);
+        return JsonSerializer.Deserialize<T>(gzip, Serialization)!;
+    }
+
+    private static bool IsCompressed(byte[] value) => value is [0x1F, 0x8B, ..];
 
     public static async Task<SettlementEffectResult<T>> RunAsync<T>(
         DataConnection database,
@@ -35,27 +73,54 @@ public static class SettlementEffects
             throw new InvalidOperationException("Settlement effects require an existing transaction");
         }
 
-        if (lockRole)
-        {
-            await LockRoleAsync(database, key.GameUlongUID);
-        }
-
-        await database.ExecuteAsync(
-            "INSERT INTO battle_settlement_effect (settlement_id, game_ulong_uid, effect, output) VALUES (@settlement, @uid, @effect, @output) ON DUPLICATE KEY UPDATE effect=VALUES(effect)",
-            new DataParameter("settlement", key.SettlementID),
-            new DataParameter("uid", key.GameUlongUID),
-            new DataParameter("effect", effect),
-            new DataParameter("output", Array.Empty<byte>()));
-        var output = await Find(database, key, effect).AsMySql().ForUpdateHint().Select(row => row.Output).SingleAsync();
+        var (output, fence) = await ClaimReceiptAsync(database, key, effect, lockRole);
         if (output.Length > 0)
         {
             return new SettlementEffectResult<T>(Deserialize<T>(output), false);
         }
 
-        await SettlementOwnership.VerifyAsync(database, key.GameUlongUID);
+        SettlementOwnership.Verify(key.GameUlongUID, fence);
         var result = await mutation();
         await Find(database, key, effect).Set(row => row.Output, Serialize(result)).UpdateAsync();
         return new SettlementEffectResult<T>(result, true);
+    }
+
+    private static async Task<(byte[] Output, long? Fence)> ClaimReceiptAsync(DataConnection database, SettlementKey key, string effect, bool lockRole)
+    {
+        var readsFence = SettlementOwnership.IsOwned;
+        var connection = (MySqlConnection)await database.OpenDbConnectionAsync(CancellationToken.None);
+        await using var command = new MySqlCommand(
+            (lockRole ? LockRoleStatement : string.Empty) + ClaimReceiptStatements + (readsFence ? ReadFenceStatement : string.Empty),
+            connection,
+            (MySqlTransaction)database.Transaction!);
+        command.Parameters.AddWithValue("@settlement", key.SettlementID);
+        command.Parameters.AddWithValue("@uid", key.GameUlongUID);
+        command.Parameters.AddWithValue("@effect", effect);
+        await using var reader = await command.ExecuteReaderAsync();
+        if (lockRole)
+        {
+            var roles = 0;
+            while (await reader.ReadAsync())
+            {
+                roles++;
+            }
+
+            if (roles != 1)
+            {
+                throw new InvalidDataException("Settlement role no longer exists");
+            }
+
+            await reader.NextResultAsync();
+        }
+
+        if (!await reader.ReadAsync())
+        {
+            throw new InvalidOperationException("Settlement receipt was not created");
+        }
+
+        var output = (byte[])reader.GetValue(0);
+        long? fence = readsFence && await reader.NextResultAsync() && await reader.ReadAsync() ? reader.GetInt64(0) : null;
+        return (output, fence);
     }
 
     private static IQueryable<SettlementEffectRecord> Find(DataConnection database, SettlementKey key, string effect) =>

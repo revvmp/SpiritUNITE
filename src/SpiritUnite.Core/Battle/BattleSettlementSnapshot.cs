@@ -30,7 +30,8 @@ internal sealed record BattleSettlementSnapshot(
     long GameStartTime,
     int GameTime,
     int HangupSeconds,
-    bool IsSurrenderEnd = false)
+    bool IsSurrenderEnd = false,
+    int CampmateHangupSeconds = 0)
 {
     public static byte[] Serialize(BattleResult result) => JsonSerializer.SerializeToUtf8Bytes(new BattleSettlementSnapshot(
         1,
@@ -47,7 +48,8 @@ internal sealed record BattleSettlementSnapshot(
         result.GameStartTime,
         result.GameTime,
         result.HangupSeconds,
-        result.IsSurrenderEnd));
+        result.IsSurrenderEnd,
+        result.CampmateHangupSeconds));
 
     public static BattleResult Deserialize(byte[] payload)
     {
@@ -79,6 +81,9 @@ internal sealed record BattleSettlementSnapshot(
             snapshot.GameStartTime,
             snapshot.GameTime,
             snapshot.HangupSeconds,
-            snapshot.IsSurrenderEnd);
+            snapshot.IsSurrenderEnd)
+        {
+            CampmateHangupSeconds = snapshot.CampmateHangupSeconds,
+        };
     }
 }
