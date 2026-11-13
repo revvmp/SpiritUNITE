@@ -33151,10 +33151,10 @@
   },
   {
     "OutSideItemType": 51,
-    "ExpireTransNum": 1000000,
+    "ExpireTransNum": 50000,
     "OutSideItemId": 1002010619,
     "OutSideItemCategory": 4,
-    "ExpireTransId": 1000000002,
+    "ExpireTransId": 1002015904,
     "ItemParam": [
       0,
       0,
@@ -72548,6 +72548,54 @@
     "TransmuteNum": 5
   },
   {
+    "OutSideItemType": 1,
+    "OutSideItemId": 1002015904,
+    "OutSideItemCategory": 4,
+    "ItemParam": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "OutSideItemTypeParam": [
+      0,
+      0,
+      0
+    ],
+    "OutSideItemStackSize": 9999
+  },
+  {
+    "OutSideItemType": 46,
+    "ExpireTransNum": 1000000,
+    "OutSideItemId": 1002015905,
+    "OutSideItemCategory": 2,
+    "ExpireTransId": 1000000002,
+    "ItemParam": [
+      0,
+      0,
+      9000,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "OutSideItemTypeParam": [
+      0,
+      0,
+      0
+    ],
+    "OutSideItemStackSize": 1
+  },
+  {
     "OutSideItemType": 14,
     "OutSideItemId": 1002015906,
     "OutSideItemCategory": 4,
@@ -72615,30 +72663,5 @@
       0
     ],
     "OutSideItemStackSize": 99
-  },
-  {
-    "OutSideItemType": 46,
-    "ExpireTransNum": 1000000,
-    "OutSideItemId": 1002015905,
-    "OutSideItemCategory": 2,
-    "ExpireTransId": 1000000002,
-    "ItemParam": [
-      0,
-      0,
-      9000,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    ],
-    "OutSideItemTypeParam": [
-      0,
-      0,
-      0
-    ],
-    "OutSideItemStackSize": 1
   }
 ]

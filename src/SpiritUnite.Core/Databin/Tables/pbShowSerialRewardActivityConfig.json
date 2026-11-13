@@ -1,0 +1,121 @@
+[
+  {
+    "ActivityID": 19336,
+    "CrossDayType": 1,
+    "SkipRewardCanReceive": 1
+  },
+  {
+    "ActivityID": 19337,
+    "CrossDayType": 2,
+    "ActivityFinishSendMail": 1,
+    "SkipRewardCanReceive": 1
+  },
+  {
+    "ActivityID": 22001,
+    "CrossDayType": 2,
+    "ActivityFinishSendMail": 1,
+    "SkipRewardCanReceive": 1
+  },
+  {
+    "ActivityID": 230024,
+    "CrossDayType": 2,
+    "ActivityFinishSendMail": 1,
+    "SkipRewardCanReceive": 1
+  },
+  {
+    "ActivityID": 230026,
+    "CrossDayType": 2,
+    "ActivityFinishSendMail": 1,
+    "SkipRewardCanReceive": 1
+  },
+  {
+    "ActivityID": 230027,
+    "CrossDayType": 1,
+    "ActivityFinishSendMail": 1,
+    "SkipRewardCanReceive": 1
+  },
+  {
+    "ActivityID": 230028,
+    "CrossDayType": 1,
+    "ActivityFinishSendMail": 1,
+    "SkipRewardCanReceive": 1
+  },
+  {
+    "ActivityID": 230029,
+    "CrossDayType": 1,
+    "ActivityFinishSendMail": 1,
+    "SkipRewardCanReceive": 1
+  },
+  {
+    "ActivityID": 230030,
+    "CrossDayType": 1,
+    "ActivityFinishSendMail": 1,
+    "SkipRewardCanReceive": 1
+  },
+  {
+    "ActivityID": 250100,
+    "CrossDayType": 2,
+    "ActivityFinishSendMail": 1,
+    "SkipRewardCanReceive": 1
+  },
+  {
+    "ActivityID": 250101,
+    "CrossDayType": 2,
+    "ActivityFinishSendMail": 1,
+    "SkipRewardCanReceive": 1
+  },
+  {
+    "ActivityID": 250102,
+    "CrossDayType": 2,
+    "ActivityFinishSendMail": 1,
+    "SkipRewardCanReceive": 1
+  },
+  {
+    "ActivityID": 250103,
+    "CrossDayType": 2,
+    "ActivityFinishSendMail": 1,
+    "SkipRewardCanReceive": 1
+  },
+  {
+    "ActivityID": 250104,
+    "CrossDayType": 2,
+    "ActivityFinishSendMail": 1,
+    "SkipRewardCanReceive": 1
+  },
+  {
+    "ActivityID": 250105,
+    "CrossDayType": 2,
+    "ActivityFinishSendMail": 1,
+    "SkipRewardCanReceive": 1
+  },
+  {
+    "ActivityID": 250106,
+    "CrossDayType": 2,
+    "ActivityFinishSendMail": 1,
+    "SkipRewardCanReceive": 1
+  },
+  {
+    "ActivityID": 250107,
+    "CrossDayType": 2,
+    "ActivityFinishSendMail": 1,
+    "SkipRewardCanReceive": 1
+  },
+  {
+    "ActivityID": 250108,
+    "CrossDayType": 2,
+    "ActivityFinishSendMail": 1,
+    "SkipRewardCanReceive": 1
+  },
+  {
+    "ActivityID": 250109,
+    "CrossDayType": 2,
+    "ActivityFinishSendMail": 1,
+    "SkipRewardCanReceive": 1
+  },
+  {
+    "ActivityID": 250110,
+    "CrossDayType": 2,
+    "ActivityFinishSendMail": 1,
+    "SkipRewardCanReceive": 1
+  }
+]

@@ -2277,6 +2277,7 @@
     "GlobalId": 2076
   },
   {
+    "Value": 1,
     "GlobalId": 2082
   },
   {
@@ -2285,6 +2286,38 @@
   },
   {
     "GlobalId": 2084
+  },
+  {
+    "Value": 5000,
+    "GlobalId": 2085
+  },
+  {
+    "Value": 1,
+    "GlobalId": 2086
+  },
+  {
+    "Value": 10000,
+    "GlobalId": 2087
+  },
+  {
+    "Value": 1,
+    "GlobalId": 2088
+  },
+  {
+    "Value": 10,
+    "GlobalId": 2089
+  },
+  {
+    "Value": 30,
+    "GlobalId": 2090
+  },
+  {
+    "Value": 11,
+    "GlobalId": 2091
+  },
+  {
+    "Value": 1,
+    "GlobalId": 2092
   },
   {
     "Value": 1,

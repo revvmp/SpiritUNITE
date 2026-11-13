@@ -2020,6 +2020,10 @@ enum PB_ENUM_CS_MSGID_DEF {
   PB_ENUM_CS_MSGID_DEF_PbScidUsePveSettleBonusCardRsp = 128448;
   PB_ENUM_CS_MSGID_DEF_PbCsidClearSkillWayUnlockNewTagReq = 128501;
   PB_ENUM_CS_MSGID_DEF_PbScidClearSkillWayUnlockNewTagRsp = 128502;
+  PB_ENUM_CS_MSGID_DEF_PbCsidCltDataSyncReq = 128503;
+  PB_ENUM_CS_MSGID_DEF_PbScidCltDataSyncRsp = 128504;
+  PB_ENUM_CS_MSGID_DEF_PbCsidAcntLoginDataReq = 128505;
+  PB_ENUM_CS_MSGID_DEF_PbScidAcntLoginDataRsp = 128506;
   PB_ENUM_CS_MSGID_DEF_PbCsidGamingUpermsgReq = 130001;
   PB_ENUM_CS_MSGID_DEF_PbScidFrapBootSingleNtf = 130003;
   PB_ENUM_CS_MSGID_DEF_PbScidFrapBootInfoNtf = 130005;
@@ -8091,6 +8095,7 @@ enum PB_ENUM_RES_ERROR_CODE {
   PB_ENUM_RES_ERROR_CODE_PbErrRoomRallyTicketNotEnough = 97061;
   PB_ENUM_RES_ERROR_CODE_PbErrRoomGlobalBanPokemonChg = 97062;
   PB_ENUM_RES_ERROR_CODE_PbErrRoomBrefGlobalBanned = 97063;
+  PB_ENUM_RES_ERROR_CODE_PbErrCltDataSyncLimit = 97064;
 }
 
 enum PB_ENUM_RES_EXTRAEFFECTTYPE {
@@ -8489,6 +8494,7 @@ enum PB_ENUM_RES_INNER_LINK_SYSTEM_TYPE {
   PB_ENUM_RES_INNER_LINK_SYSTEM_TYPE_PbResInnerLinkSystemTypePokemonCenter = 29;
   PB_ENUM_RES_INNER_LINK_SYSTEM_TYPE_PbResInnerLinkSystemTypeSuperValueSale = 30;
   PB_ENUM_RES_INNER_LINK_SYSTEM_TYPE_PbResInnerLinkSystemTypeOpenuiNoparam = 31;
+  PB_ENUM_RES_INNER_LINK_SYSTEM_TYPE_PbResInnerLinkSystemTypeOffline = 32;
 }
 
 enum PB_ENUM_RES_INSIDE_JUMP_PAGE_TYPE {
@@ -11166,6 +11172,9 @@ enum PB_ENUM_RES_RESGLOBAL {
   PB_ENUM_RES_RESGLOBAL_PbResglobalAiChooseHeroAgilityMax = 2081;
   PB_ENUM_RES_RESGLOBAL_PbResglobalFriendRecallInviteEnable = 2082;
   PB_ENUM_RES_RESGLOBAL_PbResglobalDefaultShopPokemonAvatarId = 2083;
+  PB_ENUM_RES_RESGLOBAL_PbResglobalAllowCharge = 2084;
+  PB_ENUM_RES_RESGLOBAL_PbResglobalOfflineLibrarySyncInterval = 2085;
+  PB_ENUM_RES_RESGLOBAL_PbResglobalOfflineLibrarySyncCd = 2086;
 }
 
 enum PB_ENUM_RES_RESGLOBALSTR {
@@ -11282,6 +11291,9 @@ enum PB_ENUM_RES_RESGLOBALSTR {
   PB_ENUM_RES_RESGLOBALSTR_PbResglobalstrBaseNormalatkSolider = 329;
   PB_ENUM_RES_RESGLOBALSTR_PbResglobalstrBaseNormalatkKeymonster = 330;
   PB_ENUM_RES_RESGLOBALSTR_PbResglobalstrBaseJoystickaxis = 331;
+  PB_ENUM_RES_RESGLOBALSTR_PbResglobalstrOfflineLibraryStartTime = 332;
+  PB_ENUM_RES_RESGLOBALSTR_PbResglobalstrOfflineLibraryEndTime = 333;
+  PB_ENUM_RES_RESGLOBALSTR_PbResglobalstrOfflineLibraryStopServerTime = 334;
 }
 
 enum PB_ENUM_RES_RESIST_EFFECT_CATEGORY {
@@ -11518,7 +11530,11 @@ enum PB_ENUM_RES_SHOP_SUB_TYPE {
   PB_ENUM_RES_SHOP_SUB_TYPE_PbResShopSubTypePersonaliseEmoji = 8;
   PB_ENUM_RES_SHOP_SUB_TYPE_PbResShopSubTypeCardFace = 9;
   PB_ENUM_RES_SHOP_SUB_TYPE_PbResShopSubTypeLobbyBackground = 10;
-  PB_ENUM_RES_SHOP_SUB_TYPE_PbResShopSubTypeMax = 11;
+  PB_ENUM_RES_SHOP_SUB_TYPE_PbResShopSubTypeAction = 11;
+  PB_ENUM_RES_SHOP_SUB_TYPE_PbResShopSubTypeSticker = 12;
+  PB_ENUM_RES_SHOP_SUB_TYPE_PbResShopSubTypeFrame = 13;
+  PB_ENUM_RES_SHOP_SUB_TYPE_PbResShopSubTypeBackground = 14;
+  PB_ENUM_RES_SHOP_SUB_TYPE_PbResShopSubTypeMax = 15;
 }
 
 enum PB_ENUM_RES_SHOP_TYPE {
@@ -16473,7 +16489,7 @@ enum PB_MACRO_MAX_EXCHANGETASK_TASKNAME_STR_LEN {
 
 enum PB_MACRO_MAX_EXCHANGE_INFO_NUM {
   PB_MACRO_MAX_EXCHANGE_INFO_NUM_PbMaxExchangeInfoNum0 = 0;
-  PB_MACRO_MAX_EXCHANGE_INFO_NUM_PbMaxExchangeInfoNum = 400;
+  PB_MACRO_MAX_EXCHANGE_INFO_NUM_PbMaxExchangeInfoNum = 3000;
 }
 
 enum PB_MACRO_MAX_FAKE_ACNT_NUM {
@@ -28515,6 +28531,7 @@ message pbCOMDT_STAR_ROAD_INFO {
   pbCOMDT_STAR_ROAD_POKEMON_PROGRESS_LIST PokemonProgress = 4;
   int32 PokemonTipsTodayClose = 5;
   pbCOMDT_STAR_ROAD_MIGRATE_INFO MigrateInfo = 6;
+  int32 FeraFixFlag = 7;
 }
 
 message pbCOMDT_STAR_ROAD_MIGRATE_BATCH {
@@ -29691,6 +29708,10 @@ message pbCSAcntCouponsReq {
   int32 Reserve = 1;
 }
 
+message pbCSAcntLoginDataReq {
+  int32 Resvered = 1;
+}
+
 message pbCSAcntLoginReq {
   int32 CltAppVersion = 1;
   int32 CltResVersion = 2;
@@ -30160,6 +30181,10 @@ message pbCSClientOpenVoiceReq {
 message pbCSClientReportTlogReq {
   int32 EventID = 1;
   pbCOMDT_TLOG_BODY Body = 2;
+}
+
+message pbCSCltDataSyncReq {
+  int32 Language = 1;
 }
 
 message pbCSConfirmHelpChooseHeroReq {
@@ -32862,6 +32887,10 @@ message pbCSPkgBody {
     pbSCUsePveSettleBonusCardRsp SCUsePveSettleBonusCardRsp = 128448;
     pbCSClearSkillWayUnlockNewTagReq CSClearSkillWayUnlockNewTagReq = 128501;
     pbSCClearSkillWayUnlockNewTagRsp SCClearSkillWayUnlockNewTagRsp = 128502;
+    pbCSCltDataSyncReq CSCltDataSyncReq = 128503;
+    pbSCCltDataSyncRsp SCCltDataSyncRsp = 128504;
+    pbCSAcntLoginDataReq CSAcntLoginDataReq = 128505;
+    pbSCAcntLoginDataRsp SCAcntLoginDataRsp = 128506;
     pbCSGamingUpermsgReq CSGamingUpermsgReq = 130001;
     pbSCFrapBootSingleNtf SCFrapBootSingleNtf = 130003;
     pbSCFrapBootInfoNtf SCFrapBootInfoNtf = 130005;
@@ -35817,6 +35846,102 @@ message pbSCAcntCouponsRsp {
   int64 GiftCoupons = 3;
 }
 
+message pbSCAcntLoginDataRsp {
+  pbResultInfo ResultInfo = 1;
+  int32 IsSucc = 2;
+  int32 GameAcntObjID = 3;
+  uint64 GameAcntUid = 4;
+  int32 Level = 5;
+  int32 Exp = 6;
+  string Name = 7;
+  pbCOMDT_POKEMON_FOLLOW_INFO FollowInfo = 8;
+  int32 SyncResExceptTable = 9;
+  pbCOMDT_ROLE_AVATAR_INFO RoleAvatarInfo = 10;
+  pbCOMDT_NEWBIE_STATE_INFO NewbieState = 11;
+  int64 ServerGameTimeStamp = 12;
+  int64 ServerRealTimeStamp = 13;
+  pbCOMDT_SPECIAL_SALE_INFO SpecialSaleInfo = 14;
+  int32 AvatarSuitSeqID = 15;
+  int32 Gender = 16;
+  int32 HeadID = 17;
+  pbCOMDT_ANTIADDITION_INFO AntiAdditionInfo = 18;
+  int32 RoleTotalExp = 19;
+  int32 ReachMaxLevel = 20;
+  int32 NextLevelToTalExp = 21;
+  pbCOMDT_HEAD_ICON_INFO HeadIconInfo = 22;
+  uint64 GOpendId = 23;
+  pbCOMDT_HELDITEM_SLOT_UNLOCK_INFO HeldItemSlotUnlockInfo = 24;
+  pbCOMDT_NEWBIE_STATE_INFO ClientBitState = 25;
+  int64 RegisterTime = 26;
+  int32 IsFirstLoginInToday = 27;
+  int64 NextFirstWinRewardOpenTime = 28;
+  int32 FirstWinRewardCookieNum = 29;
+  int32 Tag = 30;
+  int32 ABTestID = 31;
+  int64 BanChatEndTime = 32;
+  pbCOMDT_ACNT_GUILD_INFO GuildInfo = 33;
+  pbCOMDT_NEWBIE_CHALLENGE_UNLOCK_INFO NewbiChallengeUnlockInfo = 34;
+  pbCOMDT_PRIVILE_PLAT_INFO PrivilePlatInfo = 35;
+  int32 IsInChannelIdBlackList = 36;
+  int32 CountryCode = 38;
+  int32 ABMode = 39;
+  pbCOMDT_MONTH_USE_COUPONS_INFO MonthUseCouponsInfo = 40;
+  int32 AcceptChatConvention = 41;
+  int64 OwnCoupons = 42;
+  int32 TotalCoupons = 43;
+  pbCOMDT_GROUP_INFO GroupInfo = 44;
+  int32 IsAnonymity = 45;
+  int32 IsBanPay = 46;
+  int32 IsInvisible = 47;
+  int32 IsTextChatAlarmNtf = 48;
+  int32 AcntRealCoupous = 49;
+  int32 AcntGiftCoupous = 50;
+  int32 InMultiGamingState = 51;
+  int64 ActivityEndTime = 56;
+  int32 IsHideInfo = 57;
+  int32 IsCloseIntimacyShow = 58;
+  int32 LeaveDay = 59;
+  int32 PokemonID = 60;
+  int32 IsRecallActOpen = 61;
+  int32 BattleAwardState = 62;
+  pbCOMDT_PLAYER_CONTESTANT_INFO PlayerContestantInfo = 63;
+  pbCOMDT_DAILY_UNIQ_TASK_INFO DailyUniqTaskInfo = 64;
+  pbCOMDT_SPECIAL_COIN_INFO SpecialCoin = 65;
+  int64 BanVoiceEndTime = 66;
+  int32 SeasonPoint = 67;
+  int32 SeasonId = 68;
+  int32 RankedDivision = 73;
+  int32 ReachMaxSeasonGift = 74;
+  int32 IsUniteChallengeStart = 75;
+  pbCOMDT_UNITE_CHALLENGE_BATTLE_INFO UniteChallengeBattleInfo = 76;
+  string FriendShortId = 77;
+  int32 IsUniteChallengeClickStart = 78;
+  pbCOMDT_RANKED_DIVISION HighestRankedDivisionInHistory = 79;
+  pbCOMDT_ROLE_ACHIEVEMENT_INFO AchievementInfo = 80;
+  int32 TotalScore = 81;
+  int32 MaxContinuousWin = 82;
+  pbCOMDT_COIN_INFO CoinInfo = 83;
+  pbCOMDT_USER_SCHEME_SELECT_INFO UserSchemeSelectInfo = 84;
+  int32 UsingLobbyBgId = 85;
+  int32 IsShowBallLotteyTips = 86;
+  pbCOMDT_LOBBY_MENU_SORT_INFO MenuInfo = 87;
+  int32 LoginCountryCode = 88;
+  pbCOMDT_BAN_INFO BanInfo = 89;
+  int32 AutoConfuseSurrender = 90;
+  int32 AutoConfuseSurrenderNotShownUI = 91;
+  int32 FirstPokemonId = 92;
+  int32 ProtectCardSelectStatus = 93;
+  pbCOMDT_NONE_RECHARGE_ACTIVITY_VIEW_INFO NoneRechargeInfo = 94;
+  string CDNSecretID = 95;
+  string CDNSecretKey = 96;
+  pbCOMDT_ROLE_HEAD_URL_INFO UserPlantInfo = 101;
+  pbCOMDT_PERSONALISE_BUTTON_LIST PersonaliseButtonInfo = 109;
+  pbCOMDT_PLAYER_PERSON_STYLE_RESOURCE_INFO PersonStyleInfo = 118;
+  int32 RegisterCountryCode = 130;
+  int32 IsSubscriptionRecord = 144;
+  int32 CltSyncFlag = 145;
+}
+
 message pbSCAcntLoginRsp {
   pbResultInfo ResultInfo = 1;
   int32 IsSucc = 2;
@@ -35910,6 +36035,7 @@ message pbSCAcntLoginRsp {
   pbCOMDT_PLAYER_PERSON_STYLE_RESOURCE_INFO PersonStyleInfo = 118;
   int32 RegisterCountryCode = 130;
   int32 IsSubscriptionRecord = 144;
+  int32 CltSyncFlag = 145;
 }
 
 message pbSCAcntRegisterNtf {
@@ -36557,6 +36683,16 @@ message pbSCClientOpenVoiceRsp {
 
 message pbSCClientReportTlogRsp {
   pbResultInfo ResultInfo = 1;
+}
+
+message pbSCCltDataSyncRsp {
+  pbResultInfo ResultInfo = 1;
+  string SyncTextA = 2;
+  string Url = 3;
+  uint64 Uid = 4;
+  string SyncCode = 5;
+  string SyncTextB = 6;
+  int32 LanguageType = 7;
 }
 
 message pbSCCommErrcodeNtf {

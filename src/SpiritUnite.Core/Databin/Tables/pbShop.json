@@ -160407,10 +160407,8 @@
       0
     ],
     "IsCouponsBuy": 1,
-    "DiscountStartTime": "20261112040000",
-    "CouponsBuy": 590,
-    "DiscountEndTime": "20300501000000",
-    "OnTime": "20261112040000",
+    "CouponsBuy": 118,
+    "OnTime": "20261201000000",
     "ABTestID": 1,
     "OffTime": "20300401000000",
     "DiscountCouponsBuy": 118,
@@ -160432,10 +160430,8 @@
       0
     ],
     "IsCouponsBuy": 1,
-    "DiscountStartTime": "20261112040000",
-    "CouponsBuy": 590,
-    "DiscountEndTime": "20300501000000",
-    "OnTime": "20261112040000",
+    "CouponsBuy": 118,
+    "OnTime": "20261201000000",
     "ABTestID": 1,
     "OffTime": "20300401000000",
     "DiscountCouponsBuy": 118,
@@ -207898,7 +207894,7 @@
     ],
     "IsCouponsBuy": 1,
     "CouponsBuy": 20,
-    "OnTime": "20261027050000",
+    "OnTime": "20291027050000",
     "ABTestID": 1,
     "OffTime": "20300501000000",
     "ShopID": 129797
@@ -208756,7 +208752,7 @@
     ],
     "IsCouponsBuy": 1,
     "CouponsBuy": 20,
-    "OnTime": "20261027050000",
+    "OnTime": "20291027050000",
     "ABTestID": 1,
     "OffTime": "20300501000000",
     "ShopID": 129836
@@ -220321,6 +220317,7 @@
     "ABTestID": 1,
     "OffTime": "20300501000000",
     "DiscountCouponsBuy": 50,
+    "CanBulkBuy": 1,
     "ShopID": 130348
   },
   {
@@ -220346,6 +220343,7 @@
     "ABTestID": 1,
     "OffTime": "20300501000000",
     "DiscountCouponsBuy": 50,
+    "CanBulkBuy": 1,
     "ShopID": 130349
   },
   {
@@ -220371,6 +220369,7 @@
     "ABTestID": 1,
     "OffTime": "20300501000000",
     "DiscountCouponsBuy": 50,
+    "CanBulkBuy": 1,
     "ShopID": 130350
   },
   {
@@ -220396,6 +220395,7 @@
     "ABTestID": 1,
     "OffTime": "20300501000000",
     "DiscountCouponsBuy": 50,
+    "CanBulkBuy": 1,
     "ShopID": 130351
   },
   {

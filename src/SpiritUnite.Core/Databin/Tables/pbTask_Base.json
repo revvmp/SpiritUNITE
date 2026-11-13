@@ -152106,6 +152106,19 @@
   },
   {
     "ResetType": 2,
+    "GroupID": 230034,
+    "SDropID": 222085,
+    "FinishCondition": [
+      {
+        "ID": 1,
+        "TargetProcess": 1
+      },
+      {}
+    ],
+    "TaskID": 230034
+  },
+  {
+    "ResetType": 2,
     "GroupID": 240002,
     "SDropID": 222087,
     "FinishCondition": [
@@ -152119,6 +152132,201 @@
       {}
     ],
     "TaskID": 240001
+  },
+  {
+    "ResetType": 3,
+    "GroupID": 240004,
+    "SDropID": 222100,
+    "FinishCondition": [
+      {
+        "ID": 13,
+        "TargetProcess": 5
+      },
+      {}
+    ],
+    "TaskID": 240005
+  },
+  {
+    "ResetType": 3,
+    "GroupID": 240004,
+    "SDropID": 222101,
+    "FinishCondition": [
+      {
+        "ID": 13,
+        "TargetProcess": 10
+      },
+      {}
+    ],
+    "TaskID": 240006
+  },
+  {
+    "ResetType": 3,
+    "GroupID": 240004,
+    "SDropID": 222102,
+    "FinishCondition": [
+      {
+        "ID": 13,
+        "TargetProcess": 20
+      },
+      {}
+    ],
+    "TaskID": 240007
+  },
+  {
+    "ResetType": 3,
+    "GroupID": 240004,
+    "SDropID": 222103,
+    "FinishCondition": [
+      {
+        "ID": 28,
+        "TargetProcess": 100
+      },
+      {}
+    ],
+    "TaskID": 240008
+  },
+  {
+    "ResetType": 3,
+    "GroupID": 240004,
+    "SDropID": 222104,
+    "FinishCondition": [
+      {
+        "ID": 28,
+        "TargetProcess": 250
+      },
+      {}
+    ],
+    "TaskID": 240009
+  },
+  {
+    "ResetType": 3,
+    "GroupID": 240004,
+    "SDropID": 222105,
+    "FinishCondition": [
+      {
+        "ID": 28,
+        "TargetProcess": 500
+      },
+      {}
+    ],
+    "TaskID": 240010
+  },
+  {
+    "ResetType": 3,
+    "GroupID": 240004,
+    "SDropID": 222106,
+    "FinishCondition": [
+      {
+        "ID": 23,
+        "TargetProcess": 5
+      },
+      {}
+    ],
+    "TaskID": 240011
+  },
+  {
+    "ResetType": 3,
+    "GroupID": 240004,
+    "SDropID": 222107,
+    "FinishCondition": [
+      {
+        "ID": 23,
+        "TargetProcess": 10
+      },
+      {}
+    ],
+    "TaskID": 240012
+  },
+  {
+    "ResetType": 3,
+    "GroupID": 240004,
+    "SDropID": 222108,
+    "FinishCondition": [
+      {
+        "ID": 23,
+        "TargetProcess": 20
+      },
+      {}
+    ],
+    "TaskID": 240013
+  },
+  {
+    "ResetType": 3,
+    "GroupID": 240004,
+    "SDropID": 222109,
+    "FinishCondition": [
+      {
+        "ID": 136,
+        "TargetProcess": 10
+      },
+      {}
+    ],
+    "TaskID": 240014
+  },
+  {
+    "ResetType": 3,
+    "GroupID": 240004,
+    "SDropID": 222110,
+    "FinishCondition": [
+      {
+        "ID": 136,
+        "TargetProcess": 20
+      },
+      {}
+    ],
+    "TaskID": 240015
+  },
+  {
+    "ResetType": 3,
+    "GroupID": 240004,
+    "SDropID": 222111,
+    "FinishCondition": [
+      {
+        "ID": 136,
+        "TargetProcess": 40
+      },
+      {}
+    ],
+    "TaskID": 240016
+  },
+  {
+    "ResetType": 3,
+    "GroupID": 240004,
+    "SDropID": 222112,
+    "FinishCondition": [
+      {
+        "ID": 18,
+        "TargetProcess": 5
+      },
+      {}
+    ],
+    "TaskID": 240017
+  },
+  {
+    "ResetType": 3,
+    "GroupID": 240004,
+    "SDropID": 222113,
+    "FinishCondition": [
+      {
+        "ID": 18,
+        "TargetProcess": 10
+      },
+      {}
+    ],
+    "TaskID": 240018
+  },
+  {
+    "ResetType": 3,
+    "GroupID": 240004,
+    "SDropID": 222114,
+    "FinishCondition": [
+      {
+        "ID": 18,
+        "TargetProcess": 20
+      },
+      {}
+    ],
+    "TaskID": 240019
   },
   {
     "ResetType": 2,
@@ -152137,17 +152345,979 @@
     "TaskID": 240020
   },
   {
-    "ResetType": 2,
-    "GroupID": 230034,
-    "SDropID": 222085,
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
     "FinishCondition": [
       {
-        "ID": 1,
+        "ID": 3,
         "TargetProcess": 1
       },
       {}
     ],
-    "TaskID": 230034
+    "TaskID": 240021
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 2
+      },
+      {}
+    ],
+    "TaskID": 240022
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 2
+      },
+      {}
+    ],
+    "TaskID": 240023
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 3
+      },
+      {}
+    ],
+    "TaskID": 240024
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 4
+      },
+      {}
+    ],
+    "TaskID": 240025
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 4
+      },
+      {}
+    ],
+    "TaskID": 240026
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 5
+      },
+      {}
+    ],
+    "TaskID": 240027
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 6
+      },
+      {}
+    ],
+    "TaskID": 240028
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 6
+      },
+      {}
+    ],
+    "TaskID": 240029
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 7
+      },
+      {}
+    ],
+    "TaskID": 240030
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 8
+      },
+      {}
+    ],
+    "TaskID": 240031
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 8
+      },
+      {}
+    ],
+    "TaskID": 240032
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 9
+      },
+      {}
+    ],
+    "TaskID": 240033
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 10
+      },
+      {}
+    ],
+    "TaskID": 240034
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 10
+      },
+      {}
+    ],
+    "TaskID": 240035
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 11
+      },
+      {}
+    ],
+    "TaskID": 240036
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 12
+      },
+      {}
+    ],
+    "TaskID": 240037
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 12
+      },
+      {}
+    ],
+    "TaskID": 240038
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 13
+      },
+      {}
+    ],
+    "TaskID": 240039
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 14
+      },
+      {}
+    ],
+    "TaskID": 240040
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 14
+      },
+      {}
+    ],
+    "TaskID": 240041
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 15
+      },
+      {}
+    ],
+    "TaskID": 240042
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 16
+      },
+      {}
+    ],
+    "TaskID": 240043
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 16
+      },
+      {}
+    ],
+    "TaskID": 240044
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 17
+      },
+      {}
+    ],
+    "TaskID": 240045
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 18
+      },
+      {}
+    ],
+    "TaskID": 240046
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 18
+      },
+      {}
+    ],
+    "TaskID": 240047
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 19
+      },
+      {}
+    ],
+    "TaskID": 240048
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 20
+      },
+      {}
+    ],
+    "TaskID": 240049
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 20
+      },
+      {}
+    ],
+    "TaskID": 240050
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 21
+      },
+      {}
+    ],
+    "TaskID": 240051
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 22
+      },
+      {}
+    ],
+    "TaskID": 240052
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 22
+      },
+      {}
+    ],
+    "TaskID": 240053
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 23
+      },
+      {}
+    ],
+    "TaskID": 240054
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 24
+      },
+      {}
+    ],
+    "TaskID": 240055
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 24
+      },
+      {}
+    ],
+    "TaskID": 240056
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 25
+      },
+      {}
+    ],
+    "TaskID": 240057
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 26
+      },
+      {}
+    ],
+    "TaskID": 240058
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 26
+      },
+      {}
+    ],
+    "TaskID": 240059
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 27
+      },
+      {}
+    ],
+    "TaskID": 240060
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 28
+      },
+      {}
+    ],
+    "TaskID": 240061
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 28
+      },
+      {}
+    ],
+    "TaskID": 240062
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 29
+      },
+      {}
+    ],
+    "TaskID": 240063
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 30
+      },
+      {}
+    ],
+    "TaskID": 240064
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 30
+      },
+      {}
+    ],
+    "TaskID": 240065
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 31
+      },
+      {}
+    ],
+    "TaskID": 240066
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 32
+      },
+      {}
+    ],
+    "TaskID": 240067
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 32
+      },
+      {}
+    ],
+    "TaskID": 240068
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 33
+      },
+      {}
+    ],
+    "TaskID": 240069
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 34
+      },
+      {}
+    ],
+    "TaskID": 240070
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 34
+      },
+      {}
+    ],
+    "TaskID": 240071
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 35
+      },
+      {}
+    ],
+    "TaskID": 240072
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 36
+      },
+      {}
+    ],
+    "TaskID": 240073
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 36
+      },
+      {}
+    ],
+    "TaskID": 240074
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 37
+      },
+      {}
+    ],
+    "TaskID": 240075
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 38
+      },
+      {}
+    ],
+    "TaskID": 240076
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 38
+      },
+      {}
+    ],
+    "TaskID": 240077
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 39
+      },
+      {}
+    ],
+    "TaskID": 240078
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 40
+      },
+      {}
+    ],
+    "TaskID": 240079
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 40
+      },
+      {}
+    ],
+    "TaskID": 240080
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 41
+      },
+      {}
+    ],
+    "TaskID": 240081
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 42
+      },
+      {}
+    ],
+    "TaskID": 240082
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 42
+      },
+      {}
+    ],
+    "TaskID": 240083
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 43
+      },
+      {}
+    ],
+    "TaskID": 240084
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 44
+      },
+      {}
+    ],
+    "TaskID": 240085
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 44
+      },
+      {}
+    ],
+    "TaskID": 240086
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 45
+      },
+      {}
+    ],
+    "TaskID": 240087
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 46
+      },
+      {}
+    ],
+    "TaskID": 240088
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 46
+      },
+      {}
+    ],
+    "TaskID": 240089
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 47
+      },
+      {}
+    ],
+    "TaskID": 240090
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 48
+      },
+      {}
+    ],
+    "TaskID": 240091
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 48
+      },
+      {}
+    ],
+    "TaskID": 240092
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 49
+      },
+      {}
+    ],
+    "TaskID": 240093
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 3,
+        "TargetProcess": 50
+      },
+      {}
+    ],
+    "TaskID": 240094
+  },
+  {
+    "ResetType": 1,
+    "GroupID": 240003,
+    "SDropID": 222089,
+    "FinishCondition": [
+      {
+        "ID": 12,
+        "TargetProcess": 50
+      },
+      {}
+    ],
+    "TaskID": 240095
   },
   {
     "ResetType": 1,

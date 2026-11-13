@@ -43,6 +43,8 @@ public sealed class GameData
         ActivityExchange = LoadRecords<pbActivityExchange>(row => row.ExchangeID);
         FirstChargeAward = LoadRecords<pbFirstChargeAward>(row => row.LoginSeq);
         AchievementScoreGift = LoadRecords<pbAchievementScoreGift>(row => row.TotalScore);
+        ShowSerialRewardActivity = LoadRecords<pbShowSerialRewardActivity>(row => pbShowSerialRewardActivity.Key(row.ActivityID, row.Seq));
+        ShowSerialRewardActivityConfig = LoadRecords<pbShowSerialRewardActivityConfig>(row => row.ActivityID);
         MysteryShopDiscount = LoadRecords<pbMysteryShopDiscount>(row => pbMysteryShopDiscount.Key(row.AreaID, row.ActivityID));
         NewbieChallengeTask = LoadRecords<pbNewbieChallengeTask>(row => pbNewbieChallengeTask.Key(row.SchemeId, row.TaskDay));
         StarRoadPokemon = LoadRecords<pbStarRoadPokemon>(row => row.PokemonId);
@@ -91,6 +93,8 @@ public sealed class GameData
         BattlePassWeekTaskGroup = LoadMessages<pbBattlePass_WeekTaskGroup>(row => row.WeekTaskGroupID);
         RewardPool = LoadRecords<pbReward_Pool>(row => row.LotteryPoolId);
         BadgeRewardPool = LoadRecords<pbBadgeReward_Pool>(row => row.LotteryPoolId);
+        LotteryReward = LoadMessages<pbLotteryReward>(row => row.RewardId);
+        BadgeReward = LoadRecords<pbBadgeReward>(row => row.RewardId);
         HeadIconBase = LoadMessages<pbHeadIcon_Base>(row => row.HeadIconID);
         HeadIcon = LoadMessages<pbHeadIcon>(row => row.HeadIconID);
         ContestantCardDecoration = LoadMessages<pbContestant_Card_Decoration>(row => row.DecorationID);
@@ -177,6 +181,8 @@ public sealed class GameData
     public DatabinTable<pbActivityExchange> ActivityExchange { get; }
     public DatabinTable<pbFirstChargeAward> FirstChargeAward { get; }
     public DatabinTable<pbAchievementScoreGift> AchievementScoreGift { get; }
+    public DatabinTable<pbShowSerialRewardActivity> ShowSerialRewardActivity { get; }
+    public DatabinTable<pbShowSerialRewardActivityConfig> ShowSerialRewardActivityConfig { get; }
     public DatabinTable<pbMysteryShopDiscount> MysteryShopDiscount { get; }
     public DatabinTable<pbNewbieChallengeTask> NewbieChallengeTask { get; }
     public DatabinTable<pbStarRoadPokemon> StarRoadPokemon { get; }
@@ -247,6 +253,8 @@ public sealed class GameData
     public DatabinTable<pbBattlePass_WeekTaskGroup> BattlePassWeekTaskGroup { get; }
     public DatabinTable<pbReward_Pool> RewardPool { get; }
     public DatabinTable<pbBadgeReward_Pool> BadgeRewardPool { get; }
+    public DatabinTable<pbLotteryReward> LotteryReward { get; }
+    public DatabinTable<pbBadgeReward> BadgeReward { get; }
     public DatabinTable<pbHeadIcon_Base> HeadIconBase { get; }
     public DatabinTable<pbHeadIcon> HeadIcon { get; }
     public DatabinTable<pbContestant_Card_Decoration> ContestantCardDecoration { get; }

@@ -105,6 +105,17 @@ LUA_ONLY_FIELDS = {
         277088: Field("TotalScore", "int32"),
         269784: Field("DropID", "int32"),
     },
+    "pbShowSerialRewardActivity": {
+        244760: Field("ActivityID", "int32"),
+        277077: Field("Seq", "int32"),
+        269784: Field("DropID", "int32"),
+    },
+    "pbShowSerialRewardActivityConfig": {
+        244760: Field("ActivityID", "int32"),
+        258006: Field("CrossDayType", "int32"),
+        274771: Field("SkipRewardCanReceive", "int32"),
+        271323: Field("ActivityFinishSendMail", "int32"),
+    },
     "pbMysteryShopDiscount": {
         244760: Field("ActivityID", "int32"),
         277708: Field("AreaID", "int32"),
@@ -216,6 +227,15 @@ LUA_ONLY_FIELDS = {
         236391: Field("StartTime", "int64"),
         258880: Field("EndTime", "int64"),
         259142: Field("LotteryPoolId", "int32"),
+    },
+    "pbBadgeReward": {
+        208438: Field("RewardProbability", "int32"),
+        232620: Field("ResourceNum", "int32"),
+        239380: Field("ResourceType", "int32"),
+        258431: Field("FirstLottery", "int32"),
+        259142: Field("LotteryPoolId", "int32"),
+        271426: Field("RewardId", "int32"),
+        282173: Field("ResourceId", "int32"),
     },
     "pbBadgeReward_Pool": {
         236391: Field("StartTime", "int64"),
@@ -782,6 +802,16 @@ RANKED_DIVISION_SERVER_FIELDS = (
 
 MAP_BASE_SERVER_FIELDS = ("MapBaseId", "MatchTime")
 
+LOTTERY_REWARD_SERVER_FIELDS = (
+    "RewardId",
+    "LotteryPoolId",
+    "RewardProbability",
+    "ResourceType",
+    "ResourceId",
+    "ResourceNum",
+    "FirstLottery",
+)
+
 POKEMON_RELEASE_SERVER_FIELDS = ("PokemonId", "OnTime", "Order")
 
 GLORY_ANNOUNCE_SERVER_FIELDS = ("AnnounceID", "Transmuteid", "TransmuteNum")
@@ -813,6 +843,12 @@ TABLES = {
     "databin_FirstChargeAward": Table("pbFirstChargeAward", LUA_ONLY_FIELDS["pbFirstChargeAward"], key_field="LoginSeq"),
     "databin_AchievementScoreGift": Table(
         "pbAchievementScoreGift", LUA_ONLY_FIELDS["pbAchievementScoreGift"], key_field="TotalScore"
+    ),
+    "databin_ShowSerialRewardActivity": Table(
+        "pbShowSerialRewardActivity", LUA_ONLY_FIELDS["pbShowSerialRewardActivity"]
+    ),
+    "databin_ShowSerialRewardActivityConfig": Table(
+        "pbShowSerialRewardActivityConfig", LUA_ONLY_FIELDS["pbShowSerialRewardActivityConfig"], key_field="ActivityID"
     ),
     "databin_MysteryShopDiscount": Table("pbMysteryShopDiscount", LUA_ONLY_FIELDS["pbMysteryShopDiscount"]),
     "databin_GuildActivity_Base": Table(
@@ -914,6 +950,8 @@ TABLES = {
     "databin_BattlePassTaskBase": Table("pbTask_Base", SERVER_FIELD_SUBSETS["pbTask_Base"], key_field="TaskID"),
     "databin_Reward_Pool": Table("pbReward_Pool", LUA_ONLY_FIELDS["pbReward_Pool"], key_field="LotteryPoolId"),
     "databin_BadgeReward_Pool": Table("pbBadgeReward_Pool", LUA_ONLY_FIELDS["pbBadgeReward_Pool"], key_field="LotteryPoolId"),
+    "databin_LotteryReward": Table("pbLotteryReward", key_field="RewardId", kept_fields=LOTTERY_REWARD_SERVER_FIELDS),
+    "databin_BadgeReward": Table("pbBadgeReward", LUA_ONLY_FIELDS["pbBadgeReward"], key_field="RewardId"),
     "databin_Canopy_Base": Table("pbCanopy_Base", LUA_ONLY_FIELDS["pbCanopy_Base"], key_field="CanopyID"),
     "databin_CardFace": Table("pbCardFace", LUA_ONLY_FIELDS["pbCardFace"], key_field="CardFaceID"),
     "databin_Contestant_Card_Decoration": Table(
