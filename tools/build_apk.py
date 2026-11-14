@@ -75,6 +75,12 @@ GCLOUD_LIBRARY_SHA256 = (
 IS_DOMAIN_NAME_RETURNS_DOMAIN = 0x208748
 MOV_W20_ONE = 0x52800034
 MOV_W20_ZERO = 0x52800014
+DOLPHIN_SERVER_AUTH_DEFAULT = 0x22C2D8
+MOV_W2_ONE = 0x52800022
+MOV_W2_ZERO = 0x52800002
+DOLPHIN_CHECK_CONFIG_GAME_KEY = 0x47E6A0
+CBNZ_X0_CHECK_CONFIG_OK = 0xB50002A0
+B_CHECK_CONFIG_OK = 0x14000015
 
 AXML_STRING_POOL = 0x0001
 AXML_START_ELEMENT = 0x0102
@@ -2122,8 +2128,24 @@ def address_any_update_host(content: bytes) -> bytes:
         raise BuildError(
             "libgcloud.so does not hold the expected domain check instruction."
         )
+    if (
+        struct.unpack_from("<I", content, DOLPHIN_SERVER_AUTH_DEFAULT)[0]
+        != MOV_W2_ONE
+    ):
+        raise BuildError(
+            "libgcloud.so does not hold the expected server auth default instruction."
+        )
+    if (
+        struct.unpack_from("<I", content, DOLPHIN_CHECK_CONFIG_GAME_KEY)[0]
+        != CBNZ_X0_CHECK_CONFIG_OK
+    ):
+        raise BuildError(
+            "libgcloud.so does not hold the expected check config game key instruction."
+        )
     patched = bytearray(content)
     struct.pack_into("<I", patched, IS_DOMAIN_NAME_RETURNS_DOMAIN, MOV_W20_ZERO)
+    struct.pack_into("<I", patched, DOLPHIN_SERVER_AUTH_DEFAULT, MOV_W2_ZERO)
+    struct.pack_into("<I", patched, DOLPHIN_CHECK_CONFIG_GAME_KEY, B_CHECK_CONFIG_OK)
     return bytes(patched)
 
 
